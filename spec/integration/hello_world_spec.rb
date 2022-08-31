@@ -1,6 +1,6 @@
 RSpec.describe "Hello World" do
   it "properly converts return args (i32, i64, f32, f64)" do
-    instance, store = compile <<~WAT
+    instance = compile <<~WAT
       (module
         (func $module/hello (result i32 i64 f32 f64)
           i32.const 1
@@ -13,13 +13,13 @@ RSpec.describe "Hello World" do
        )
     WAT
 
-    result = instance.invoke(store, "hello", [])
+    result = instance.invoke("hello", [])
 
     expect(result).to eq([1, 2, 3.0, 4.0])
   end
 
   it "can accept basic args" do
-    instance, store = compile <<~WAT
+    instance = compile <<~WAT
       (module
         (func $module/add_three (param $0 i32) (param $1 i64) (param $2 f32) (param $3 f64) (result i32 i64 f32 f64)
           local.get $0
@@ -41,9 +41,24 @@ RSpec.describe "Hello World" do
         (export "add_three" (func $module/add_three))
       )
     WAT
-    result = instance.invoke(store, "add_three", [1, 2, 3.0, 4.0])
+    result = instance.invoke("add_three", [1, 2, 3.0, 4.0])
 
     expect(result).to eq([4, 5, 6.0, 7.0])
+  end
+
+  it "has exports" do
+    instance = compile <<~WAT
+      (module
+        (func $module/hello (result i32)
+          i32.const 1
+        )
+        (export "hello" (func $module/hello))
+      )
+    WAT
+
+    result = instance.exports.transform_values(&:type_name)
+
+    expect(result).to eq({hello: :func})
   end
 
   def compile(wat)
@@ -52,7 +67,6 @@ RSpec.describe "Hello World" do
     engine = Wasmtime::Engine.new(config)
     store = Wasmtime::Store.new engine, data
     mod = Wasmtime::Module.new engine, wat
-    instance = Wasmtime::Instance.new(store, mod)
-    [instance, store]
+    Wasmtime::Instance.new(store, mod)
   end
 end

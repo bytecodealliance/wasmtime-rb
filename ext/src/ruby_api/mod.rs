@@ -3,6 +3,7 @@ use magnus::{define_module, memoize, Error, RModule};
 mod config;
 mod engine;
 mod errors;
+mod export;
 mod instance;
 mod module;
 mod params;
@@ -20,5 +21,6 @@ pub fn init() -> Result<(), Error> {
     module::init()?;
     store::init()?;
     instance::init()?;
+    export::init()?;
     Ok(())
 }

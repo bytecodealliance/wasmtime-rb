@@ -1,25 +1,63 @@
-use super::{module::Module, params::Params, root, store::Store, to_ruby_value::ToRubyValue};
+use super::{
+    export::Export, module::Module, params::Params, root, store::Store, to_ruby_value::ToRubyValue,
+};
 use crate::{err, error};
-use magnus::{function, method, Error, Module as _, Object, RArray, Value};
+use magnus;
+use magnus::{
+    function, gc, method, DataTypeFunctions, Error, Module as _, Object, RArray, RHash, RTypedData,
+    TypedData, Value,
+};
 use wasmtime::{AsContextMut, Func, Instance as InstanceImpl, StoreContextMut, Val};
 
-#[derive(Clone, Debug)]
-#[magnus::wrap(class = "Wasmtime::Instance")]
+#[derive(Clone, Debug, TypedData)]
+#[magnus(class = "Wasmtime::Instance", mark)]
 pub struct Instance {
     inner: InstanceImpl,
+    store: Value,
+}
+
+unsafe impl Send for Instance {}
+
+impl DataTypeFunctions for Instance {
+    fn mark(&self) {
+        gc::mark(&self.store);
+    }
 }
 
 impl Instance {
-    pub fn new(s: &Store, module: &Module) -> Result<Self, Error> {
+    pub fn new(s: Value, module: &Module) -> Result<Self, Error> {
+        let rtd = RTypedData::from_value(s).unwrap();
+        let store = rtd.get::<Store>()?;
         let module = module.get();
-        let mut store = s.borrow_mut();
+        let mut store = store.borrow_mut();
         let context = store.as_context_mut();
         let inner = InstanceImpl::new(context, &module, &[]).map_err(|e| error!("{}", e))?;
 
-        Ok(Self { inner })
+        Ok(Self { inner, store: s })
     }
 
-    pub fn invoke(&self, store: &Store, name: String, args: RArray) -> Result<RArray, Error> {
+    pub fn exports(&self) -> Result<RHash, Error> {
+        let rtd = RTypedData::from_value(self.store).unwrap();
+        let store = rtd.get::<Store>()?;
+        let mut borrowed_store = store.borrow_mut();
+        let mut ctx = borrowed_store.as_context_mut();
+        let hash = RHash::new();
+        let exports = self
+            .inner
+            .exports(&mut ctx)
+            .map(|export| Export::new(store, export));
+
+        for export in exports {
+            let name = export.name();
+            hash.aset(name, export)?;
+        }
+
+        Ok(hash)
+    }
+
+    pub fn invoke(&self, name: String, args: RArray) -> Result<RArray, Error> {
+        let rtd = RTypedData::from_value(self.store).unwrap();
+        let store = rtd.get::<Store>()?;
         let mut store = store.borrow_mut();
         let func = self.get_func(store.as_context_mut(), &name)?;
         let param_types = func.ty(store.as_context_mut()).params().collect::<Vec<_>>();
@@ -68,7 +106,8 @@ pub fn init() -> Result<(), Error> {
     let class = root().define_class("Instance", Default::default())?;
 
     class.define_singleton_method("new", function!(Instance::new, 2))?;
-    class.define_method("invoke", method!(Instance::invoke, 3))?;
+    class.define_method("invoke", method!(Instance::invoke, 2))?;
+    class.define_method("exports", method!(Instance::exports, 0))?;
 
     Ok(())
 }

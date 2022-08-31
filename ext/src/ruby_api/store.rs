@@ -1,6 +1,6 @@
 use super::{engine::Engine, root};
 use magnus::{function, gc, DataTypeFunctions, Error, Module, Object, TypedData, Value};
-use std::cell::{RefCell, RefMut};
+use std::cell::{Ref, RefCell, RefMut};
 use wasmtime::Store as StoreImpl;
 
 #[derive(TypedData, Debug)]
@@ -29,6 +29,10 @@ impl Store {
 
     pub fn borrow_mut(&self) -> RefMut<StoreImpl<Value>> {
         self.inner.borrow_mut()
+    }
+
+    pub fn borrow(&self) -> Ref<StoreImpl<Value>> {
+        self.inner.borrow()
     }
 }
 

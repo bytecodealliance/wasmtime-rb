@@ -12,4 +12,13 @@ RSpec.configure do |config|
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
+
+  if ENV["GC_STRESS"]
+    config.around :each do |ex|
+      GC.stress = true
+      ex.run
+    ensure
+      GC.stress = false
+    end
+  end
 end

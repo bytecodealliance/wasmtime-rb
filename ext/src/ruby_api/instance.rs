@@ -1,11 +1,11 @@
 use super::{
     export::Export, module::Module, params::Params, root, store::Store, to_ruby_value::ToRubyValue,
 };
-use crate::{err, error};
+use crate::{err, error, rtyped_data};
 use magnus;
 use magnus::{
-    function, gc, method, DataTypeFunctions, Error, Module as _, Object, RArray, RHash, RTypedData,
-    TypedData, Value,
+    function, gc, method, DataTypeFunctions, Error, Module as _, Object, RArray, RHash, TypedData,
+    Value,
 };
 use wasmtime::{AsContextMut, Func, Instance as InstanceImpl, StoreContextMut, Val};
 
@@ -26,7 +26,7 @@ impl DataTypeFunctions for Instance {
 
 impl Instance {
     pub fn new(s: Value, module: &Module) -> Result<Self, Error> {
-        let rtd = RTypedData::from_value(s).unwrap();
+        let rtd = rtyped_data!(s)?;
         let store = rtd.get::<Store>()?;
         let module = module.get();
         let mut store = store.borrow_mut();
@@ -37,7 +37,7 @@ impl Instance {
     }
 
     pub fn exports(&self) -> Result<RHash, Error> {
-        let rtd = RTypedData::from_value(self.store).unwrap();
+        let rtd = rtyped_data!(self.store)?;
         let store = rtd.get::<Store>()?;
         let mut borrowed_store = store.borrow_mut();
         let mut ctx = borrowed_store.as_context_mut();
@@ -56,7 +56,7 @@ impl Instance {
     }
 
     pub fn invoke(&self, name: String, args: RArray) -> Result<RArray, Error> {
-        let rtd = RTypedData::from_value(self.store).unwrap();
+        let rtd = rtyped_data!(self.store)?;
         let store = rtd.get::<Store>()?;
         let mut store = store.borrow_mut();
         let func = self.get_func(store.as_context_mut(), &name)?;

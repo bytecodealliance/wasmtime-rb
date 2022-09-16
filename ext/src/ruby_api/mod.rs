@@ -15,6 +15,14 @@ pub fn root() -> RModule {
     *memoize!(RModule: define_module("Wasmtime").unwrap())
 }
 
+#[macro_export]
+macro_rules! rtyped_data {
+    ($value:expr) => {{
+        magnus::RTypedData::from_value($value)
+            .ok_or_else(|| error!("could not get inner typed data"))
+    }};
+}
+
 pub fn init() -> Result<(), Error> {
     config::init()?;
     engine::init()?;

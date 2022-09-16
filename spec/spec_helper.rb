@@ -2,6 +2,17 @@
 
 require "wasmtime"
 
+module SpecHelpers
+  def compile(wat)
+    data = {}
+    config = Wasmtime::Config.new
+    engine = Wasmtime::Engine.new(config)
+    store = Wasmtime::Store.new engine, data
+    mod = Wasmtime::Module.new engine, wat
+    Wasmtime::Instance.new(store, mod)
+  end
+end
+
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = ".rspec_status"
@@ -21,4 +32,6 @@ RSpec.configure do |config|
       GC.stress = false
     end
   end
+
+  config.include SpecHelpers
 end

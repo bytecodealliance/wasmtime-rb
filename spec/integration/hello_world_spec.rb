@@ -45,28 +45,4 @@ RSpec.describe "Hello World" do
 
     expect(result).to eq([4, 5, 6.0, 7.0])
   end
-
-  it "has exports" do
-    instance = compile <<~WAT
-      (module
-        (func $module/hello (result i32)
-          i32.const 1
-        )
-        (export "hello" (func $module/hello))
-      )
-    WAT
-
-    result = instance.exports.transform_values(&:type_name)
-
-    expect(result).to eq({hello: :func})
-  end
-
-  def compile(wat)
-    data = {}
-    config = Wasmtime::Config.new
-    engine = Wasmtime::Engine.new(config)
-    store = Wasmtime::Store.new engine, data
-    mod = Wasmtime::Module.new engine, wat
-    Wasmtime::Instance.new(store, mod)
-  end
 end

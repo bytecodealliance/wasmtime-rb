@@ -4,6 +4,17 @@ module Wasmtime
   RSpec.describe Engine do
     let(:engine) { Engine.new(Wasmtime::Config.new) }
 
+    describe(".new") do
+      it("accepts a config") { Engine.new(Wasmtime::Config.new) }
+      it("accepts no config") { Engine.new }
+      it("rejects non-config arg") do
+        expect { Engine.new(1) }.to raise_error(TypeError)
+      end
+      it("rejects multiple args") do
+        expect { Engine.new(1, 2) }.to raise_error(ArgumentError)
+      end
+    end
+
     describe(".precompile_module") do
       it("returns a String") do
         serialized = engine.precompile_module("(module)")

@@ -3,7 +3,7 @@ name = "ext"
 version = "0.1.0"
 edition = "2018"
 authors = ["Ian Ker-Seymer <hello@ianks.com>"]
-license = "MIT"
+license = "Apache-2.0"
 publish = false
 
 [lib]

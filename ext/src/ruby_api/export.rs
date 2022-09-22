@@ -6,8 +6,8 @@ use magnus::{
 use wasmtime::{AsContext, Export as ExportImpl, ExternType};
 
 pub struct Export<'instance> {
-    export: ExportImpl<'instance>,
     store: &'instance Store,
+    export: ExportImpl<'instance>,
 }
 
 unsafe impl Send for Export<'_> {}

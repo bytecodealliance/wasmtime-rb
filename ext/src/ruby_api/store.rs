@@ -22,7 +22,7 @@ impl Store {
     pub fn new(engine: &Engine, data: Value) -> Self {
         let eng = engine.get();
         Self {
-            inner: RefCell::new(StoreImpl::new(&eng, data)),
+            inner: RefCell::new(StoreImpl::new(eng, data)),
             data,
         }
     }

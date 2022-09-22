@@ -1,6 +1,6 @@
 use super::{config::Config, root};
 use crate::error;
-use magnus::{function, method, Error, Module, Object, RString, Value, scan_args};
+use magnus::{function, method, scan_args, Error, Module, Object, RString, Value};
 use wasmtime::Engine as EngineImpl;
 
 #[derive(Clone)]
@@ -12,13 +12,10 @@ pub struct Engine {
 impl Engine {
     pub fn new(args: &[Value]) -> Result<Self, Error> {
         let args = scan_args::scan_args::<(), (Option<&Config>,), (), (), (), ()>(args)?;
-        let (config, ) = args.optional;
+        let (config,) = args.optional;
         let inner = match config {
-            Some(config) => {
-                EngineImpl::new(&config.get())
-                    .map_err(|e| error!("{}", e))?
-            }
-            None => EngineImpl::default()
+            Some(config) => EngineImpl::new(&config.get()).map_err(|e| error!("{}", e))?,
+            None => EngineImpl::default(),
         };
 
         Ok(Self { inner })
@@ -33,7 +30,8 @@ impl Engine {
     }
 
     pub fn precompile_module(&self, string: RString) -> Result<RString, Error> {
-        self.inner.precompile_module(unsafe { string.as_slice() })
+        self.inner
+            .precompile_module(unsafe { string.as_slice() })
             .map(|bytes| RString::from_slice(&bytes))
             .map_err(|e| error!("{}", e.to_string()))
     }

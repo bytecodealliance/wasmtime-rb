@@ -13,7 +13,7 @@ impl Module {
     pub fn new(engine: &Engine, wat_or_wasm: RString) -> Self {
         let eng = engine.get();
         // SAFETY: this string is immediately copied and never moved off the stack
-        let module = ModuleImpl::new(&eng, unsafe { wat_or_wasm.as_slice() })
+        let module = ModuleImpl::new(eng, unsafe { wat_or_wasm.as_slice() })
             .map_err(|e| error!("Could not build module: {:?}", e.to_string()))
             .unwrap();
 
@@ -27,7 +27,8 @@ impl Module {
     }
 
     pub fn serialize(&self) -> Result<RString, Error> {
-        self.get().serialize()
+        self.get()
+            .serialize()
             .map(|bytes| RString::from_slice(&bytes))
             .map_err(|e| error!("{:?}", e))
     }

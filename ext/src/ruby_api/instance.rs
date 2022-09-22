@@ -2,7 +2,6 @@ use super::{
     export::Export, module::Module, params::Params, root, store::Store, to_ruby_value::ToRubyValue,
 };
 use crate::{err, error, rtyped_data};
-use magnus;
 use magnus::{
     function, gc, method, DataTypeFunctions, Error, Module as _, Object, RArray, RHash, TypedData,
     Value,
@@ -31,7 +30,7 @@ impl Instance {
         let module = module.get();
         let mut store = store.borrow_mut();
         let context = store.as_context_mut();
-        let inner = InstanceImpl::new(context, &module, &[]).map_err(|e| error!("{}", e))?;
+        let inner = InstanceImpl::new(context, module, &[]).map_err(|e| error!("{}", e))?;
 
         Ok(Self { inner, store: s })
     }
@@ -67,7 +66,7 @@ impl Instance {
         let results_len = func.ty(store.as_context_mut()).results().len();
         let mut results = vec![Val::null(); results_len];
         let ctx = store.as_context_mut();
-        let results = self.invoke_func(ctx, &func, &params, results.as_mut_slice())?;
+        let results = Self::invoke_func(ctx, &func, &params, results.as_mut_slice())?;
 
         Ok(RArray::from_vec(results))
     }
@@ -75,7 +74,7 @@ impl Instance {
     fn get_func(&self, context: StoreContextMut<'_, Value>, name: &str) -> Result<Func, Error> {
         let instance = self.inner;
 
-        if let Some(func) = instance.get_func(context, &name) {
+        if let Some(func) = instance.get_func(context, name) {
             Ok(func)
         } else {
             err!("function \"{}\" not found", name)
@@ -83,7 +82,6 @@ impl Instance {
     }
 
     fn invoke_func(
-        &self,
         context: StoreContextMut<'_, Value>,
         func: &Func,
         params: &[Val],

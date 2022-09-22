@@ -5,12 +5,14 @@ source "https://rubygems.org"
 # Specify your gem's dependencies in wasmtime-rb.gemspec
 gemspec
 
-gem "rake", "~> 13.0"
+group :development do
+  gem "rake", "~> 13.0"
+  gem "rake-compiler"
+  gem "rb_sys"
+  gem "standard", "~> 1.3"
+  gem "get_process_mem"
+end
 
-gem "rake-compiler"
-
-gem "rb_sys"
-
-gem "rspec", "~> 3.0"
-
-gem "standard", "~> 1.3"
+group :test do
+  gem "rspec", "~> 3.0"
+end

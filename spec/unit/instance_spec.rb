@@ -18,5 +18,75 @@ module Wasmtime
       expect(exports).to include(hello: be_a(Export))
       expect(type_names).to eq(hello: :func)
     end
+
+    describe "invoke" do
+      it "returns nil when func has no return value" do
+        instance = compile(<<~WAT)
+          (module
+            (func (export "main")))
+        WAT
+        expect(instance.invoke("main", [])).to be_nil
+      end
+
+      it "returns a value when func has single return value" do
+        instance = compile(<<~WAT)
+          (module
+            (func (export "main") (result i32)
+              i32.const 42))
+        WAT
+        expect(instance.invoke("main", [])).to eq(42)
+      end
+
+      it "returns an array when func has multiple return values" do
+        instance = compile(<<~WAT)
+          (module
+            (func (export "main") (result i32) (result i32)
+              i32.const 42
+              i32.const 43))
+        WAT
+        expect(instance.invoke("main", [])).to eq([42, 43])
+      end
+
+      it "calls a func with i32" do
+        expect(invoke_identity_function("i32", 1)).to eq(1)
+      end
+
+      it "calls a func with i32 overflow" do
+        expect { invoke_identity_function("i32", 2**50) }.to raise_error(RangeError)
+      end
+
+      it "calls a func with i64" do
+        expect(invoke_identity_function("i64", 2**50)).to eq(2**50)
+      end
+
+      it "calls a func with i64 overflow" do
+        expect { invoke_identity_function("i64", 2**65) }.to raise_error(RangeError)
+      end
+
+      it "calls a func with f32" do
+        expect(invoke_identity_function("f32", 2.0)).to eq(2.0)
+      end
+
+      it "calls a func with f32 overflow" do
+        expect(invoke_identity_function("f32", 5 * 10**40)).to eq(Float::INFINITY)
+      end
+
+      it "calls a func with f64" do
+        expect(invoke_identity_function("f64", 2.0)).to eq(2.0)
+      end
+
+      it "calls a func with f32 overflow" do
+        expect(invoke_identity_function("f32", 5 * 10**40)).to eq(Float::INFINITY)
+      end
+    end
+
+    def invoke_identity_function(type, arg)
+      instance = compile(<<~WAT)
+        (module
+          (func (export "main") (param #{type}) (result #{type})
+            local.get 0))
+      WAT
+      instance.invoke("main", [arg])
+    end
   end
 end

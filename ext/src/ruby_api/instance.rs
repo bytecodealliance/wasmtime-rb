@@ -1,12 +1,13 @@
 use super::{
-    export::Export, module::Module, params::Params, root, store::Store, to_ruby_value::ToRubyValue,
+    export::Export, func::Func, module::Module, params::Params, root, store::Store,
+    to_ruby_value::ToRubyValue,
 };
 use crate::{err, error, rtyped_data};
 use magnus::{
-    function, gc, method, DataTypeFunctions, Error, Module as _, Object, RArray, RHash, TypedData,
-    Value,
+    function, gc, method, scan_args, DataTypeFunctions, Error, Module as _, Object, RArray, RHash,
+    TypedData, Value, QNIL,
 };
-use wasmtime::{AsContextMut, Func, Instance as InstanceImpl, StoreContextMut, Val};
+use wasmtime::{AsContextMut, Extern, Instance as InstanceImpl, StoreContextMut, Val};
 
 #[derive(Clone, Debug, TypedData)]
 #[magnus(class = "Wasmtime::Instance", mark)]
@@ -24,13 +25,36 @@ impl DataTypeFunctions for Instance {
 }
 
 impl Instance {
-    pub fn new(s: Value, module: &Module) -> Result<Self, Error> {
+    // pub fn new(s: Value, module: &Module, imports: &[Value]) -> Result<Self, Error> {
+    pub fn new(args: &[Value]) -> Result<Self, Error> {
+        let args =
+            scan_args::scan_args::<(Value, &Module), (Option<magnus::RArray>,), (), (), (), ()>(
+                args,
+            )?;
+        let (s, module) = args.required;
+        let (imports,) = args.optional;
+
+        let imports: Vec<Extern> = match imports {
+            Some(arr) => {
+                let mut imports = vec![];
+                unsafe {
+                    for &import in arr.as_slice().iter() {
+                        let rtd = rtyped_data!(import)?;
+                        let import = rtd.get::<Func>()?;
+                        imports.push(import.into())
+                    }
+                }
+                imports
+            }
+            None => vec![],
+        };
+
         let rtd = rtyped_data!(s)?;
         let store = rtd.get::<Store>()?;
         let module = module.get();
         let mut store = store.borrow_mut();
         let context = store.as_context_mut();
-        let inner = InstanceImpl::new(context, module, &[]).map_err(|e| error!("{}", e))?;
+        let inner = InstanceImpl::new(context, module, &imports).map_err(|e| error!("{}", e))?;
 
         Ok(Self { inner, store: s })
     }
@@ -54,7 +78,7 @@ impl Instance {
         Ok(hash)
     }
 
-    pub fn invoke(&self, name: String, args: RArray) -> Result<RArray, Error> {
+    pub fn invoke(&self, name: String, args: RArray) -> Result<Value, Error> {
         let rtd = rtyped_data!(self.store)?;
         let store = rtd.get::<Store>()?;
         let mut store = store.borrow_mut();
@@ -66,12 +90,15 @@ impl Instance {
         let results_len = func.ty(store.as_context_mut()).results().len();
         let mut results = vec![Val::null(); results_len];
         let ctx = store.as_context_mut();
-        let results = Self::invoke_func(ctx, &func, &params, results.as_mut_slice())?;
 
-        Ok(RArray::from_vec(results))
+        Self::invoke_func(ctx, &func, &params, results.as_mut_slice())
     }
 
-    fn get_func(&self, context: StoreContextMut<'_, Value>, name: &str) -> Result<Func, Error> {
+    fn get_func(
+        &self,
+        context: StoreContextMut<'_, Value>,
+        name: &str,
+    ) -> Result<wasmtime::Func, Error> {
         let instance = self.inner;
 
         if let Some(func) = instance.get_func(context, name) {
@@ -83,27 +110,31 @@ impl Instance {
 
     fn invoke_func(
         context: StoreContextMut<'_, Value>,
-        func: &Func,
+        func: &wasmtime::Func,
         params: &[Val],
         results: &mut [Val],
-    ) -> Result<Vec<Value>, Error> {
+    ) -> Result<Value, Error> {
         func.call(context, params, results)
             .map_err(|e| error!("Could not invoke function: {}", e))?;
 
-        let mut final_result = Vec::with_capacity(results.len());
-
-        for result in results {
-            final_result.push(result.to_ruby_value()?);
+        match results {
+            [] => Ok(QNIL.into()),
+            [result] => result.to_ruby_value(),
+            _ => {
+                let array = RArray::with_capacity(results.len());
+                for result in results {
+                    array.push(result.to_ruby_value()?)?;
+                }
+                Ok(array.into())
+            }
         }
-
-        Ok(final_result)
     }
 }
 
 pub fn init() -> Result<(), Error> {
     let class = root().define_class("Instance", Default::default())?;
 
-    class.define_singleton_method("new", function!(Instance::new, 2))?;
+    class.define_singleton_method("new", function!(Instance::new, -1))?;
     class.define_method("invoke", method!(Instance::invoke, 2))?;
     class.define_method("exports", method!(Instance::exports, 0))?;
 

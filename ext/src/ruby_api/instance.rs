@@ -1,6 +1,11 @@
 use super::{
-    export::Export, func::Func, module::Module, params::Params, root, store::Store,
-    to_ruby_value::ToRubyValue,
+    convert::ToRubyValue,
+    export::Export,
+    func::Func,
+    module::Module,
+    params::Params,
+    root,
+    store::{Store, StoreData},
 };
 use crate::{err, error};
 use magnus::{
@@ -25,19 +30,23 @@ impl DataTypeFunctions for Instance {
 }
 
 impl Instance {
-    // pub fn new(s: Value, module: &Module, imports: &[Value]) -> Result<Self, Error> {
     pub fn new(args: &[Value]) -> Result<Self, Error> {
         let args =
-            scan_args::scan_args::<(Value, &Module), (Option<magnus::RArray>,), (), (), (), ()>(
-                args,
-            )?;
+            scan_args::scan_args::<(Value, &Module), (Option<Value>,), (), (), (), ()>(args)?;
         let (s, module) = args.required;
-        let (imports,) = args.optional;
+        let store: &Store = s.try_convert()?;
+        let imports = args
+            .optional
+            .0
+            .and_then(|v| if v.is_nil() { None } else { Some(v) });
 
         let imports: Vec<Extern> = match imports {
             Some(arr) => {
+                let arr: RArray = arr.try_convert()?;
                 let mut imports = vec![];
-                for &import in unsafe { arr.as_slice() }.iter() {
+                for import in arr.each() {
+                    let import = import?;
+                    store.remember(import);
                     let func = import.try_convert::<&Func>()?;
                     imports.push(func.into());
                 }
@@ -46,7 +55,6 @@ impl Instance {
             None => vec![],
         };
 
-        let store: &Store = s.try_convert()?;
         let module = module.get();
         let mut store = store.borrow_mut();
         let context = store.as_context_mut();
@@ -90,7 +98,7 @@ impl Instance {
 
     fn get_func(
         &self,
-        context: StoreContextMut<'_, Value>,
+        context: StoreContextMut<'_, StoreData>,
         name: &str,
     ) -> Result<wasmtime::Func, Error> {
         let instance = self.inner;
@@ -102,8 +110,8 @@ impl Instance {
         }
     }
 
-    fn invoke_func(
-        context: StoreContextMut<'_, Value>,
+    pub fn invoke_func(
+        context: StoreContextMut<'_, StoreData>,
         func: &wasmtime::Func,
         params: &[Val],
         results: &mut [Val],

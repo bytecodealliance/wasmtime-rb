@@ -1,6 +1,7 @@
 use magnus::{define_module, memoize, Error, RModule};
 
 mod config;
+mod convert;
 mod engine;
 mod errors;
 mod export;
@@ -10,7 +11,6 @@ mod instance;
 mod module;
 mod params;
 mod store;
-mod to_ruby_value;
 
 /// The "Wasmtime" Ruby module.
 pub fn root() -> RModule {

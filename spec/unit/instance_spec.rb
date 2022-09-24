@@ -2,6 +2,22 @@ require "spec_helper"
 
 module Wasmtime
   RSpec.describe Instance do
+    describe "#new" do
+      it "raises a TypeError when receiving invalid imports" do
+        mod = Wasmtime::Module.new(engine, "(module)")
+
+        expect { Wasmtime::Instance.new(store, mod, "not an array") }
+          .to raise_error(TypeError, "no implicit conversion of String into Wasmtime::Func")
+      end
+
+      it "accepts nil for imports" do
+        mod = Wasmtime::Module.new(engine, "(module)")
+
+        expect { Wasmtime::Instance.new(store, mod, nil) }
+          .not_to raise_error
+      end
+    end
+
     it "exposes the exports" do
       instance = compile <<~WAT
         (module

@@ -1,38 +1,88 @@
 use super::{engine::Engine, root};
 use magnus::{function, gc, DataTypeFunctions, Error, Module, Object, TypedData, Value};
 use std::cell::{Ref, RefCell, RefMut};
+use std::collections::HashMap;
 use wasmtime::Store as StoreImpl;
 
-#[derive(TypedData, Debug)]
-#[magnus(class = "Wasmtime::Store", size, free_immediatly)]
+use magnus::rb_sys::raw_value;
+
+#[derive(Debug)]
+pub struct StoreData {
+    user_data: Value,
+    host_exception: Option<Value>,
+}
+
+#[derive(TypedData)]
+#[magnus(class = "Wasmtime::Store", size, mark, free_immediatly)]
 pub struct Store {
-    inner: RefCell<StoreImpl<Value>>,
-    data: Value,
+    inner: RefCell<StoreImpl<StoreData>>,
+    refs: RefCell<HashMap<ValueRef, usize>>,
 }
 
 impl DataTypeFunctions for Store {
     fn mark(&self) {
-        gc::mark(&self.data);
+        self.refs.borrow().keys().for_each(|v| v.mark());
     }
 }
 
 unsafe impl Send for Store {}
+unsafe impl Send for StoreData {}
+
+#[repr(transparent)]
+struct ValueRef(Value);
+impl ValueRef {
+    pub fn mark(&self) {
+        gc::mark(&self.0);
+    }
+}
+
+impl std::hash::Hash for ValueRef {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        raw_value(self.0).hash(state)
+    }
+}
+
+impl PartialEq for ValueRef {
+    fn eq(&self, other: &Self) -> bool {
+        raw_value(self.0) == raw_value(other.0)
+    }
+}
+
+impl std::cmp::Eq for ValueRef {}
 
 impl Store {
-    pub fn new(engine: &Engine, data: Value) -> Self {
+    pub fn new(engine: &Engine, user_data: Value) -> Self {
         let eng = engine.get();
-        Self {
-            inner: RefCell::new(StoreImpl::new(eng, data)),
-            data,
-        }
+        let store_data = StoreData {
+            user_data,
+            host_exception: None,
+        };
+        let refs = RefCell::new(HashMap::default());
+
+        let store = Self {
+            inner: RefCell::new(StoreImpl::new(eng, store_data)),
+            refs,
+        };
+        store.remember(user_data);
+
+        store
     }
 
-    pub fn borrow_mut(&self) -> RefMut<StoreImpl<Value>> {
+    pub fn borrow_mut(&self) -> RefMut<StoreImpl<StoreData>> {
         self.inner.borrow_mut()
     }
 
-    pub fn borrow(&self) -> Ref<StoreImpl<Value>> {
+    pub fn borrow(&self) -> Ref<StoreImpl<StoreData>> {
         self.inner.borrow()
+    }
+
+    // Save a reference to a Ruby object so that it does not get GC'd
+    pub fn remember(&self, value: Value) {
+        self.refs
+            .borrow_mut()
+            .entry(ValueRef(value))
+            .and_modify(|count| *count += 1)
+            .or_insert(1);
     }
 }
 

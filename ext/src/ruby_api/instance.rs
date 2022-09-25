@@ -2,7 +2,7 @@ use super::{
     export::Export, func::Func, module::Module, params::Params, root, store::Store,
     to_ruby_value::ToRubyValue,
 };
-use crate::{err, error, rtyped_data};
+use crate::{err, error};
 use magnus::{
     function, gc, method, scan_args, DataTypeFunctions, Error, Module as _, Object, RArray, RHash,
     TypedData, Value, QNIL,
@@ -37,20 +37,16 @@ impl Instance {
         let imports: Vec<Extern> = match imports {
             Some(arr) => {
                 let mut imports = vec![];
-                unsafe {
-                    for &import in arr.as_slice().iter() {
-                        let rtd = rtyped_data!(import)?;
-                        let import = rtd.get::<Func>()?;
-                        imports.push(import.into())
-                    }
+                for &import in unsafe { arr.as_slice() }.iter() {
+                    let func = import.try_convert::<&Func>()?;
+                    imports.push(func.into());
                 }
                 imports
             }
             None => vec![],
         };
 
-        let rtd = rtyped_data!(s)?;
-        let store = rtd.get::<Store>()?;
+        let store: &Store = s.try_convert()?;
         let module = module.get();
         let mut store = store.borrow_mut();
         let context = store.as_context_mut();
@@ -60,8 +56,7 @@ impl Instance {
     }
 
     pub fn exports(&self) -> Result<RHash, Error> {
-        let rtd = rtyped_data!(self.store)?;
-        let store = rtd.get::<Store>()?;
+        let store = self.store.try_convert::<&Store>()?;
         let mut borrowed_store = store.borrow_mut();
         let mut ctx = borrowed_store.as_context_mut();
         let hash = RHash::new();
@@ -79,8 +74,7 @@ impl Instance {
     }
 
     pub fn invoke(&self, name: String, args: RArray) -> Result<Value, Error> {
-        let rtd = rtyped_data!(self.store)?;
-        let store = rtd.get::<Store>()?;
+        let store: &Store = self.store.try_convert()?;
         let mut store = store.borrow_mut();
         let func = self.get_func(store.as_context_mut(), &name)?;
         let param_types = func.ty(store.as_context_mut()).params().collect::<Vec<_>>();

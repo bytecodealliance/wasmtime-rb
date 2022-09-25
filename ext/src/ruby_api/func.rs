@@ -1,5 +1,4 @@
 use super::{root, store::Store};
-use crate::{error, rtyped_data};
 use magnus::{
     block::Proc, function, gc, DataTypeFunctions, Error, Module as _, Object, RArray, TypedData,
     Value,
@@ -39,8 +38,7 @@ impl Func {
         //   consumer, or should it be a Trap exception with a trap `cause?
         // - Inject the caller (always? or depending on _caller? Would work nicely as a kwarg).
 
-        let rtd = rtyped_data!(s)?;
-        let store = rtd.get::<Store>()?;
+        let store: &Store = s.try_convert()?;
         let mut store = store.borrow_mut();
         let context = store.as_context_mut();
         let ty = FuncType::new(vec![], vec![]); // TODO

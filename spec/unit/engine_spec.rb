@@ -7,6 +7,7 @@ module Wasmtime
     describe(".new") do
       it("accepts a config") { Engine.new(Wasmtime::Config.new) }
       it("accepts no config") { Engine.new }
+      it("accepts nil config") { Engine.new(nil) }
       it("rejects non-config arg") do
         expect { Engine.new(1) }.to raise_error(TypeError)
       end

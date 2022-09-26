@@ -11,10 +11,12 @@ pub struct Engine {
 
 impl Engine {
     pub fn new(args: &[Value]) -> Result<Self, Error> {
-        let args = scan_args::scan_args::<(), (Option<&Config>,), (), (), (), ()>(args)?;
+        let args = scan_args::scan_args::<(), (Option<Value>,), (), (), (), ()>(args)?;
         let (config,) = args.optional;
+        let config = config.and_then(|v| if v.is_nil() { None } else { Some(v) });
         let inner = match config {
-            Some(config) => EngineImpl::new(&config.get()).map_err(|e| error!("{}", e))?,
+            Some(config) => EngineImpl::new(&config.try_convert::<&Config>()?.get())
+                .map_err(|e| error!("{}", e))?,
             None => EngineImpl::default(),
         };
 

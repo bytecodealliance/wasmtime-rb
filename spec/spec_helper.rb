@@ -2,13 +2,15 @@
 
 require "wasmtime"
 
-module SpecHelpers
+RSpec.shared_context("default lets") do
+  let(:engine_config) { Wasmtime::Config.new }
+  let(:engine) { Wasmtime::Engine.new(engine_config) }
+  let(:store_data) { {} }
+  let(:store) { Wasmtime::Store.new(engine, store_data) }
+  let(:wat) { "(module)" }
+
   def compile(wat)
-    data = {}
-    config = Wasmtime::Config.new
-    engine = Wasmtime::Engine.new(config)
-    store = Wasmtime::Store.new engine, data
-    mod = Wasmtime::Module.new engine, wat
+    mod = Wasmtime::Module.new(engine, wat)
     Wasmtime::Instance.new(store, mod)
   end
 end
@@ -19,6 +21,8 @@ RSpec.configure do |config|
   if ENV["CI"]
     config.before(focus: true) { raise "Do not commit focused tests (`fit` or `focus: true`)" }
   end
+
+  config.include_context("default lets")
 
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = ".rspec_status"
@@ -38,6 +42,4 @@ RSpec.configure do |config|
       GC.stress = false
     end
   end
-
-  config.include SpecHelpers
 end

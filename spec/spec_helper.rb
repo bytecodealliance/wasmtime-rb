@@ -14,6 +14,12 @@ module SpecHelpers
 end
 
 RSpec.configure do |config|
+  config.filter_run focus: true
+  config.run_all_when_everything_filtered = true
+  if ENV["CI"]
+    config.before(focus: true) { raise "Do not commit focused tests (`fit` or `focus: true`)" }
+  end
+
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = ".rspec_status"
 

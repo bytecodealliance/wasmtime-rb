@@ -27,9 +27,9 @@ impl<'a> Params<'a> {
     pub fn new(params_slice: &'a [Value], param_types: Vec<ValType>) -> Result<Self, Error> {
         if param_types.len() != params_slice.len() {
             return err!(
-                "expected {} arguments, got {}",
-                param_types.len(),
-                params_slice.len()
+                "/wrong number of arguments (given {}, expected {})",
+                params_slice.len(),
+                param_types.len()
             );
         }
         Ok(Self(param_types, params_slice))

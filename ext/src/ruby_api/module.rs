@@ -10,14 +10,13 @@ pub struct Module {
 }
 
 impl Module {
-    pub fn new(engine: &Engine, wat_or_wasm: RString) -> Self {
+    pub fn new(engine: &Engine, wat_or_wasm: RString) -> Result<Self, Error> {
         let eng = engine.get();
         // SAFETY: this string is immediately copied and never moved off the stack
         let module = ModuleImpl::new(eng, unsafe { wat_or_wasm.as_slice() })
-            .map_err(|e| error!("Could not build module: {:?}", e.to_string()))
-            .unwrap();
+            .map_err(|e| error!("Could not build module: {:?}", e.to_string()))?;
 
-        Self { inner: module }
+        Ok(Self { inner: module })
     }
 
     pub fn deserialize(engine: &Engine, wat_or_wasm: RString) -> Result<Self, Error> {

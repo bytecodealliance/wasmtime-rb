@@ -5,6 +5,7 @@ mod engine;
 mod errors;
 mod export;
 mod func;
+mod func_type;
 mod instance;
 mod module;
 mod params;
@@ -24,5 +25,6 @@ pub fn init() -> Result<(), Error> {
     instance::init()?;
     export::init()?;
     func::init()?;
+    func_type::init()?;
     Ok(())
 }

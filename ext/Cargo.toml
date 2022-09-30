@@ -10,5 +10,5 @@ publish = false
 crate-type = ["cdylib"]
 
 [dependencies]
-magnus = { git = "https://github.com/matsadler/magnus", features = ["rb-sys-interop"] }
+magnus = { git = "https://github.com/matsadler/magnus" }
 wasmtime = "1.0.0"

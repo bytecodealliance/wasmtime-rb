@@ -36,18 +36,21 @@ impl Instance {
             scan_args::scan_args::<(Value, &Module), (Option<Value>,), (), (), (), ()>(args)?;
         let (s, module) = args.required;
         let store: &Store = s.try_convert()?;
+        let mut store = store.borrow_mut();
+        let mut context = store.as_context_mut();
         let imports = args
             .optional
             .0
             .and_then(|v| if v.is_nil() { None } else { Some(v) });
 
+        let store_data = context.data_mut();
         let imports: Vec<Extern> = match imports {
             Some(arr) => {
                 let arr: RArray = arr.try_convert()?;
                 let mut imports = vec![];
                 for import in arr.each() {
                     let import = import?;
-                    store.remember(import);
+                    store_data.root_value(import);
                     let func = import.try_convert::<&Func>()?;
                     imports.push(func.into());
                 }
@@ -57,8 +60,6 @@ impl Instance {
         };
 
         let module = module.get();
-        let mut store = store.borrow_mut();
-        let context = store.as_context_mut();
         let inner = InstanceImpl::new(context, module, &imports).map_err(|e| {
             store
                 .as_context_mut()

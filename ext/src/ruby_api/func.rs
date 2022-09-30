@@ -48,9 +48,9 @@ impl Func {
         // - Inject the caller (always? or depending on _caller? Would work nicely as a kwarg).
 
         let store: &Store = s.try_convert()?;
-        store.remember(proc.into());
         let mut store = store.borrow_mut();
-        let context = store.as_context_mut();
+        let mut context = store.as_context_mut();
+        context.data_mut().root_value(proc.into());
         let ty = functype.get();
 
         let inner = wasmtime::Func::new(context, ty.clone(), make_func_callable(ty, proc));

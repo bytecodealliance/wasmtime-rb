@@ -117,7 +117,7 @@ fn make_func_callable(
                             .zip(results.iter_mut())
                             .zip(ty.results())
                         {
-                            *wasm_val = rb_val.to_wasm_val(ty)?;
+                            *wasm_val = rb_val.to_wasm_val(&ty)?;
                         }
                         Ok(())
                     }

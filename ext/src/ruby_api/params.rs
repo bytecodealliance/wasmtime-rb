@@ -1,6 +1,7 @@
+use super::convert::ToWasmVal;
 use crate::err;
 use magnus::{Error, Value};
-use wasmtime::{Val, ValType};
+use wasmtime::ValType;
 
 #[derive(Debug)]
 pub struct ParamTuple<'a>(ValType, &'a Value);
@@ -11,13 +12,7 @@ impl<'a> ParamTuple<'a> {
     }
 
     fn to_wasmtime_val(&self) -> Result<wasmtime::Val, Error> {
-        match &self.0 {
-            ValType::F32 => Ok(Val::F32(self.1.try_convert::<f32>()?.to_bits())),
-            ValType::F64 => Ok(Val::F64(self.1.try_convert::<f64>()?.to_bits())),
-            ValType::I32 => Ok(Val::I32(self.1.try_convert::<i32>()?)),
-            ValType::I64 => Ok(Val::I64(self.1.try_convert::<i64>()?)),
-            t => err!("unsupported type {:?}", t),
-        }
+        self.1.to_wasm_val(&self.0)
     }
 }
 

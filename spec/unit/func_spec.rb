@@ -18,6 +18,22 @@ module Wasmtime
     it("converts i64 back and forth") { expect(roundtrip_value(:i64, 2**40)).to eq(2**40) }
     it("converts f32 back and forth") { expect(roundtrip_value(:f32, 5.5)).to eq(5.5) }
     it("converts f64 back and forth") { expect(roundtrip_value(:f64, 5.5)).to eq(5.5) }
+    it("converts nil externref back and forth") { expect(roundtrip_value(:externref, nil)).to be_nil }
+    it("converts string externref back and forth") { expect(roundtrip_value(:externref, "foo")).to eq("foo") }
+
+    it "converts BasicObject externref back and forth" do
+      obj = BasicObject
+      expect(roundtrip_value(:externref, obj)).to equal(obj)
+    end
+
+    it "converts ref.null into nil" do
+      instance = compile(<<~WAT)
+        (module
+          (func (export "main") (result externref)
+            ref.null extern))
+      WAT
+      expect(instance.invoke("main", [])).to be_nil
+    end
 
     it "ignores the proc's return value when func has no results" do
       instance = instance_for_func([], [], -> { 1 })

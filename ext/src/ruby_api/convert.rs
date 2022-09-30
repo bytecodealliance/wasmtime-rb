@@ -1,5 +1,5 @@
 use crate::{err, error};
-use magnus::{Error, Fixnum, RFloat, Value};
+use magnus::{Error, Value};
 use wasmtime::{Val, ValType};
 
 pub trait ToRubyValue {
@@ -9,10 +9,10 @@ pub trait ToRubyValue {
 impl ToRubyValue for Val {
     fn to_ruby_value(&self) -> Result<Value, Error> {
         match self {
-            Val::I32(i) => Ok(*Fixnum::from_i64((*i).into()).unwrap()),
-            Val::I64(i) => Ok(*Fixnum::from_i64(*i).unwrap()),
-            Val::F32(f) => Ok(*RFloat::from_f64(f32::from_bits(*f).into()).unwrap()),
-            Val::F64(f) => Ok(*RFloat::from_f64(f64::from_bits(*f)).unwrap()),
+            Val::I32(i) => Ok(Value::from(*i)),
+            Val::I64(i) => Ok(Value::from(*i)),
+            Val::F32(f) => Ok(Value::from(f32::from_bits(*f))),
+            Val::F64(f) => Ok(Value::from(f64::from_bits(*f))),
             Val::ExternRef(eref) => match eref {
                 None => Ok(magnus::QNIL.into()),
                 Some(eref) => eref

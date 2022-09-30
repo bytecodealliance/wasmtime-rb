@@ -1,15 +1,35 @@
 use super::{engine::Engine, root};
-use magnus::{function, gc, DataTypeFunctions, Error, Module, Object, TypedData, Value};
+use magnus::{
+    exception::Exception, function, gc, rb_sys::raw_value, value::BoxValue, DataTypeFunctions,
+    Error, Module, Object, TypedData, Value,
+};
 use std::cell::{Ref, RefCell, RefMut};
 use std::collections::HashMap;
 use wasmtime::Store as StoreImpl;
 
-use magnus::rb_sys::raw_value;
-
 #[derive(Debug)]
 pub struct StoreData {
     user_data: Value,
-    host_exception: Option<Value>,
+    host_exception: HostException,
+}
+
+type BoxedException = BoxValue<Exception>;
+#[derive(Debug, Default)]
+pub struct HostException(Option<BoxedException>);
+impl HostException {
+    pub fn take(&mut self) -> Option<Exception> {
+        std::mem::take(&mut self.0).map(|e| e.to_owned())
+    }
+
+    pub fn hold(&mut self, e: Exception) {
+        self.0 = Some(BoxValue::new(e));
+    }
+}
+
+impl StoreData {
+    pub fn exception(&mut self) -> &mut HostException {
+        &mut self.host_exception
+    }
 }
 
 #[derive(TypedData)]
@@ -55,7 +75,7 @@ impl Store {
         let eng = engine.get();
         let store_data = StoreData {
             user_data,
-            host_exception: None,
+            host_exception: HostException::default(),
         };
         let refs = RefCell::new(HashMap::default());
 

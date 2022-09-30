@@ -45,18 +45,20 @@ module Wasmtime
 
     it "rejects mismatching params size" do
       instance = instance_for_func([:i32], [], ->(_, _) {})
-      expect { instance.invoke("f", [1]) }.to raise_error(Wasmtime::Error, /wrong number of arguments \(given 1, expected 2\)/)
+      expect { instance.invoke("f", [1]) }.to raise_error(ArgumentError, /wrong number of arguments \(given 1, expected 2\)/)
     end
 
     it "bubbles the exception on with invoke" do
-      skip("TODO!")
-      expect { instance_for_func([], [], -> { raise "Ooops!" }).invoke("f", []) }
-        .to raise_error(StandardError, "Ooops!")
+      error_class = Class.new(StandardError)
+      instance = instance_for_func([], [], -> { raise error_class })
+      expect { instance.invoke("f", []) }.to raise_error(error_class)
+      # Run a second time to catch already borrow issues
+      expect { instance.invoke("f", []) }.to raise_error(error_class)
     end
 
     it "bubbles the exception on start" do
-      skip("TODO!")
-      func = Func.new(store, FuncType.new([], []), true, -> { raise "Ooops!" })
+      error_class = Class.new(StandardError)
+      func = Func.new(store, FuncType.new([], []), true, -> { raise error_class })
       mod = Wasmtime::Module.new(engine, <<~WAT)
         (module
           (import "" "" (func))
@@ -64,7 +66,7 @@ module Wasmtime
       WAT
 
       expect { Wasmtime::Instance.new(store, mod, [func]) }
-        .to raise_error(StandardError, "Ooops!")
+        .to raise_error(error_class)
     end
 
     private

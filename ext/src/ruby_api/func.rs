@@ -42,7 +42,7 @@ impl Func {
         // - √ Deal with functype (params and args)
         // - √ Deal with GC. Gotta make sure the proc never gets deleted while we have a reference to it.
         //    - Userland code may not hold a ref to the Func, so can't be the only place we store this.
-        // - Handle exceptions. Idea: return a wasmtime::TrapReason::Error that
+        // - √ Handle exceptions. Idea: return a wasmtime::TrapReason::Error that
         //   wraps the Ruby exception?  Should we raise that error directly to the
         //   consumer, or should it be a Trap exception with a trap `cause?
         // - Inject the caller (always? or depending on _caller? Would work nicely as a kwarg).
@@ -82,7 +82,7 @@ fn make_func_callable(
     let ty = ty.to_owned();
     let shareable_proc = ShareableProc(proc);
 
-    move |_caller: Caller<'_, StoreData>, params: &[Val], results: &mut [Val]| {
+    move |mut caller: Caller<'_, StoreData>, params: &[Val], results: &mut [Val]| {
         let rparams = RArray::with_capacity(params.len());
         for (i, param) in params.iter().enumerate() {
             let rparam = param.to_ruby_value().map_err(|e| {
@@ -93,6 +93,12 @@ fn make_func_callable(
         let proc = shareable_proc.0;
 
         proc.call::<RArray, Value>(rparams)
+            .map_err(|e| {
+                if let Error::Exception(exception) = e {
+                    caller.data_mut().exception().hold(exception);
+                }
+                e
+            })
             .and_then(|proc_result| {
                 match results.len() {
                     0 => Ok(()), // Ignore return value

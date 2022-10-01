@@ -93,6 +93,7 @@ module Wasmtime
     end
 
     def instance_for_func(params, results, impl)
+      store = Store.new(engine, {})
       func = Func.new(store, FuncType.new(params, results), false, impl)
       mod = Wasmtime::Module.new(engine, <<~WAT)
         (module

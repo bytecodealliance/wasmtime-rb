@@ -15,14 +15,12 @@ use wasmtime::{AsContextMut, Caller, Extern, Func as FuncImpl, Trap, Val};
 #[magnus(class = "Wasmtime::Func", mark, size)]
 pub struct Func {
     store: Value,
-    proc: Value,
     inner: FuncImpl,
 }
 
 impl DataTypeFunctions for Func {
     fn mark(&self) {
         gc::mark(&self.store);
-        gc::mark(&self.proc);
     }
 }
 
@@ -48,18 +46,14 @@ impl Func {
         // - Inject the caller (always? or depending on _caller? Would work nicely as a kwarg).
 
         let store: &Store = s.try_convert()?;
+        store.retain(proc.into());
         let mut store = store.borrow_mut();
-        let mut context = store.as_context_mut();
-        context.data_mut().root_value(proc.into());
+        let context = store.as_context_mut();
         let ty = functype.get();
 
         let inner = wasmtime::Func::new(context, ty.clone(), make_func_callable(ty, proc));
 
-        Ok(Self {
-            store: s,
-            proc: proc.into(),
-            inner,
-        })
+        Ok(Self { store: s, inner })
     }
 
     pub fn get(&self) -> FuncImpl {

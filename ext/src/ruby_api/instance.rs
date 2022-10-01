@@ -35,9 +35,9 @@ impl Instance {
         let args =
             scan_args::scan_args::<(Value, &Module), (Option<Value>,), (), (), (), ()>(args)?;
         let (s, module) = args.required;
-        let store: &Store = s.try_convert()?;
-        let mut store = store.borrow_mut();
-        let mut context = store.as_context_mut();
+        let mut store: &Store = s.try_convert()?;
+        let mut wasmtime_store = store.borrow_mut();
+        let mut context = wasmtime_store.as_context_mut();
         let imports = args
             .optional
             .0
@@ -50,7 +50,7 @@ impl Instance {
                 let mut imports = vec![];
                 for import in arr.each() {
                     let import = import?;
-                    store_data.root_value(import);
+                    store.retain(import);
                     let func = import.try_convert::<&Func>()?;
                     imports.push(func.into());
                 }
@@ -61,7 +61,7 @@ impl Instance {
 
         let module = module.get();
         let inner = InstanceImpl::new(context, module, &imports).map_err(|e| {
-            store
+            wasmtime_store
                 .as_context_mut()
                 .data_mut()
                 .exception()

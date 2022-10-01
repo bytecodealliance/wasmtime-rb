@@ -10,7 +10,6 @@ use wasmtime::Store as StoreImpl;
 pub struct StoreData {
     user_data: Value,
     host_exception: HostException,
-    refs: Vec<BoxValue<Value>>,
 }
 
 type BoxedException = BoxValue<Exception>;
@@ -30,18 +29,20 @@ impl StoreData {
     pub fn exception(&mut self) -> &mut HostException {
         &mut self.host_exception
     }
-    pub fn root_value(&mut self, value: Value) {
-        self.refs.push(BoxValue::new(value));
-    }
 }
 
 #[derive(TypedData)]
-#[magnus(class = "Wasmtime::Store", size, free_immediatly)]
+#[magnus(class = "Wasmtime::Store", size, mark, free_immediatly)]
 pub struct Store {
     inner: RefCell<StoreImpl<StoreData>>,
+    refs: RefCell<Vec<Value>>,
 }
 
-impl DataTypeFunctions for Store {}
+impl DataTypeFunctions for Store {
+    fn mark(&self) {
+        self.refs.borrow().iter().for_each(magnus::gc::mark);
+    }
+}
 
 unsafe impl Send for Store {}
 unsafe impl Send for StoreData {}
@@ -49,15 +50,18 @@ unsafe impl Send for StoreData {}
 impl Store {
     pub fn new(engine: &Engine, user_data: Value) -> Self {
         let eng = engine.get();
-        let mut store_data = StoreData {
+        let store_data = StoreData {
             user_data,
-            refs: Default::default(),
             host_exception: HostException::default(),
         };
-        store_data.root_value(user_data);
-        Self {
+        let store = Self {
             inner: RefCell::new(StoreImpl::new(eng, store_data)),
-        }
+            refs: Default::default(),
+        };
+
+        store.retain(user_data);
+
+        store
     }
 
     pub fn borrow_mut(&self) -> RefMut<StoreImpl<StoreData>> {
@@ -66,6 +70,10 @@ impl Store {
 
     pub fn borrow(&self) -> Ref<StoreImpl<StoreData>> {
         self.inner.borrow()
+    }
+
+    pub fn retain(&self, value: Value) {
+        self.refs.borrow_mut().push(value);
     }
 }
 

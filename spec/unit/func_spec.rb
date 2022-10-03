@@ -4,14 +4,9 @@ module Wasmtime
   RSpec.describe Func do
     it "calls the passed-in proc proc" do
       runs = 0
-      instance = instance_for_func([], [], -> { runs += 1 })
-      GC.start
-
-      instance.invoke("f", [])
-      expect(runs).to eq(1)
-
-      instance.invoke("f", [])
-      expect(runs).to eq(2)
+      func = build_func([], [], -> { runs += 1 })
+      expect { func.call([]) }.to change { runs }.by(1)
+      expect { func.call([]) }.to change { runs }.by(1)
     end
 
     it("converts i32 back and forth") { expect(roundtrip_value(:i32, 4)).to eq(4) }
@@ -36,23 +31,23 @@ module Wasmtime
     end
 
     it "ignores the proc's return value when func has no results" do
-      instance = instance_for_func([], [], -> { 1 })
-      expect(instance.invoke("f", [])).to be_nil
+      func = build_func([], [], -> { 1 })
+      expect(func.call([])).to be_nil
     end
 
     it "accepts array of 1 element for single result" do
-      instance = instance_for_func([], [:i32], -> { [1] })
-      expect(instance.invoke("f", [])).to eq(1)
+      func = build_func([], [:i32], -> { [1] })
+      expect(func.call([])).to eq(1)
     end
 
     it "rejects mismatching results size" do
-      instance = instance_for_func([], [:i32], -> { [1, 2] })
-      expect { instance.invoke("f", []) }.to raise_error(Wasmtime::Error, /wrong number of results \(given 2, expected 1\)/)
+      func = build_func([], [:i32], -> { [1, 2] })
+      expect { func.call([]) }.to raise_error(Wasmtime::Error, /wrong number of results \(given 2, expected 1\)/)
     end
 
     it "rejects mismatching result type" do
-      instance = instance_for_func([], [:i32], -> { [nil] })
-      expect { instance.invoke("f", []) }.to raise_error(Wasmtime::Error)
+      func = build_func([], [:i32], -> { [nil] })
+      expect { func.call([]) }.to raise_error(Wasmtime::Error)
     end
 
     it "tells you which result failed to convert in the error message" do
@@ -60,16 +55,16 @@ module Wasmtime
     end
 
     it "rejects mismatching params size" do
-      instance = instance_for_func([:i32], [], ->(_, _) {})
-      expect { instance.invoke("f", [1]) }.to raise_error(ArgumentError, /wrong number of arguments \(given 1, expected 2\)/)
+      func = build_func([:i32], [], ->(_, _) {})
+      expect { func.call([1]) }.to raise_error(ArgumentError, /wrong number of arguments \(given 1, expected 2\)/)
     end
 
-    it "bubbles the exception on with invoke" do
+    it "bubbles the exception on with call" do
       error_class = Class.new(StandardError)
-      instance = instance_for_func([], [], -> { raise error_class })
-      expect { instance.invoke("f", []) }.to raise_error(error_class)
-      # Run a second time to catch already borrow issues
-      expect { instance.invoke("f", []) }.to raise_error(error_class)
+      func = build_func([], [], -> { raise error_class })
+      expect { func.call([]) }.to raise_error(error_class)
+      # Run a second time to catch already borrowed issues
+      expect { func.call([]) }.to raise_error(error_class)
     end
 
     it "bubbles the exception on start" do
@@ -88,19 +83,13 @@ module Wasmtime
     private
 
     def roundtrip_value(type, value)
-      instance_for_func([type], [type], ->(arg) { arg })
-        .invoke("f", [value])
+      build_func([type], [type], ->(arg) { arg })
+        .call([value])
     end
 
-    def instance_for_func(params, results, impl)
+    def build_func(params, results, impl)
       store = Store.new(engine, {})
-      func = Func.new(store, FuncType.new(params, results), false, impl)
-      mod = Wasmtime::Module.new(engine, <<~WAT)
-        (module
-          (import "" "" (func (param #{params.join(" ")}) (result #{results.join(" ")})))
-          (export "f" (func 0)))
-      WAT
-      Wasmtime::Instance.new(store, mod, [func])
+      Func.new(store, FuncType.new(params, results), false, impl)
     end
   end
 end

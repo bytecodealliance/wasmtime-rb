@@ -1,13 +1,14 @@
 use super::{
     convert::{ToRubyValue, ToWasmVal},
     func_type::FuncType,
+    params::Params,
     root,
     store::{Store, StoreData},
 };
 use crate::error;
 use magnus::{
-    block::Proc, function, gc, DataTypeFunctions, Error, Module as _, Object, RArray, TryConvert,
-    TypedData, Value,
+    block::Proc, function, gc, method, value::BoxValue, DataTypeFunctions, Error, Exception,
+    Module as _, Object, RArray, TryConvert, TypedData, Value, QNIL,
 };
 use wasmtime::{AsContextMut, Caller, Extern, Func as FuncImpl, Trap, Val};
 
@@ -15,12 +16,14 @@ use wasmtime::{AsContextMut, Caller, Extern, Func as FuncImpl, Trap, Val};
 #[magnus(class = "Wasmtime::Func", mark, size)]
 pub struct Func {
     store: Value,
+    proc: Value,
     inner: FuncImpl,
 }
 
 impl DataTypeFunctions for Func {
     fn mark(&self) {
         gc::mark(&self.store);
+        gc::mark(&self.proc);
     }
 }
 
@@ -53,12 +56,57 @@ impl Func {
 
         let inner = wasmtime::Func::new(context, ty.clone(), make_func_callable(ty, proc));
 
-        Ok(Self { store: s, inner })
+        Ok(Self {
+            store: s,
+            inner,
+            proc: proc.into(),
+        })
     }
 
     pub fn get(&self) -> FuncImpl {
         // Makes a copy (wasmtime::Func implements Copy)
         self.inner
+    }
+
+    pub fn call(&self, args: RArray) -> Result<Value, Error> {
+        let store: &Store = self.store.try_convert()?;
+        Self::invoke(store, &self.inner, args).map_err(|e| e.into())
+    }
+
+    pub fn invoke(
+        store: &Store,
+        func: &wasmtime::Func,
+        args: RArray,
+    ) -> Result<Value, InvokeError> {
+        let mut store = store.borrow_mut();
+        let func_ty = func.ty(store.as_context_mut());
+        let param_types = func_ty.params().collect::<Vec<_>>();
+        let params_slice = unsafe { args.as_slice() };
+        let params = Params::new(params_slice, param_types)?.to_vec()?;
+        let mut results = vec![Val::null(); func_ty.results().len()];
+
+        func.call(store.as_context_mut(), &params, &mut results)
+            .map_err(|e| {
+                store
+                    .as_context_mut()
+                    .data_mut()
+                    .exception()
+                    .take()
+                    .map(Error::from)
+                    .unwrap_or_else(|| error!("Could not invoke function: {}", e))
+            })?;
+
+        match results.as_slice() {
+            [] => Ok(QNIL.into()),
+            [result] => result.to_ruby_value().map_err(|e| e.into()),
+            _ => {
+                let array = RArray::with_capacity(results.len());
+                for result in results {
+                    array.push(result.to_ruby_value()?)?;
+                }
+                Ok(array.into())
+            }
+        }
     }
 }
 
@@ -127,9 +175,36 @@ fn make_func_callable(
     }
 }
 
+pub enum InvokeError {
+    BoxedException(BoxValue<Exception>),
+    Error(Error),
+}
+
+impl From<InvokeError> for magnus::Error {
+    fn from(e: InvokeError) -> Self {
+        match e {
+            InvokeError::Error(e) => e,
+            InvokeError::BoxedException(e) => Error::from(e.to_owned()),
+        }
+    }
+}
+
+impl From<magnus::Error> for InvokeError {
+    fn from(e: magnus::Error) -> Self {
+        InvokeError::Error(e)
+    }
+}
+
+impl From<BoxValue<Exception>> for InvokeError {
+    fn from(e: BoxValue<Exception>) -> Self {
+        InvokeError::BoxedException(e)
+    }
+}
+
 pub fn init() -> Result<(), Error> {
     let class = root().define_class("Func", Default::default())?;
     class.define_singleton_method("new", function!(Func::new, 4))?;
+    class.define_method("call", method!(Func::call, 1))?;
 
     Ok(())
 }

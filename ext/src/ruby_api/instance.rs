@@ -1,19 +1,16 @@
 use super::{
-    convert::ToRubyValue,
     export::Export,
     func::Func,
     module::Module,
-    params::Params,
     root,
     store::{Store, StoreData},
 };
 use crate::{err, error};
 use magnus::{
-    function, gc, method, scan_args, value::BoxValue, DataTypeFunctions, Error, Exception,
-    Module as _, Object, RArray, RHash, TypedData, Value, QNIL,
+    function, gc, method, scan_args, DataTypeFunctions, Error, Module as _, Object, RArray, RHash,
+    TypedData, Value,
 };
-use std::cell::RefMut;
-use wasmtime::{AsContextMut, Extern, Instance as InstanceImpl, StoreContextMut, Val};
+use wasmtime::{AsContextMut, Extern, Instance as InstanceImpl, StoreContextMut};
 
 #[derive(Clone, Debug, TypedData)]
 #[magnus(class = "Wasmtime::Instance", mark)]
@@ -35,15 +32,14 @@ impl Instance {
         let args =
             scan_args::scan_args::<(Value, &Module), (Option<Value>,), (), (), (), ()>(args)?;
         let (s, module) = args.required;
-        let mut store: &Store = s.try_convert()?;
+        let store: &Store = s.try_convert()?;
         let mut wasmtime_store = store.borrow_mut();
-        let mut context = wasmtime_store.as_context_mut();
+        let context = wasmtime_store.as_context_mut();
         let imports = args
             .optional
             .0
             .and_then(|v| if v.is_nil() { None } else { Some(v) });
 
-        let store_data = context.data_mut();
         let imports: Vec<Extern> = match imports {
             Some(arr) => {
                 let arr: RArray = arr.try_convert()?;
@@ -93,19 +89,8 @@ impl Instance {
 
     pub fn invoke(&self, name: String, args: RArray) -> Result<Value, Error> {
         let store: &Store = self.store.try_convert()?;
-        let mut mstore = store.borrow_mut();
-        let func = self.get_func(mstore.as_context_mut(), &name)?;
-        let param_types = func
-            .ty(mstore.as_context_mut())
-            .params()
-            .collect::<Vec<_>>();
-        let params_slice = unsafe { args.as_slice() };
-        let params = Params::new(params_slice, param_types)?.to_vec()?;
-
-        let results_len = func.ty(mstore.as_context_mut()).results().len();
-        let mut results = vec![Val::null(); results_len];
-
-        Self::invoke_func(&mut mstore, &func, &params, results.as_mut_slice()).map_err(|e| e.into())
+        let func = self.get_func(store.borrow_mut().as_context_mut(), &name)?;
+        Func::invoke(store, &func, args).map_err(|e| e.into())
     }
 
     fn get_func(
@@ -121,36 +106,6 @@ impl Instance {
             err!("function \"{}\" not found", name)
         }
     }
-
-    pub fn invoke_func(
-        store: &mut RefMut<wasmtime::Store<StoreData>>,
-        func: &wasmtime::Func,
-        params: &[Val],
-        results: &mut [Val],
-    ) -> Result<Value, InvokeError> {
-        func.call(store.as_context_mut(), params, results)
-            .map_err(|e| {
-                store
-                    .as_context_mut()
-                    .data_mut()
-                    .exception()
-                    .take()
-                    .map(Error::from)
-                    .unwrap_or_else(|| error!("Could not invoke function: {}", e))
-            })?;
-
-        match results {
-            [] => Ok(QNIL.into()),
-            [result] => result.to_ruby_value().map_err(|e| e.into()),
-            _ => {
-                let array = RArray::with_capacity(results.len());
-                for result in results {
-                    array.push(result.to_ruby_value()?)?;
-                }
-                Ok(array.into())
-            }
-        }
-    }
 }
 
 pub fn init() -> Result<(), Error> {
@@ -161,30 +116,4 @@ pub fn init() -> Result<(), Error> {
     class.define_method("exports", method!(Instance::exports, 0))?;
 
     Ok(())
-}
-
-pub enum InvokeError {
-    BoxedException(BoxValue<Exception>),
-    Error(Error),
-}
-
-impl From<InvokeError> for magnus::Error {
-    fn from(e: InvokeError) -> Self {
-        match e {
-            InvokeError::Error(e) => e,
-            InvokeError::BoxedException(e) => Error::from(e.to_owned()),
-        }
-    }
-}
-
-impl From<magnus::Error> for InvokeError {
-    fn from(e: magnus::Error) -> Self {
-        InvokeError::Error(e)
-    }
-}
-
-impl From<BoxValue<Exception>> for InvokeError {
-    fn from(e: BoxValue<Exception>) -> Self {
-        InvokeError::BoxedException(e)
-    }
 }

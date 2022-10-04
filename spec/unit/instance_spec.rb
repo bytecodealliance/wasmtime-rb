@@ -7,7 +7,7 @@ module Wasmtime
         mod = Wasmtime::Module.new(engine, "(module)")
 
         expect { Wasmtime::Instance.new(store, mod, "not an array") }
-          .to raise_error(TypeError, "no implicit conversion of String into Wasmtime::Func")
+          .to raise_error(TypeError, %(unexpected extern: "not an array"))
       end
 
       it "accepts nil for imports" do
@@ -21,18 +21,20 @@ module Wasmtime
     it "exposes the exports" do
       instance = compile <<~WAT
         (module
+          (memory $module/mem 1)
           (func $module/hello (result i32)
             i32.const 1
           )
           (export "hello" (func $module/hello))
+          (export "mem" (memory $module/mem))
         )
       WAT
 
       exports = instance.exports
       type_names = exports.transform_values(&:type_name)
 
-      expect(exports).to include(hello: be_a(Export))
-      expect(type_names).to eq(hello: :func)
+      expect(exports).to include(hello: be_a(Export), mem: be_a(Export))
+      expect(type_names).to eq(hello: :func, mem: :memory)
     end
 
     describe "invoke" do
@@ -95,6 +97,17 @@ module Wasmtime
         expect(invoke_identity_function("f32", 5 * 10**40)).to eq(Float::INFINITY)
       end
     end
+
+    it "imports memory" do
+      mod = Module.new(engine, <<~WAT)
+        (module
+          (import "" "" (memory 1)))
+      WAT
+      memory = Memory.new(store, MemoryType.new(1))
+      Wasmtime::Instance.new(store, mod, [memory])
+    end
+
+    private
 
     def invoke_identity_function(type, arg)
       instance = compile(<<~WAT)

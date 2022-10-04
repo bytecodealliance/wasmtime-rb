@@ -1,6 +1,8 @@
 use crate::{err, error};
-use magnus::{Error, Value};
+use magnus::{Error, TypedData, Value};
 use wasmtime::{ExternRef, Val, ValType};
+
+use super::{func::Func, memory::Memory};
 
 pub trait ToRubyValue {
     fn to_ruby_value(&self) -> Result<Value, Error>;
@@ -57,3 +59,22 @@ impl From<Value> for OnStackValue {
 }
 unsafe impl Send for OnStackValue {}
 unsafe impl Sync for OnStackValue {}
+
+pub trait ToExtern {
+    fn to_extern(&self) -> Result<wasmtime::Extern, Error>;
+}
+
+impl ToExtern for Value {
+    fn to_extern(&self) -> Result<wasmtime::Extern, Error> {
+        if self.is_kind_of(Func::class()) {
+            Ok(self.try_convert::<&Func>()?.into())
+        } else if self.is_kind_of(Memory::class()) {
+            Ok(self.try_convert::<&Memory>()?.into())
+        } else {
+            Err(Error::new(
+                magnus::exception::type_error(),
+                format!("unexpected extern: {}", self.inspect()),
+            ))
+        }
+    }
+}

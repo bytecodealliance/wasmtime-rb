@@ -1,6 +1,8 @@
 use super::{
+    convert::ToExtern,
     export::Export,
     func::Func,
+    memory::Memory,
     module::Module,
     root,
     store::{Store, StoreData},
@@ -43,12 +45,11 @@ impl Instance {
         let imports: Vec<Extern> = match imports {
             Some(arr) => {
                 let arr: RArray = arr.try_convert()?;
-                let mut imports = vec![];
+                let mut imports = Vec::with_capacity(arr.len());
                 for import in arr.each() {
                     let import = import?;
                     store.retain(import);
-                    let func = import.try_convert::<&Func>()?;
-                    imports.push(func.into());
+                    imports.push(import.to_extern()?);
                 }
                 imports
             }

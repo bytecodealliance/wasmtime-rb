@@ -1,7 +1,7 @@
 use super::{engine::Engine, root};
 use magnus::{
-    exception::Exception, function, value::BoxValue, DataTypeFunctions, Error, Module, Object,
-    TypedData, Value,
+    exception::Exception, function, method, scan_args, value::BoxValue, DataTypeFunctions, Error,
+    Module, Object, TypedData, Value, QNIL,
 };
 use std::cell::{Ref, RefCell, RefMut};
 use wasmtime::Store as StoreImpl;
@@ -52,7 +52,13 @@ unsafe impl Send for Store {}
 unsafe impl Send for StoreData {}
 
 impl Store {
-    pub fn new(engine: &Engine, user_data: Value) -> Self {
+    pub fn new(args: &[Value]) -> Result<Self, Error> {
+        let args = scan_args::scan_args::<(&Engine,), (Option<Value>,), (), (), (), ()>(args)?;
+        let (engine,) = args.required;
+        let (user_data,) = args.optional;
+        let user_data = user_data.unwrap_or_else(|| QNIL.into());
+
+        // engine: &Engine, user_data: Value
         let eng = engine.get();
         let store_data = StoreData {
             user_data,
@@ -65,7 +71,11 @@ impl Store {
 
         store.retain(user_data);
 
-        store
+        Ok(store)
+    }
+
+    pub fn data(&self) -> Value {
+        self.inner.borrow().data().user_data()
     }
 
     pub fn borrow_mut(&self) -> RefMut<StoreImpl<StoreData>> {
@@ -84,7 +94,8 @@ impl Store {
 pub fn init() -> Result<(), Error> {
     let class = root().define_class("Store", Default::default())?;
 
-    class.define_singleton_method("new", function!(Store::new, 2))?;
+    class.define_singleton_method("new", function!(Store::new, -1))?;
+    class.define_method("data", method!(Store::data, 0))?;
 
     Ok(())
 }

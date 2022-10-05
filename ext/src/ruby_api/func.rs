@@ -24,14 +24,12 @@ use wasmtime::{
 #[magnus(class = "Wasmtime::Func", mark, size)]
 pub struct Func {
     store: Value,
-    proc: Value,
     inner: FuncImpl,
 }
 
 impl DataTypeFunctions for Func {
     fn mark(&self) {
         gc::mark(&self.store);
-        gc::mark(&self.proc);
     }
 }
 

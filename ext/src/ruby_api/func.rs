@@ -7,10 +7,18 @@ use super::{
 };
 use crate::error;
 use magnus::{
-    block::Proc, function, gc, method, value::BoxValue, DataTypeFunctions, Error, Exception,
-    Module as _, Object, RArray, TryConvert, TypedData, Value, QNIL,
+    block::Proc,
+    function, gc, memoize, method,
+    r_typed_data::DataTypeBuilder,
+    scan_args::{get_kwargs, scan_args},
+    value::BoxValue,
+    DataTypeFunctions, Error, Exception, Module as _, Object, RArray, RClass, RHash, RString,
+    TryConvert, TypedData, Value, QNIL,
 };
-use wasmtime::{AsContextMut, Caller, Extern, Func as FuncImpl, Trap, Val};
+use std::cell::RefCell;
+use wasmtime::{
+    AsContextMut, Caller as CallerImpl, Extern, ExternType, Func as FuncImpl, Trap, Val,
+};
 
 #[derive(TypedData, Debug)]
 #[magnus(class = "Wasmtime::Func", mark, size)]
@@ -38,15 +46,12 @@ unsafe impl Sync for ShareableProc {}
 unsafe impl Send for Func {}
 
 impl Func {
-    pub fn new(s: Value, functype: &FuncType, _caller: bool, proc: Proc) -> Result<Self, Error> {
-        // TODOs:
-        // - √ Deal with functype (params and args)
-        // - √ Deal with GC. Gotta make sure the proc never gets deleted while we have a reference to it.
-        //    - Userland code may not hold a ref to the Func, so can't be the only place we store this.
-        // - √ Handle exceptions. Idea: return a wasmtime::TrapReason::Error that
-        //   wraps the Ruby exception?  Should we raise that error directly to the
-        //   consumer, or should it be a Trap exception with a trap `cause?
-        // - Inject the caller (always? or depending on _caller? Would work nicely as a kwarg).
+    pub fn new(args: &[Value]) -> Result<Self, Error> {
+        let args = scan_args::<(Value, &FuncType, Proc), (), (), (), RHash, ()>(args)?;
+        let (s, functype, proc) = args.required;
+        let kwargs = get_kwargs::<_, (), (Option<bool>,), ()>(args.keywords, &[], &["caller"])?;
+        let (send_caller,) = kwargs.optional;
+        let send_caller = send_caller.unwrap_or(false);
 
         let store: &Store = s.try_convert()?;
         store.retain(proc.into());
@@ -54,13 +59,13 @@ impl Func {
         let context = store.as_context_mut();
         let ty = functype.get();
 
-        let inner = wasmtime::Func::new(context, ty.clone(), make_func_callable(ty, proc));
+        let inner = wasmtime::Func::new(
+            context,
+            ty.clone(),
+            make_func_callable(ty, proc, send_caller),
+        );
 
-        Ok(Self {
-            store: s,
-            inner,
-            proc: proc.into(),
-        })
+        Ok(Self { store: s, inner })
     }
 
     pub fn get(&self) -> FuncImpl {
@@ -119,13 +124,25 @@ impl From<&Func> for Extern {
 fn make_func_callable(
     ty: &wasmtime::FuncType,
     proc: Proc,
-) -> impl Fn(Caller<'_, StoreData>, &[Val], &mut [Val]) -> Result<(), Trap> + Send + Sync + 'static
+    send_caller: bool,
+) -> impl Fn(CallerImpl<'_, StoreData>, &[Val], &mut [Val]) -> Result<(), Trap> + Send + Sync + 'static
 {
     let ty = ty.to_owned();
     let shareable_proc = ShareableProc(proc);
 
-    move |mut caller: Caller<'_, StoreData>, params: &[Val], results: &mut [Val]| {
-        let rparams = RArray::with_capacity(params.len());
+    move |caller: CallerImpl<'_, StoreData>, params: &[Val], results: &mut [Val]| {
+        let caller = RefCell::new(caller);
+
+        let rparams = if send_caller {
+            let p = RArray::with_capacity(params.len() + 1);
+            let c = Caller { inner: &caller };
+            p.push(Value::from(c)).ok();
+
+            p
+        } else {
+            RArray::with_capacity(params.len())
+        };
+
         for (i, param) in params.iter().enumerate() {
             let rparam = param.to_ruby_value().map_err(|e| {
                 wasmtime::Trap::new(format!("invalid argument at index {}: {}", i, e))
@@ -137,7 +154,7 @@ fn make_func_callable(
         proc.call::<RArray, Value>(rparams)
             .map_err(|e| {
                 if let Error::Exception(exception) = e {
-                    caller.data_mut().exception().hold(exception);
+                    caller.borrow_mut().data_mut().exception().hold(exception);
                 }
                 e
             })
@@ -201,10 +218,63 @@ impl From<BoxValue<Exception>> for InvokeError {
     }
 }
 
+struct Caller<'a> {
+    inner: &'a RefCell<CallerImpl<'a, StoreData>>,
+}
+
+impl<'a> Caller<'a> {
+    pub fn store_data(&self) -> Value {
+        self.inner.borrow().data().user_data()
+    }
+
+    pub fn export(&self, name: RString) -> Result<Option<Value>, Error> {
+        let mut caller_mut = self.inner.borrow_mut();
+
+        let ext = caller_mut
+            .get_export(unsafe { name.as_str() }?)
+            .map(|export| match export.ty(caller_mut.as_context_mut()) {
+                ExternType::Func(_func) => {
+                    todo!("Handle externs")
+                }
+                ExternType::Memory(_mem) => {
+                    todo!("Handle externs")
+                }
+                ExternType::Table(_table) => {
+                    todo!("Handle externs")
+                }
+                ExternType::Global(_global) => {
+                    todo!("Handle externs")
+                }
+            });
+
+        Ok(ext)
+    }
+}
+
+unsafe impl<'a> TypedData for Caller<'a> {
+    fn class() -> magnus::RClass {
+        *memoize!(RClass: root().define_class("Caller", Default::default()).unwrap())
+    }
+
+    fn data_type() -> &'static magnus::DataType {
+        memoize!(magnus::DataType: {
+            let mut builder = DataTypeBuilder::<Caller<'_>>::new("Wasmtime::Caller");
+            builder.free_immediatly();
+            builder.build()
+        })
+    }
+}
+impl DataTypeFunctions for Caller<'_> {}
+unsafe impl Send for Caller<'_> {}
+
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Func", Default::default())?;
-    class.define_singleton_method("new", function!(Func::new, 4))?;
-    class.define_method("call", method!(Func::call, 1))?;
+    let func = root().define_class("Func", Default::default())?;
+    func.define_singleton_method("new", function!(Func::new, -1))?;
+    func.define_method("call", method!(Func::call, 1))?;
+
+    let caller = root().define_class("Caller", Default::default())?;
+    caller.define_method("store_data", method!(Caller::store_data, 0))?;
+    caller.define_method("export", method!(Caller::export, 1))?;
 
     Ok(())
 }

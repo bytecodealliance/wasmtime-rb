@@ -29,6 +29,10 @@ impl StoreData {
     pub fn exception(&mut self) -> &mut HostException {
         &mut self.host_exception
     }
+
+    pub fn user_data(&self) -> Value {
+        self.user_data
+    }
 }
 
 #[derive(TypedData)]

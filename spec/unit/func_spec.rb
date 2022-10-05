@@ -69,7 +69,7 @@ module Wasmtime
 
     it "bubbles the exception on start" do
       error_class = Class.new(StandardError)
-      func = Func.new(store, FuncType.new([], []), true, -> { raise error_class })
+      func = Func.new(store, FuncType.new([], []), -> { raise error_class })
       mod = Wasmtime::Module.new(engine, <<~WAT)
         (module
           (import "" "" (func))
@@ -78,6 +78,42 @@ module Wasmtime
 
       expect { Wasmtime::Instance.new(store, mod, [func]) }
         .to raise_error(error_class)
+    end
+
+    it "does not send the caller when func has caller: false" do
+      called = false
+      body = ->(*args) do
+        called = true
+        expect(args.size).to eq(0)
+      end
+
+      func = Func.new(
+        Store.new(engine, {}),
+        FuncType.new([], []),
+        body,
+        caller: false
+      )
+      func.call([])
+      expect(called).to be true
+    end
+
+    it "sends caller as first argument when func has caller: true" do
+      called = false
+      store_data = BasicObject.new
+      body = ->(caller, _) do
+        called = true
+        expect(caller).to be_instance_of(Caller)
+        expect(caller.store_data).to equal(store_data)
+      end
+
+      func = Func.new(
+        Store.new(engine, store_data),
+        FuncType.new([:i32], []),
+        body,
+        caller: true
+      )
+      func.call([1])
+      expect(called).to be true
     end
 
     private
@@ -89,7 +125,7 @@ module Wasmtime
 
     def build_func(params, results, impl)
       store = Store.new(engine, {})
-      Func.new(store, FuncType.new(params, results), false, impl)
+      Func.new(store, FuncType.new(params, results), impl)
     end
   end
 end

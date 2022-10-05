@@ -2,7 +2,6 @@ use super::{
     convert::ToExtern,
     export::Export,
     func::Func,
-    memory::Memory,
     module::Module,
     root,
     store::{Store, StoreData},

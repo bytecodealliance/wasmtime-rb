@@ -14,7 +14,7 @@ use magnus::{
 use wasmtime::{AsContextMut, Extern, Instance as InstanceImpl, StoreContextMut};
 
 #[derive(Clone, Debug, TypedData)]
-#[magnus(class = "Wasmtime::Instance", mark)]
+#[magnus(class = "Wasmtime::Instance", mark, free_immediatly)]
 pub struct Instance {
     inner: InstanceImpl,
     store: Value,

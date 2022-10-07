@@ -7,7 +7,7 @@ use magnus::{
 use wasmtime::{AsContext, AsContextMut, Extern, Memory as MemoryImpl};
 
 #[derive(TypedData, Debug)]
-#[magnus(class = "Wasmtime::Memory", mark, size)]
+#[magnus(class = "Wasmtime::Memory", mark, size, free_immediatly)]
 pub struct Memory {
     store: Value,
     inner: MemoryImpl,

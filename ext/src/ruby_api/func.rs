@@ -21,7 +21,7 @@ use wasmtime::{
 };
 
 #[derive(TypedData, Debug)]
-#[magnus(class = "Wasmtime::Func", mark, size)]
+#[magnus(class = "Wasmtime::Func", mark, size, free_immediatly)]
 pub struct Func {
     store: Value,
     inner: FuncImpl,

@@ -59,13 +59,19 @@ impl Instance {
             store
                 .context_mut()
                 .data_mut()
-                .exception()
-                .take()
-                .map(Error::from)
+                .take_last_error()
                 .unwrap_or_else(|| error!("{}", e))
         })?;
 
         Ok(Self { inner, store: s })
+    }
+
+    pub fn get(&self) -> InstanceImpl {
+        self.inner
+    }
+
+    pub fn from_inner(store: Value, inner: InstanceImpl) -> Self {
+        Self { inner, store }
     }
 
     pub fn exports(&self) -> Result<RHash, Error> {

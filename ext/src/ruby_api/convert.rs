@@ -1,6 +1,6 @@
 use crate::{err, error};
 use magnus::{Error, TypedData, Value};
-use wasmtime::{ExternRef, Val, ValType};
+use wasmtime::{Extern, ExternRef, Val, ValType};
 
 use super::{func::Func, memory::Memory};
 
@@ -75,6 +75,22 @@ impl ToExtern for Value {
                 magnus::exception::type_error(),
                 format!("unexpected extern: {}", self.inspect()),
             ))
+        }
+    }
+}
+
+pub trait WrapWasmtimeType {
+    fn wrap_wasmtime_type(&self, store: Value) -> Result<Value, Error>;
+}
+
+impl WrapWasmtimeType for Extern {
+    fn wrap_wasmtime_type(&self, store: Value) -> Result<Value, Error> {
+        match self {
+            Extern::Func(func) => Ok(Func::from_inner(store, *func).into()),
+            Extern::Memory(mem) => Ok(Memory::from_inner(store, *mem).into()),
+            Extern::Global(_) => err!("global not yet supported"),
+            Extern::Table(_) => err!("table not yet supported"),
+            Extern::SharedMemory(_) => err!("shared memory not supported"),
         }
     }
 }

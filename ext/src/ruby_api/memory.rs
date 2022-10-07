@@ -30,6 +30,10 @@ impl Memory {
         Ok(Self { store: s, inner })
     }
 
+    pub fn from_inner(store: Value, inner: MemoryImpl) -> Self {
+        Self { store, inner }
+    }
+
     pub fn read(&self, offset: usize, size: usize) -> Result<RString, Error> {
         self.inner
             .data(self.store().context())

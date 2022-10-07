@@ -30,6 +30,10 @@ impl StoreData {
         &mut self.host_exception
     }
 
+    pub fn take_last_error(&mut self) -> Option<Error> {
+        self.host_exception.take().map(Error::from)
+    }
+
     pub fn user_data(&self) -> Value {
         self.user_data
     }

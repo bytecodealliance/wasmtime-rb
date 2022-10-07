@@ -8,6 +8,7 @@ mod export;
 mod func;
 mod func_type;
 mod instance;
+mod linker;
 mod memory;
 mod memory_type;
 mod module;
@@ -30,5 +31,6 @@ pub fn init() -> Result<(), Error> {
     func_type::init()?;
     memory_type::init()?;
     memory::init()?;
+    linker::init()?;
     Ok(())
 }

@@ -65,6 +65,10 @@ impl Func {
         Ok(Self { store: s, inner })
     }
 
+    pub fn from_inner(store: Value, inner: FuncImpl) -> Self {
+        Self { store, inner }
+    }
+
     pub fn get(&self) -> FuncImpl {
         // Makes a copy (wasmtime::Func implements Copy)
         self.inner
@@ -91,9 +95,7 @@ impl Func {
                 store
                     .context_mut()
                     .data_mut()
-                    .exception()
-                    .take()
-                    .map(Error::from)
+                    .take_last_error()
                     .unwrap_or_else(|| error!("Could not invoke function: {}", e))
             })?;
 
@@ -117,7 +119,7 @@ impl From<&Func> for Extern {
     }
 }
 
-fn make_func_callable(
+pub fn make_func_callable(
     ty: &wasmtime::FuncType,
     proc: Proc,
     send_caller: bool,

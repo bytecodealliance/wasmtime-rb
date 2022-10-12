@@ -53,8 +53,7 @@ impl Func {
 
         let store: &Store = s.try_convert()?;
         store.retain(proc.into());
-        let mut store = store.borrow_mut();
-        let context = store.as_context_mut();
+        let context = store.context_mut();
         let ty = functype.get();
 
         let inner = wasmtime::Func::new(
@@ -81,17 +80,16 @@ impl Func {
         func: &wasmtime::Func,
         args: RArray,
     ) -> Result<Value, InvokeError> {
-        let mut store = store.borrow_mut();
-        let func_ty = func.ty(store.as_context_mut());
+        let func_ty = func.ty(store.context_mut());
         let param_types = func_ty.params().collect::<Vec<_>>();
         let params_slice = unsafe { args.as_slice() };
         let params = Params::new(params_slice, param_types)?.to_vec()?;
         let mut results = vec![Val::null(); func_ty.results().len()];
 
-        func.call(store.as_context_mut(), &params, &mut results)
+        func.call(store.context_mut(), &params, &mut results)
             .map_err(|e| {
                 store
-                    .as_context_mut()
+                    .context_mut()
                     .data_mut()
                     .exception()
                     .take()

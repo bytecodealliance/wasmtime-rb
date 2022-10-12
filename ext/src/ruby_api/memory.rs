@@ -4,7 +4,7 @@ use magnus::{
     function, gc, method, r_string::RString, DataTypeFunctions, Error, Module as _, Object,
     TypedData, Value,
 };
-use wasmtime::{AsContext, AsContextMut, Extern, Memory as MemoryImpl};
+use wasmtime::{Extern, Memory as MemoryImpl};
 
 #[derive(TypedData, Debug)]
 #[magnus(class = "Wasmtime::Memory", mark, size, free_immediatly)]
@@ -24,18 +24,15 @@ impl Memory {
     pub fn new(s: Value, memtype: &MemoryType) -> Result<Self, Error> {
         let store: &Store = s.try_convert()?;
 
-        let inner = MemoryImpl::new(store.borrow_mut().as_context_mut(), memtype.get().clone())
+        let inner = MemoryImpl::new(store.context_mut(), memtype.get().clone())
             .map_err(|e| error!("{}", e))?;
 
         Ok(Self { store: s, inner })
     }
 
     pub fn read(&self, offset: usize, size: usize) -> Result<RString, Error> {
-        let store = self.store().borrow();
-        let ctx = store.as_context();
-
         self.inner
-            .data(ctx)
+            .data(self.store().context())
             .get(offset..)
             .and_then(|s| s.get(..size))
             .map(RString::from_slice)
@@ -46,22 +43,22 @@ impl Memory {
         let slice = unsafe { value.as_slice() };
 
         self.inner
-            .write(self.store().borrow_mut().as_context_mut(), offset, slice)
+            .write(self.store().context_mut(), offset, slice)
             .map_err(|e| error!("{}", e))
     }
 
     pub fn grow(&self, delta: u64) -> Result<u64, Error> {
         self.inner
-            .grow(self.store().borrow_mut().as_context_mut(), delta)
+            .grow(self.store().context_mut(), delta)
             .map_err(|e| error!("{}", e))
     }
 
     pub fn size(&self) -> u64 {
-        self.inner.size(self.store().borrow().as_context())
+        self.inner.size(self.store().context())
     }
 
     pub fn ty(&self) -> MemoryType {
-        self.inner.ty(self.store().borrow().as_context()).into()
+        self.inner.ty(self.store().context()).into()
     }
 
     pub fn get(&self) -> MemoryImpl {

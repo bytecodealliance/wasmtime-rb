@@ -11,7 +11,7 @@ use magnus::{
     function, gc, method, scan_args, DataTypeFunctions, Error, Module as _, Object, RArray, RHash,
     TypedData, Value,
 };
-use wasmtime::{AsContextMut, Extern, Instance as InstanceImpl, StoreContextMut};
+use wasmtime::{Extern, Instance as InstanceImpl, StoreContextMut};
 
 #[derive(Clone, Debug, TypedData)]
 #[magnus(class = "Wasmtime::Instance", mark, free_immediatly)]
@@ -34,8 +34,7 @@ impl Instance {
             scan_args::scan_args::<(Value, &Module), (Option<Value>,), (), (), (), ()>(args)?;
         let (s, module) = args.required;
         let store: &Store = s.try_convert()?;
-        let mut wasmtime_store = store.borrow_mut();
-        let context = wasmtime_store.as_context_mut();
+        let context = store.context_mut();
         let imports = args
             .optional
             .0
@@ -57,8 +56,8 @@ impl Instance {
 
         let module = module.get();
         let inner = InstanceImpl::new(context, module, &imports).map_err(|e| {
-            wasmtime_store
-                .as_context_mut()
+            store
+                .context_mut()
                 .data_mut()
                 .exception()
                 .take()
@@ -71,8 +70,7 @@ impl Instance {
 
     pub fn exports(&self) -> Result<RHash, Error> {
         let store = self.store.try_convert::<&Store>()?;
-        let mut borrowed_store = store.borrow_mut();
-        let mut ctx = borrowed_store.as_context_mut();
+        let mut ctx = store.context_mut();
         let hash = RHash::new();
         let exports = self
             .inner
@@ -89,7 +87,7 @@ impl Instance {
 
     pub fn invoke(&self, name: String, args: RArray) -> Result<Value, Error> {
         let store: &Store = self.store.try_convert()?;
-        let func = self.get_func(store.borrow_mut().as_context_mut(), &name)?;
+        let func = self.get_func(store.context_mut(), &name)?;
         Func::invoke(store, &func, args).map_err(|e| e.into())
     }
 

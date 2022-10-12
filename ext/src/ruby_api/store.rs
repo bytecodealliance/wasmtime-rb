@@ -3,8 +3,8 @@ use magnus::{
     exception::Exception, function, method, scan_args, value::BoxValue, DataTypeFunctions, Error,
     Module, Object, TypedData, Value, QNIL,
 };
-use std::cell::{Ref, RefCell, RefMut};
-use wasmtime::Store as StoreImpl;
+use std::cell::{RefCell, UnsafeCell};
+use wasmtime::{AsContext, AsContextMut, Store as StoreImpl, StoreContext, StoreContextMut};
 
 #[derive(Debug)]
 pub struct StoreData {
@@ -38,7 +38,7 @@ impl StoreData {
 #[derive(TypedData)]
 #[magnus(class = "Wasmtime::Store", size, mark, free_immediatly)]
 pub struct Store {
-    inner: RefCell<StoreImpl<StoreData>>,
+    inner: UnsafeCell<StoreImpl<StoreData>>,
     refs: RefCell<Vec<Value>>,
 }
 
@@ -65,7 +65,7 @@ impl Store {
             host_exception: HostException::default(),
         };
         let store = Self {
-            inner: RefCell::new(StoreImpl::new(eng, store_data)),
+            inner: UnsafeCell::new(StoreImpl::new(eng, store_data)),
             refs: Default::default(),
         };
 
@@ -75,15 +75,15 @@ impl Store {
     }
 
     pub fn data(&self) -> Value {
-        self.inner.borrow().data().user_data()
+        self.context().data().user_data()
     }
 
-    pub fn borrow_mut(&self) -> RefMut<StoreImpl<StoreData>> {
-        self.inner.borrow_mut()
+    pub fn context(&self) -> StoreContext<StoreData> {
+        unsafe { (*self.inner.get()).as_context() }
     }
 
-    pub fn borrow(&self) -> Ref<StoreImpl<StoreData>> {
-        self.inner.borrow()
+    pub fn context_mut(&self) -> StoreContextMut<StoreData> {
+        unsafe { (*self.inner.get()).as_context_mut() }
     }
 
     pub fn retain(&self, value: Value) {

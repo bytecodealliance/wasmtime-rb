@@ -3,7 +3,7 @@ use magnus::{
     memoize, method, r_typed_data::DataTypeBuilder, DataTypeFunctions, Error, Module, RClass,
     Symbol, TypedData,
 };
-use wasmtime::{AsContext, Export as ExportImpl, ExternType};
+use wasmtime::{Export as ExportImpl, ExternType};
 
 pub struct Export<'instance> {
     store: &'instance Store,
@@ -42,9 +42,7 @@ impl<'instance> Export<'instance> {
     }
 
     pub fn type_name(&self) -> Symbol {
-        let s = self.store.borrow();
-
-        match self.get().ty(s.as_context()) {
+        match self.get().ty(self.store.context()) {
             ExternType::Func(_) => "func".into(),
             ExternType::Global(_) => "global".into(),
             ExternType::Table(_) => "table".into(),

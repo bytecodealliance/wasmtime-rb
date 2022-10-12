@@ -80,6 +80,14 @@ module Wasmtime
         .to raise_error(error_class)
     end
 
+    it "re-enters into Wasm from Ruby" do
+      called = false
+      func1 = Func.new(store, FuncType.new([], []), -> { called = true })
+      func2 = Func.new(store, FuncType.new([], []), -> { func1.call([]) })
+      func2.call([])
+      expect(called).to be true
+    end
+
     it "does not send the caller when func has caller: false" do
       called = false
       body = ->(*args) do

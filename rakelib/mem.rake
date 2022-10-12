@@ -28,8 +28,8 @@ namespace :mem do
       engine = Wasmtime::Engine.new(config)
       store = Wasmtime::Store.new(engine, {})
       mod = Wasmtime::Module.deserialize(engine, precompiled)
-      import0 = Wasmtime::Func.new(store, Wasmtime::FuncType.new([:externref], [:externref]), false, ->(i) { i })
-      import1 = Wasmtime::Func.new(store, Wasmtime::FuncType.new([], []), false, -> { raise SomeError })
+      import0 = Wasmtime::Func.new(store, Wasmtime::FuncType.new([:externref], [:externref]), ->(i) { i })
+      import1 = Wasmtime::Func.new(store, Wasmtime::FuncType.new([], []), -> { raise SomeError })
       instance = Wasmtime::Instance.new(store, mod, [import0, import1])
       instance.invoke("hello", [])
       instance.invoke("f0", [BasicObject.new])
@@ -37,17 +37,23 @@ namespace :mem do
         instance.invoke("f1", [])
       rescue SomeError # no-op
       end
-      GC.start
     end
 
     wasmtime_interaction.call # warm-up
+    GC.start
 
-    (ENV["TIMES"] || 10_000).to_i.times do |i|
-      before = GetProcessMem.new.kb
+    before = GetProcessMem.new.kb
+    iterations = (ENV["TIMES"] || 500_000).to_i
+    gc_every = (ENV["GC_EVERY"] || iterations / 100).to_i
+    iterations.to_i.times do |i|
       wasmtime_interaction.call
-      after = GetProcessMem.new.kb
-      if before != after
-        puts format("Mem change: %d KiB -> %d KiB (%+d), i=#{i}", before, after, after - before)
+      if i % gc_every == 0
+        GC.start
+        after = GetProcessMem.new.kb
+        if before != after
+          puts format("Mem change: %d KiB -> %d KiB (%+d), i=#{i}", before, after, after - before)
+        end
+        before = after
       end
     end
   end

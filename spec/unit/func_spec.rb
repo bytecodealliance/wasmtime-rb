@@ -9,6 +9,39 @@ module Wasmtime
       expect { func.call([]) }.to change { runs }.by(1)
     end
 
+    it "accepts any callable" do
+      callable = Class.new do
+        def call
+        end
+      end
+
+      build_func([], [], -> {}).call([])
+      build_func([], [], callable.new).call([])
+      build_func([], [], method(:noop)).call([])
+    end
+
+    it "accepts block" do
+      store = Store.new(engine, {})
+      func = Func.new(store, FuncType.new([], [])) {}
+      func.call([])
+    end
+
+    it "accepts block and nil proc argument" do
+      store = Store.new(engine, {})
+      func = Func.new(store, FuncType.new([], []), nil) {}
+      func.call([])
+    end
+
+    it "raises without proc or block" do
+      expect { build_func([], []) }
+        .to raise_error(ArgumentError)
+    end
+
+    it "raises with both proc and block" do
+      expect { build_func([], [], -> {}) {} }
+        .to raise_error(ArgumentError)
+    end
+
     it("converts i32 back and forth") { expect(roundtrip_value(:i32, 4)).to eq(4) }
     it("converts i64 back and forth") { expect(roundtrip_value(:i64, 2**40)).to eq(2**40) }
     it("converts f32 back and forth") { expect(roundtrip_value(:f32, 5.5)).to eq(5.5) }
@@ -131,9 +164,13 @@ module Wasmtime
         .call([value])
     end
 
-    def build_func(params, results, impl)
+    def build_func(params, results, impl = nil, &block)
       store = Store.new(engine, {})
-      Func.new(store, FuncType.new(params, results), impl)
+      Func.new(store, FuncType.new(params, results), impl, &block)
+    end
+
+    # Used to test that you can send a `Method` object with `method(:foo)`
+    def noop
     end
   end
 end

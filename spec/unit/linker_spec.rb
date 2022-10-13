@@ -60,10 +60,10 @@ module Wasmtime
       functype = FuncType.new([], [])
 
       expect { new_linker.func_new("foo", "bar", functype, -> {}) {} }
-        .to raise_error(ArgumentError, "provide block or proc argument, not both")
+        .to raise_error(ArgumentError, "provide block or callable argument, not both")
 
       expect { new_linker.func_new("foo", "bar", functype) }
-        .to raise_error(ArgumentError, "provide block or proc argument")
+        .to raise_error(ArgumentError, "provide block or callable argument")
 
       expect { new_linker.func_new("foo", "bar", functype, -> {}) }
         .not_to raise_error

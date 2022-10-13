@@ -11,7 +11,6 @@ use super::{
 use crate::{error, ruby_api::convert::ToExtern};
 use magnus::{
     block::Proc,
-    exception::arg_error,
     function, gc, method,
     scan_args::{get_kwargs, scan_args},
     DataTypeFunctions, Error, Module as _, Object, RHash, RString, TypedData, Value,
@@ -73,32 +72,20 @@ impl Linker {
     pub fn func_new(&self, args: &[Value]) -> Result<(), Error> {
         let args = scan_args::<
             (RString, RString, &FuncType),
-            (Option<Proc>,),
+            (Option<Value>,),
             (),
             (),
             RHash,
             Option<Proc>,
         >(args)?;
         let (module, name, ty) = args.required;
-        let (proc,) = args.optional;
-        let block = args.block;
+        let callable = func::extract_callable(args.optional.0, args.block)?;
         let kwargs = get_kwargs::<_, (), (Option<bool>,), ()>(args.keywords, &[], &["caller"])?;
-        let (send_caller,) = kwargs.optional;
-        let send_caller = send_caller.unwrap_or(false);
+        let send_caller = kwargs.optional.0.unwrap_or(false);
 
-        if proc.and(block).is_some() {
-            return Err(Error::new(
-                arg_error(),
-                "provide block or proc argument, not both",
-            ));
-        }
-        let proc = proc
-            .or(block)
-            .ok_or_else(|| Error::new(arg_error(), "provide block or proc argument"))?;
+        let func_closure = func::make_func_closure(ty.get(), callable, send_caller);
 
-        let func_callable = func::make_func_callable(ty.get(), proc, send_caller);
-
-        self.refs.borrow_mut().push(proc.into());
+        self.refs.borrow_mut().push(callable);
 
         self.inner
             .borrow_mut()
@@ -106,7 +93,7 @@ impl Linker {
                 unsafe { module.as_str() }?,
                 unsafe { name.as_str() }?,
                 ty.get().clone(),
-                func_callable,
+                func_closure,
             )
             .map_err(|e| error!("{}", e))
             .map(|_| ())

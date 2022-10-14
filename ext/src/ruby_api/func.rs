@@ -5,7 +5,7 @@ use super::{
     root,
     store::{Store, StoreData},
 };
-use crate::error;
+use crate::{define_rb_intern, error};
 use magnus::{
     block::Proc,
     exception::arg_error,
@@ -20,6 +20,10 @@ use std::cell::RefCell;
 use wasmtime::{
     AsContextMut, Caller as CallerImpl, Extern, ExternType, Func as FuncImpl, Trap, Val,
 };
+
+define_rb_intern!(
+    CALL => "call",
+);
 
 #[derive(TypedData, Debug)]
 #[magnus(class = "Wasmtime::Func", mark, size, free_immediatly)]
@@ -171,7 +175,7 @@ pub fn make_func_closure(
 
         let callable = callable.0;
         callable
-            .funcall("call", unsafe { rparams.as_slice() })
+            .funcall(*CALL, unsafe { rparams.as_slice() })
             .map_err(|e| {
                 if let Error::Exception(exception) = e {
                     caller.borrow_mut().data_mut().exception().hold(exception);

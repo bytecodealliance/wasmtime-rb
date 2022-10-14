@@ -1,7 +1,17 @@
 use super::root;
-use crate::err;
-use magnus::{function, method, Error, Module as _, Object, RArray, StaticSymbol, Symbol, Value};
+use crate::{define_rb_intern, err};
+use magnus::{function, method, Error, Module as _, Object, RArray, Symbol, Value};
 use wasmtime::{FuncType as FuncTypeImpl, ValType};
+
+define_rb_intern!(
+    I32 => "i32",
+    I64 => "i64",
+    F32 => "f32",
+    F64 => "f64",
+    V128 => "v128",
+    FUNCREF => "funcref",
+    EXTERNREF => "externref",
+);
 
 #[derive(Clone, Debug)]
 #[magnus::wrap(class = "Wasmtime::FuncType")]
@@ -21,10 +31,10 @@ impl FuncType {
         Ok(Self { inner })
     }
 
-    pub fn params(&self) -> Vec<StaticSymbol> {
+    pub fn params(&self) -> Vec<Symbol> {
         self.get().params().map(ToSym::to_sym).collect()
     }
-    pub fn results(&self) -> Vec<StaticSymbol> {
+    pub fn results(&self) -> Vec<Symbol> {
         self.get().results().map(ToSym::to_sym).collect()
     }
 }
@@ -36,25 +46,25 @@ trait ToValType {
 impl ToValType for Value {
     fn to_val_type(&self) -> Result<ValType, Error> {
         if let Ok(symbol) = self.try_convert::<Symbol>() {
-            if let Ok(true) = symbol.equal(StaticSymbol::new("i32")) {
+            if let Ok(true) = symbol.equal(Symbol::from(*I32)) {
                 return Ok(ValType::I32);
             }
-            if let Ok(true) = symbol.equal(StaticSymbol::new("i64")) {
+            if let Ok(true) = symbol.equal(Symbol::from(*I64)) {
                 return Ok(ValType::I64);
             }
-            if let Ok(true) = symbol.equal(StaticSymbol::new("f32")) {
+            if let Ok(true) = symbol.equal(Symbol::from(*F32)) {
                 return Ok(ValType::F32);
             }
-            if let Ok(true) = symbol.equal(StaticSymbol::new("f64")) {
+            if let Ok(true) = symbol.equal(Symbol::from(*F64)) {
                 return Ok(ValType::F64);
             }
-            if let Ok(true) = symbol.equal(StaticSymbol::new("v128")) {
+            if let Ok(true) = symbol.equal(Symbol::from(*V128)) {
                 return Ok(ValType::V128);
             }
-            if let Ok(true) = symbol.equal(StaticSymbol::new("funcref")) {
+            if let Ok(true) = symbol.equal(Symbol::from(*FUNCREF)) {
                 return Ok(ValType::FuncRef);
             }
-            if let Ok(true) = symbol.equal(StaticSymbol::new("externref")) {
+            if let Ok(true) = symbol.equal(Symbol::from(*EXTERNREF)) {
                 return Ok(ValType::ExternRef);
             }
         }
@@ -80,19 +90,19 @@ impl ToValTypeVec for RArray {
 }
 
 trait ToSym {
-    fn to_sym(self) -> StaticSymbol;
+    fn to_sym(self) -> Symbol;
 }
 
 impl ToSym for ValType {
-    fn to_sym(self) -> StaticSymbol {
+    fn to_sym(self) -> Symbol {
         match self {
-            ValType::I32 => StaticSymbol::new("i32"),
-            ValType::I64 => StaticSymbol::new("i64"),
-            ValType::F32 => StaticSymbol::new("f32"),
-            ValType::F64 => StaticSymbol::new("f64"),
-            ValType::V128 => StaticSymbol::new("v128"),
-            ValType::FuncRef => StaticSymbol::new("funcref"),
-            ValType::ExternRef => StaticSymbol::new("externref"),
+            ValType::I32 => Symbol::from(*I32),
+            ValType::I64 => Symbol::from(*I64),
+            ValType::F32 => Symbol::from(*F32),
+            ValType::F64 => Symbol::from(*F64),
+            ValType::V128 => Symbol::from(*V128),
+            ValType::FuncRef => Symbol::from(*FUNCREF),
+            ValType::ExternRef => Symbol::from(*EXTERNREF),
         }
     }
 }

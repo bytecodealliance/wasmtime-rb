@@ -9,10 +9,12 @@ mod func;
 mod func_type;
 mod instance;
 mod linker;
+mod macros;
 mod memory;
 mod memory_type;
 mod module;
 mod params;
+mod static_id;
 mod store;
 
 /// The "Wasmtime" Ruby module.

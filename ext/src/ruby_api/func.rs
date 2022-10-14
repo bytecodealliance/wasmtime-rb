@@ -80,7 +80,7 @@ impl Func {
         self.inner
     }
 
-    pub fn call(&self, args: RArray) -> Result<Value, Error> {
+    pub fn call(&self, args: &[Value]) -> Result<Value, Error> {
         let store: &Store = self.store.try_convert()?;
         Self::invoke(store, &self.inner, args).map_err(|e| e.into())
     }
@@ -88,12 +88,11 @@ impl Func {
     pub fn invoke(
         store: &Store,
         func: &wasmtime::Func,
-        args: RArray,
+        args: &[Value],
     ) -> Result<Value, InvokeError> {
         let func_ty = func.ty(store.context_mut());
         let param_types = func_ty.params().collect::<Vec<_>>();
-        let params_slice = unsafe { args.as_slice() };
-        let params = Params::new(params_slice, param_types)?.to_vec()?;
+        let params = Params::new(args, param_types)?.to_vec()?;
         let mut results = vec![Val::null(); func_ty.results().len()];
 
         func.call(store.context_mut(), &params, &mut results)
@@ -294,7 +293,7 @@ unsafe impl Send for Caller<'_> {}
 pub fn init() -> Result<(), Error> {
     let func = root().define_class("Func", Default::default())?;
     func.define_singleton_method("new", function!(Func::new, -1))?;
-    func.define_method("call", method!(Func::call, 1))?;
+    func.define_method("call", method!(Func::call, -1))?;
 
     let caller = root().define_class("Caller", Default::default())?;
     caller.define_method("store_data", method!(Caller::store_data, 0))?;

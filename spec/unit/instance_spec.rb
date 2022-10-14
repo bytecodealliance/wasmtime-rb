@@ -43,7 +43,7 @@ module Wasmtime
           (module
             (func (export "main")))
         WAT
-        expect(instance.invoke("main", [])).to be_nil
+        expect(instance.invoke("main")).to be_nil
       end
 
       it "returns a value when func has single return value" do
@@ -52,7 +52,7 @@ module Wasmtime
             (func (export "main") (result i32)
               i32.const 42))
         WAT
-        expect(instance.invoke("main", [])).to eq(42)
+        expect(instance.invoke("main")).to eq(42)
       end
 
       it "returns an array when func has multiple return values" do
@@ -62,7 +62,7 @@ module Wasmtime
               i32.const 42
               i32.const 43))
         WAT
-        expect(instance.invoke("main", [])).to eq([42, 43])
+        expect(instance.invoke("main")).to eq([42, 43])
       end
 
       it "calls a func with i32" do
@@ -115,7 +115,7 @@ module Wasmtime
           (func (export "main") (param #{type}) (result #{type})
             local.get 0))
       WAT
-      instance.invoke("main", [arg])
+      instance.invoke("main", arg)
     end
   end
 end

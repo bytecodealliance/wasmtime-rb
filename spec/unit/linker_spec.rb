@@ -78,7 +78,7 @@ module Wasmtime
       linker = new_linker
       linker.func_new("", "", functype, -> { calls += 1 })
       func = linker.get(Store.new(engine), "", "")
-      expect { func.call([]) }.to change { calls }.by(1)
+      expect { func.call }.to change { calls }.by(1)
     end
 
     it "func_new sends caller when requested" do
@@ -91,7 +91,7 @@ module Wasmtime
       end
       instance = linker.instantiate(Store.new(engine), func_reexport_module)
 
-      expect { instance.invoke("f", []) }.to change { calls }.by(1)
+      expect { instance.invoke("f") }.to change { calls }.by(1)
     end
 
     it "get returns nil for undefined items" do
@@ -105,7 +105,7 @@ module Wasmtime
       linker.func_new("mod", "fn", FuncType.new([], [:i32]), -> { 42 })
       func = linker.get(Store.new(engine), "mod", "fn")
       expect(func).to be_instance_of(Func)
-      expect(func.call([])).to eq(42)
+      expect(func.call).to eq(42)
     end
 
     it "module" do
@@ -197,7 +197,7 @@ module Wasmtime
 
       # At this point, we only hold the instance, but the extension should
       # keep the proc and store from being GC'd, so calling should still work
-      instance.invoke("f", [])
+      instance.invoke("f")
     end
 
     private

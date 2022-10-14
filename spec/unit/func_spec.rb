@@ -5,8 +5,8 @@ module Wasmtime
     it "calls the passed-in proc proc" do
       runs = 0
       func = build_func([], [], -> { runs += 1 })
-      expect { func.call([]) }.to change { runs }.by(1)
-      expect { func.call([]) }.to change { runs }.by(1)
+      expect { func.call }.to change { runs }.by(1)
+      expect { func.call }.to change { runs }.by(1)
     end
 
     it "accepts any callable" do
@@ -15,21 +15,21 @@ module Wasmtime
         end
       end
 
-      build_func([], [], -> {}).call([])
-      build_func([], [], callable.new).call([])
-      build_func([], [], method(:noop)).call([])
+      build_func([], [], -> {}).call
+      build_func([], [], callable.new).call
+      build_func([], [], method(:noop)).call
     end
 
     it "accepts block" do
       store = Store.new(engine, {})
       func = Func.new(store, FuncType.new([], [])) {}
-      func.call([])
+      func.call
     end
 
     it "accepts block and nil proc argument" do
       store = Store.new(engine, {})
       func = Func.new(store, FuncType.new([], []), nil) {}
-      func.call([])
+      func.call
     end
 
     it "raises without proc or block" do
@@ -60,27 +60,27 @@ module Wasmtime
           (func (export "main") (result externref)
             ref.null extern))
       WAT
-      expect(instance.invoke("main", [])).to be_nil
+      expect(instance.invoke("main")).to be_nil
     end
 
     it "ignores the proc's return value when func has no results" do
       func = build_func([], [], -> { 1 })
-      expect(func.call([])).to be_nil
+      expect(func.call).to be_nil
     end
 
     it "accepts array of 1 element for single result" do
       func = build_func([], [:i32], -> { [1] })
-      expect(func.call([])).to eq(1)
+      expect(func.call).to eq(1)
     end
 
     it "rejects mismatching results size" do
       func = build_func([], [:i32], -> { [1, 2] })
-      expect { func.call([]) }.to raise_error(Wasmtime::Error, /wrong number of results \(given 2, expected 1\)/)
+      expect { func.call }.to raise_error(Wasmtime::Error, /wrong number of results \(given 2, expected 1\)/)
     end
 
     it "rejects mismatching result type" do
       func = build_func([], [:i32], -> { [nil] })
-      expect { func.call([]) }.to raise_error(Wasmtime::Error)
+      expect { func.call }.to raise_error(Wasmtime::Error)
     end
 
     it "tells you which result failed to convert in the error message" do
@@ -89,15 +89,15 @@ module Wasmtime
 
     it "rejects mismatching params size" do
       func = build_func([:i32], [], ->(_, _) {})
-      expect { func.call([1]) }.to raise_error(ArgumentError, /wrong number of arguments \(given 1, expected 2\)/)
+      expect { func.call(1) }.to raise_error(ArgumentError, /wrong number of arguments \(given 1, expected 2\)/)
     end
 
     it "bubbles the exception on with call" do
       error_class = Class.new(StandardError)
       func = build_func([], [], -> { raise error_class })
-      expect { func.call([]) }.to raise_error(error_class)
+      expect { func.call }.to raise_error(error_class)
       # Run a second time to catch already borrowed issues
-      expect { func.call([]) }.to raise_error(error_class)
+      expect { func.call }.to raise_error(error_class)
     end
 
     it "bubbles the exception on start" do
@@ -116,8 +116,8 @@ module Wasmtime
     it "re-enters into Wasm from Ruby" do
       called = false
       func1 = Func.new(store, FuncType.new([], []), -> { called = true })
-      func2 = Func.new(store, FuncType.new([], []), -> { func1.call([]) })
-      func2.call([])
+      func2 = Func.new(store, FuncType.new([], []), -> { func1.call })
+      func2.call
       expect(called).to be true
     end
 
@@ -134,7 +134,7 @@ module Wasmtime
         body,
         caller: false
       )
-      func.call([])
+      func.call
       expect(called).to be true
     end
 
@@ -153,7 +153,7 @@ module Wasmtime
         body,
         caller: true
       )
-      func.call([1])
+      func.call(1)
       expect(called).to be true
     end
 
@@ -161,7 +161,7 @@ module Wasmtime
 
     def roundtrip_value(type, value)
       build_func([type], [type], ->(arg) { arg })
-        .call([value])
+        .call(value)
     end
 
     def build_func(params, results, impl = nil, &block)

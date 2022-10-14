@@ -13,7 +13,7 @@ RSpec.describe "Hello World" do
        )
     WAT
 
-    result = instance.invoke("hello", [])
+    result = instance.invoke("hello")
 
     expect(result).to eq([1, 2, 3.0, 4.0])
   end
@@ -41,7 +41,7 @@ RSpec.describe "Hello World" do
         (export "add_three" (func $module/add_three))
       )
     WAT
-    result = instance.invoke("add_three", [1, 2, 3.0, 4.0])
+    result = instance.invoke("add_three", 1, 2, 3.0, 4.0)
 
     expect(result).to eq([4, 5, 6.0, 7.0])
   end

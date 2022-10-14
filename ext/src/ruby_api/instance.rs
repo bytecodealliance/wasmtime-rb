@@ -9,7 +9,7 @@ use super::{
 use crate::{err, error};
 use magnus::{
     function, gc, method, scan_args, DataTypeFunctions, Error, Module as _, Object, RArray, RHash,
-    TypedData, Value,
+    RString, TypedData, Value,
 };
 use wasmtime::{Extern, Instance as InstanceImpl, StoreContextMut};
 
@@ -91,10 +91,20 @@ impl Instance {
         Ok(hash)
     }
 
-    pub fn invoke(&self, name: String, args: RArray) -> Result<Value, Error> {
+    pub fn invoke(&self, args: &[Value]) -> Result<Value, Error> {
+        let name: RString = args
+            .get(0)
+            .ok_or_else(|| {
+                Error::new(
+                    magnus::exception::type_error(),
+                    "wrong number of arguments (given 0, expected 1+)",
+                )
+            })?
+            .try_convert()?;
+
         let store: &Store = self.store.try_convert()?;
-        let func = self.get_func(store.context_mut(), &name)?;
-        Func::invoke(store, &func, args).map_err(|e| e.into())
+        let func = self.get_func(store.context_mut(), unsafe { name.as_str()? })?;
+        Func::invoke(store, &func, &args[1..]).map_err(|e| e.into())
     }
 
     fn get_func(
@@ -116,7 +126,7 @@ pub fn init() -> Result<(), Error> {
     let class = root().define_class("Instance", Default::default())?;
 
     class.define_singleton_method("new", function!(Instance::new, -1))?;
-    class.define_method("invoke", method!(Instance::invoke, 2))?;
+    class.define_method("invoke", method!(Instance::invoke, -1))?;
     class.define_method("exports", method!(Instance::exports, 0))?;
 
     Ok(())

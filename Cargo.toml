@@ -1,4 +1,2 @@
-edition = "2018"
-
 [workspace]
 members = ["ext"]

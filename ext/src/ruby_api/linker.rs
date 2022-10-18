@@ -16,6 +16,7 @@ use magnus::{
 use std::cell::RefCell;
 use wasmtime::Linker as LinkerImpl;
 
+/// @yard
 #[derive(TypedData)]
 #[magnus(class = "Wasmtime::Linker", size, mark, free_immediatly)]
 pub struct Linker {
@@ -32,6 +33,10 @@ impl DataTypeFunctions for Linker {
 }
 
 impl Linker {
+    /// @yard
+    /// @def new(engine)
+    /// @param engine [Wasmtime::Engine]
+    /// @return [Wasmtime::Linker]
     pub fn new(engine: &Engine) -> Result<Self, Error> {
         Ok(Self {
             inner: RefCell::new(LinkerImpl::new(engine.get())),
@@ -39,10 +44,18 @@ impl Linker {
         })
     }
 
+    /// @yard
+    /// Allow shadowing.
+    /// @def allow_shadowing=(val)
+    /// @param val [Boolean]
     pub fn set_allow_shadowing(&self, val: bool) {
         self.inner.borrow_mut().allow_shadowing(val);
     }
 
+    /// @yard
+    /// Allow unknown exports.
+    /// @def allow_unknown_exports=(val)
+    /// @param val [Boolean]
     pub fn set_allow_unknown_exports(&self, val: bool) {
         self.inner.borrow_mut().allow_unknown_exports(val);
     }

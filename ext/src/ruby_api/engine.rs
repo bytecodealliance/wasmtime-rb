@@ -3,6 +3,8 @@ use crate::error;
 use magnus::{function, method, scan_args, Error, Module, Object, RString, Value};
 use wasmtime::Engine as EngineImpl;
 
+/// @yard
+/// Represents a Wasmtime execution engine.
 #[derive(Clone)]
 #[magnus::wrap(class = "Wasmtime::Engine")]
 pub struct Engine {
@@ -10,6 +12,9 @@ pub struct Engine {
 }
 
 impl Engine {
+    /// @yard
+    /// @def new(config)
+    /// @param config [Wasmtime::Configuration]
     pub fn new(args: &[Value]) -> Result<Self, Error> {
         let args = scan_args::scan_args::<(), (Option<Value>,), (), (), (), ()>(args)?;
         let (config,) = args.optional;

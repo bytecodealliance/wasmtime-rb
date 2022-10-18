@@ -9,13 +9,15 @@ use crate::error;
 use magnus::{
     block::Proc, function, gc, memoize, method, r_typed_data::DataTypeBuilder,
     scan_args::scan_args, value::BoxValue, DataTypeFunctions, Error, Exception, Module as _,
-    Object, RArray, RClass, RHash, RString, TryConvert, TypedData, Value, QNIL,
+    Object, RArray, RClass, RString, TryConvert, TypedData, Value, QNIL,
 };
 use std::cell::RefCell;
 use wasmtime::{
     AsContextMut, Caller as CallerImpl, Extern, ExternType, Func as FuncImpl, Trap, Val,
 };
 
+/// @yard
+/// Represents a WebAssembly Function
 #[derive(TypedData, Debug)]
 #[magnus(class = "Wasmtime::Func", mark, size, free_immediatly)]
 pub struct Func {
@@ -40,8 +42,18 @@ unsafe impl Sync for ShareableProc {}
 unsafe impl Send for Func {}
 
 impl Func {
+    /// @yard
+    ///
+    /// @def new(store, type, callable, &block)
+    /// @param store [Wasmtime::Store]
+    /// @param type [Wasmtime::FuncType]
+    /// @param block [Block] The funcs's implementation
+    /// @return [Wasmtime::Func]
+    ///
+    /// @example
+    ///   store = Wasmtime::Store.new(Wasmtime::Engine.new)
     pub fn new(args: &[Value]) -> Result<Self, Error> {
-        let args = scan_args::<(Value, &FuncType), (), (), (), RHash, Proc>(args)?;
+        let args = scan_args::<(Value, &FuncType), (), (), (), (), Proc>(args)?;
         let (s, functype) = args.required;
         let callable = args.block;
 
@@ -64,6 +76,8 @@ impl Func {
         self.inner
     }
 
+    /// @yard
+    /// Func#call method
     pub fn call(&self, args: &[Value]) -> Result<Value, Error> {
         let store: &Store = self.store.try_convert()?;
         Self::invoke(store, &self.inner, args).map_err(|e| e.into())

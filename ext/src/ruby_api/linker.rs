@@ -34,10 +34,7 @@ impl DataTypeFunctions for Linker {
 }
 
 impl Linker {
-    pub fn new(args: &[Value]) -> Result<Self, Error> {
-        let args = scan_args::<(&Engine,), (), (), (), RHash, ()>(args)?;
-        let (engine,) = args.required;
-
+    pub fn new(engine: &Engine) -> Result<Self, Error> {
         Ok(Self {
             inner: RefCell::new(LinkerImpl::new(engine.get())),
             refs: Default::default(),
@@ -196,7 +193,7 @@ impl Linker {
 
 pub fn init() -> Result<(), Error> {
     let class = root().define_class("Linker", Default::default())?;
-    class.define_singleton_method("new", function!(Linker::new, -1))?;
+    class.define_singleton_method("new", function!(Linker::new, 1))?;
     class.define_method("allow_shadowing=", method!(Linker::set_allow_shadowing, 1))?;
     class.define_method(
         "allow_unknown_exports=",

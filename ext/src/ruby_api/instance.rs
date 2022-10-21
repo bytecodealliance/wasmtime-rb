@@ -1,6 +1,5 @@
 use super::{
-    convert::ToExtern,
-    export::Export,
+    convert::{ToExtern, WrapWasmtimeType},
     func::Func,
     module::Module,
     root,
@@ -78,17 +77,26 @@ impl Instance {
         let store = self.store.try_convert::<&Store>()?;
         let mut ctx = store.context_mut();
         let hash = RHash::new();
-        let exports = self
-            .inner
-            .exports(&mut ctx)
-            .map(|export| Export::new(store, export));
 
-        for export in exports {
-            let name = export.name();
-            hash.aset(name, export)?;
+        for export in self.inner.exports(&mut ctx) {
+            hash.aset(
+                RString::from(export.name()),
+                export.into_extern().wrap_wasmtime_type(self.store)?,
+            )?;
         }
 
         Ok(hash)
+    }
+
+    pub fn export(&self, str: RString) -> Result<Option<Value>, Error> {
+        let store = self.store.try_convert::<&Store>()?;
+        let export = self
+            .inner
+            .get_export(store.context_mut(), unsafe { str.as_str()? });
+        match export {
+            Some(export) => export.wrap_wasmtime_type(self.store).map(Some),
+            None => Ok(None),
+        }
     }
 
     pub fn invoke(&self, args: &[Value]) -> Result<Value, Error> {
@@ -128,6 +136,7 @@ pub fn init() -> Result<(), Error> {
     class.define_singleton_method("new", function!(Instance::new, -1))?;
     class.define_method("invoke", method!(Instance::invoke, -1))?;
     class.define_method("exports", method!(Instance::exports, 0))?;
+    class.define_method("export", method!(Instance::export, 1))?;
 
     Ok(())
 }

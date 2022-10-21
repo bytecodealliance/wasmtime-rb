@@ -30,11 +30,15 @@ module Wasmtime
         )
       WAT
 
-      exports = instance.exports
-      type_names = exports.transform_values(&:type_name)
+      expect(instance.exports).to include("hello" => be_a(Func), "mem" => be_a(Memory))
+    end
 
-      expect(exports).to include(hello: be_a(Export), mem: be_a(Export))
-      expect(type_names).to eq(hello: :func, mem: :memory)
+    it "exposes export" do
+      instance = compile(<<~WAT)
+        (module
+          (func (export "f")))
+      WAT
+      expect(instance.export("f")).to be_a(Func)
     end
 
     describe "invoke" do

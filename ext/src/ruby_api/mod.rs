@@ -4,7 +4,6 @@ mod config;
 mod convert;
 mod engine;
 mod errors;
-mod export;
 mod func;
 mod func_type;
 mod instance;
@@ -28,7 +27,6 @@ pub fn init() -> Result<(), Error> {
     module::init()?;
     store::init()?;
     instance::init()?;
-    export::init()?;
     func::init()?;
     func_type::init()?;
     memory_type::init()?;

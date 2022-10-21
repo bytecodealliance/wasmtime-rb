@@ -106,7 +106,7 @@ module Wasmtime
 
       instance = linker.instantiate(store, mod2)
       expect(instance).to be_instance_of(Instance)
-      expect(instance.exports).to have_key(:run)
+      expect(instance.exports).to have_key("run")
     end
 
     it "instance" do

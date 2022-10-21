@@ -2,43 +2,14 @@ require "spec_helper"
 
 module Wasmtime
   RSpec.describe Func do
-    it "calls the passed-in proc proc" do
-      runs = 0
-      func = build_func([], [], -> { runs += 1 })
-      expect { func.call }.to change { runs }.by(1)
-      expect { func.call }.to change { runs }.by(1)
-    end
-
-    it "accepts any callable" do
-      callable = Class.new do
-        def call
-        end
-      end
-
-      build_func([], [], -> {}).call
-      build_func([], [], callable.new).call
-      build_func([], [], method(:noop)).call
-    end
-
     it "accepts block" do
       store = Store.new(engine, {})
       func = Func.new(store, FuncType.new([], [])) {}
       func.call
     end
 
-    it "accepts block and nil proc argument" do
-      store = Store.new(engine, {})
-      func = Func.new(store, FuncType.new([], []), nil) {}
-      func.call
-    end
-
-    it "raises without proc or block" do
+    it "raises without a block" do
       expect { build_func([], []) }
-        .to raise_error(ArgumentError)
-    end
-
-    it "raises with both proc and block" do
-      expect { build_func([], [], -> {}) {} }
         .to raise_error(ArgumentError)
     end
 
@@ -64,22 +35,22 @@ module Wasmtime
     end
 
     it "ignores the proc's return value when func has no results" do
-      func = build_func([], [], -> { 1 })
+      func = build_func([], []) { 1 }
       expect(func.call).to be_nil
     end
 
     it "accepts array of 1 element for single result" do
-      func = build_func([], [:i32], -> { [1] })
+      func = build_func([], [:i32]) { [1] }
       expect(func.call).to eq(1)
     end
 
     it "rejects mismatching results size" do
-      func = build_func([], [:i32], -> { [1, 2] })
+      func = build_func([], [:i32]) { [1, 2] }
       expect { func.call }.to raise_error(Wasmtime::Error, /wrong number of results \(given 2, expected 1\)/)
     end
 
     it "rejects mismatching result type" do
-      func = build_func([], [:i32], -> { [nil] })
+      func = build_func([], [:i32]) { [nil] }
       expect { func.call }.to raise_error(Wasmtime::Error)
     end
 
@@ -87,14 +58,9 @@ module Wasmtime
       skip("TODO!")
     end
 
-    it "rejects mismatching params size" do
-      func = build_func([:i32], [], ->(_, _) {})
-      expect { func.call(1) }.to raise_error(ArgumentError, /wrong number of arguments \(given 1, expected 2\)/)
-    end
-
     it "bubbles the exception on with call" do
       error_class = Class.new(StandardError)
-      func = build_func([], [], -> { raise error_class })
+      func = build_func([], []) { raise error_class }
       expect { func.call }.to raise_error(error_class)
       # Run a second time to catch already borrowed issues
       expect { func.call }.to raise_error(error_class)
@@ -102,7 +68,7 @@ module Wasmtime
 
     it "bubbles the exception on start" do
       error_class = Class.new(StandardError)
-      func = Func.new(store, FuncType.new([], []), -> { raise error_class })
+      func = Func.new(store, FuncType.new([], [])) { raise error_class }
       mod = Wasmtime::Module.new(engine, <<~WAT)
         (module
           (import "" "" (func))
@@ -115,25 +81,18 @@ module Wasmtime
 
     it "re-enters into Wasm from Ruby" do
       called = false
-      func1 = Func.new(store, FuncType.new([], []), -> { called = true })
-      func2 = Func.new(store, FuncType.new([], []), -> { func1.call })
+      func1 = Func.new(store, FuncType.new([], [])) { called = true }
+      func2 = Func.new(store, FuncType.new([], [])) { func1.call }
       func2.call
       expect(called).to be true
     end
 
     it "does not send the caller when func has caller: false" do
       called = false
-      body = ->(*args) do
+      func = Func.new(Store.new(engine, {}), FuncType.new([], []), caller: false) do |*args|
         called = true
         expect(args.size).to eq(0)
       end
-
-      func = Func.new(
-        Store.new(engine, {}),
-        FuncType.new([], []),
-        body,
-        caller: false
-      )
       func.call
       expect(called).to be true
     end
@@ -141,18 +100,14 @@ module Wasmtime
     it "sends caller as first argument when func has caller: true" do
       called = false
       store_data = BasicObject.new
-      body = ->(caller, _) do
+
+      store = Store.new(engine, store_data)
+      func = Func.new(store, FuncType.new([:i32], []), caller: true) do |caller, _|
         called = true
         expect(caller).to be_instance_of(Caller)
         expect(caller.store_data).to equal(store_data)
       end
 
-      func = Func.new(
-        Store.new(engine, store_data),
-        FuncType.new([:i32], []),
-        body,
-        caller: true
-      )
       func.call(1)
       expect(called).to be true
     end
@@ -160,13 +115,13 @@ module Wasmtime
     private
 
     def roundtrip_value(type, value)
-      build_func([type], [type], ->(arg) { arg })
+      build_func([type], [type]) { |arg| arg }
         .call(value)
     end
 
-    def build_func(params, results, impl = nil, &block)
+    def build_func(params, results, &block)
       store = Store.new(engine, {})
-      Func.new(store, FuncType.new(params, results), impl, &block)
+      Func.new(store, FuncType.new(params, results), &block)
     end
 
     # Used to test that you can send a `Method` object with `method(:foo)`

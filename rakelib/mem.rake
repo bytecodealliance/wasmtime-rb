@@ -28,13 +28,13 @@ namespace :mem do
       engine = Wasmtime::Engine.new(config)
       store = Wasmtime::Store.new(engine, {})
       mod = Wasmtime::Module.deserialize(engine, precompiled)
-      import0 = Wasmtime::Func.new(store, Wasmtime::FuncType.new([:externref], [:externref]), ->(i) { i })
-      import1 = Wasmtime::Func.new(store, Wasmtime::FuncType.new([], []), -> { raise SomeError })
+      import0 = Wasmtime::Func.new(store, Wasmtime::FuncType.new([:externref], [:externref])) { |o| o }
+      import1 = Wasmtime::Func.new(store, Wasmtime::FuncType.new([], [])) { raise SomeError }
       instance = Wasmtime::Instance.new(store, mod, [import0, import1])
-      instance.invoke("hello", [])
-      instance.invoke("f0", [BasicObject.new])
+      instance.invoke("hello")
+      instance.invoke("f0", BasicObject.new)
       begin
-        instance.invoke("f1", [])
+        instance.invoke("f1")
       rescue SomeError # no-op
       end
     end

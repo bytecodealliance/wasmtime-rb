@@ -67,22 +67,15 @@ impl Linker {
     }
 
     pub fn func_new(&self, args: &[Value]) -> Result<(), Error> {
-        let args = scan_args::<
-            (RString, RString, &FuncType),
-            (Option<Value>,),
-            (),
-            (),
-            RHash,
-            Option<Proc>,
-        >(args)?;
+        let args = scan_args::<(RString, RString, &FuncType), (), (), (), RHash, Proc>(args)?;
         let (module, name, ty) = args.required;
-        let callable = func::extract_callable(args.optional.0, args.block)?;
+        let callable = args.block;
         let kwargs = get_kwargs::<_, (), (Option<bool>,), ()>(args.keywords, &[], &["caller"])?;
         let send_caller = kwargs.optional.0.unwrap_or(false);
 
         let func_closure = func::make_func_closure(ty.get(), callable, send_caller);
 
-        self.refs.borrow_mut().push(callable);
+        self.refs.borrow_mut().push(callable.into());
 
         self.inner
             .borrow_mut()

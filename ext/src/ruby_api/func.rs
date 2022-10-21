@@ -8,7 +8,6 @@ use super::{
 use crate::{define_rb_intern, error};
 use magnus::{
     block::Proc,
-    exception::arg_error,
     function, gc, memoize, method,
     r_typed_data::DataTypeBuilder,
     scan_args::{get_kwargs, scan_args},
@@ -42,23 +41,22 @@ impl DataTypeFunctions for Func {
 // to do as long as (1) we hold the GVL when whe execute the proc and (2) we do
 // not have multiple threads running at once (e.g. with Wasm thread proposal).
 #[repr(transparent)]
-struct ShareableValue(Value);
-unsafe impl Send for ShareableValue {}
-unsafe impl Sync for ShareableValue {}
+struct ShareableProc(Proc);
+unsafe impl Send for ShareableProc {}
+unsafe impl Sync for ShareableProc {}
 
 unsafe impl Send for Func {}
 
 impl Func {
     pub fn new(args: &[Value]) -> Result<Self, Error> {
-        let args =
-            scan_args::<(Value, &FuncType), (Option<Value>,), (), (), RHash, Option<Proc>>(args)?;
+        let args = scan_args::<(Value, &FuncType), (), (), (), RHash, Proc>(args)?;
         let (s, functype) = args.required;
-        let callable = extract_callable(args.optional.0, args.block)?;
+        let callable = args.block;
         let kwargs = get_kwargs::<_, (), (Option<bool>,), ()>(args.keywords, &[], &["caller"])?;
         let send_caller = kwargs.optional.0.unwrap_or(false);
 
         let store: &Store = s.try_convert()?;
-        store.retain(callable);
+        store.retain(callable.into());
         let context = store.context_mut();
         let ty = functype.get();
 
@@ -124,33 +122,14 @@ impl From<&Func> for Extern {
     }
 }
 
-/// Extract a callable from either an optional positional argument or the provided block.
-/// Only one can provided & non-nil, error otherwise
-pub fn extract_callable(callable: Option<Value>, block: Option<Proc>) -> Result<Value, Error> {
-    // Accept explicit `nil` as optional argument
-    let callable = callable.and_then(|v| if v.is_nil() { None } else { Some(v) });
-    if callable.and(block).is_some() {
-        return Err(Error::new(
-            arg_error(),
-            "provide block or callable argument, not both",
-        ));
-    }
-
-    let block = block.map(Value::from);
-
-    callable
-        .or(block)
-        .ok_or_else(|| Error::new(arg_error(), "provide block or callable argument"))
-}
-
 pub fn make_func_closure(
     ty: &wasmtime::FuncType,
-    callable: Value,
+    callable: Proc,
     send_caller: bool,
 ) -> impl Fn(CallerImpl<'_, StoreData>, &[Val], &mut [Val]) -> Result<(), Trap> + Send + Sync + 'static
 {
     let ty = ty.to_owned();
-    let callable = ShareableValue(callable);
+    let callable = ShareableProc(callable);
 
     move |caller: CallerImpl<'_, StoreData>, params: &[Val], results: &mut [Val]| {
         let caller = RefCell::new(caller);

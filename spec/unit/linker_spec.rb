@@ -5,14 +5,14 @@ module Wasmtime
     it "allow_shadowing" do
       linker = new_linker
       functype = FuncType.new([], [])
-      linker.func_new("foo", "bar", functype, -> {})
+      linker.func_new("foo", "bar", functype) {}
 
       linker.allow_shadowing = false
-      expect { linker.func_new("foo", "bar", functype, -> {}) }
+      expect { linker.func_new("foo", "bar", functype) {} }
         .to raise_error(Wasmtime::Error)
 
       linker.allow_shadowing = true
-      expect { linker.func_new("foo", "bar", functype, -> {}) }
+      expect { linker.func_new("foo", "bar", functype) {} }
         .not_to raise_error
     end
 
@@ -51,22 +51,16 @@ module Wasmtime
     it "define func" do
       linker = new_linker
       store = Store.new(engine)
-      func = Func.new(store, FuncType.new([], []), -> {})
+      func = Func.new(store, FuncType.new([], [])) {}
       linker.define("mod", "fn", func)
       expect(linker.get(store, "mod", "fn")).to be_instance_of(Func)
     end
 
-    it "func_new accepts proc or block" do
+    it "func_new accepts block" do
       functype = FuncType.new([], [])
 
-      expect { new_linker.func_new("foo", "bar", functype, -> {}) {} }
-        .to raise_error(ArgumentError, "provide block or callable argument, not both")
-
       expect { new_linker.func_new("foo", "bar", functype) }
-        .to raise_error(ArgumentError, "provide block or callable argument")
-
-      expect { new_linker.func_new("foo", "bar", functype, -> {}) }
-        .not_to raise_error
+        .to raise_error(ArgumentError, "no block given")
 
       expect { new_linker.func_new("foo", "bar", functype) {} }
         .not_to raise_error
@@ -76,7 +70,7 @@ module Wasmtime
       functype = FuncType.new([], [])
       calls = 0
       linker = new_linker
-      linker.func_new("", "", functype, -> { calls += 1 })
+      linker.func_new("", "", functype) { calls += 1 }
       func = linker.get(Store.new(engine), "", "")
       expect { func.call }.to change { calls }.by(1)
     end
@@ -102,7 +96,7 @@ module Wasmtime
 
     it "get can return Func" do
       linker = new_linker
-      linker.func_new("mod", "fn", FuncType.new([], [:i32]), -> { 42 })
+      linker.func_new("mod", "fn", FuncType.new([], [:i32])) { 42 }
       func = linker.get(Store.new(engine), "mod", "fn")
       expect(func).to be_instance_of(Func)
       expect(func.call).to eq(42)
@@ -157,7 +151,7 @@ module Wasmtime
 
     it "instantiate" do
       linker = new_linker
-      linker.func_new("", "", FuncType.new([], []), -> {})
+      linker.func_new("", "", FuncType.new([], [])) {}
       instance = linker.instantiate(Store.new(engine), func_reexport_module)
       expect(instance).to be_instance_of(Instance)
     end
@@ -171,7 +165,7 @@ module Wasmtime
       WAT
       functype = FuncType.new([], [])
       linker = new_linker
-      linker.func_new("", "", functype, -> { raise error_class })
+      linker.func_new("", "", functype) { raise error_class }
 
       expect { linker.instantiate(Store.new(engine), mod) }
         .to raise_error(error_class)
@@ -191,7 +185,7 @@ module Wasmtime
       calls = 0
       functype = FuncType.new([], [])
       linker = new_linker
-      linker.func_new("", "", functype, -> { calls += 1 })
+      linker.func_new("", "", functype) { calls += 1 }
       instance = linker.instantiate(Store.new(engine), func_reexport_module)
       linker = nil # rubocop:disable Lint/UselessAssignment
 

@@ -16,7 +16,7 @@ jobs:
       - name: Remove Gemfile.lock
         run: rm Gemfile.lock
 
-      - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
+      - uses: oxidize-rb/actions/setup-ruby-and-rust@main
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
@@ -34,3 +34,12 @@ jobs:
 
       - name: Lint rust
         run: cargo clippy && cargo fmt --check
+
+      - name: Smoke test gem install
+        shell: bash
+        run: |
+          bundle exec rake build
+          gem install pkg/wasmtime-rb-*.gem --verbose
+          script="puts Wasmtime::Engine.new(Wasmtime::Config.new).precompile_module('(module)')"
+          ruby -rwasmtime -e "$script" | grep wasmtime-aot
+          echo "✅ Successfully gem installed"

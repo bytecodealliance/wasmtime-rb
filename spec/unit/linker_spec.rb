@@ -70,22 +70,12 @@ module Wasmtime
       functype = FuncType.new([], [])
       calls = 0
       linker = new_linker
-      linker.func_new("", "", functype) { calls += 1 }
-      func = linker.get(Store.new(engine), "", "")
-      expect { func.call }.to change { calls }.by(1)
-    end
-
-    it "func_new sends caller when requested" do
-      functype = FuncType.new([], [])
-      calls = 0
-      linker = new_linker
-      linker.func_new("", "", functype, caller: true) do |caller|
+      linker.func_new("", "", functype) do |caller|
         calls += 1
         expect(caller).to be_instance_of(Caller)
       end
-      instance = linker.instantiate(Store.new(engine), func_reexport_module)
-
-      expect { instance.invoke("f") }.to change { calls }.by(1)
+      func = linker.get(Store.new(engine), "", "")
+      expect { func.call }.to change { calls }.by(1)
     end
 
     it "get returns nil for undefined items" do

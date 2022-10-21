@@ -5,24 +5,16 @@ use super::{
     root,
     store::{Store, StoreData},
 };
-use crate::{define_rb_intern, error};
+use crate::error;
 use magnus::{
-    block::Proc,
-    function, gc, memoize, method,
-    r_typed_data::DataTypeBuilder,
-    scan_args::{get_kwargs, scan_args},
-    value::BoxValue,
-    DataTypeFunctions, Error, Exception, Module as _, Object, RArray, RClass, RHash, RString,
-    TryConvert, TypedData, Value, QNIL,
+    block::Proc, function, gc, memoize, method, r_typed_data::DataTypeBuilder,
+    scan_args::scan_args, value::BoxValue, DataTypeFunctions, Error, Exception, Module as _,
+    Object, RArray, RClass, RHash, RString, TryConvert, TypedData, Value, QNIL,
 };
 use std::cell::RefCell;
 use wasmtime::{
     AsContextMut, Caller as CallerImpl, Extern, ExternType, Func as FuncImpl, Trap, Val,
 };
-
-define_rb_intern!(
-    CALL => "call",
-);
 
 #[derive(TypedData, Debug)]
 #[magnus(class = "Wasmtime::Func", mark, size, free_immediatly)]
@@ -52,19 +44,13 @@ impl Func {
         let args = scan_args::<(Value, &FuncType), (), (), (), RHash, Proc>(args)?;
         let (s, functype) = args.required;
         let callable = args.block;
-        let kwargs = get_kwargs::<_, (), (Option<bool>,), ()>(args.keywords, &[], &["caller"])?;
-        let send_caller = kwargs.optional.0.unwrap_or(false);
 
         let store: &Store = s.try_convert()?;
         store.retain(callable.into());
         let context = store.context_mut();
         let ty = functype.get();
 
-        let inner = wasmtime::Func::new(
-            context,
-            ty.clone(),
-            make_func_closure(ty, callable, send_caller),
-        );
+        let inner = wasmtime::Func::new(context, ty.clone(), make_func_closure(ty, callable));
 
         Ok(Self { store: s, inner })
     }
@@ -125,7 +111,6 @@ impl From<&Func> for Extern {
 pub fn make_func_closure(
     ty: &wasmtime::FuncType,
     callable: Proc,
-    send_caller: bool,
 ) -> impl Fn(CallerImpl<'_, StoreData>, &[Val], &mut [Val]) -> Result<(), Trap> + Send + Sync + 'static
 {
     let ty = ty.to_owned();
@@ -134,15 +119,8 @@ pub fn make_func_closure(
     move |caller: CallerImpl<'_, StoreData>, params: &[Val], results: &mut [Val]| {
         let caller = RefCell::new(caller);
 
-        let rparams = if send_caller {
-            let p = RArray::with_capacity(params.len() + 1);
-            let c = Caller { inner: &caller };
-            p.push(Value::from(c)).ok();
-
-            p
-        } else {
-            RArray::with_capacity(params.len())
-        };
+        let rparams = RArray::with_capacity(params.len() + 1);
+        rparams.push(Caller { inner: &caller }).ok();
 
         for (i, param) in params.iter().enumerate() {
             let rparam = param.to_ruby_value().map_err(|e| {
@@ -153,7 +131,7 @@ pub fn make_func_closure(
 
         let callable = callable.0;
         callable
-            .funcall(*CALL, unsafe { rparams.as_slice() })
+            .call(unsafe { rparams.as_slice() })
             .map_err(|e| {
                 if let Error::Exception(exception) = e {
                     caller.borrow_mut().data_mut().exception().hold(exception);

@@ -87,22 +87,12 @@ module Wasmtime
       expect(called).to be true
     end
 
-    it "does not send the caller when func has caller: false" do
-      called = false
-      func = Func.new(Store.new(engine, {}), FuncType.new([], []), caller: false) do |*args|
-        called = true
-        expect(args.size).to eq(0)
-      end
-      func.call
-      expect(called).to be true
-    end
-
-    it "sends caller as first argument when func has caller: true" do
+    it "sends caller as first argument" do
       called = false
       store_data = BasicObject.new
 
       store = Store.new(engine, store_data)
-      func = Func.new(store, FuncType.new([:i32], []), caller: true) do |caller, _|
+      func = Func.new(store, FuncType.new([:i32], [])) do |caller, _|
         called = true
         expect(caller).to be_instance_of(Caller)
         expect(caller.store_data).to equal(store_data)
@@ -115,7 +105,7 @@ module Wasmtime
     private
 
     def roundtrip_value(type, value)
-      build_func([type], [type]) { |arg| arg }
+      build_func([type], [type]) { |_, arg| arg }
         .call(value)
     end
 

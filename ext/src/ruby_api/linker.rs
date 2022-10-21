@@ -10,10 +10,8 @@ use super::{
 };
 use crate::{error, ruby_api::convert::ToExtern};
 use magnus::{
-    block::Proc,
-    function, gc, method,
-    scan_args::{get_kwargs, scan_args},
-    DataTypeFunctions, Error, Module as _, Object, RHash, RString, TypedData, Value,
+    block::Proc, function, gc, method, scan_args::scan_args, DataTypeFunctions, Error, Module as _,
+    Object, RHash, RString, TypedData, Value,
 };
 use std::cell::RefCell;
 use wasmtime::Linker as LinkerImpl;
@@ -70,10 +68,7 @@ impl Linker {
         let args = scan_args::<(RString, RString, &FuncType), (), (), (), RHash, Proc>(args)?;
         let (module, name, ty) = args.required;
         let callable = args.block;
-        let kwargs = get_kwargs::<_, (), (Option<bool>,), ()>(args.keywords, &[], &["caller"])?;
-        let send_caller = kwargs.optional.0.unwrap_or(false);
-
-        let func_closure = func::make_func_closure(ty.get(), callable, send_caller);
+        let func_closure = func::make_func_closure(ty.get(), callable);
 
         self.refs.borrow_mut().push(callable.into());
 

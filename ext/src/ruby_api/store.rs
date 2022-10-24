@@ -40,7 +40,8 @@ impl StoreData {
 }
 
 /// @yard
-/// Represents a Store
+/// Represents a WebAssebmly store.
+/// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Store.html Wasmtime's Rust doc
 #[derive(TypedData)]
 #[magnus(class = "Wasmtime::Store", size, mark, free_immediatly)]
 pub struct Store {

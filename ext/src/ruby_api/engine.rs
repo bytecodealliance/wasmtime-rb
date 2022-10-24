@@ -5,6 +5,7 @@ use wasmtime::Engine as EngineImpl;
 
 /// @yard
 /// Represents a Wasmtime execution engine.
+/// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Engine.html Wasmtime's Rust doc
 #[derive(Clone)]
 #[magnus::wrap(class = "Wasmtime::Engine")]
 pub struct Engine {
@@ -14,7 +15,7 @@ pub struct Engine {
 impl Engine {
     /// @yard
     /// @def new(config)
-    /// @param config [Wasmtime::Configuration]
+    /// @param config [Configuration]
     pub fn new(args: &[Value]) -> Result<Self, Error> {
         let args = scan_args::scan_args::<(), (Option<Value>,), (), (), (), ()>(args)?;
         let (config,) = args.optional;
@@ -36,9 +37,18 @@ impl Engine {
         EngineImpl::same(self.get(), other.get())
     }
 
-    pub fn precompile_module(&self, string: RString) -> Result<RString, Error> {
+    /// @yard
+    /// AoT compile a WebAssembly text or WebAssembly binary module for later use.
+    ///
+    /// The compiled module can be instantiated using {Module.deserialize}.
+    ///
+    /// @def precompile_module(wat_or_wasm)
+    /// @param wat_or_wasm [String] The String of WAT or Wasm.
+    /// @return [String] Binary String of the compiled module.
+    /// @see Module.deserialize
+    pub fn precompile_module(&self, wat_or_wasm: RString) -> Result<RString, Error> {
         self.inner
-            .precompile_module(unsafe { string.as_slice() })
+            .precompile_module(unsafe { wat_or_wasm.as_slice() })
             .map(|bytes| RString::from_slice(&bytes))
             .map_err(|e| error!("{}", e.to_string()))
     }

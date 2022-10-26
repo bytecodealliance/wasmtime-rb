@@ -102,6 +102,47 @@ module Wasmtime
       expect(called).to be true
     end
 
+    describe "Caller" do
+      it "exposes memory and func for the duration of the call only" do
+        engine = Engine.new
+        mod = Module.new(engine, <<~WAT)
+          (module
+            (import "" "" (func))
+            (import "" "" (func))
+            (memory (export "mem") 1)
+            (export "f1_export" (func 1))
+            (start 0))
+        WAT
+        store = Store.new(engine)
+        calls = 0
+
+        mem = nil
+        f1_export = nil
+        caller = nil
+
+        f0 = Func.new(store, FuncType.new([], [])) do |c|
+          caller = c
+          calls += 1
+
+          mem = caller.export("mem")
+          mem.write(0, "foo")
+          expect(mem.read(0, 3)).to eq("foo")
+
+          f1_export = caller.export("f1_export")
+          f1_export.call
+        end
+        f1 = Func.new(store, FuncType.new([], [])) { calls += 1 }
+
+        Instance.new(store, mod, [f0, f1])
+        expect(calls).to eq(2)
+
+        message = "Caller outlived its Func execution"
+        expect { caller.export("f1_export") }.to raise_error(Wasmtime::Error, message)
+        expect { mem.read(0, 3) }.to raise_error(Wasmtime::Error, message)
+        expect { f1_export.call }.to raise_error(Wasmtime::Error, message)
+      end
+    end
+
     private
 
     def roundtrip_value(type, value)
@@ -112,10 +153,6 @@ module Wasmtime
     def build_func(params, results, &block)
       store = Store.new(engine, {})
       Func.new(store, FuncType.new(params, results), &block)
-    end
-
-    # Used to test that you can send a `Method` object with `method(:foo)`
-    def noop
     end
   end
 end

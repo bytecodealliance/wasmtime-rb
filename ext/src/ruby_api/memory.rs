@@ -1,21 +1,25 @@
-use super::{memory_type::MemoryType, root, store::Store};
+use super::{
+    memory_type::MemoryType,
+    root,
+    store::{Store, StoreContextValue},
+};
 use crate::error;
 use magnus::{
-    function, gc, method, r_string::RString, DataTypeFunctions, Error, Module as _, Object,
-    TypedData, Value,
+    function, method, r_string::RString, DataTypeFunctions, Error, Module as _, Object, TypedData,
+    Value,
 };
 use wasmtime::{Extern, Memory as MemoryImpl};
 
 #[derive(TypedData, Debug)]
 #[magnus(class = "Wasmtime::Memory", mark, size, free_immediatly)]
 pub struct Memory {
-    store: Value,
+    store: StoreContextValue,
     inner: MemoryImpl,
 }
 
 impl DataTypeFunctions for Memory {
     fn mark(&self) {
-        gc::mark(&self.store);
+        self.store.mark();
     }
 }
 unsafe impl Send for Memory {}
@@ -27,16 +31,19 @@ impl Memory {
         let inner = MemoryImpl::new(store.context_mut(), memtype.get().clone())
             .map_err(|e| error!("{}", e))?;
 
-        Ok(Self { store: s, inner })
+        Ok(Self {
+            store: StoreContextValue::Store(s),
+            inner,
+        })
     }
 
-    pub fn from_inner(store: Value, inner: MemoryImpl) -> Self {
+    pub fn from_inner(store: StoreContextValue, inner: MemoryImpl) -> Self {
         Self { store, inner }
     }
 
     pub fn read(&self, offset: usize, size: usize) -> Result<RString, Error> {
         self.inner
-            .data(self.store().context())
+            .data(self.store.context()?)
             .get(offset..)
             .and_then(|s| s.get(..size))
             .map(RString::from_slice)
@@ -47,32 +54,26 @@ impl Memory {
         let slice = unsafe { value.as_slice() };
 
         self.inner
-            .write(self.store().context_mut(), offset, slice)
+            .write(self.store.context_mut()?, offset, slice)
             .map_err(|e| error!("{}", e))
     }
 
     pub fn grow(&self, delta: u64) -> Result<u64, Error> {
         self.inner
-            .grow(self.store().context_mut(), delta)
+            .grow(self.store.context_mut()?, delta)
             .map_err(|e| error!("{}", e))
     }
 
-    pub fn size(&self) -> u64 {
-        self.inner.size(self.store().context())
+    pub fn size(&self) -> Result<u64, Error> {
+        Ok(self.inner.size(self.store.context()?))
     }
 
-    pub fn ty(&self) -> MemoryType {
-        self.inner.ty(self.store().context()).into()
+    pub fn ty(&self) -> Result<MemoryType, Error> {
+        Ok(self.inner.ty(self.store.context()?).into())
     }
 
     pub fn get(&self) -> MemoryImpl {
         self.inner
-    }
-
-    fn store(&self) -> &Store {
-        self.store
-            .try_convert::<&Store>()
-            .expect("Memory.store must be a store")
     }
 }
 

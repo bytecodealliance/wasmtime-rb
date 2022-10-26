@@ -1,31 +1,33 @@
 use super::{
     convert::{ToRubyValue, ToWasmVal},
     func_type::FuncType,
+    memory::Memory,
     params::Params,
     root,
-    store::{Store, StoreData},
+    store::{Store, StoreContextValue, StoreData},
 };
 use crate::error;
 use magnus::{
-    block::Proc, function, gc, memoize, method, r_typed_data::DataTypeBuilder,
-    scan_args::scan_args, value::BoxValue, DataTypeFunctions, Error, Exception, Module as _,
-    Object, RArray, RClass, RHash, RString, TryConvert, TypedData, Value, QNIL,
+    block::Proc, function, memoize, method, r_typed_data::DataTypeBuilder, scan_args::scan_args,
+    value::BoxValue, DataTypeFunctions, Error, Exception, Module as _, Object, RArray, RClass,
+    RHash, RString, TryConvert, TypedData, Value, QNIL,
 };
-use std::cell::RefCell;
+use std::cell::UnsafeCell;
 use wasmtime::{
-    AsContextMut, Caller as CallerImpl, Extern, ExternType, Func as FuncImpl, Trap, Val,
+    AsContext, AsContextMut, Caller as CallerImpl, Extern, ExternType, Func as FuncImpl,
+    StoreContext, StoreContextMut, Trap, Val,
 };
 
 #[derive(TypedData, Debug)]
 #[magnus(class = "Wasmtime::Func", mark, size, free_immediatly)]
 pub struct Func {
-    store: Value,
+    store: StoreContextValue,
     inner: FuncImpl,
 }
 
 impl DataTypeFunctions for Func {
     fn mark(&self) {
-        gc::mark(&self.store);
+        self.store.mark();
     }
 }
 
@@ -52,10 +54,13 @@ impl Func {
 
         let inner = wasmtime::Func::new(context, ty.clone(), make_func_closure(ty, callable));
 
-        Ok(Self { store: s, inner })
+        Ok(Self {
+            store: StoreContextValue::Store(s),
+            inner,
+        })
     }
 
-    pub fn from_inner(store: Value, inner: FuncImpl) -> Self {
+    pub fn from_inner(store: StoreContextValue, inner: FuncImpl) -> Self {
         Self { store, inner }
     }
 
@@ -65,24 +70,24 @@ impl Func {
     }
 
     pub fn call(&self, args: &[Value]) -> Result<Value, Error> {
-        let store: &Store = self.store.try_convert()?;
-        Self::invoke(store, &self.inner, args).map_err(|e| e.into())
+        Self::invoke(&self.store, &self.inner, args).map_err(|e| e.into())
     }
 
     pub fn invoke(
-        store: &Store,
+        store: &StoreContextValue,
         func: &wasmtime::Func,
         args: &[Value],
     ) -> Result<Value, InvokeError> {
-        let func_ty = func.ty(store.context_mut());
+        let func_ty = func.ty(store.context_mut()?);
         let param_types = func_ty.params().collect::<Vec<_>>();
         let params = Params::new(args, param_types)?.to_vec()?;
         let mut results = vec![Val::null(); func_ty.results().len()];
 
-        func.call(store.context_mut(), &params, &mut results)
+        func.call(store.context_mut()?, &params, &mut results)
             .map_err(|e| {
                 store
                     .context_mut()
+                    .expect("store context is still reachable")
                     .data_mut()
                     .take_last_error()
                     .unwrap_or_else(|| error!("Could not invoke function: {}", e))
@@ -116,11 +121,12 @@ pub fn make_func_closure(
     let ty = ty.to_owned();
     let callable = ShareableProc(callable);
 
-    move |caller: CallerImpl<'_, StoreData>, params: &[Val], results: &mut [Val]| {
-        let caller = RefCell::new(caller);
+    move |caller_impl: CallerImpl<'_, StoreData>, params: &[Val], results: &mut [Val]| {
+        let caller_value: Value = Caller::new(caller_impl).into();
+        let caller = caller_value.try_convert::<&Caller>().unwrap();
 
         let rparams = RArray::with_capacity(params.len() + 1);
-        rparams.push(Caller { inner: &caller }).ok();
+        rparams.push(caller_value).ok();
 
         for (i, param) in params.iter().enumerate() {
             let rparam = param.to_ruby_value().map_err(|e| {
@@ -130,11 +136,12 @@ pub fn make_func_closure(
         }
 
         let callable = callable.0;
-        callable
+
+        let result = callable
             .call(unsafe { rparams.as_slice() })
             .map_err(|e| {
                 if let Error::Exception(exception) = e {
-                    caller.borrow_mut().data_mut().exception().hold(exception);
+                    caller.hold_exception(exception);
                 }
                 e
             })
@@ -168,7 +175,14 @@ pub fn make_func_closure(
                     callable.inspect(),
                     e
                 ))
-            })
+            });
+
+        // Drop the caller's inner (wasmtime::Caller) so it does not outlive the call.
+        // This would be possible if e.g. the caller assigned the instance of
+        // Wasmtime::Caller to a global.
+        caller.drop_inner();
+
+        result
     }
 }
 
@@ -198,36 +212,67 @@ impl From<BoxValue<Exception>> for InvokeError {
     }
 }
 
-struct Caller<'a> {
-    inner: &'a RefCell<CallerImpl<'a, StoreData>>,
+pub struct Caller<'a> {
+    inner: UnsafeCell<Option<CallerImpl<'a, StoreData>>>,
 }
 
 impl<'a> Caller<'a> {
-    pub fn store_data(&self) -> Value {
-        self.inner.borrow().data().user_data()
+    pub fn new(caller: CallerImpl<'a, StoreData>) -> Self {
+        Self {
+            inner: UnsafeCell::new(Some(caller)),
+        }
+    }
+    pub fn store_data(&self) -> Result<Value, Error> {
+        self.context().map(|ctx| ctx.data().user_data())
     }
 
-    pub fn export(&self, name: RString) -> Result<Option<Value>, Error> {
-        let mut caller_mut = self.inner.borrow_mut();
+    // Taking a Value as self instead of `&self` to avoid re-wrapping &self in a
+    // typed data object, causing an unnecessary object allocation.
+    pub fn export(rb_self: Value, name: RString) -> Result<Option<Value>, Error> {
+        let caller = rb_self.try_convert::<&Self>()?;
+        let inner = unsafe { &mut *caller.inner.get() }
+            .as_mut()
+            .ok_or_else(|| error!("Caller outlived its Func execution"))?;
 
-        let ext = caller_mut
-            .get_export(unsafe { name.as_str() }?)
-            .map(|export| match export.ty(caller_mut.as_context_mut()) {
-                ExternType::Func(_func) => {
-                    todo!("Handle externs")
-                }
-                ExternType::Memory(_mem) => {
-                    todo!("Handle externs")
-                }
-                ExternType::Table(_table) => {
-                    todo!("Handle externs")
-                }
-                ExternType::Global(_global) => {
-                    todo!("Handle externs")
-                }
-            });
+        let export = match inner.get_export(unsafe { name.as_str() }?) {
+            Some(export) => export,
+            None => return Ok(None),
+        };
 
-        Ok(ext)
+        let store = StoreContextValue::Caller(rb_self);
+        let export: Value = match export.ty(caller.context_mut()?) {
+            ExternType::Func(_) => Func::from_inner(store, export.into_func().unwrap()).into(),
+            ExternType::Memory(_) => {
+                Memory::from_inner(store, export.into_memory().unwrap()).into()
+            }
+            _ => return Ok(None), // Other export types are not supported
+        };
+
+        Ok(Some(export))
+    }
+
+    pub fn context(&self) -> Result<StoreContext<StoreData>, Error> {
+        unsafe { (*self.inner.get()).as_ref() }
+            .ok_or_else(|| error!("Caller outlived its Func execution"))
+            .map(|c| c.as_context())
+    }
+
+    pub fn context_mut(&self) -> Result<StoreContextMut<StoreData>, Error> {
+        unsafe { (*self.inner.get()).as_mut() }
+            .ok_or_else(|| error!("Caller outlived its Func execution"))
+            .map(|c| c.as_context_mut())
+    }
+
+    pub fn drop_inner(&self) {
+        unsafe { *self.inner.get() = None }
+    }
+
+    fn hold_exception(&self, exception: Exception) {
+        self.context_mut()
+            .unwrap()
+            .data_mut()
+            .exception()
+            .hold(exception);
     }
 }
 

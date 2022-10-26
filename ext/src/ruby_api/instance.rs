@@ -3,7 +3,7 @@ use super::{
     func::Func,
     module::Module,
     root,
-    store::{Store, StoreData},
+    store::{Store, StoreContextValue, StoreData},
 };
 use crate::{err, error};
 use magnus::{
@@ -112,7 +112,7 @@ impl Instance {
 
         let store: &Store = self.store.try_convert()?;
         let func = self.get_func(store.context_mut(), unsafe { name.as_str()? })?;
-        Func::invoke(store, &func, &args[1..]).map_err(|e| e.into())
+        Func::invoke(&StoreContextValue::Store(self.store), &func, &args[1..]).map_err(|e| e.into())
     }
 
     fn get_func(

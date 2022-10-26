@@ -1,4 +1,4 @@
-use super::{engine::Engine, root};
+use super::{engine::Engine, func::Caller, root};
 use magnus::{
     exception::Exception, function, method, scan_args, value::BoxValue, DataTypeFunctions, Error,
     Module, Object, TypedData, Value, QNIL,
@@ -92,6 +92,51 @@ impl Store {
 
     pub fn retain(&self, value: Value) {
         self.refs.borrow_mut().push(value);
+    }
+}
+
+/// A wrapper around a Ruby Value that has a store context.
+/// Used in places where both Store or Caller can be used.
+#[derive(Debug)]
+pub enum StoreContextValue {
+    Store(Value),
+    Caller(Value),
+}
+impl StoreContextValue {
+    pub fn mark(&self) {
+        match self {
+            Self::Store(v) => magnus::gc::mark(v),
+            Self::Caller(_) => {
+                // The Caller is on the stack while it's "live". Right before the end of a host call,
+                // we remove the Caller form the Ruby object, thus there is no need to mark.
+            }
+        }
+    }
+
+    pub fn context(&self) -> Result<StoreContext<StoreData>, Error> {
+        match self {
+            Self::Store(s) => {
+                let store = s.try_convert::<&Store>().expect("a Store typed data");
+                Ok(store.context())
+            }
+            Self::Caller(c) => {
+                let caller = c.try_convert::<&Caller>().expect("a Caller typed data");
+                caller.context()
+            }
+        }
+    }
+
+    pub fn context_mut(&self) -> Result<StoreContextMut<StoreData>, Error> {
+        match self {
+            Self::Store(s) => {
+                let store = s.try_convert::<&Store>().expect("a Store typed data");
+                Ok(store.context_mut())
+            }
+            Self::Caller(c) => {
+                let caller = c.try_convert::<&Caller>().expect("a Caller typed data");
+                caller.context_mut()
+            }
+        }
     }
 }
 

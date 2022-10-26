@@ -6,7 +6,7 @@ use super::{
     instance::Instance,
     module::Module,
     root,
-    store::{Store, StoreData},
+    store::{Store, StoreContextValue, StoreData},
 };
 use crate::{error, ruby_api::convert::ToExtern};
 use magnus::{
@@ -174,7 +174,7 @@ impl Linker {
         self.inner
             .borrow()
             .get_default(store.context_mut(), unsafe { module.as_str() }?)
-            .map(|func| Func::from_inner(s, func))
+            .map(|func| Func::from_inner(StoreContextValue::Store(s), func))
             .map_err(|e| error!("{}", e))
     }
 }

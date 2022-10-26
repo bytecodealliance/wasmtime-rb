@@ -1,9 +1,10 @@
 use super::{
-    convert::{ToRubyValue, ToWasmVal},
+    convert::{ToRubyValue, ToWasmVal, WrapWasmtimeType},
+    externals::Extern,
     func_type::FuncType,
     params::Params,
     root,
-    store::{Store, StoreData},
+    store::{Store, StoreContextValue, StoreData},
 };
 use crate::{error, helpers::WrappedStruct};
 use magnus::{
@@ -11,22 +12,39 @@ use magnus::{
     value::BoxValue, DataTypeFunctions, Error, Exception, Module as _, Object, RArray, RClass,
     RString, TryConvert, TypedData, Value, QNIL,
 };
-use std::cell::RefCell;
+use std::cell::UnsafeCell;
 use wasmtime::{
-    AsContextMut, Caller as CallerImpl, Extern, ExternType, Func as FuncImpl, Trap, Val,
+    AsContext, AsContextMut, Caller as CallerImpl, Func as FuncImpl, StoreContext, StoreContextMut,
+    Trap, Val,
 };
 
 /// @yard
+/// @rename Wasmtime::Func
 /// Represents a WebAssembly Function
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Func.html Wasmtime's Rust doc
-#[derive(TypedData, Debug)]
-#[magnus(class = "Wasmtime::Func", mark, size, free_immediatly)]
-pub struct Func {
-    store: WrappedStruct<Store>,
+#[derive(Debug)]
+pub struct Func<'a> {
+    store: StoreContextValue<'a>,
     inner: FuncImpl,
 }
 
-impl DataTypeFunctions for Func {
+unsafe impl<'a> TypedData for Func<'a> {
+    fn class() -> magnus::RClass {
+        *memoize!(RClass: root().define_class("Func", Default::default()).unwrap())
+    }
+
+    fn data_type() -> &'static magnus::DataType {
+        memoize!(magnus::DataType: {
+            let mut builder = DataTypeBuilder::<Func<'_>>::new("Wasmtime::Func");
+            builder.size();
+            builder.mark();
+            builder.free_immediatly();
+            builder.build()
+        })
+    }
+}
+
+impl DataTypeFunctions for Func<'_> {
     fn mark(&self) {
         self.store.mark()
     }
@@ -40,9 +58,9 @@ struct ShareableProc(Proc);
 unsafe impl Send for ShareableProc {}
 unsafe impl Sync for ShareableProc {}
 
-unsafe impl Send for Func {}
+unsafe impl Send for Func<'_> {}
 
-impl Func {
+impl<'a> Func<'a> {
     /// @yard
     /// @def new(store, type, callable, &block)
     /// @param store [Store]
@@ -80,12 +98,12 @@ impl Func {
         let inner = wasmtime::Func::new(context, ty.clone(), make_func_closure(ty, callable));
 
         Ok(Self {
-            store: wrapped_store,
+            store: wrapped_store.into(),
             inner,
         })
     }
 
-    pub fn from_inner(store: WrappedStruct<Store>, inner: FuncImpl) -> Self {
+    pub fn from_inner(store: StoreContextValue<'a>, inner: FuncImpl) -> Self {
         Self { store, inner }
     }
 
@@ -107,24 +125,24 @@ impl Func {
     ///   * 1 => +Object+
     ///   * > 1 => +Array<Object>+
     pub fn call(&self, args: &[Value]) -> Result<Value, Error> {
-        let store: &Store = self.store.try_convert()?;
-        Self::invoke(store, &self.inner, args).map_err(|e| e.into())
+        Self::invoke(&self.store, &self.inner, args).map_err(|e| e.into())
     }
 
     pub fn invoke(
-        store: &Store,
+        store: &StoreContextValue,
         func: &wasmtime::Func,
         args: &[Value],
     ) -> Result<Value, InvokeError> {
-        let func_ty = func.ty(store.context_mut());
+        let func_ty = func.ty(store.context_mut()?);
         let param_types = func_ty.params().collect::<Vec<_>>();
         let params = Params::new(args, param_types)?.to_vec()?;
         let mut results = vec![Val::null(); func_ty.results().len()];
 
-        func.call(store.context_mut(), &params, &mut results)
+        func.call(store.context_mut()?, &params, &mut results)
             .map_err(|e| {
                 store
                     .context_mut()
+                    .expect("store context is still reachable")
                     .data_mut()
                     .take_last_error()
                     .unwrap_or_else(|| error!("Could not invoke function: {}", e))
@@ -144,7 +162,7 @@ impl Func {
     }
 }
 
-impl From<&Func> for Extern {
+impl From<&Func<'_>> for wasmtime::Extern {
     fn from(func: &Func) -> Self {
         Self::Func(func.get())
     }
@@ -158,25 +176,27 @@ pub fn make_func_closure(
     let ty = ty.to_owned();
     let callable = ShareableProc(callable);
 
-    move |caller: CallerImpl<'_, StoreData>, params: &[Val], results: &mut [Val]| {
-        let caller = RefCell::new(caller);
+    move |caller_impl: CallerImpl<'_, StoreData>, params: &[Val], results: &mut [Val]| {
+        let caller_value: Value = Caller::new(caller_impl).into();
+        let caller = caller_value.try_convert::<&Caller>().unwrap();
 
         let rparams = RArray::with_capacity(params.len() + 1);
-        rparams.push(Caller { inner: &caller }).ok();
+        rparams.push(caller_value).unwrap();
 
         for (i, param) in params.iter().enumerate() {
             let rparam = param.to_ruby_value().map_err(|e| {
                 wasmtime::Trap::new(format!("invalid argument at index {}: {}", i, e))
             })?;
-            rparams.push(rparam).ok();
+            rparams.push(rparam).unwrap();
         }
 
         let callable = callable.0;
-        callable
+
+        let result = callable
             .call(unsafe { rparams.as_slice() })
             .map_err(|e| {
                 if let Error::Exception(exception) = e {
-                    caller.borrow_mut().data_mut().exception().hold(exception);
+                    caller.hold_exception(exception);
                 }
                 e
             })
@@ -210,7 +230,13 @@ pub fn make_func_closure(
                     callable.inspect(),
                     e
                 ))
-            })
+            });
+
+        // Drop the wasmtime::Caller so it does not outlive the Func call, if e.g. the user
+        // assigned the Ruby Wasmtime::Caller instance to a global.
+        caller.expire();
+
+        result
     }
 }
 
@@ -240,36 +266,98 @@ impl From<BoxValue<Exception>> for InvokeError {
     }
 }
 
-struct Caller<'a> {
-    inner: &'a RefCell<CallerImpl<'a, StoreData>>,
+/// A handle to a [`wasmtime::Caller`] that's only valid during a Func execution.
+/// [`UnsafeCell`] wraps the wasmtime::Caller because the Value's lifetime can't
+/// be tied to the Caller: the Value is handed back to Ruby and we can't control
+/// whether the user keeps a handle to it or not.
+#[derive(Debug)]
+pub struct CallerHandle<'a> {
+    caller: UnsafeCell<Option<CallerImpl<'a, StoreData>>>,
+}
+
+impl<'a> CallerHandle<'a> {
+    pub fn new(caller: CallerImpl<'a, StoreData>) -> Self {
+        Self {
+            caller: UnsafeCell::new(Some(caller)),
+        }
+    }
+
+    pub fn get_mut(&self) -> Result<&mut CallerImpl<'a, StoreData>, Error> {
+        unsafe { &mut *self.caller.get() }
+            .as_mut()
+            .ok_or_else(|| error!("Caller outlived its Func execution"))
+    }
+
+    pub fn get(&self) -> Result<&CallerImpl<'a, StoreData>, Error> {
+        unsafe { (*self.caller.get()).as_ref() }
+            .ok_or_else(|| error!("Caller outlived its Func execution"))
+    }
+
+    pub fn expire(&self) {
+        unsafe { *self.caller.get() = None }
+    }
+}
+
+/// @yard
+/// @rename Wasmtime::Caller
+/// Represents the Caller's context within a Func execution. An instance of
+/// Caller is sent as the first parameter to Func's implementation (the
+/// block argument in {Func.new}).
+/// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Caller.html Wasmtime's Rust doc
+#[derive(Debug)]
+pub struct Caller<'a> {
+    handle: CallerHandle<'a>,
 }
 
 impl<'a> Caller<'a> {
-    pub fn store_data(&self) -> Value {
-        self.inner.borrow().data().user_data()
+    pub fn new(caller: CallerImpl<'a, StoreData>) -> Self {
+        Self {
+            handle: CallerHandle::new(caller),
+        }
     }
 
-    pub fn export(&self, name: RString) -> Result<Option<Value>, Error> {
-        let mut caller_mut = self.inner.borrow_mut();
+    /// @yard
+    /// Returns the store's data. Akin to {Store#data}.
+    /// @return [Object] The store's data (the object passed to {Store.new}).
+    pub fn store_data(&self) -> Result<Value, Error> {
+        self.context().map(|ctx| ctx.data().user_data())
+    }
 
-        let ext = caller_mut
-            .get_export(unsafe { name.as_str() }?)
-            .map(|export| match export.ty(caller_mut.as_context_mut()) {
-                ExternType::Func(_func) => {
-                    todo!("Handle externs")
-                }
-                ExternType::Memory(_mem) => {
-                    todo!("Handle externs")
-                }
-                ExternType::Table(_table) => {
-                    todo!("Handle externs")
-                }
-                ExternType::Global(_global) => {
-                    todo!("Handle externs")
-                }
-            });
+    /// @yard
+    /// @def export(name)
+    /// @see Instance#export
+    pub fn export(
+        rb_self: WrappedStruct<Caller<'a>>,
+        name: RString,
+    ) -> Result<Option<Extern<'a>>, Error> {
+        let caller = rb_self.try_convert::<&Self>()?;
+        let inner = caller.handle.get_mut()?;
 
-        Ok(ext)
+        if let Some(export) = inner.get_export(unsafe { name.as_str() }?) {
+            export.wrap_wasmtime_type(rb_self.into()).map(Some)
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn context(&self) -> Result<StoreContext<StoreData>, Error> {
+        self.handle.get().map(|c| c.as_context())
+    }
+
+    pub fn context_mut(&self) -> Result<StoreContextMut<StoreData>, Error> {
+        self.handle.get_mut().map(|c| c.as_context_mut())
+    }
+
+    pub fn expire(&self) {
+        self.handle.expire();
+    }
+
+    fn hold_exception(&self, exception: Exception) {
+        self.context_mut()
+            .unwrap()
+            .data_mut()
+            .exception()
+            .hold(exception);
     }
 }
 

@@ -128,6 +128,10 @@ impl<'a> Func<'a> {
         Self::invoke(&self.store, &self.inner, args).map_err(|e| e.into())
     }
 
+    pub fn inner(&self) -> &FuncImpl {
+        &self.inner
+    }
+
     pub fn invoke(
         store: &StoreContextValue,
         func: &wasmtime::Func,
@@ -143,11 +147,11 @@ impl<'a> Func<'a> {
 
         match results.as_slice() {
             [] => Ok(QNIL.into()),
-            [result] => result.to_ruby_value().map_err(|e| e.into()),
+            [result] => result.to_ruby_value(store).map_err(|e| e.into()),
             _ => {
                 let array = RArray::with_capacity(results.len());
                 for result in results {
-                    array.push(result.to_ruby_value()?)?;
+                    array.push(result.to_ruby_value(store)?)?;
                 }
                 Ok(array.into())
             }
@@ -170,14 +174,15 @@ pub fn make_func_closure(
     let callable = ShareableProc(callable);
 
     move |caller_impl: CallerImpl<'_, StoreData>, params: &[Val], results: &mut [Val]| {
-        let caller_value: Value = Caller::new(caller_impl).into();
-        let caller = caller_value.try_convert::<&Caller>().unwrap();
+        let wrapped_caller: WrappedStruct<Caller> = Caller::new(caller_impl).into();
+        let caller = wrapped_caller.get().unwrap();
+        let store_context = StoreContextValue::from(wrapped_caller);
 
         let rparams = RArray::with_capacity(params.len() + 1);
-        rparams.push(caller_value).unwrap();
+        rparams.push(Value::from(wrapped_caller)).unwrap();
 
         for (i, param) in params.iter().enumerate() {
-            let rparam = param.to_ruby_value().map_err(|e| {
+            let rparam = param.to_ruby_value(&store_context).map_err(|e| {
                 wasmtime::Trap::new(format!("invalid argument at index {}: {}", i, e))
             })?;
             rparams.push(rparam).unwrap();

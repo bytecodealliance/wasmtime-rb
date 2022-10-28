@@ -1,9 +1,10 @@
 ---
 name: Cross Gem
+
 on:
   workflow_dispatch:
   push:
-    branches: ["cross-gem/*"]
+    branches: ["main", "cross-gem/*"]
 
 jobs:
   cross_gems:

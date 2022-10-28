@@ -1,5 +1,5 @@
 ---
-name: Cross Gem
+name: Build gems
 
 on:
   workflow_dispatch:
@@ -7,8 +7,8 @@ on:
     branches: ["main", "cross-gem/*"]
 
 jobs:
-  cross_gems:
-    name: Cross compile gems
+  native:
+    name: Build native gems
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -40,5 +40,31 @@ jobs:
         run: |
           gem install pkg/wasmtime-rb-*.gem --verbose
           script="puts Wasmtime::Engine.new.precompile_module('(module)')"
+          ruby -rwasmtime -e "$script" | grep wasmtime-aot
+          echo "✅ Successfully gem installed"
+
+  source:
+    name: Build source gem
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ["ubuntu-latest"]
+        ruby: ["3.1"]
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: oxidize-rb/actions/setup-ruby-and-rust@main
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+          cargo-cache: true
+          cache-version: v1
+
+      - name: Smoke test gem install
+        shell: bash
+        run: |
+          bundle exec rake build
+          gem install pkg/wasmtime-rb-*.gem --verbose
+          script="puts Wasmtime::Engine.new(Wasmtime::Config.new).precompile_module('(module)')"
           ruby -rwasmtime -e "$script" | grep wasmtime-aot
           echo "✅ Successfully gem installed"

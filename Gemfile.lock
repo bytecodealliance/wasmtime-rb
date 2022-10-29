@@ -2,6 +2,7 @@ PATH
   remote: .
   specs:
     wasmtime-rb (0.1.0)
+      rb_sys (~> 0.9.34)
 
 GEM
   remote: https://rubygems.org/
@@ -21,7 +22,7 @@ GEM
     rake (13.0.6)
     rake-compiler (1.2.0)
       rake
-    rb_sys (0.9.30)
+    rb_sys (0.9.34)
     regexp_parser (2.5.0)
     rexml (3.2.5)
     rspec (3.11.0)
@@ -75,4 +76,4 @@ DEPENDENCIES
   wasmtime-rb!
 
 BUNDLED WITH
-   2.3.7
+   2.3.24

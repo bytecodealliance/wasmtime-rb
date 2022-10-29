@@ -29,6 +29,11 @@ jobs:
       - name: Run ruby tests
         run: bundle exec rake spec
 
+      - name: Run ruby tests (hard-mode with GC.stress)
+        run: bundle exec rake spec
+        env:
+          GC_STRESS: "true"
+
       - name: Lint ruby
         run: bundle exec rake standard
 

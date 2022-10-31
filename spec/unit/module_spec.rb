@@ -38,7 +38,7 @@ module Wasmtime
 
       def create_tmpfile(content)
         uuid = SecureRandom.uuid
-        path = File.join(tmpdir, uuid)
+        path = File.join(tmpdir, "deserialize-file-test-#{uuid}.so")
         File.binwrite(path, content)
         path
       end

@@ -16,20 +16,20 @@ module Wasmtime
       it("can deserialize a module from a file") do
         tmpfile = Tempfile.new(["deserialize-file", ".so"])
         tmpfile.write(Module.new(engine, "(module)").serialize)
-        tmpfile.flush
+        tmpfile.close
 
         begin
           mod = Module.deserialize_file(engine, tmpfile.path)
           expect(mod.serialize).to eq(Module.new(engine, "(module)").serialize)
         ensure
-          tmpfile.close
+          tmpfile.unlink
         end
       end
 
       it("deserialize from a module multiple times") do
         tmpfile = Tempfile.new(["deserialize-file", ".so"])
         tmpfile.write(Module.new(engine, wat).serialize)
-        tmpfile.flush
+        tmpfile.close
 
         begin
           mod_one = Module.deserialize_file(engine, tmpfile.path)
@@ -39,7 +39,7 @@ module Wasmtime
           expect(mod_one.serialize).to eq(expected)
           expect(mod_two.serialize).to eq(expected)
         ensure
-          tmpfile.close
+          tmpfile.unlink
         end
       end
     end

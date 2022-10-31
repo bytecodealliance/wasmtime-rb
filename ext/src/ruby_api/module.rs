@@ -4,7 +4,7 @@ use magnus::{function, method, Error, Module as _, Object, RString};
 use wasmtime::Module as ModuleImpl;
 
 #[derive(Clone)]
-#[magnus::wrap(class = "Wasmtime::Module")]
+#[magnus::wrap(class = "Wasmtime::Module", size, free_immediatly)]
 pub struct Module {
     inner: ModuleImpl,
 }
@@ -25,6 +25,17 @@ impl Module {
             .map_err(|e| error!("Could not deserialize module: {:?}", e.to_string()))
     }
 
+    pub fn deserialize_file(engine: &Engine, path: RString) -> Result<Self, Error> {
+        unsafe { ModuleImpl::deserialize_file(engine.get(), path.as_str()?) }
+            .map(|module| Self { inner: module })
+            .map_err(|e| {
+                error!(
+                    "Could not deserialize module from file: {:?}",
+                    e.to_string()
+                )
+            })
+    }
+
     pub fn serialize(&self) -> Result<RString, Error> {
         self.get()
             .serialize()
@@ -42,6 +53,7 @@ pub fn init() -> Result<(), Error> {
 
     class.define_singleton_method("new", function!(Module::new, 2))?;
     class.define_singleton_method("deserialize", function!(Module::deserialize, 2))?;
+    class.define_singleton_method("deserialize_file", function!(Module::deserialize_file, 2))?;
     class.define_method("serialize", method!(Module::serialize, 0))?;
 
     Ok(())

@@ -14,6 +14,10 @@ module Wasmtime
     end
 
     describe(".deserialize_file") do
+      let(:tmpdir) { Dir.mktmpdir }
+
+      after(:each) { FileUtils.rm_rf(tmpdir) }
+
       it("can deserialize a module from a file") do
         tmpfile = create_tmpfile(Module.new(engine, "(module)").serialize)
         mod = Module.deserialize_file(engine, tmpfile)
@@ -35,12 +39,9 @@ module Wasmtime
       def create_tmpfile(content)
         uuid = SecureRandom.uuid
         path = File.join(tmpdir, uuid)
-        File.write(path, content)
+        File.binwrite(path, content)
         path
       end
-
-      let(:tmpdir) { Dir.mktmpdir }
-      after(:each) { FileUtils.rm_rf(tmpdir) }
     end
 
     describe(".deserialize") do

@@ -6,14 +6,14 @@ use super::{
     instance::Instance,
     module::Module,
     root,
-    store::{Store, StoreContextValue, StoreData},
+    store::{Store, StoreData},
 };
 use crate::{error, ruby_api::convert::ToExtern};
 use magnus::{
     block::Proc, function, gc, method, scan_args::scan_args, DataTypeFunctions, Error, Module as _,
     Object, RHash, RString, TypedData, Value,
 };
-use std::cell::RefCell;
+use std::{cell::RefCell, convert::TryInto};
 use wasmtime::Linker as LinkerImpl;
 
 #[derive(TypedData)]
@@ -174,7 +174,7 @@ impl Linker {
         self.inner
             .borrow()
             .get_default(store.context_mut(), unsafe { module.as_str() }?)
-            .map(|func| Func::from_inner(StoreContextValue::Store(s), func))
+            .map(|func| Func::from_inner(s.try_into().unwrap(), func))
             .map_err(|e| error!("{}", e))
     }
 }

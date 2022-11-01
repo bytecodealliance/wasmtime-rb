@@ -1,9 +1,14 @@
+use crate::error;
+
 use super::{engine::Engine, func::Caller, root};
 use magnus::{
     exception::Exception, function, method, scan_args, value::BoxValue, DataTypeFunctions, Error,
-    Module, Object, TypedData, Value, QNIL,
+    Module, Object, RTypedData, TypedData, Value, QNIL,
 };
-use std::cell::{RefCell, UnsafeCell};
+use std::{
+    cell::{RefCell, UnsafeCell},
+    convert::TryFrom,
+};
 use wasmtime::{AsContext, AsContextMut, Store as StoreImpl, StoreContext, StoreContextMut};
 
 #[derive(Debug)]
@@ -98,45 +103,53 @@ impl Store {
 /// A wrapper around a Ruby Value that has a store context.
 /// Used in places where both Store or Caller can be used.
 #[derive(Debug)]
-pub enum StoreContextValue {
-    Store(Value),
-    Caller(Value),
+pub struct StoreContextValue {
+    inner: RTypedData,
 }
+
+impl TryFrom<Value> for StoreContextValue {
+    type Error = Error;
+
+    fn try_from(value: Value) -> Result<Self, Self::Error> {
+        if value.try_convert::<&Store>().is_ok() {
+            let inner = RTypedData::from_value(value).unwrap();
+            Ok(Self { inner })
+        } else if value.try_convert::<&Caller>().is_ok() {
+            let inner = RTypedData::from_value(value).unwrap();
+            Ok(Self { inner })
+        } else {
+            Err(error!("Expected a Store or Caller"))
+        }
+    }
+}
+
 impl StoreContextValue {
     pub fn mark(&self) {
-        match self {
-            Self::Store(v) => magnus::gc::mark(v),
-            Self::Caller(_) => {
-                // The Caller is on the stack while it's "live". Right before the end of a host call,
-                // we remove the Caller form the Ruby object, thus there is no need to mark.
-            }
-        }
+        magnus::gc::mark(self.inner)
     }
 
     pub fn context(&self) -> Result<StoreContext<StoreData>, Error> {
-        match self {
-            Self::Store(s) => {
-                let store = s.try_convert::<&Store>().expect("a Store typed data");
-                Ok(store.context())
-            }
-            Self::Caller(c) => {
-                let caller = c.try_convert::<&Caller>().expect("a Caller typed data");
-                caller.context()
-            }
+        if let Ok(store) = self.inner.try_convert::<&Store>() {
+            return Ok(store.context());
         }
+
+        if let Ok(caller) = self.inner.try_convert::<&Caller>() {
+            return caller.context();
+        }
+
+        Err(error!("Expected a Store or Caller"))
     }
 
     pub fn context_mut(&self) -> Result<StoreContextMut<StoreData>, Error> {
-        match self {
-            Self::Store(s) => {
-                let store = s.try_convert::<&Store>().expect("a Store typed data");
-                Ok(store.context_mut())
-            }
-            Self::Caller(c) => {
-                let caller = c.try_convert::<&Caller>().expect("a Caller typed data");
-                caller.context_mut()
-            }
+        if let Ok(store) = self.inner.try_convert::<&Store>() {
+            return Ok(store.context_mut());
         }
+
+        if let Ok(caller) = self.inner.try_convert::<&Caller>() {
+            return caller.context_mut();
+        }
+
+        Err(error!("Expected a Store or Caller"))
     }
 }
 

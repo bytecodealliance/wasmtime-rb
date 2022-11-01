@@ -1,3 +1,5 @@
+use std::convert::TryInto;
+
 use super::{
     memory_type::MemoryType,
     root,
@@ -32,7 +34,7 @@ impl Memory {
             .map_err(|e| error!("{}", e))?;
 
         Ok(Self {
-            store: StoreContextValue::Store(s),
+            store: s.try_into()?,
             inner,
         })
     }

@@ -11,8 +11,9 @@ group :development do
   gem "rb_sys"
   gem "standard", "~> 1.3"
   gem "get_process_mem"
+  gem "ruby-lsp", require: false
 end
 
 group :test do
-  gem "rspec", "~> 3.0"
+  gem "rspec", "~> 3.1"
 end

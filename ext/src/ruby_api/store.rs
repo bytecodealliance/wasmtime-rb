@@ -1,9 +1,14 @@
+use crate::error;
+
 use super::{engine::Engine, func::Caller, root};
 use magnus::{
     exception::Exception, function, method, scan_args, value::BoxValue, DataTypeFunctions, Error,
-    Module, Object, TypedData, Value, QNIL,
+    Module, Object, RTypedData, TypedData, Value, QNIL,
 };
-use std::cell::{RefCell, UnsafeCell};
+use std::{
+    cell::{RefCell, UnsafeCell},
+    convert::TryFrom,
+};
 use wasmtime::{AsContext, AsContextMut, Store as StoreImpl, StoreContext, StoreContextMut};
 
 #[derive(Debug)]
@@ -99,13 +104,32 @@ impl Store {
 /// Used in places where both Store or Caller can be used.
 #[derive(Debug)]
 pub enum StoreContextValue {
-    Store(Value),
-    Caller(Value),
+    Store(RTypedData),
+    Caller(RTypedData),
 }
+
+impl TryFrom<Value> for StoreContextValue {
+    type Error = Error;
+
+    fn try_from(value: Value) -> Result<Self, Self::Error> {
+        if value.try_convert::<&Store>().is_ok() {
+            Ok(StoreContextValue::Store(
+                RTypedData::from_value(value).unwrap(),
+            ))
+        } else if value.try_convert::<&Caller>().is_ok() {
+            Ok(StoreContextValue::Caller(
+                RTypedData::from_value(value).unwrap(),
+            ))
+        } else {
+            Err(error!("Expected a Store or Caller"))
+        }
+    }
+}
+
 impl StoreContextValue {
     pub fn mark(&self) {
         match self {
-            Self::Store(v) => magnus::gc::mark(v),
+            Self::Store(v) => magnus::gc::mark(*v),
             Self::Caller(_) => {
                 // The Caller is on the stack while it's "live". Right before the end of a host call,
                 // we remove the Caller form the Ruby object, thus there is no need to mark.

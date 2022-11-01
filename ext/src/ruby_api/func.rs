@@ -12,7 +12,7 @@ use magnus::{
     value::BoxValue, DataTypeFunctions, Error, Exception, Module as _, Object, RArray, RClass,
     RHash, RString, TryConvert, TypedData, Value, QNIL,
 };
-use std::cell::UnsafeCell;
+use std::{cell::UnsafeCell, convert::TryInto};
 use wasmtime::{
     AsContext, AsContextMut, Caller as CallerImpl, Extern, ExternType, Func as FuncImpl,
     StoreContext, StoreContextMut, Trap, Val,
@@ -55,7 +55,7 @@ impl Func {
         let inner = wasmtime::Func::new(context, ty.clone(), make_func_closure(ty, callable));
 
         Ok(Self {
-            store: StoreContextValue::Store(s),
+            store: s.try_into()?,
             inner,
         })
     }
@@ -239,7 +239,7 @@ impl<'a> Caller<'a> {
             None => return Ok(None),
         };
 
-        let store = StoreContextValue::Caller(rb_self);
+        let store = rb_self.try_into()?;
         let export: Value = match export.ty(caller.context_mut()?) {
             ExternType::Func(_) => Func::from_inner(store, export.into_func().unwrap()).into(),
             ExternType::Memory(_) => {

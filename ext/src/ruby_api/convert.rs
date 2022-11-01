@@ -1,3 +1,5 @@
+use std::convert::TryFrom;
+
 use crate::{err, error};
 use magnus::{Error, TypedData, Value};
 use wasmtime::{Extern, ExternRef, Val, ValType};
@@ -85,7 +87,7 @@ pub trait WrapWasmtimeType {
 
 impl WrapWasmtimeType for Extern {
     fn wrap_wasmtime_type(&self, store: Value) -> Result<Value, Error> {
-        let store = StoreContextValue::Store(store);
+        let store = StoreContextValue::try_from(store)?;
         match self {
             Extern::Func(func) => Ok(Func::from_inner(store, *func).into()),
             Extern::Memory(mem) => Ok(Memory::from_inner(store, *mem).into()),

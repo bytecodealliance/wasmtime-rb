@@ -675,7 +675,7 @@ dependencies = [
 [[package]]
 name = "magnus"
 version = "0.3.2"
-source = "git+https://github.com/matsadler/magnus#cc852bfa31992d882d42509b1165eb5f67f9dc2c"
+source = "git+https://github.com/matsadler/magnus#855cc11a73e536083e37bb89d5e101a02a748150"
 dependencies = [
  "magnus-macros",
  "rb-sys",
@@ -684,7 +684,7 @@ dependencies = [
 [[package]]
 name = "magnus-macros"
 version = "0.1.0"
-source = "git+https://github.com/matsadler/magnus#cc852bfa31992d882d42509b1165eb5f67f9dc2c"
+source = "git+https://github.com/matsadler/magnus#855cc11a73e536083e37bb89d5e101a02a748150"
 dependencies = [
  "darling",
  "proc-macro2",
@@ -867,21 +867,21 @@ dependencies = [
 
 [[package]]
 name = "rb-sys"
-version = "0.9.30"
+version = "0.9.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "24b22a374fc2e92eb6f49d7efe4eb7663655c6e9455d9259ed3342cc1599da85"
+checksum = "2d2bde30824a18f2e68cd1c8004cec16656764c6efc385bc1c7fb4c904b276a5"
 dependencies = [
- "bindgen",
- "linkify",
  "rb-sys-build",
 ]
 
 [[package]]
 name = "rb-sys-build"
-version = "0.9.30"
+version = "0.9.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3cd23b6dd929b7d50ccb35a6d3aa77dec364328ab9cb304dd32c629332491671"
+checksum = "5ff5d3ba92624df9c66bf0d1f0251d96284f08ac9773b7723d370e3f225c1d38"
 dependencies = [
+ "bindgen",
+ "linkify",
  "regex",
  "shell-words",
 ]

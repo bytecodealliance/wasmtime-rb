@@ -1,11 +1,7 @@
+use magnus::rb_sys::{AsRawId, FromRawId};
+use magnus::{value::Id, Symbol};
 use std::convert::TryInto;
 use std::num::NonZeroUsize;
-
-use magnus::{
-    rb_sys::{id_from_raw, raw_id},
-    value::Id,
-    Symbol,
-};
 
 /// A static `Id` that can be used to refer to a Ruby ID.
 ///
@@ -41,7 +37,7 @@ impl StaticId {
         let id: Id = magnus::StaticSymbol::new(id).into();
 
         // SAFETY: Ruby will never return a `0` ID.
-        StaticId(unsafe { NonZeroUsize::new_unchecked(raw_id(id) as _) })
+        StaticId(unsafe { NonZeroUsize::new_unchecked(id.as_raw() as _) })
     }
 }
 
@@ -49,7 +45,7 @@ impl From<StaticId> for Id {
     fn from(static_id: StaticId) -> Self {
         // SAFEFY: This is safe because we know that the `Id` is something
         // returned from ruby.
-        unsafe { id_from_raw(static_id.0.get().try_into().expect("ID to be a usize")) }
+        unsafe { Id::from_raw(static_id.0.get().try_into().expect("ID to be a usize")) }
     }
 }
 

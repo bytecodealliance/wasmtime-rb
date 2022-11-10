@@ -29,6 +29,8 @@ jobs:
       fail-fast: false
       matrix:
         ruby-platform: ${{ fromJSON(needs.ci-data.outputs.result).supported-ruby-platforms }}
+    env:
+      CROSS_PLATFORMS: ${{ matrix.ruby-platform }}
     steps:
       - uses: actions/checkout@v3
 

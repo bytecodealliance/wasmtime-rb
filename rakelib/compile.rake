@@ -2,13 +2,7 @@ require "rake/extensiontask"
 
 GEMSPEC = Bundler.load_gemspec("wasmtime-rb.gemspec")
 
-CROSS_PLATFORMS = [
-  "aarch64-linux",
-  "arm64-darwin",
-  "x86_64-darwin",
-  "x86_64-linux",
-  "x86_64-linux-musl"
-]
+CROSS_PLATFORMS = ENV.fetch("CROSS_PLATFORMS", "").split(",").map(&:strip).reject(&:empty?)
 
 SOURCE_PATTERN = "**/src/**/*.{rs,toml,lock}"
 

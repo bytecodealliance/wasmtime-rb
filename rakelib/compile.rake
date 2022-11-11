@@ -2,7 +2,7 @@ require "rake/extensiontask"
 
 GEMSPEC = Bundler.load_gemspec("wasmtime-rb.gemspec")
 
-CROSS_PLATFORMS = ENV.fetch("CROSS_PLATFORMS", "").split(",").map(&:strip).reject(&:empty?)
+CROSS_PLATFORMS = [ENV["RUBY_TARGET"]].compact
 
 SOURCE_PATTERN = "**/src/**/*.{rs,toml,lock}"
 

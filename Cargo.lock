@@ -680,7 +680,7 @@ dependencies = [
 [[package]]
 name = "magnus"
 version = "0.3.2"
-source = "git+https://github.com/ianks/magnus?branch=rb-sys-env#2df1e0c633820589479234a83eceb311c21e120a"
+source = "git+https://github.com/ianks/magnus?branch=rb-sys-env#c837816d2e1dac21953f4cd0e091168d635acfb6"
 dependencies = [
  "magnus-macros",
  "rb-sys",
@@ -690,7 +690,7 @@ dependencies = [
 [[package]]
 name = "magnus-macros"
 version = "0.1.0"
-source = "git+https://github.com/ianks/magnus?branch=rb-sys-env#2df1e0c633820589479234a83eceb311c21e120a"
+source = "git+https://github.com/ianks/magnus?branch=rb-sys-env#c837816d2e1dac21953f4cd0e091168d635acfb6"
 dependencies = [
  "darling",
  "proc-macro2",
@@ -874,7 +874,7 @@ dependencies = [
 [[package]]
 name = "rb-sys"
 version = "0.9.38"
-source = "git+https://github.com/oxidize-rb/rb-sys?branch=rb-sys-env#5f3495db35968ea2a20eaf73e57c935ef447a8bc"
+source = "git+https://github.com/oxidize-rb/rb-sys?branch=rb-sys-env#aa7c99234fa6536c27b208350f65dfa1b4714f79"
 dependencies = [
  "rb-sys-build",
 ]
@@ -882,7 +882,7 @@ dependencies = [
 [[package]]
 name = "rb-sys-build"
 version = "0.9.38"
-source = "git+https://github.com/oxidize-rb/rb-sys?branch=rb-sys-env#5f3495db35968ea2a20eaf73e57c935ef447a8bc"
+source = "git+https://github.com/oxidize-rb/rb-sys?branch=rb-sys-env#aa7c99234fa6536c27b208350f65dfa1b4714f79"
 dependencies = [
  "bindgen",
  "regex",

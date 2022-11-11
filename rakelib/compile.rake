@@ -6,6 +6,8 @@ CROSS_PLATFORMS = [ENV["RUBY_TARGET"]].compact
 
 SOURCE_PATTERN = "**/src/**/*.{rs,toml,lock}"
 
+ENV["RB_SYS_ENV_DEBUG"] = "1"
+
 Rake::ExtensionTask.new("ext", GEMSPEC) do |ext|
   ext.lib_dir = "lib/wasmtime"
   ext.ext_dir = "ext"

@@ -16,7 +16,7 @@ jobs:
         uses: oxidize-rb/actions/fetch-ci-data@main
         with:
           supported-ruby-platforms: |
-            only: [arm-linux]
+            exclude: [arm-linux] # no cranelift support yet
           stable-ruby-versions: |
             exclude: [head]
 
@@ -39,7 +39,7 @@ jobs:
           bundler-cache: false
           cargo-cache: true
           cargo-vendor: true
-          cache-version: v1
+          cache-version: v0-${{ matrix.ruby-platform }}
 
       - uses: oxidize-rb/cross-gem-action@v7
         with:

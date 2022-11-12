@@ -16,8 +16,7 @@ jobs:
         uses: oxidize-rb/actions/fetch-ci-data@main
         with:
           supported-ruby-platforms: |
-            exclude:
-              - arm-linux # 32-bit not supported on magnus yet
+            only: [arm-linux]
           stable-ruby-versions: |
             exclude: [head]
 

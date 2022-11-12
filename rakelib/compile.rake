@@ -17,6 +17,6 @@ Rake::ExtensionTask.new("ext", GEMSPEC) do |ext|
     gem_spec.dependencies.reject! { |d| d.name == "rb_sys" }
 
     # Remove unnecessary files
-    gem_spec.files -= Dir[SOURCE_PATTERN, "**/Cargo.*", "extconf.rb"]
+    gem_spec.files -= Dir[SOURCE_PATTERN, "**/Cargo.*", "**/extconf.rb"]
   end
 end

@@ -23,6 +23,9 @@ pub fn root() -> RModule {
 }
 
 pub fn init() -> Result<(), Error> {
+    let _ = root();
+
+    errors::init()?;
     config::init()?;
     engine::init()?;
     module::init()?;
@@ -34,5 +37,6 @@ pub fn init() -> Result<(), Error> {
     memory::init()?;
     linker::init()?;
     externals::init()?;
+
     Ok(())
 }

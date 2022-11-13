@@ -11,8 +11,19 @@ module Wasmtime
       describe "##{meth}" do
         it "returns an instance of #{klass}" do
           extern_mod = new_extern_module
+          export = extern_mod.exports[name.to_s]
 
-          expect(extern_mod.exports[name.to_s].public_send(meth)).to be_instance_of(klass)
+          expect(export.public_send(meth)).to be_instance_of(klass)
+        end
+
+        it "raises an error when extern is not a #{klass}" do
+          extern_mod = new_extern_module
+          invalid_methods = cases.flat_map { |_, (meth, _)| meth } - [meth]
+
+          invalid_methods.each do |invalid_method|
+            export = extern_mod.exports[name.to_s]
+            expect { export.public_send(invalid_method) }.to raise_error(Wasmtime::ConversionError)
+          end
         end
       end
     end

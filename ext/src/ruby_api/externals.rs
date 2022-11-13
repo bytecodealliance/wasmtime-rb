@@ -1,6 +1,8 @@
 use super::{convert::WrapWasmtimeType, func::Func, memory::Memory, root, store::Store};
-use crate::{err, helpers::WrappedStruct, not_implemented};
-use magnus::{method, rb_sys::raw_value, DataTypeFunctions, Error, Module, TypedData, Value};
+use crate::{conversion_err, helpers::WrappedStruct, not_implemented};
+use magnus::{
+    method, rb_sys::raw_value, DataTypeFunctions, Error, Module, RClass, TypedData, Value,
+};
 
 #[derive(TypedData)]
 #[magnus(class = "Wasmtime::Extern", size, mark, free_immediatly)]
@@ -22,14 +24,14 @@ impl Extern {
     pub fn to_func(rb_self: WrappedStruct<Self>) -> Result<Value, Error> {
         match rb_self.get()? {
             Extern::Func(f) => Ok(f.to_value()),
-            _ => err!("{} is not a function", rb_self.to_value().inspect()),
+            _ => conversion_err!(Self::inner_class(rb_self)?, Func::class()),
         }
     }
 
     pub fn to_memory(rb_self: WrappedStruct<Self>) -> Result<Value, Error> {
         match rb_self.get()? {
             Extern::Memory(f) => Ok(f.to_value()),
-            _ => err!("{} is not a memory", rb_self.to_value().inspect()),
+            _ => conversion_err!(Self::inner_class(rb_self)?, Memory::class()),
         }
     }
 
@@ -59,6 +61,13 @@ impl Extern {
             inner_string
         ))
     }
+
+    fn inner_class(rb_self: WrappedStruct<Self>) -> Result<RClass, Error> {
+        match rb_self.get()? {
+            Extern::Func(f) => Ok(f.to_value().class()),
+            Extern::Memory(m) => Ok(m.to_value().class()),
+        }
+    }
 }
 
 impl WrapWasmtimeType<Extern> for wasmtime::Extern {
@@ -68,9 +77,9 @@ impl WrapWasmtimeType<Extern> for wasmtime::Extern {
             wasmtime::Extern::Memory(mem) => {
                 Ok(Extern::Memory(Memory::from_inner(store, *mem).into()))
             }
-            wasmtime::Extern::Global(_) => err!("global not yet supported"),
-            wasmtime::Extern::Table(_) => err!("table not yet supported"),
-            wasmtime::Extern::SharedMemory(_) => err!("shared memory not supported"),
+            wasmtime::Extern::Global(_) => not_implemented!("global not yet supported"),
+            wasmtime::Extern::Table(_) => not_implemented!("table not yet supported"),
+            wasmtime::Extern::SharedMemory(_) => not_implemented!("shared memory not supported"),
         }
     }
 }

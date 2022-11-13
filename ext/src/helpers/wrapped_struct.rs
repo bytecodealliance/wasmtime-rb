@@ -5,9 +5,9 @@ use std::{marker::PhantomData, ops::Deref};
 /// type, and the underlying [`Value`] for GC purposes.
 #[derive(Debug)]
 #[repr(transparent)]
-pub struct WrappedStruct<T: TypedData + 'static> {
-    inner: Value,
-    phantom: PhantomData<&'static T>,
+pub struct WrappedStruct<T: TypedData> {
+    inner: RTypedData,
+    phantom: PhantomData<T>,
 }
 
 impl<T: TypedData> Clone for WrappedStruct<T> {
@@ -22,28 +22,28 @@ impl<T: TypedData> Clone for WrappedStruct<T> {
 impl<T: TypedData> WrappedStruct<T> {
     /// Gets the underlying struct.
     pub fn get(&self) -> Result<&T, Error> {
-        self.inner.try_convert::<&T>()
+        self.inner.try_convert()
     }
 
     /// Get the Ruby [`Value`] for this struct.
     pub fn to_value(&self) -> Value {
-        self.inner
+        self.inner.into()
     }
 
     /// Marks the Ruby [`Value`] for GC.
     pub fn mark(&self) {
-        gc::mark(&self.inner);
+        gc::mark(&self.inner.into());
     }
 }
 
 impl<'t, T: TypedData> From<WrappedStruct<T>> for Value {
     fn from(wrapped_struct: WrappedStruct<T>) -> Self {
-        wrapped_struct.inner
+        wrapped_struct.to_value()
     }
 }
 
 impl<T: TypedData> Deref for WrappedStruct<T> {
-    type Target = Value;
+    type Target = RTypedData;
 
     fn deref(&self) -> &Self::Target {
         &self.inner
@@ -59,7 +59,7 @@ impl<T: TypedData> From<T> for WrappedStruct<T> {
     }
 }
 
-impl<'t, T> TryConvert for WrappedStruct<T>
+impl<T> TryConvert for WrappedStruct<T>
 where
     T: TypedData,
 {

@@ -13,7 +13,7 @@ pub struct WrappedStruct<T: TypedData> {
 impl<T: TypedData> Clone for WrappedStruct<T> {
     fn clone(&self) -> Self {
         Self {
-            inner: self.inner.clone(),
+            inner: self.inner,
             phantom: PhantomData,
         }
     }
@@ -36,7 +36,7 @@ impl<T: TypedData> WrappedStruct<T> {
     }
 }
 
-impl<'t, T: TypedData> From<WrappedStruct<T>> for Value {
+impl<T: TypedData> From<WrappedStruct<T>> for Value {
     fn from(wrapped_struct: WrappedStruct<T>) -> Self {
         wrapped_struct.to_value()
     }
@@ -53,7 +53,7 @@ impl<T: TypedData> Deref for WrappedStruct<T> {
 impl<T: TypedData> From<T> for WrappedStruct<T> {
     fn from(t: T) -> Self {
         Self {
-            inner: RTypedData::wrap(t).into(),
+            inner: RTypedData::wrap(t),
             phantom: PhantomData,
         }
     }
@@ -76,7 +76,7 @@ where
         })?;
 
         Ok(Self {
-            inner: inner.into(),
+            inner,
             phantom: PhantomData,
         })
     }

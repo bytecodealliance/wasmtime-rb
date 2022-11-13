@@ -30,7 +30,9 @@ module Wasmtime
         )
       WAT
 
-      expect(instance.exports).to include("hello" => be_a(Func), "mem" => be_a(Memory))
+      expect(instance.exports).to include("hello" => be_a(Extern), "mem" => be_a(Extern))
+      expect(instance.exports["hello"].to_func).to be_a(Func)
+      expect(instance.exports["mem"].to_memory).to be_a(Memory)
     end
 
     it "exposes export" do
@@ -38,7 +40,7 @@ module Wasmtime
         (module
           (func (export "f")))
       WAT
-      expect(instance.export("f")).to be_a(Func)
+      expect(instance.export("f").to_func).to be_a(Func)
     end
 
     describe "invoke" do

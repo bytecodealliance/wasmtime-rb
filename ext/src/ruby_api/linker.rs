@@ -1,6 +1,7 @@
 use super::{
     convert::WrapWasmtimeType,
     engine::Engine,
+    externals::Extern,
     func::{self, Func},
     func_type::FuncType,
     instance::Instance,
@@ -8,7 +9,7 @@ use super::{
     root,
     store::{Store, StoreData},
 };
-use crate::{error, ruby_api::convert::ToExtern};
+use crate::{error, helpers::WrappedStruct, ruby_api::convert::ToExtern};
 use magnus::{
     block::Proc, function, gc, method, scan_args::scan_args, DataTypeFunctions, Error, Module as _,
     Object, RHash, RString, TypedData, Value,
@@ -84,7 +85,12 @@ impl Linker {
             .map(|_| ())
     }
 
-    pub fn get(&self, s: Value, module: RString, name: RString) -> Result<Option<Value>, Error> {
+    pub fn get(
+        &self,
+        s: WrappedStruct<Store>,
+        module: RString,
+        name: RString,
+    ) -> Result<Option<Extern>, Error> {
         let store: &Store = s.try_convert()?;
         let ext =
             self.inner
@@ -96,6 +102,18 @@ impl Linker {
         match ext {
             None => Ok(None),
             Some(ext) => ext.wrap_wasmtime_type(s).map(Some),
+        }
+    }
+
+    pub fn get_func(
+        &self,
+        s: WrappedStruct<Store>,
+        module: RString,
+        name: RString,
+    ) -> Result<Option<WrappedStruct<Func>>, Error> {
+        match self.get(s, module, name)? {
+            Some(Extern::Func(f)) => Ok(Some(f)),
+            _ => Ok(None),
         }
     }
 
@@ -151,8 +169,9 @@ impl Linker {
             .map(|_| ())
     }
 
-    pub fn instantiate(&self, s: Value, module: &Module) -> Result<Instance, Error> {
-        let store = s.try_convert::<&Store>()?;
+    pub fn instantiate(&self, s: WrappedStruct<Store>, module: &Module) -> Result<Instance, Error> {
+        let wrapped_store: WrappedStruct<Store> = s.try_convert()?;
+        let store = wrapped_store.get()?;
         self.inner
             .borrow_mut()
             .instantiate(store.context_mut(), module.get())
@@ -169,8 +188,9 @@ impl Linker {
             })
     }
 
-    pub fn get_default(&self, s: Value, module: RString) -> Result<Func, Error> {
-        let store: &Store = s.try_convert()?;
+    pub fn get_default(&self, s: WrappedStruct<Store>, module: RString) -> Result<Func, Error> {
+        let store = s.get()?;
+
         self.inner
             .borrow()
             .get_default(store.context_mut(), unsafe { module.as_str() }?)
@@ -194,6 +214,7 @@ pub fn init() -> Result<(), Error> {
     class.define_method("define", method!(Linker::define, 3))?;
     class.define_method("func_new", method!(Linker::func_new, -1))?;
     class.define_method("get", method!(Linker::get, 3))?;
+    class.define_method("get_func", method!(Linker::get_func, 3))?;
     class.define_method("instance", method!(Linker::instance, 3))?;
     class.define_method("module", method!(Linker::module, 3))?;
     class.define_method("alias", method!(Linker::alias, 4))?;

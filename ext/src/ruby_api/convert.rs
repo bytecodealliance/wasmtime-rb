@@ -1,8 +1,8 @@
-use crate::{err, error};
+use crate::{err, error, helpers::WrappedStruct};
 use magnus::{Error, TypedData, Value};
-use wasmtime::{Extern, ExternRef, Val, ValType};
+use wasmtime::{ExternRef, Val, ValType};
 
-use super::{func::Func, memory::Memory};
+use super::{func::Func, memory::Memory, store::Store};
 
 pub trait ToRubyValue {
     fn to_ruby_value(&self) -> Result<Value, Error>;
@@ -79,18 +79,9 @@ impl ToExtern for Value {
     }
 }
 
-pub trait WrapWasmtimeType {
-    fn wrap_wasmtime_type(&self, store: Value) -> Result<Value, Error>;
-}
-
-impl WrapWasmtimeType for Extern {
-    fn wrap_wasmtime_type(&self, store: Value) -> Result<Value, Error> {
-        match self {
-            Extern::Func(func) => Ok(Func::from_inner(store, *func).into()),
-            Extern::Memory(mem) => Ok(Memory::from_inner(store, *mem).into()),
-            Extern::Global(_) => err!("global not yet supported"),
-            Extern::Table(_) => err!("table not yet supported"),
-            Extern::SharedMemory(_) => err!("shared memory not supported"),
-        }
-    }
+pub trait WrapWasmtimeType<T>
+where
+    T: TypedData,
+{
+    fn wrap_wasmtime_type(&self, store: WrappedStruct<Store>) -> Result<T, Error>;
 }

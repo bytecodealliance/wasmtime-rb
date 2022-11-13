@@ -4,6 +4,7 @@ mod config;
 mod convert;
 mod engine;
 mod errors;
+mod externals;
 mod func;
 mod func_type;
 mod instance;
@@ -32,5 +33,6 @@ pub fn init() -> Result<(), Error> {
     memory_type::init()?;
     memory::init()?;
     linker::init()?;
+    externals::init()?;
     Ok(())
 }

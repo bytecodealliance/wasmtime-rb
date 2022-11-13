@@ -1,5 +1,6 @@
 use magnus::Error;
 
+mod helpers;
 mod ruby_api;
 
 #[magnus::init]

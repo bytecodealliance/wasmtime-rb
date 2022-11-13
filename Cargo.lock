@@ -448,6 +448,7 @@ version = "0.1.0"
 dependencies = [
  "lazy_static",
  "magnus",
+ "rb-sys",
  "wasmtime",
 ]
 
@@ -637,15 +638,6 @@ checksum = "efbc0f03f9a775e9f6aed295c6a1ba2253c5757a9e03d55c6caa46a681abcddd"
 dependencies = [
  "cfg-if",
  "winapi",
-]
-
-[[package]]
-name = "linkify"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96dd5884008358112bc66093362197c7248ece00d46624e2cf71e50029f8cff5"
-dependencies = [
- "memchr",
 ]
 
 [[package]]
@@ -867,21 +859,20 @@ dependencies = [
 
 [[package]]
 name = "rb-sys"
-version = "0.9.30"
+version = "0.9.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "24b22a374fc2e92eb6f49d7efe4eb7663655c6e9455d9259ed3342cc1599da85"
+checksum = "31bb5cd8565cd4dd97dcf7a04e3b4e5401ce379d34496c34e866ce806277a408"
 dependencies = [
- "bindgen",
- "linkify",
  "rb-sys-build",
 ]
 
 [[package]]
 name = "rb-sys-build"
-version = "0.9.30"
+version = "0.9.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3cd23b6dd929b7d50ccb35a6d3aa77dec364328ab9cb304dd32c629332491671"
+checksum = "de4bbf05b48f0c01b9b8e3b26f02769b097185b8d649831c652cb8a9946494a2"
 dependencies = [
+ "bindgen",
  "regex",
  "shell-words",
 ]

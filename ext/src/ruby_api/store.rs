@@ -39,7 +39,7 @@ impl StoreData {
     }
 }
 
-#[derive(TypedData)]
+#[derive(Debug, TypedData)]
 #[magnus(class = "Wasmtime::Store", size, mark, free_immediatly)]
 pub struct Store {
     inner: UnsafeCell<StoreImpl<StoreData>>,

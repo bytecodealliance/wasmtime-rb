@@ -1,28 +1,28 @@
 use super::{memory_type::MemoryType, root, store::Store};
-use crate::error;
+use crate::{error, helpers::WrappedStruct};
 use magnus::{
-    function, gc, method, r_string::RString, DataTypeFunctions, Error, Module as _, Object,
-    TypedData, Value,
+    function, method, r_string::RString, DataTypeFunctions, Error, Module as _, Object,
+    TypedData,
 };
 use wasmtime::{Extern, Memory as MemoryImpl};
 
 #[derive(TypedData, Debug)]
 #[magnus(class = "Wasmtime::Memory", mark, size, free_immediatly)]
 pub struct Memory {
-    store: Value,
+    store: WrappedStruct<Store>,
     inner: MemoryImpl,
 }
 
 impl DataTypeFunctions for Memory {
     fn mark(&self) {
-        gc::mark(&self.store);
+        self.store.mark()
     }
 }
 unsafe impl Send for Memory {}
 
 impl Memory {
-    pub fn new(s: Value, memtype: &MemoryType) -> Result<Self, Error> {
-        let store: &Store = s.try_convert()?;
+    pub fn new(s: WrappedStruct<Store>, memtype: &MemoryType) -> Result<Self, Error> {
+        let store = s.get()?;
 
         let inner = MemoryImpl::new(store.context_mut(), memtype.get().clone())
             .map_err(|e| error!("{}", e))?;
@@ -30,7 +30,7 @@ impl Memory {
         Ok(Self { store: s, inner })
     }
 
-    pub fn from_inner(store: Value, inner: MemoryImpl) -> Self {
+    pub fn from_inner(store: WrappedStruct<Store>, inner: MemoryImpl) -> Self {
         Self { store, inner }
     }
 

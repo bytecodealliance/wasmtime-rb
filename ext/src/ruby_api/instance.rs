@@ -5,25 +5,26 @@ use super::{
     root,
     store::{Store, StoreData},
 };
-use crate::{err, error};
+use crate::{err, error, helpers::WrappedStruct};
+use lazy_static::__Deref;
 use magnus::{
-    function, gc, method, scan_args, DataTypeFunctions, Error, Module as _, Object, RArray, RHash,
+    function, method, scan_args, DataTypeFunctions, Error, Module as _, Object, RArray, RHash,
     RString, TypedData, Value,
 };
 use wasmtime::{Extern, Instance as InstanceImpl, StoreContextMut};
 
-#[derive(Clone, Debug, TypedData)]
+#[derive(Debug, TypedData)]
 #[magnus(class = "Wasmtime::Instance", mark, free_immediatly)]
 pub struct Instance {
     inner: InstanceImpl,
-    store: Value,
+    store: WrappedStruct<Store>,
 }
 
 unsafe impl Send for Instance {}
 
 impl DataTypeFunctions for Instance {
     fn mark(&self) {
-        gc::mark(&self.store);
+        self.store.mark()
     }
 }
 
@@ -32,7 +33,8 @@ impl Instance {
         let args =
             scan_args::scan_args::<(Value, &Module), (Option<Value>,), (), (), (), ()>(args)?;
         let (s, module) = args.required;
-        let store: &Store = s.try_convert()?;
+        let wrapped_store: WrappedStruct<Store> = s.try_convert()?;
+        let store = wrapped_store.get()?;
         let context = store.context_mut();
         let imports = args
             .optional
@@ -62,39 +64,45 @@ impl Instance {
                 .unwrap_or_else(|| error!("{}", e))
         })?;
 
-        Ok(Self { inner, store: s })
+        Ok(Self {
+            inner,
+            store: wrapped_store,
+        })
     }
 
     pub fn get(&self) -> InstanceImpl {
         self.inner
     }
 
-    pub fn from_inner(store: Value, inner: InstanceImpl) -> Self {
+    pub fn from_inner(store: WrappedStruct<Store>, inner: InstanceImpl) -> Self {
         Self { inner, store }
     }
 
     pub fn exports(&self) -> Result<RHash, Error> {
-        let store = self.store.try_convert::<&Store>()?;
+        let store = self.store.get()?;
         let mut ctx = store.context_mut();
         let hash = RHash::new();
 
         for export in self.inner.exports(&mut ctx) {
+            let value = self.store.deref();
+            let new_store: WrappedStruct<Store> = value.try_convert()?;
+
             hash.aset(
                 RString::from(export.name()),
-                export.into_extern().wrap_wasmtime_type(self.store)?,
+                export.into_extern().wrap_wasmtime_type(new_store)?,
             )?;
         }
 
         Ok(hash)
     }
 
-    pub fn export(&self, str: RString) -> Result<Option<Value>, Error> {
-        let store = self.store.try_convert::<&Store>()?;
+    pub fn export(&self, str: RString) -> Result<Option<super::externals::Extern>, Error> {
+        let store = self.store.get()?;
         let export = self
             .inner
             .get_export(store.context_mut(), unsafe { str.as_str()? });
         match export {
-            Some(export) => export.wrap_wasmtime_type(self.store).map(Some),
+            Some(export) => export.wrap_wasmtime_type(self.store.clone()).map(Some),
             None => Ok(None),
         }
     }

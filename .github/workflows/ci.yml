@@ -4,12 +4,21 @@ name: CI
 on: push
 
 jobs:
+  ci-data:
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.fetch.outputs.result }}
+    steps:
+      - id: fetch
+        uses: oxidize-rb/actions/fetch-ci-data@main
+
   ci:
     runs-on: ${{ matrix.os }}
+    needs: ci-data
     strategy:
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        ruby: ["2.7", "3.0", "3.1", "head"]
+        ruby: ${{ fromJSON(needs.ci-data.outputs.result).stable-ruby-versions }}
     steps:
       - uses: actions/checkout@v3
 

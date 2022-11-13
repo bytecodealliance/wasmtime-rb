@@ -1,8 +1,7 @@
 use super::{memory_type::MemoryType, root, store::Store};
 use crate::{error, helpers::WrappedStruct};
 use magnus::{
-    function, method, r_string::RString, DataTypeFunctions, Error, Module as _, Object,
-    TypedData,
+    function, method, r_string::RString, DataTypeFunctions, Error, Module as _, Object, TypedData,
 };
 use wasmtime::{Extern, Memory as MemoryImpl};
 

@@ -7,9 +7,9 @@ use super::{
 };
 use crate::{error, helpers::WrappedStruct};
 use magnus::{
-    block::Proc, function, memoize, method, r_typed_data::DataTypeBuilder,
-    scan_args::scan_args, value::BoxValue, DataTypeFunctions, Error, Exception, Module as _,
-    Object, RArray, RClass, RHash, RString, TryConvert, TypedData, Value, QNIL,
+    block::Proc, function, memoize, method, r_typed_data::DataTypeBuilder, scan_args::scan_args,
+    value::BoxValue, DataTypeFunctions, Error, Exception, Module as _, Object, RArray, RClass,
+    RHash, RString, TryConvert, TypedData, Value, QNIL,
 };
 use std::cell::RefCell;
 use wasmtime::{

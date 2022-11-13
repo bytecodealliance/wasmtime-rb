@@ -6,7 +6,6 @@ use super::{
     store::{Store, StoreData},
 };
 use crate::{err, error, helpers::WrappedStruct};
-use lazy_static::__Deref;
 use magnus::{
     function, method, scan_args, DataTypeFunctions, Error, Module as _, Object, RArray, RHash,
     RString, TypedData, Value,
@@ -84,13 +83,10 @@ impl Instance {
         let hash = RHash::new();
 
         for export in self.inner.exports(&mut ctx) {
-            let value = self.store.deref();
-            let new_store: WrappedStruct<Store> = value.try_convert()?;
-
-            hash.aset(
-                RString::from(export.name()),
-                export.into_extern().wrap_wasmtime_type(new_store)?,
-            )?;
+            let export_name: RString = export.name().into();
+            let wrapped_store = self.store.clone();
+            let wrapped_export = export.into_extern().wrap_wasmtime_type(wrapped_store)?;
+            hash.aset(export_name, wrapped_export)?;
         }
 
         Ok(hash)

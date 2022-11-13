@@ -105,18 +105,6 @@ impl Linker {
         }
     }
 
-    pub fn get_func(
-        &self,
-        s: WrappedStruct<Store>,
-        module: RString,
-        name: RString,
-    ) -> Result<Option<WrappedStruct<Func>>, Error> {
-        match self.get(s, module, name)? {
-            Some(Extern::Func(f)) => Ok(Some(f)),
-            _ => Ok(None),
-        }
-    }
-
     pub fn instance(
         &self,
         store: &Store,
@@ -214,7 +202,6 @@ pub fn init() -> Result<(), Error> {
     class.define_method("define", method!(Linker::define, 3))?;
     class.define_method("func_new", method!(Linker::func_new, -1))?;
     class.define_method("get", method!(Linker::get, 3))?;
-    class.define_method("get_func", method!(Linker::get_func, 3))?;
     class.define_method("instance", method!(Linker::instance, 3))?;
     class.define_method("module", method!(Linker::module, 3))?;
     class.define_method("alias", method!(Linker::alias, 4))?;

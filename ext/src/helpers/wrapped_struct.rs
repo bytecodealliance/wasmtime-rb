@@ -1,6 +1,5 @@
-use std::{marker::PhantomData, ops::Deref};
-
 use magnus::{error::Error, exception, gc, value::Value, RTypedData, TryConvert, TypedData};
+use std::{marker::PhantomData, ops::Deref};
 
 /// A small wrapper for `RTypedData` that keeps track of the concrete struct
 /// type, and the underlying [`Value`] for GC purposes.
@@ -14,7 +13,7 @@ pub struct WrappedStruct<T: TypedData + 'static> {
 impl<T: TypedData> Clone for WrappedStruct<T> {
     fn clone(&self) -> Self {
         Self {
-            inner: self.inner,
+            inner: self.inner.clone(),
             phantom: PhantomData,
         }
     }
@@ -24,6 +23,11 @@ impl<T: TypedData> WrappedStruct<T> {
     /// Gets the underlying struct.
     pub fn get(&self) -> Result<&T, Error> {
         self.inner.try_convert::<&T>()
+    }
+
+    /// Get the Ruby [`Value`] for this struct.
+    pub fn to_value(&self) -> Value {
+        self.inner
     }
 
     /// Marks the Ruby [`Value`] for GC.

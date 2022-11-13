@@ -11,5 +11,5 @@ crate-type = ["cdylib"]
 
 [dependencies]
 lazy_static = "1.4.0"
-magnus = { git = "https://github.com/ianks/magnus", branch = "rb-sys-env", features = ["rb-sys-interop"] }
+magnus = { git = "https://github.com/matsadler/magnus", branch = "main", features = ["rb-sys-interop"] }
 wasmtime = "2.0.2"

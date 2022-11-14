@@ -1,9 +1,15 @@
 use crate::ruby_api::root;
-use magnus::{exception::standard_error, memoize, ExceptionClass, Module};
+use magnus::{
+    exception::standard_error, gc::register_mark_object, memoize, ExceptionClass, Module,
+};
 
 /// Base error class for all Wasmtime errors.
 pub fn base_error() -> ExceptionClass {
-    *memoize!(ExceptionClass: root().define_error("Error", standard_error()).unwrap())
+    *memoize!(ExceptionClass: {
+        let exc = root().define_error("Error", standard_error()).unwrap();
+        register_mark_object(exc);
+        exc
+    })
 }
 
 #[macro_export]

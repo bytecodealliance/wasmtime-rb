@@ -57,4 +57,23 @@ namespace :mem do
       end
     end
   end
+
+  if RbConfig::CONFIG["host_os"] == "linux"
+    begin
+      require "ruby_memcheck"
+      require "ruby_memcheck/rspec/rake_task"
+
+      RubyMemcheck.config(binary_name: "ext")
+
+      RubyMemcheck::RSpec::RakeTask.new(check: :compile)
+    rescue LoadError
+      task :check do
+        abort 'Please add `gem "ruby_memcheck"` to your Gemfile to use the "mem:check" task'
+      end
+    end
+  else
+    task :check do
+      abort 'The "mem:check" task is only available on Linux'
+    end
+  end
 end

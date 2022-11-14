@@ -24,6 +24,8 @@ RSpec.configure do |config|
 
   config.include_context("default lets")
 
+  config.default_formatter = ENV.fetch("RSPEC_FORMATTER", "doc")
+
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = ".rspec_status"
 
@@ -43,3 +45,5 @@ RSpec.configure do |config|
     end
   end
 end
+
+at_exit { GC.start(full_mark: true) }

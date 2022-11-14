@@ -1,3 +1,6 @@
+#![allow(rustdoc::broken_intra_doc_links)]
+#![allow(rustdoc::invalid_html_tags)]
+#![allow(rustdoc::bare_urls)]
 use magnus::{define_module, memoize, Error, RModule};
 
 mod config;

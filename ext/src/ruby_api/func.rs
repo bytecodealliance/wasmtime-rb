@@ -9,13 +9,16 @@ use crate::error;
 use magnus::{
     block::Proc, function, gc, memoize, method, r_typed_data::DataTypeBuilder,
     scan_args::scan_args, value::BoxValue, DataTypeFunctions, Error, Exception, Module as _,
-    Object, RArray, RClass, RHash, RString, TryConvert, TypedData, Value, QNIL,
+    Object, RArray, RClass, RString, TryConvert, TypedData, Value, QNIL,
 };
 use std::cell::RefCell;
 use wasmtime::{
     AsContextMut, Caller as CallerImpl, Extern, ExternType, Func as FuncImpl, Trap, Val,
 };
 
+/// @yard
+/// Represents a WebAssembly Function
+/// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Func.html Wasmtime's Rust doc
 #[derive(TypedData, Debug)]
 #[magnus(class = "Wasmtime::Func", mark, size, free_immediatly)]
 pub struct Func {
@@ -40,8 +43,30 @@ unsafe impl Sync for ShareableProc {}
 unsafe impl Send for Func {}
 
 impl Func {
+    /// @yard
+    /// @def new(store, type, callable, &block)
+    /// @param store [Store]
+    /// @param type [FuncType]
+    /// @param block [Block] The funcs's implementation
+    ///
+    /// @yield [caller, *args] The function's body
+    /// @yieldparam caller [Caller] Caller which can be used to interact with the {Store}.
+    /// @yieldparam *args [Object] Splat of Ruby objects matching the {FuncType}’s params arity.
+    /// @yieldreturn [nil, Object, Array<Object>] The return type depends on {FuncType}’s results arity:
+    ///   * 0 => +nil+
+    ///   * 1 => +Object+
+    ///   * > 1 => +Array<Object>+
+    ///
+    /// @return [Func]
+    ///
+    /// @example Function that increments an i32:
+    ///   store = Wasmtime::Store.new(Wasmtime::Engine.new)
+    ///   type = FuncType.new([:i32], [:i32])
+    ///   Wasmtime::Func.new(store, type) do |_caller, arg1|
+    ///     arg1.succ
+    ///   end
     pub fn new(args: &[Value]) -> Result<Self, Error> {
-        let args = scan_args::<(Value, &FuncType), (), (), (), RHash, Proc>(args)?;
+        let args = scan_args::<(Value, &FuncType), (), (), (), (), Proc>(args)?;
         let (s, functype) = args.required;
         let callable = args.block;
 
@@ -64,6 +89,18 @@ impl Func {
         self.inner
     }
 
+    /// @yard
+    /// Calls a Wasm function.
+    ///
+    /// @def call(*args)
+    /// @param args [Object]
+    ///   The arguments to send to the Wasm function. Raises if the arguments do
+    ///   not conform to the Wasm function's parameters.
+    ///
+    /// @return [nil, Object, Array<Object>] The return type depends on {FuncType}’s results arity:
+    ///   * 0 => +nil+
+    ///   * 1 => +Object+
+    ///   * > 1 => +Array<Object>+
     pub fn call(&self, args: &[Value]) -> Result<Value, Error> {
         let store: &Store = self.store.try_convert()?;
         Self::invoke(store, &self.inner, args).map_err(|e| e.into())

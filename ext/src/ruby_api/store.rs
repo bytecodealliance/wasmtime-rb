@@ -39,6 +39,9 @@ impl StoreData {
     }
 }
 
+/// @yard
+/// Represents a WebAssebmly store.
+/// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Store.html Wasmtime's Rust doc
 #[derive(TypedData)]
 #[magnus(class = "Wasmtime::Store", size, mark, free_immediatly)]
 pub struct Store {
@@ -56,13 +59,26 @@ unsafe impl Send for Store {}
 unsafe impl Send for StoreData {}
 
 impl Store {
+    /// @yard
+    ///
+    /// @def new(engine, data = nil)
+    /// @param engine [Wasmtime::Engine]
+    ///   The engine for this store.
+    /// @param data [Object]
+    ///   The data attached to the store. Can be retrieved through {Wasmtime::Store#data} and {Wasmtime::Caller#data}.
+    /// @return [Wasmtime::Store]
+    ///
+    /// @example
+    ///   store = Wasmtime::Store.new(Wasmtime::Engine.new)
+    ///
+    /// @example
+    ///   store = Wasmtime::Store.new(Wasmtime::Engine.new, {})
     pub fn new(args: &[Value]) -> Result<Self, Error> {
         let args = scan_args::scan_args::<(&Engine,), (Option<Value>,), (), (), (), ()>(args)?;
         let (engine,) = args.required;
         let (user_data,) = args.optional;
         let user_data = user_data.unwrap_or_else(|| QNIL.into());
 
-        // engine: &Engine, user_data: Value
         let eng = engine.get();
         let store_data = StoreData {
             user_data,
@@ -78,6 +94,8 @@ impl Store {
         Ok(store)
     }
 
+    /// @yard
+    /// @return [Object] The passed in value in {.new}
     pub fn data(&self) -> Value {
         self.context().data().user_data()
     }

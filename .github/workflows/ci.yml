@@ -30,6 +30,7 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
           cargo-cache: true
+          cargo-cache-clean: true
           cache-version: v1
 
       - name: Compile rust ext
@@ -57,7 +58,7 @@ jobs:
       - name: Remove Gemfile.lock
         run: rm Gemfile.lock
 
-      - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
+      - uses: oxidize-rb/actions/setup-ruby-and-rust@main
         with:
           ruby-version: "3.1"
           rustup-toolchain: "nightly"

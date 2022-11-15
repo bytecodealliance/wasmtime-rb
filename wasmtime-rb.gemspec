@@ -27,5 +27,5 @@ Gem::Specification.new do |spec|
   spec.extensions = ["ext/extconf.rb"] # Future: ["ext/Cargo.toml"] with rubygems >= 3.3.24
 
   # Can be removed for binary gems and rubygems >= 3.3.24
-  spec.add_dependency "rb_sys", "~> 0.9.34"
+  spec.add_dependency "rb_sys", "~> 0.9.39"
 end

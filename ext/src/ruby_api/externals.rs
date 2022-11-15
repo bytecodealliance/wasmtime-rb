@@ -1,9 +1,12 @@
 use super::{convert::WrapWasmtimeType, func::Func, memory::Memory, root, store::Store};
 use crate::{conversion_err, helpers::WrappedStruct, not_implemented};
 use magnus::{
-    method, rb_sys::raw_value, DataTypeFunctions, Error, Module, RClass, TypedData, Value,
+    method, rb_sys::AsRawValue, DataTypeFunctions, Error, Module, RClass, TypedData, Value,
 };
 
+/// @yard
+/// An external item to a WebAssembly module, or a list of what can possibly be exported from a wasm module.
+/// @see https://docs.rs/wasmtime/latest/wasmtime/enum.Extern.html Wasmtime's Rust doc
 #[derive(TypedData)]
 #[magnus(class = "Wasmtime::Extern", size, mark, free_immediatly)]
 pub enum Extern {
@@ -21,6 +24,8 @@ impl DataTypeFunctions for Extern {
 }
 
 impl Extern {
+    /// @yard
+    /// @return [Wasmtime::Func] The exported function, if this is a function.
     pub fn to_func(rb_self: WrappedStruct<Self>) -> Result<Value, Error> {
         match rb_self.get()? {
             Extern::Func(f) => Ok(f.to_value()),
@@ -28,23 +33,13 @@ impl Extern {
         }
     }
 
+    /// @yard
+    /// @return [Wasmtime::Memory] The exported memory, if this is a memory.
     pub fn to_memory(rb_self: WrappedStruct<Self>) -> Result<Value, Error> {
         match rb_self.get()? {
             Extern::Memory(f) => Ok(f.to_value()),
             _ => conversion_err!(Self::inner_class(rb_self)?, Memory::class()),
         }
-    }
-
-    pub fn to_global(_rb_self: WrappedStruct<Self>) -> Result<Value, Error> {
-        not_implemented!("Extern#to_global")
-    }
-
-    pub fn to_table(_rb_self: WrappedStruct<Self>) -> Result<Value, Error> {
-        not_implemented!("Extern#to_table")
-    }
-
-    pub fn to_shared_memory(_rb_self: WrappedStruct<Self>) -> Result<Value, Error> {
-        not_implemented!("Extern#to_shared_memory")
     }
 
     pub fn inspect(rb_self: WrappedStruct<Self>) -> Result<String, Error> {
@@ -57,7 +52,7 @@ impl Extern {
 
         Ok(format!(
             "#<Wasmtime::Extern:0x{:016x} @value={}>",
-            raw_value(rb_self.to_value()),
+            rb_self.to_value().as_raw(),
             inner_string
         ))
     }
@@ -89,9 +84,6 @@ pub fn init() -> Result<(), Error> {
 
     class.define_method("to_func", method!(Extern::to_func, 0))?;
     class.define_method("to_memory", method!(Extern::to_memory, 0))?;
-    class.define_method("to_global", method!(Extern::to_global, 0))?;
-    class.define_method("to_table", method!(Extern::to_table, 0))?;
-    class.define_method("to_shared_memory", method!(Extern::to_shared_memory, 0))?;
     class.define_method("inspect", method!(Extern::inspect, 0))?;
 
     Ok(())

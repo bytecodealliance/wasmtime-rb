@@ -24,8 +24,12 @@ RSpec.configure do |config|
 
   config.include_context("default lets")
 
+  # So memcheck steps can still pass if RSpec fails
+  config.failure_exit_code = ENV.fetch("RSPEC_FAILURE_EXIT_CODE", 1).to_i
+  config.default_formatter = ENV.fetch("RSPEC_FORMATTER", "doc")
+
   # Enable flags like --only-failures and --next-failure
-  config.example_status_persistence_file_path = ".rspec_status"
+  config.example_status_persistence_file_path = ".rspec_status" unless ENV["CI"]
 
   # Disable RSpec exposing methods globally on `Module` and `main`
   config.disable_monkey_patching!
@@ -43,3 +47,5 @@ RSpec.configure do |config|
     end
   end
 end
+
+at_exit { GC.start(full_mark: true) }

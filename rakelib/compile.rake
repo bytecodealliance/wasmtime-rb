@@ -2,13 +2,7 @@ require "rake/extensiontask"
 
 GEMSPEC = Bundler.load_gemspec("wasmtime-rb.gemspec")
 
-CROSS_PLATFORMS = [
-  "aarch64-linux",
-  "arm64-darwin",
-  "x86_64-darwin",
-  "x86_64-linux",
-  "x86_64-linux-musl"
-]
+CROSS_PLATFORMS = [ENV["RUBY_TARGET"]].compact
 
 SOURCE_PATTERN = "**/src/**/*.{rs,toml,lock}"
 
@@ -23,6 +17,6 @@ Rake::ExtensionTask.new("ext", GEMSPEC) do |ext|
     gem_spec.dependencies.reject! { |d| d.name == "rb_sys" }
 
     # Remove unnecessary files
-    gem_spec.files -= Dir[SOURCE_PATTERN, "**/Cargo.*", "extconf.rb"]
+    gem_spec.files -= Dir[SOURCE_PATTERN, "**/Cargo.*", "**/extconf.rb"]
   end
 end

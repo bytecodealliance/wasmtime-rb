@@ -1,7 +1,7 @@
 use crate::ruby_api::root;
-use magnus::rb_sys::value_from_raw;
-use magnus::Error;
+use magnus::rb_sys::FromRawValue;
 use magnus::{exception::standard_error, memoize, ExceptionClass, Module};
+use magnus::{Error, Value};
 
 /// Base error class for all Wasmtime errors.
 pub fn base_error() -> ExceptionClass {
@@ -11,7 +11,7 @@ pub fn base_error() -> ExceptionClass {
 /// Ruby's `NotImplementedError` class.
 pub fn not_implemented_error() -> ExceptionClass {
     *memoize!(ExceptionClass: {
-        value_from_raw(rb_sys::rb_eNotImpError).try_convert().unwrap()
+        Value::from_raw(rb_sys::rb_eNotImpError).try_convert().unwrap()
     })
 }
 

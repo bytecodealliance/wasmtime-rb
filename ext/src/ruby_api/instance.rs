@@ -12,7 +12,10 @@ use magnus::{
 };
 use wasmtime::{Extern, Instance as InstanceImpl, StoreContextMut};
 
-#[derive(Debug, TypedData)]
+/// @yard
+/// Represents a WebAssembly instance.
+/// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Instance.html Wasmtime's Rust doc
+#[derive(Clone, Debug, TypedData)]
 #[magnus(class = "Wasmtime::Instance", mark, free_immediatly)]
 pub struct Instance {
     inner: InstanceImpl,
@@ -28,6 +31,13 @@ impl DataTypeFunctions for Instance {
 }
 
 impl Instance {
+    /// @yard
+    /// @def new(store, mod, imports = [])
+    /// @param store [Store] The store to instantiate the module in.
+    /// @param mod [Module] The module to instantiate.
+    /// @param imports [Array<Func, Memory>]
+    ///   The module's import, in orders that that they show up in the module.
+    /// @return [Instance]
     pub fn new(args: &[Value]) -> Result<Self, Error> {
         let args =
             scan_args::scan_args::<(Value, &Module), (Option<Value>,), (), (), (), ()>(args)?;
@@ -77,6 +87,11 @@ impl Instance {
         Self { inner, store }
     }
 
+    /// @yard
+    /// Returns a Hash of exports where keys are the export name (String).
+    ///
+    /// @def exports
+    /// @return [Hash{String => Func, Memory}]
     pub fn exports(&self) -> Result<RHash, Error> {
         let store = self.store.get()?;
         let mut ctx = store.context_mut();
@@ -92,6 +107,12 @@ impl Instance {
         Ok(hash)
     }
 
+    /// @yard
+    /// Get an export by name.
+    ///
+    /// @def export(name)
+    /// @param name [String]
+    /// @return [Func, Memory, nil] The export if it exists, nil otherwise.
     pub fn export(&self, str: RString) -> Result<Option<super::externals::Extern>, Error> {
         let store = self.store.get()?;
         let export = self
@@ -103,6 +124,15 @@ impl Instance {
         }
     }
 
+    /// @yard
+    /// Retrieves a Wasm function from the instance and calls it.
+    /// Essentially a shortcut for +instance.export(name).call(...)+.
+    ///
+    /// @def invoke(name, *args)
+    /// @param name [String] The name of function  to run.
+    /// @param (see Func#call)
+    /// @return (see Func#call)
+    /// @see Func#call
     pub fn invoke(&self, args: &[Value]) -> Result<Value, Error> {
         let name: RString = args
             .get(0)

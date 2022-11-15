@@ -5,11 +5,11 @@ use super::{
     root,
     store::{Store, StoreData},
 };
-use crate::error;
+use crate::{error, helpers::WrappedStruct};
 use magnus::{
-    block::Proc, function, gc, memoize, method, r_typed_data::DataTypeBuilder,
-    scan_args::scan_args, value::BoxValue, DataTypeFunctions, Error, Exception, Module as _,
-    Object, RArray, RClass, RString, TryConvert, TypedData, Value, QNIL,
+    block::Proc, function, memoize, method, r_typed_data::DataTypeBuilder, scan_args::scan_args,
+    value::BoxValue, DataTypeFunctions, Error, Exception, Module as _, Object, RArray, RClass,
+    RString, TryConvert, TypedData, Value, QNIL,
 };
 use std::cell::RefCell;
 use wasmtime::{
@@ -22,13 +22,13 @@ use wasmtime::{
 #[derive(TypedData, Debug)]
 #[magnus(class = "Wasmtime::Func", mark, size, free_immediatly)]
 pub struct Func {
-    store: Value,
+    store: WrappedStruct<Store>,
     inner: FuncImpl,
 }
 
 impl DataTypeFunctions for Func {
     fn mark(&self) {
-        gc::mark(&self.store);
+        self.store.mark()
     }
 }
 
@@ -70,17 +70,22 @@ impl Func {
         let (s, functype) = args.required;
         let callable = args.block;
 
-        let store: &Store = s.try_convert()?;
+        let wrapped_store: WrappedStruct<Store> = s.try_convert()?;
+        let store = wrapped_store.get()?;
+
         store.retain(callable.into());
         let context = store.context_mut();
         let ty = functype.get();
 
         let inner = wasmtime::Func::new(context, ty.clone(), make_func_closure(ty, callable));
 
-        Ok(Self { store: s, inner })
+        Ok(Self {
+            store: wrapped_store,
+            inner,
+        })
     }
 
-    pub fn from_inner(store: Value, inner: FuncImpl) -> Self {
+    pub fn from_inner(store: WrappedStruct<Store>, inner: FuncImpl) -> Self {
         Self { store, inner }
     }
 

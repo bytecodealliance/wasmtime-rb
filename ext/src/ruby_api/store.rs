@@ -42,7 +42,7 @@ impl StoreData {
 /// @yard
 /// Represents a WebAssebmly store.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Store.html Wasmtime's Rust doc
-#[derive(TypedData)]
+#[derive(Debug, TypedData)]
 #[magnus(class = "Wasmtime::Store", size, mark, free_immediatly)]
 pub struct Store {
     inner: UnsafeCell<StoreImpl<StoreData>>,

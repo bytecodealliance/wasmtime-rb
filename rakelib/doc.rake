@@ -6,6 +6,8 @@ YARD::Rake::YardocTask.new do |t|
   t.before = -> { require "yard" }
 
   t.after = -> do
+    $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
+
     require "wasmtime"
 
     errors = []

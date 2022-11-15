@@ -5,9 +5,9 @@ use super::{
     root,
     store::{Store, StoreData},
 };
-use crate::{err, error};
+use crate::{err, error, helpers::WrappedStruct};
 use magnus::{
-    function, gc, method, scan_args, DataTypeFunctions, Error, Module as _, Object, RArray, RHash,
+    function, method, scan_args, DataTypeFunctions, Error, Module as _, Object, RArray, RHash,
     RString, TypedData, Value,
 };
 use wasmtime::{Extern, Instance as InstanceImpl, StoreContextMut};
@@ -19,14 +19,14 @@ use wasmtime::{Extern, Instance as InstanceImpl, StoreContextMut};
 #[magnus(class = "Wasmtime::Instance", mark, free_immediatly)]
 pub struct Instance {
     inner: InstanceImpl,
-    store: Value,
+    store: WrappedStruct<Store>,
 }
 
 unsafe impl Send for Instance {}
 
 impl DataTypeFunctions for Instance {
     fn mark(&self) {
-        gc::mark(&self.store);
+        self.store.mark()
     }
 }
 
@@ -42,7 +42,8 @@ impl Instance {
         let args =
             scan_args::scan_args::<(Value, &Module), (Option<Value>,), (), (), (), ()>(args)?;
         let (s, module) = args.required;
-        let store: &Store = s.try_convert()?;
+        let wrapped_store: WrappedStruct<Store> = s.try_convert()?;
+        let store = wrapped_store.get()?;
         let context = store.context_mut();
         let imports = args
             .optional
@@ -72,14 +73,17 @@ impl Instance {
                 .unwrap_or_else(|| error!("{}", e))
         })?;
 
-        Ok(Self { inner, store: s })
+        Ok(Self {
+            inner,
+            store: wrapped_store,
+        })
     }
 
     pub fn get(&self) -> InstanceImpl {
         self.inner
     }
 
-    pub fn from_inner(store: Value, inner: InstanceImpl) -> Self {
+    pub fn from_inner(store: WrappedStruct<Store>, inner: InstanceImpl) -> Self {
         Self { inner, store }
     }
 
@@ -89,15 +93,15 @@ impl Instance {
     /// @def exports
     /// @return [Hash{String => Func, Memory}]
     pub fn exports(&self) -> Result<RHash, Error> {
-        let store = self.store.try_convert::<&Store>()?;
+        let store = self.store.get()?;
         let mut ctx = store.context_mut();
         let hash = RHash::new();
 
         for export in self.inner.exports(&mut ctx) {
-            hash.aset(
-                RString::from(export.name()),
-                export.into_extern().wrap_wasmtime_type(self.store)?,
-            )?;
+            let export_name: RString = export.name().into();
+            let wrapped_store = self.store.clone();
+            let wrapped_export = export.into_extern().wrap_wasmtime_type(wrapped_store)?;
+            hash.aset(export_name, wrapped_export)?;
         }
 
         Ok(hash)
@@ -109,13 +113,13 @@ impl Instance {
     /// @def export(name)
     /// @param name [String]
     /// @return [Func, Memory, nil] The export if it exists, nil otherwise.
-    pub fn export(&self, str: RString) -> Result<Option<Value>, Error> {
-        let store = self.store.try_convert::<&Store>()?;
+    pub fn export(&self, str: RString) -> Result<Option<super::externals::Extern>, Error> {
+        let store = self.store.get()?;
         let export = self
             .inner
             .get_export(store.context_mut(), unsafe { str.as_str()? });
         match export {
-            Some(export) => export.wrap_wasmtime_type(self.store).map(Some),
+            Some(export) => export.wrap_wasmtime_type(self.store.clone()).map(Some),
             None => Ok(None),
         }
     }

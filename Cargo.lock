@@ -446,6 +446,7 @@ version = "0.1.0"
 dependencies = [
  "lazy_static",
  "magnus",
+ "rb-sys",
  "wasmtime",
 ]
 
@@ -680,7 +681,7 @@ dependencies = [
 [[package]]
 name = "magnus"
 version = "0.3.2"
-source = "git+https://github.com/matsadler/magnus?branch=main#aa79114793468222639d5eec897bb82f7be623b2"
+source = "git+https://github.com/matsadler/magnus#aa79114793468222639d5eec897bb82f7be623b2"
 dependencies = [
  "magnus-macros",
  "rb-sys",
@@ -690,7 +691,7 @@ dependencies = [
 [[package]]
 name = "magnus-macros"
 version = "0.1.0"
-source = "git+https://github.com/matsadler/magnus?branch=main#aa79114793468222639d5eec897bb82f7be623b2"
+source = "git+https://github.com/matsadler/magnus#aa79114793468222639d5eec897bb82f7be623b2"
 dependencies = [
  "darling",
  "proc-macro2",

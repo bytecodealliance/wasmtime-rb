@@ -1,6 +1,7 @@
 use super::{
     convert::WrapWasmtimeType,
     engine::Engine,
+    externals::Extern,
     func::{self, Func},
     func_type::FuncType,
     instance::Instance,
@@ -8,7 +9,7 @@ use super::{
     root,
     store::{Store, StoreData},
 };
-use crate::{error, ruby_api::convert::ToExtern};
+use crate::{error, helpers::WrappedStruct, ruby_api::convert::ToExtern};
 use magnus::{
     block::Proc, function, gc, method, scan_args::scan_args, DataTypeFunctions, Error, Module as _,
     Object, RHash, RString, TypedData, Value,
@@ -129,7 +130,12 @@ impl Linker {
     /// @param mod [String] Module name
     /// @param name [String] Import name
     /// @return [Func, Memory, nil] The item if it exists, nil otherwise.
-    pub fn get(&self, s: Value, module: RString, name: RString) -> Result<Option<Value>, Error> {
+    pub fn get(
+        &self,
+        s: WrappedStruct<Store>,
+        module: RString,
+        name: RString,
+    ) -> Result<Option<Extern>, Error> {
         let store: &Store = s.try_convert()?;
         let ext =
             self.inner
@@ -234,8 +240,9 @@ impl Linker {
     /// @param store [Store]
     /// @param mod [Module]
     /// @return [Instance]
-    pub fn instantiate(&self, s: Value, module: &Module) -> Result<Instance, Error> {
-        let store = s.try_convert::<&Store>()?;
+    pub fn instantiate(&self, s: WrappedStruct<Store>, module: &Module) -> Result<Instance, Error> {
+        let wrapped_store: WrappedStruct<Store> = s.try_convert()?;
+        let store = wrapped_store.get()?;
         self.inner
             .borrow_mut()
             .instantiate(store.context_mut(), module.get())
@@ -258,8 +265,9 @@ impl Linker {
     /// @param store [Store]
     /// @param mod [String] Module name
     /// @return [Func]
-    pub fn get_default(&self, s: Value, module: RString) -> Result<Func, Error> {
-        let store: &Store = s.try_convert()?;
+    pub fn get_default(&self, s: WrappedStruct<Store>, module: RString) -> Result<Func, Error> {
+        let store = s.get()?;
+
         self.inner
             .borrow()
             .get_default(store.context_mut(), unsafe { module.as_str() }?)

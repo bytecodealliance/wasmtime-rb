@@ -7,6 +7,7 @@ mod config;
 mod convert;
 mod engine;
 mod errors;
+mod externals;
 mod func;
 mod func_type;
 mod instance;
@@ -25,6 +26,9 @@ pub fn root() -> RModule {
 }
 
 pub fn init() -> Result<(), Error> {
+    let _ = root();
+
+    errors::init()?;
     config::init()?;
     engine::init()?;
     module::init()?;
@@ -35,5 +39,7 @@ pub fn init() -> Result<(), Error> {
     memory_type::init()?;
     memory::init()?;
     linker::init()?;
+    externals::init()?;
+
     Ok(())
 }

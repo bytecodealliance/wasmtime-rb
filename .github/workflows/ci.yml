@@ -47,7 +47,7 @@ jobs:
         run: bundle exec rake standard
 
       - name: Lint rust
-        run: cargo clippy && cargo fmt --check
+        run: cargo clippy -- -D warnings && cargo fmt --check
 
   doc:
     runs-on: ubuntu-latest

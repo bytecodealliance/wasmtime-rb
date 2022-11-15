@@ -45,7 +45,7 @@ module Wasmtime
       store = Store.new(engine)
       memory = Memory.new(store, MemoryType.new(1))
       linker.define("mod", "mem", memory)
-      expect(linker.get(store, "mod", "mem")).to be_instance_of(Memory)
+      expect(linker.get(store, "mod", "mem").to_memory).to be_instance_of(Memory)
     end
 
     it "define func" do
@@ -53,7 +53,7 @@ module Wasmtime
       store = Store.new(engine)
       func = Func.new(store, FuncType.new([], [])) {}
       linker.define("mod", "fn", func)
-      expect(linker.get(store, "mod", "fn")).to be_instance_of(Func)
+      expect(linker.get(store, "mod", "fn").to_func).to be_instance_of(Func)
     end
 
     it "func_new accepts block" do
@@ -74,7 +74,7 @@ module Wasmtime
         calls += 1
         expect(caller).to be_instance_of(Caller)
       end
-      func = linker.get(Store.new(engine), "", "")
+      func = linker.get(Store.new(engine), "", "").to_func
       expect { func.call }.to change { calls }.by(1)
     end
 
@@ -87,7 +87,7 @@ module Wasmtime
     it "get can return Func" do
       linker = new_linker
       linker.func_new("mod", "fn", FuncType.new([], [:i32])) { 42 }
-      func = linker.get(Store.new(engine), "mod", "fn")
+      func = linker.get(Store.new(engine), "mod", "fn").to_func
       expect(func).to be_instance_of(Func)
       expect(func.call).to eq(42)
     end

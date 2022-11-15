@@ -63,6 +63,7 @@ jobs:
           rustup-toolchain: "nightly"
           bundler-cache: true
           cargo-cache: true
+          cargo-cache-clean: true
           cache-version: v1
 
       - name: Compile rust ext

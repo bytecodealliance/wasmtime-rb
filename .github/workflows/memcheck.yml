@@ -28,6 +28,7 @@ jobs:
           ruby-version: ${{ inputs.ruby-version || '3.1' }}
           bundler-cache: true
           cargo-cache: true
+          cargo-cache-clean: true
           cache-version: v1
 
       - name: Install deps

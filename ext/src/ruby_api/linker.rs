@@ -7,7 +7,7 @@ use super::{
     instance::Instance,
     module::Module,
     root,
-    store::{Store, StoreData},
+    store::{Store, StoreContextValue, StoreData},
 };
 use crate::{error, helpers::WrappedStruct, ruby_api::convert::ToExtern};
 use magnus::{
@@ -246,13 +246,7 @@ impl Linker {
         self.inner
             .borrow_mut()
             .instantiate(store.context_mut(), module.get())
-            .map_err(|e| {
-                store
-                    .context_mut()
-                    .data_mut()
-                    .take_last_error()
-                    .unwrap_or_else(|| error!("{}", e))
-            })
+            .map_err(|e| StoreContextValue::from(wrapped_store.clone()).handle_wasm_error(e))
             .map(|instance| {
                 self.refs.borrow().iter().for_each(|val| store.retain(*val));
                 Instance::from_inner(s, instance)

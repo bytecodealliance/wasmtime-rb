@@ -5,7 +5,7 @@ use magnus::{
 };
 
 /// @yard
-/// An external item to a WebAssembly module, or a list of what can possibly be exported from a wasm module.
+/// An external item to a WebAssembly module, or a list of what can possibly be exported from a Wasm module.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/enum.Extern.html Wasmtime's Rust doc
 #[derive(TypedData)]
 #[magnus(class = "Wasmtime::Extern", size, mark, free_immediatly)]
@@ -25,7 +25,9 @@ impl DataTypeFunctions for Extern {
 
 impl Extern {
     /// @yard
-    /// @return [Wasmtime::Func] The exported function, if this is a function.
+    /// Returns the exported function or raises a `{ConversionError}` when the export is not a
+    /// function.
+    /// @return [Func] The exported function.
     pub fn to_func(rb_self: WrappedStruct<Self>) -> Result<Value, Error> {
         match rb_self.get()? {
             Extern::Func(f) => Ok(f.to_value()),
@@ -34,7 +36,9 @@ impl Extern {
     }
 
     /// @yard
-    /// @return [Wasmtime::Memory] The exported memory, if this is a memory.
+    /// Returns the exported memory or raises a `{ConversionError}` when the export is not a
+    /// memory.
+    /// @return [Memory] The exported memory.
     pub fn to_memory(rb_self: WrappedStruct<Self>) -> Result<Value, Error> {
         match rb_self.get()? {
             Extern::Memory(f) => Ok(f.to_value()),

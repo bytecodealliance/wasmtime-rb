@@ -12,5 +12,6 @@ end
 
 module Wasmtime
   class Error < StandardError; end
-  # Your code goes here...
+
+  class ConversionError < Error; end
 end

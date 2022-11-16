@@ -88,10 +88,11 @@ impl Instance {
     }
 
     /// @yard
-    /// Returns a Hash of exports where keys are the export name (String).
+    /// Returns a +Hash+ of exports where keys are export names as +String+s
+    /// and values are {Extern}s.
     ///
     /// @def exports
-    /// @return [Hash{String => Func, Memory}]
+    /// @return [Hash{String => Extern}]
     pub fn exports(&self) -> Result<RHash, Error> {
         let store = self.store.get()?;
         let mut ctx = store.context_mut();
@@ -112,7 +113,7 @@ impl Instance {
     ///
     /// @def export(name)
     /// @param name [String]
-    /// @return [Func, Memory, nil] The export if it exists, nil otherwise.
+    /// @return [Extern, nil] The export if it exists, nil otherwise.
     pub fn export(&self, str: RString) -> Result<Option<super::externals::Extern>, Error> {
         let store = self.store.get()?;
         let export = self

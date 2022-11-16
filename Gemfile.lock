@@ -70,7 +70,7 @@ GEM
     webrick (1.7.0)
     yard (0.9.28)
       webrick (~> 1.7.0)
-    yard-rustdoc (0.1.0)
+    yard-rustdoc (0.2.0)
       syntax_tree (~> 4.0)
       yard (~> 0.9)
 
@@ -92,7 +92,7 @@ DEPENDENCIES
   standard (~> 1.17)
   wasmtime-rb!
   yard
-  yard-rustdoc (~> 0.1)
+  yard-rustdoc (~> 0.2)
 
 BUNDLED WITH
    2.3.24

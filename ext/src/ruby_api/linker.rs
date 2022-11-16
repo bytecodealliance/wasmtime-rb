@@ -129,7 +129,7 @@ impl Linker {
     /// @param store [Store]
     /// @param mod [String] Module name
     /// @param name [String] Import name
-    /// @return [Func, Memory, nil] The item if it exists, nil otherwise.
+    /// @return [Extern, nil] The item if it exists, nil otherwise.
     pub fn get(
         &self,
         s: WrappedStruct<Store>,

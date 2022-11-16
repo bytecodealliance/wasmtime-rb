@@ -1,6 +1,7 @@
 use super::{
     convert::WrapWasmtimeType,
     engine::Engine,
+    errors::handle_wasm_error,
     externals::Extern,
     func::{self, Func},
     func_type::FuncType,
@@ -246,13 +247,7 @@ impl Linker {
         self.inner
             .borrow_mut()
             .instantiate(store.context_mut(), module.get())
-            .map_err(|e| {
-                store
-                    .context_mut()
-                    .data_mut()
-                    .take_last_error()
-                    .unwrap_or_else(|| error!("{}", e))
-            })
+            .map_err(|e| handle_wasm_error(store, e))
             .map(|instance| {
                 self.refs.borrow().iter().for_each(|val| store.retain(*val));
                 Instance::from_inner(s, instance)

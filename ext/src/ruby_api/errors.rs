@@ -1,3 +1,4 @@
+use super::store::Store;
 use crate::ruby_api::root;
 use magnus::rb_sys::FromRawValue;
 use magnus::{exception::standard_error, memoize, ExceptionClass, Module};
@@ -46,6 +47,14 @@ macro_rules! conversion_err {
     ($($arg:expr),*) => {
         Err(Error::new($crate::ruby_api::errors::conversion_error(), format!("cannot convert {} to {}", $($arg),*)))
     };
+}
+
+pub fn handle_wasm_error(store: &Store, error: anyhow::Error) -> Error {
+    store
+        .context_mut()
+        .data_mut()
+        .take_last_error()
+        .unwrap_or_else(|| error!("{}", error))
 }
 
 pub fn init() -> Result<(), Error> {

@@ -58,27 +58,6 @@ module Wasmtime
       skip("TODO!")
     end
 
-    it "bubbles the exception on with call" do
-      error_class = Class.new(StandardError)
-      func = build_func([], []) { raise error_class }
-      expect { func.call }.to raise_error(error_class)
-      # Run a second time to catch already borrowed issues
-      expect { func.call }.to raise_error(error_class)
-    end
-
-    it "bubbles the exception on start" do
-      error_class = Class.new(StandardError)
-      func = Func.new(store, FuncType.new([], [])) { raise error_class }
-      mod = Wasmtime::Module.new(engine, <<~WAT)
-        (module
-          (import "" "" (func))
-          (start 0))
-      WAT
-
-      expect { Wasmtime::Instance.new(store, mod, [func]) }
-        .to raise_error(error_class)
-    end
-
     it "re-enters into Wasm from Ruby" do
       called = false
       func1 = Func.new(store, FuncType.new([], [])) { called = true }

@@ -1,11 +1,12 @@
 use super::{
     convert::{ToExtern, WrapWasmtimeType},
+    errors::handle_wasm_error,
     func::Func,
     module::Module,
     root,
     store::{Store, StoreData},
 };
-use crate::{err, error, helpers::WrappedStruct};
+use crate::{err, helpers::WrappedStruct};
 use magnus::{
     function, method, scan_args, DataTypeFunctions, Error, Module as _, Object, RArray, RHash,
     RString, TypedData, Value,
@@ -65,13 +66,8 @@ impl Instance {
         };
 
         let module = module.get();
-        let inner = InstanceImpl::new(context, module, &imports).map_err(|e| {
-            store
-                .context_mut()
-                .data_mut()
-                .take_last_error()
-                .unwrap_or_else(|| error!("{}", e))
-        })?;
+        let inner = InstanceImpl::new(context, module, &imports)
+            .map_err(|e| handle_wasm_error(store, e))?;
 
         Ok(Self {
             inner,

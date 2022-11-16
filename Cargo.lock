@@ -444,6 +444,7 @@ dependencies = [
 name = "ext"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "lazy_static",
  "magnus",
  "rb-sys",

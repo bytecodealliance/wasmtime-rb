@@ -1,5 +1,6 @@
 use super::{
     convert::{ToRubyValue, ToWasmVal},
+    errors::handle_wasm_error,
     func_type::FuncType,
     params::Params,
     root,
@@ -122,13 +123,7 @@ impl Func {
         let mut results = vec![Val::null(); func_ty.results().len()];
 
         func.call(store.context_mut(), &params, &mut results)
-            .map_err(|e| {
-                store
-                    .context_mut()
-                    .data_mut()
-                    .take_last_error()
-                    .unwrap_or_else(|| error!("Could not invoke function: {}", e))
-            })?;
+            .map_err(|e| handle_wasm_error(store, e))?;
 
         match results.as_slice() {
             [] => Ok(QNIL.into()),

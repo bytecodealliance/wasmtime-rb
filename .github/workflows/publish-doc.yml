@@ -25,10 +25,11 @@ jobs:
           ref: gh-pages
 
       - name: Download docs
-        uses: actions/download-artifact@v3
+        uses: dawidd6/action-download-artifact@v2
         with:
           name: doc
           path: doc
+          workflow: ci.yml
 
       - name: Current doc dir
         id: doc-dir

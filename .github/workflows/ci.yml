@@ -49,7 +49,7 @@ jobs:
       - name: Lint rust
         run: cargo clippy -- -D warnings && cargo fmt --check
 
-  doc:
+  build_doc:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -70,3 +70,10 @@ jobs:
 
       - name: Generate doc
         run: bundle exec rake doc
+
+      - name: Upload generated doc
+        uses: actions/upload-artifact@v3
+        with:
+          name: doc
+          path: doc
+          retention-days: 1

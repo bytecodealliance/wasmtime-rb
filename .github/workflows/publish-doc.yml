@@ -1,0 +1,79 @@
+---
+name: Publish doc
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+    branches:
+      - main
+    tags:
+      - v*
+
+jobs:
+  publish_doc:
+    runs-on: ubuntu-latest
+    needs: build_doc
+    steps:
+      - name: "Check CI success"
+        if: ${{ github.event.workflow_run.conclusion != 'success' }}
+        run: exit 1
+
+      - uses: actions/checkout@v3
+        with:
+          ref: gh-pages
+
+      - name: Download docs
+        uses: actions/download-artifact@v3
+        with:
+          name: doc
+          path: doc
+
+      - name: Current doc dir
+        id: doc-dir
+        uses: k1LoW/github-script-ruby@v1
+        with:
+          result-encoding: string
+          script: |
+            context.ref
+              .gsub(%r{\Arefs/heads/}, "")
+              .gsub(%r{\Arefs/tags/}, "")
+
+      - name: Move docs to dest folder
+        run: |
+          ls -lah
+          rm -rf ${{steps.doc-dir.outputs.result}}
+          mv doc ${{steps.doc-dir.outputs.result}}
+
+      - name: Find the latest doc
+        uses: k1LoW/github-script-ruby@v1
+        id: latest-dir
+        with:
+          result-encoding: string
+          script: |
+            build_version = -> (str) do
+              Gem::Version.new(str.gsub(/\Av/, ""))
+            rescue nil
+            end
+
+            Dir
+              .glob('v*')
+              .select { File.directory?(_1) && build_version[_1] }
+              .max_by(&build_version)
+              &.to_s || "main"
+
+      - name: Commit the changes
+        run: |
+          ln -sf ${{steps.latest-dir.outputs.result}} latest
+          git add ${{steps.doc-dir.outputs.result}} latest
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git commit -m "Bump doc"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages

@@ -489,8 +489,6 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-117
-118
 119
 120
 121
@@ -498,10 +496,14 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
 123
 124
 125
-126</pre>
+126
+127
+128
+129
+130</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 117</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 119</span>
 
 pub fn export(&amp;self, str: RString) -&gt; Result&lt;Option&lt;super::externals::Extern&gt;, Error&gt; {
     let store = self.store.get()?;
@@ -509,7 +511,9 @@ pub fn export(&amp;self, str: RString) -&gt; Result&lt;Option&lt;super::external
         .inner
         .get_export(store.context_mut(), unsafe { str.as_str()? });
     match export {
-        Some(export) =&gt; export.wrap_wasmtime_type(self.store.clone()).map(Some),
+        Some(export) =&gt; export
+            .wrap_wasmtime_type(self.store.clone().into())
+            .map(Some),
         None =&gt; Ok(None),
     }
 }</pre>
@@ -570,7 +574,9 @@ pub fn export(&amp;self, str: RString) -&gt; Result&lt;Option&lt;super::external
 106
 107
 108
-109</pre>
+109
+110
+111</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 96</span>
@@ -583,7 +589,9 @@ pub fn exports(&amp;self) -&gt; Result&lt;RHash, Error&gt; {
     for export in self.inner.exports(&amp;mut ctx) {
         let export_name: RString = export.name().into();
         let wrapped_store = self.store.clone();
-        let wrapped_export = export.into_extern().wrap_wasmtime_type(wrapped_store)?;
+        let wrapped_export = export
+            .into_extern()
+            .wrap_wasmtime_type(wrapped_store.into())?;
         hash.aset(export_name, wrapped_export)?;
     }
 
@@ -688,10 +696,6 @@ pub fn exports(&amp;self) -&gt; Result&lt;RHash, Error&gt; {
       <pre class="lines">
 
 
-137
-138
-139
-140
 141
 142
 143
@@ -702,10 +706,14 @@ pub fn exports(&amp;self) -&gt; Result&lt;RHash, Error&gt; {
 148
 149
 150
-151</pre>
+151
+152
+153
+154
+155</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 137</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 141</span>
 
 pub fn invoke(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
     let name: RString = args
@@ -720,7 +728,7 @@ pub fn invoke(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
 
     let store: &amp;Store = self.store.try_convert()?;
     let func = self.get_func(store.context_mut(), unsafe { name.as_str()? })?;
-    Func::invoke(store, &amp;func, &amp;args[1..]).map_err(|e| e.into())
+    Func::invoke(&amp;self.store.clone().into(), &amp;func, &amp;args[1..]).map_err(|e| e.into())
 }</pre>
     </td>
   </tr>
@@ -732,7 +740,7 @@ pub fn invoke(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Wed Nov 16 19:17:04 2022 by
+  Generated on Thu Nov 17 15:40:46 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.2).
 </div>

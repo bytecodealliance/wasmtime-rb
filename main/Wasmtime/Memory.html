@@ -340,17 +340,20 @@
       <pre class="lines">
 
 
-30
-31
-32
-33
-34
-35
-36
-37</pre>
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 30</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 49</span>
 
 pub fn new(s: WrappedStruct&lt;Store&gt;, memtype: &amp;MemoryType) -&gt; Result&lt;Self, Error&gt; {
     let store = s.get()?;
@@ -358,7 +361,10 @@ pub fn new(s: WrappedStruct&lt;Store&gt;, memtype: &amp;MemoryType) -&gt; Result
     let inner = MemoryImpl::new(store.context_mut(), memtype.get().clone())
         .map_err(|e| error!(&quot;{}&quot;, e))?;
 
-    Ok(Self { store: s, inner })
+    Ok(Self {
+        store: s.into(),
+        inner,
+    })
 }</pre>
     </td>
   </tr>
@@ -435,18 +441,18 @@ pub fn new(s: WrappedStruct&lt;Store&gt;, memtype: &amp;MemoryType) -&gt; Result
       <pre class="lines">
 
 
-81
-82
-83
-84
-85</pre>
+103
+104
+105
+106
+107</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 81</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 103</span>
 
 pub fn grow(&amp;self, delta: u64) -&gt; Result&lt;u64, Error&gt; {
     self.inner
-        .grow(self.store().context_mut(), delta)
+        .grow(self.store.context_mut()?, delta)
         .map_err(|e| error!(&quot;{}&quot;, e))
 }</pre>
     </td>
@@ -524,21 +530,21 @@ pub fn grow(&amp;self, delta: u64) -&gt; Result&lt;u64, Error&gt; {
       <pre class="lines">
 
 
-50
-51
-52
-53
-54
-55
-56
-57</pre>
+72
+73
+74
+75
+76
+77
+78
+79</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 50</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 72</span>
 
 pub fn read(&amp;self, offset: usize, size: usize) -&gt; Result&lt;RString, Error&gt; {
     self.inner
-        .data(self.store().context())
+        .data(self.store.context()?)
         .get(offset..)
         .and_then(|s| s.get(..size))
         .map(RString::from_slice)
@@ -593,15 +599,15 @@ pub fn read(&amp;self, offset: usize, size: usize) -&gt; Result&lt;RString, Erro
       <pre class="lines">
 
 
-89
-90
-91</pre>
+111
+112
+113</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 89</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 111</span>
 
-pub fn size(&amp;self) -&gt; u64 {
-    self.inner.size(self.store().context())
+pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
+    Ok(self.inner.size(self.store.context()?))
 }</pre>
     </td>
   </tr>
@@ -645,15 +651,15 @@ pub fn size(&amp;self) -&gt; u64 {
       <pre class="lines">
 
 
-95
-96
-97</pre>
+117
+118
+119</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 95</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 117</span>
 
-pub fn ty(&amp;self) -&gt; MemoryType {
-    self.inner.ty(self.store().context()).into()
+pub fn ty(&amp;self) -&gt; Result&lt;MemoryType, Error&gt; {
+    Ok(self.inner.ty(self.store.context()?).into())
 }</pre>
     </td>
   </tr>
@@ -712,22 +718,22 @@ pub fn ty(&amp;self) -&gt; MemoryType {
       <pre class="lines">
 
 
-66
-67
-68
-69
-70
-71
-72</pre>
+88
+89
+90
+91
+92
+93
+94</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 66</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 88</span>
 
 pub fn write(&amp;self, offset: usize, value: RString) -&gt; Result&lt;(), Error&gt; {
     let slice = unsafe { value.as_slice() };
 
     self.inner
-        .write(self.store().context_mut(), offset, slice)
+        .write(self.store.context_mut()?, offset, slice)
         .map_err(|e| error!(&quot;{}&quot;, e))
 }</pre>
     </td>
@@ -740,7 +746,7 @@ pub fn write(&amp;self, offset: usize, value: RString) -&gt; Result&lt;(), Error
 </div>
 
       <div id="footer">
-  Generated on Wed Nov 16 19:17:04 2022 by
+  Generated on Thu Nov 17 15:40:46 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.2).
 </div>

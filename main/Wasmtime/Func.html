@@ -297,7 +297,7 @@
         <span class='name'>caller</span>
       
       
-        <span class='type'>(<tt>Caller</tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="Caller.html" title="Wasmtime::Caller (class)">Caller</a></span></tt>)</span>
       
       
       
@@ -370,28 +370,28 @@
       <pre class="lines">
 
 
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-82
-83
-84
-85
-86</pre>
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 68</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 86</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let args = scan_args::&lt;(Value, &amp;FuncType), (), (), (), (), Proc&gt;(args)?;
@@ -408,7 +408,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let inner = wasmtime::Func::new(context, ty.clone(), make_func_closure(ty, callable));
 
     Ok(Self {
-        store: wrapped_store,
+        store: wrapped_store.into(),
         inner,
     })
 }</pre>
@@ -494,17 +494,15 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-109
-110
-111
-112</pre>
+127
+128
+129</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 109</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 127</span>
 
 pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
-    let store: &amp;Store = self.store.try_convert()?;
-    Self::invoke(store, &amp;self.inner, args).map_err(|e| e.into())
+    Self::invoke(&amp;self.store, &amp;self.inner, args).map_err(|e| e.into())
 }</pre>
     </td>
   </tr>
@@ -516,7 +514,7 @@ pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Wed Nov 16 19:17:04 2022 by
+  Generated on Thu Nov 17 15:40:46 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.2).
 </div>

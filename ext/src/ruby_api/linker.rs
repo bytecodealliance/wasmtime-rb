@@ -99,7 +99,7 @@ impl Linker {
     /// @param mod [String] Module name
     /// @param name [String] Import name
     /// @param type [FuncType]
-    /// @param block [Block] See {Func#new} for block argument details.
+    /// @param block [Block] See {Func.new} for block argument details.
     /// @return [void]
     /// @see Func.new
     pub fn func_new(&self, args: &[Value]) -> Result<(), Error> {
@@ -146,7 +146,7 @@ impl Linker {
 
         match ext {
             None => Ok(None),
-            Some(ext) => ext.wrap_wasmtime_type(s).map(Some),
+            Some(ext) => ext.wrap_wasmtime_type(s.into()).map(Some),
         }
     }
 
@@ -271,7 +271,7 @@ impl Linker {
         self.inner
             .borrow()
             .get_default(store.context_mut(), unsafe { module.as_str() }?)
-            .map(|func| Func::from_inner(s, func))
+            .map(|func| Func::from_inner(s.into(), func))
             .map_err(|e| error!("{}", e))
     }
 }

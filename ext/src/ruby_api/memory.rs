@@ -1,28 +1,47 @@
-use super::{memory_type::MemoryType, root, store::Store};
+use super::{
+    memory_type::MemoryType,
+    root,
+    store::{Store, StoreContextValue},
+};
 use crate::{error, helpers::WrappedStruct};
 use magnus::{
-    function, method, r_string::RString, DataTypeFunctions, Error, Module as _, Object, TypedData,
+    function, memoize, method, r_string::RString, r_typed_data::DataTypeBuilder, DataTypeFunctions,
+    Error, Module as _, Object, RClass, TypedData,
 };
 use wasmtime::{Extern, Memory as MemoryImpl};
 
 /// @yard
+/// @rename Wasmtime::Memory
 /// Represents a WebAssembly memory.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Memory.html Wasmtime's Rust doc
-#[derive(TypedData, Debug)]
-#[magnus(class = "Wasmtime::Memory", mark, size, free_immediatly)]
-pub struct Memory {
-    store: WrappedStruct<Store>,
+#[derive(Debug)]
+pub struct Memory<'a> {
+    store: StoreContextValue<'a>,
     inner: MemoryImpl,
 }
 
-impl DataTypeFunctions for Memory {
+unsafe impl TypedData for Memory<'_> {
+    fn class() -> magnus::RClass {
+        *memoize!(RClass: root().define_class("Memory", Default::default()).unwrap())
+    }
+
+    fn data_type() -> &'static magnus::DataType {
+        memoize!(magnus::DataType: {
+            let mut builder = DataTypeBuilder::<Memory<'_>>::new("Wasmtime::Memory");
+            builder.free_immediatly();
+            builder.build()
+        })
+    }
+}
+
+impl DataTypeFunctions for Memory<'_> {
     fn mark(&self) {
         self.store.mark()
     }
 }
-unsafe impl Send for Memory {}
+unsafe impl Send for Memory<'_> {}
 
-impl Memory {
+impl<'a> Memory<'a> {
     /// @yard
     /// @def new(store, memtype)
     /// @param store [Store]
@@ -33,10 +52,13 @@ impl Memory {
         let inner = MemoryImpl::new(store.context_mut(), memtype.get().clone())
             .map_err(|e| error!("{}", e))?;
 
-        Ok(Self { store: s, inner })
+        Ok(Self {
+            store: s.into(),
+            inner,
+        })
     }
 
-    pub fn from_inner(store: WrappedStruct<Store>, inner: MemoryImpl) -> Self {
+    pub fn from_inner(store: StoreContextValue<'a>, inner: MemoryImpl) -> Self {
         Self { store, inner }
     }
 
@@ -49,7 +71,7 @@ impl Memory {
     /// @return [String] Binary string of the memory.
     pub fn read(&self, offset: usize, size: usize) -> Result<RString, Error> {
         self.inner
-            .data(self.store().context())
+            .data(self.store.context()?)
             .get(offset..)
             .and_then(|s| s.get(..size))
             .map(RString::from_slice)
@@ -67,7 +89,7 @@ impl Memory {
         let slice = unsafe { value.as_slice() };
 
         self.inner
-            .write(self.store().context_mut(), offset, slice)
+            .write(self.store.context_mut()?, offset, slice)
             .map_err(|e| error!("{}", e))
     }
 
@@ -80,34 +102,28 @@ impl Memory {
     /// @return [Integer] The number of pages the memory had before being resized.
     pub fn grow(&self, delta: u64) -> Result<u64, Error> {
         self.inner
-            .grow(self.store().context_mut(), delta)
+            .grow(self.store.context_mut()?, delta)
             .map_err(|e| error!("{}", e))
     }
 
     /// @yard
     /// @return [Integer] The number of pages of the memory.
-    pub fn size(&self) -> u64 {
-        self.inner.size(self.store().context())
+    pub fn size(&self) -> Result<u64, Error> {
+        Ok(self.inner.size(self.store.context()?))
     }
 
     /// @yard
     /// @return [MemoryType]
-    pub fn ty(&self) -> MemoryType {
-        self.inner.ty(self.store().context()).into()
+    pub fn ty(&self) -> Result<MemoryType, Error> {
+        Ok(self.inner.ty(self.store.context()?).into())
     }
 
     pub fn get(&self) -> MemoryImpl {
         self.inner
     }
-
-    fn store(&self) -> &Store {
-        self.store
-            .try_convert::<&Store>()
-            .expect("Memory.store must be a store")
-    }
 }
 
-impl From<&Memory> for Extern {
+impl From<&Memory<'_>> for Extern {
     fn from(memory: &Memory) -> Self {
         Self::Memory(memory.get())
     }

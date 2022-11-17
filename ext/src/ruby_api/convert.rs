@@ -1,8 +1,8 @@
-use crate::{err, error, helpers::WrappedStruct};
+use crate::{err, error};
 use magnus::{Error, TypedData, Value};
 use wasmtime::{ExternRef, Val, ValType};
 
-use super::{func::Func, memory::Memory, store::Store};
+use super::{func::Func, memory::Memory, store::StoreContextValue};
 
 pub trait ToRubyValue {
     fn to_ruby_value(&self) -> Result<Value, Error>;
@@ -79,9 +79,9 @@ impl ToExtern for Value {
     }
 }
 
-pub trait WrapWasmtimeType<T>
+pub trait WrapWasmtimeType<'a, T>
 where
     T: TypedData,
 {
-    fn wrap_wasmtime_type(&self, store: WrappedStruct<Store>) -> Result<T, Error>;
+    fn wrap_wasmtime_type(&self, store: StoreContextValue<'a>) -> Result<T, Error>;
 }

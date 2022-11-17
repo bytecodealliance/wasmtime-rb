@@ -1,20 +1,38 @@
-use super::{convert::WrapWasmtimeType, func::Func, memory::Memory, root, store::Store};
+use super::{
+    convert::WrapWasmtimeType, func::Func, memory::Memory, root, store::StoreContextValue,
+};
 use crate::{conversion_err, helpers::WrappedStruct, not_implemented};
 use magnus::{
-    method, rb_sys::AsRawValue, DataTypeFunctions, Error, Module, RClass, TypedData, Value,
+    memoize, method, r_typed_data::DataTypeBuilder, rb_sys::AsRawValue, DataTypeFunctions, Error,
+    Module, RClass, TypedData, Value,
 };
 
 /// @yard
+/// @rename Wasmtime::Extern
 /// An external item to a WebAssembly module, or a list of what can possibly be exported from a Wasm module.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/enum.Extern.html Wasmtime's Rust doc
-#[derive(TypedData)]
-#[magnus(class = "Wasmtime::Extern", size, mark, free_immediatly)]
-pub enum Extern {
-    Func(WrappedStruct<Func>),
-    Memory(WrappedStruct<Memory>),
+pub enum Extern<'a> {
+    Func(WrappedStruct<Func<'a>>),
+    Memory(WrappedStruct<Memory<'a>>),
 }
 
-impl DataTypeFunctions for Extern {
+unsafe impl TypedData for Extern<'_> {
+    fn class() -> magnus::RClass {
+        *memoize!(RClass: root().define_class("Extern", Default::default()).unwrap())
+    }
+
+    fn data_type() -> &'static magnus::DataType {
+        memoize!(magnus::DataType: {
+            let mut builder = DataTypeBuilder::<Extern<'_>>::new("Wasmtime::Extern");
+            builder.size();
+            builder.mark();
+            builder.free_immediatly();
+            builder.build()
+        })
+    }
+}
+
+impl DataTypeFunctions for Extern<'_> {
     fn mark(&self) {
         match self {
             Extern::Func(f) => f.mark(),
@@ -22,8 +40,9 @@ impl DataTypeFunctions for Extern {
         }
     }
 }
+unsafe impl Send for Extern<'_> {}
 
-impl Extern {
+impl Extern<'_> {
     /// @yard
     /// Returns the exported function or raises a `{ConversionError}` when the export is not a
     /// function.
@@ -69,8 +88,8 @@ impl Extern {
     }
 }
 
-impl WrapWasmtimeType<Extern> for wasmtime::Extern {
-    fn wrap_wasmtime_type(&self, store: WrappedStruct<Store>) -> Result<Extern, Error> {
+impl<'a> WrapWasmtimeType<'a, Extern<'a>> for wasmtime::Extern {
+    fn wrap_wasmtime_type(&self, store: StoreContextValue<'a>) -> Result<Extern<'a>, Error> {
         match self {
             wasmtime::Extern::Func(func) => Ok(Extern::Func(Func::from_inner(store, *func).into())),
             wasmtime::Extern::Memory(mem) => {
@@ -92,5 +111,3 @@ pub fn init() -> Result<(), Error> {
 
     Ok(())
 }
-
-unsafe impl Send for Extern {}

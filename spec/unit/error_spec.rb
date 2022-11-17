@@ -12,6 +12,11 @@ module Wasmtime
           expect { Wasmtime::Instance.new(store, module_import_func_start, [func]) }
             .to raise_error(error_class)
         end
+
+        it "bubbles trap" do
+          expect { Wasmtime::Instance.new(store, module_trapping_on_start, []) }
+            .to raise_error(Trap)
+        end
       end
 
       context "from Linker#instantiate" do
@@ -21,6 +26,14 @@ module Wasmtime
           store = Store.new(engine)
 
           expect { linker.instantiate(store, module_import_func_start) }.to raise_error(error_class)
+        end
+
+        it "bubbles trap" do
+          linker = Linker.new(engine)
+          store = Store.new(engine)
+
+          expect { linker.instantiate(store, module_trapping_on_start) }
+            .to raise_error(Trap)
         end
       end
     end
@@ -32,6 +45,14 @@ module Wasmtime
           func = Func.new(store, FuncType.new([], [])) { raise error_class }
 
           expect { func.call }.to raise_error(error_class)
+        end
+
+        it "bubbles trap" do
+          func = Instance.new(Store.new(engine), module_trapping_on_func)
+            .export("f")
+            .to_func
+
+          expect { func.call }.to raise_error(Trap)
         end
       end
 
@@ -48,6 +69,11 @@ module Wasmtime
 
           expect { instance.invoke("f") }.to raise_error(error_class)
         end
+
+        it "bubbles trap" do
+          instance = Instance.new(Store.new(engine), module_trapping_on_func)
+          expect { instance.invoke("f") }.to raise_error(Trap)
+        end
       end
     end
 
@@ -56,6 +82,21 @@ module Wasmtime
         (module
           (import "" "" (func))
           (start 0))
+      WAT
+    end
+
+    def module_trapping_on_start
+      Wasmtime::Module.new(engine, <<~WAT)
+        (module
+          (func unreachable)
+          (start 0))
+      WAT
+    end
+
+    def module_trapping_on_func
+      Wasmtime::Module.new(engine, <<~WAT)
+        (module
+          (func (export "f") unreachable))
       WAT
     end
   end

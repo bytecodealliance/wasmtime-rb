@@ -1,5 +1,5 @@
 use super::store::Store;
-use crate::ruby_api::root;
+use crate::ruby_api::{root, trap::Trap};
 use magnus::rb_sys::FromRawValue;
 use magnus::{exception::standard_error, memoize, ExceptionClass, Module};
 use magnus::{Error, Value};
@@ -54,7 +54,10 @@ pub fn handle_wasm_error(store: &Store, error: anyhow::Error) -> Error {
         .context_mut()
         .data_mut()
         .take_last_error()
-        .unwrap_or_else(|| error!("{}", error))
+        .unwrap_or_else(|| match error.downcast_ref::<wasmtime::Trap>() {
+            Some(t) => Trap::from(t.to_owned()).into(),
+            _ => error!("{}", error),
+        })
 }
 
 pub fn init() -> Result<(), Error> {

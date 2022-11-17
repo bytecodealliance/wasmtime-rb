@@ -1,6 +1,7 @@
 #![allow(rustdoc::broken_intra_doc_links)]
 #![allow(rustdoc::invalid_html_tags)]
 #![allow(rustdoc::bare_urls)]
+#![allow(rustdoc::invalid_rust_codeblocks)]
 use magnus::{define_module, memoize, Error, RModule};
 
 mod config;
@@ -19,6 +20,7 @@ mod module;
 mod params;
 mod static_id;
 mod store;
+mod trap;
 
 /// The "Wasmtime" Ruby module.
 pub fn root() -> RModule {
@@ -29,6 +31,7 @@ pub fn init() -> Result<(), Error> {
     let _ = root();
 
     errors::init()?;
+    trap::init()?;
     config::init()?;
     engine::init()?;
     module::init()?;

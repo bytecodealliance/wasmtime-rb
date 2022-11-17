@@ -31,7 +31,7 @@ impl StoreData {
         &mut self.host_exception
     }
 
-    pub fn take_last_error(&mut self) -> Option<Error> {
+    pub fn take_error(&mut self) -> Option<Error> {
         self.host_exception.take().map(Error::from)
     }
 
@@ -161,7 +161,7 @@ impl<'a> StoreContextValue<'a> {
 
     pub fn handle_wasm_error(&self, error: anyhow::Error) -> Error {
         match self.context_mut() {
-            Ok(mut context) => context.data_mut().take_last_error().unwrap_or_else(|| {
+            Ok(mut context) => context.data_mut().take_error().unwrap_or_else(|| {
                 match error.downcast_ref::<wasmtime::Trap>() {
                     Some(t) => Trap::from(t.to_owned()).into(),
                     _ => error!("{}", error),

@@ -18,6 +18,7 @@ impl<T: TypedData> Clone for WrappedStruct<T> {
         }
     }
 }
+impl<T: TypedData> Copy for WrappedStruct<T> {}
 
 impl<T: TypedData> WrappedStruct<T> {
     /// Gets the underlying struct.
@@ -26,7 +27,7 @@ impl<T: TypedData> WrappedStruct<T> {
     }
 
     /// Get the Ruby [`Value`] for this struct.
-    pub fn to_value(&self) -> Value {
+    pub fn to_value(self) -> Value {
         self.inner.into()
     }
 

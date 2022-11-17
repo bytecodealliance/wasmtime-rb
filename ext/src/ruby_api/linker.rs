@@ -246,7 +246,7 @@ impl Linker {
         self.inner
             .borrow_mut()
             .instantiate(store.context_mut(), module.get())
-            .map_err(|e| StoreContextValue::from(wrapped_store.clone()).handle_wasm_error(e))
+            .map_err(|e| StoreContextValue::from(wrapped_store).handle_wasm_error(e))
             .map(|instance| {
                 self.refs.borrow().iter().for_each(|val| store.retain(*val));
                 Instance::from_inner(s, instance)

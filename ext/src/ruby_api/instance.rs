@@ -171,3 +171,40 @@ pub fn init() -> Result<(), Error> {
 
     Ok(())
 }
+
+
+#[cfg(test)]
+mod tests {
+    use anyhow::Result;
+    use wasmtime::*;
+
+    #[test]
+    fn test_trap() -> Result<()> {
+        let engine = Engine::default();
+        let module = Module::new(&engine, "(module (func (export \"f\") unreachable))".as_bytes())
+            .expect("module should ork");
+
+        let mut store = Store::new(&engine, ());
+        let instance = Instance::new(&mut store, &module, &[]).unwrap();
+        let f = instance.get_typed_func::<(), (), _>(&mut store, "f")?;
+
+        // This hits `unreachable` thus fails and returns the error.
+        // But it also triggers a valgrind warning:
+        //     ==372537== Your program just tried to execute an instruction that Valgrind
+        //     ==372537== did not recognise.  There are two possible reasons for this.
+        //     ==372537== 1. Your program has a bug and erroneously jumped to a non-code
+        //     ==372537==    location.  If you are running Memcheck and you just saw a
+        //     ==372537==    warning about a bad jump, it's probably your program's fault.
+        //     ==372537== 2. The instruction is legitimate but Valgrind doesn't handle it,
+        //     ==372537==    i.e. it's Valgrind's fault.  If you think this is the case or
+        //     ==372537==    you are not sure, please let us know and we'll try to fix it.
+        //     ==372537== Either way, Valgrind will now raise a SIGILL signal which will
+        //     ==372537== probably kill your program.
+        f.call(&mut store, ())?;
+
+        // Oddly enough: this code would not trigger the same error:
+        // f.call(&mut store, ()).unwrap_err();
+
+        Ok(())
+    }
+}

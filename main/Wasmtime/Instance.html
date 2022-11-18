@@ -369,12 +369,7 @@
 72
 73
 74
-75
-76
-77
-78
-79
-80</pre>
+75</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 41</span>
@@ -406,13 +401,8 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     };
 
     let module = module.get();
-    let inner = InstanceImpl::new(context, module, &amp;imports).map_err(|e| {
-        store
-            .context_mut()
-            .data_mut()
-            .take_last_error()
-            .unwrap_or_else(|| error!(&quot;{}&quot;, e))
-    })?;
+    let inner = InstanceImpl::new(context, module, &amp;imports)
+        .map_err(|e| StoreContextValue::from(wrapped_store).handle_wasm_error(e))?;
 
     Ok(Self {
         inner,
@@ -489,21 +479,19 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
+114
+115
+116
+117
+118
 119
 120
 121
 122
-123
-124
-125
-126
-127
-128
-129
-130</pre>
+123</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 119</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 114</span>
 
 pub fn export(&amp;self, str: RString) -&gt; Result&lt;Option&lt;super::externals::Extern&gt;, Error&gt; {
     let store = self.store.get()?;
@@ -511,9 +499,7 @@ pub fn export(&amp;self, str: RString) -&gt; Result&lt;Option&lt;super::external
         .inner
         .get_export(store.context_mut(), unsafe { str.as_str()? });
     match export {
-        Some(export) =&gt; export
-            .wrap_wasmtime_type(self.store.clone().into())
-            .map(Some),
+        Some(export) =&gt; export.wrap_wasmtime_type(self.store.into()).map(Some),
         None =&gt; Ok(None),
     }
 }</pre>
@@ -561,6 +547,11 @@ pub fn export(&amp;self, str: RString) -&gt; Result&lt;Option&lt;super::external
       <pre class="lines">
 
 
+91
+92
+93
+94
+95
 96
 97
 98
@@ -571,15 +562,10 @@ pub fn export(&amp;self, str: RString) -&gt; Result&lt;Option&lt;super::external
 103
 104
 105
-106
-107
-108
-109
-110
-111</pre>
+106</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 96</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 91</span>
 
 pub fn exports(&amp;self) -&gt; Result&lt;RHash, Error&gt; {
     let store = self.store.get()?;
@@ -588,7 +574,7 @@ pub fn exports(&amp;self) -&gt; Result&lt;RHash, Error&gt; {
 
     for export in self.inner.exports(&amp;mut ctx) {
         let export_name: RString = export.name().into();
-        let wrapped_store = self.store.clone();
+        let wrapped_store = self.store;
         let wrapped_export = export
             .into_extern()
             .wrap_wasmtime_type(wrapped_store.into())?;
@@ -696,6 +682,13 @@ pub fn exports(&amp;self) -&gt; Result&lt;RHash, Error&gt; {
       <pre class="lines">
 
 
+134
+135
+136
+137
+138
+139
+140
 141
 142
 143
@@ -703,17 +696,10 @@ pub fn exports(&amp;self) -&gt; Result&lt;RHash, Error&gt; {
 145
 146
 147
-148
-149
-150
-151
-152
-153
-154
-155</pre>
+148</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 141</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 134</span>
 
 pub fn invoke(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
     let name: RString = args
@@ -728,7 +714,7 @@ pub fn invoke(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
 
     let store: &amp;Store = self.store.try_convert()?;
     let func = self.get_func(store.context_mut(), unsafe { name.as_str()? })?;
-    Func::invoke(&amp;self.store.clone().into(), &amp;func, &amp;args[1..]).map_err(|e| e.into())
+    Func::invoke(&amp;self.store.into(), &amp;func, &amp;args[1..]).map_err(|e| e.into())
 }</pre>
     </td>
   </tr>
@@ -740,7 +726,7 @@ pub fn invoke(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Thu Nov 17 15:40:46 2022 by
+  Generated on Fri Nov 18 19:48:31 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.2).
 </div>

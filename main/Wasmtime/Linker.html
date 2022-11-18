@@ -1250,19 +1250,19 @@ pub fn get(
       <pre class="lines">
 
 
+262
+263
+264
+265
+266
+267
 268
 269
 270
-271
-272
-273
-274
-275
-276
-277</pre>
+271</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 268</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 262</span>
 
 pub fn get_default(&amp;self, s: WrappedStruct&lt;Store&gt;, module: RString) -&gt; Result&lt;Func, Error&gt; {
         let store = s.get()?;
@@ -1464,13 +1464,7 @@ pub fn instance(
 251
 252
 253
-254
-255
-256
-257
-258
-259
-260</pre>
+254</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 243</span>
@@ -1481,13 +1475,7 @@ pub fn instantiate(&amp;self, s: WrappedStruct&lt;Store&gt;, module: &amp;Module
     self.inner
         .borrow_mut()
         .instantiate(store.context_mut(), module.get())
-        .map_err(|e| {
-            store
-                .context_mut()
-                .data_mut()
-                .take_last_error()
-                .unwrap_or_else(|| error!(&quot;{}&quot;, e))
-        })
+        .map_err(|e| StoreContextValue::from(wrapped_store).handle_wasm_error(e))
         .map(|instance| {
             self.refs.borrow().iter().for_each(|val| store.retain(*val));
             Instance::from_inner(s, instance)
@@ -1594,7 +1582,7 @@ pub fn module(&amp;self, store: &amp;Store, name: RString, module: &amp;Module) 
 </div>
 
       <div id="footer">
-  Generated on Thu Nov 17 15:40:46 2022 by
+  Generated on Fri Nov 18 19:48:32 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.2).
 </div>

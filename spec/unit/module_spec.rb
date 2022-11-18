@@ -1,6 +1,7 @@
 require "spec_helper"
 require "tempfile"
 require "securerandom"
+require "pathname"
 
 module Wasmtime
   RSpec.describe Module do
@@ -11,6 +12,13 @@ module Wasmtime
       serialized = mod.serialize
       deserialized = Module.deserialize(engine, serialized)
       expect(deserialized.serialize).to eq(serialized)
+    end
+
+    describe(".from_file") do
+      it("loads the module") do
+        mod = Module.from_file(engine, "spec/fixtures/empty.wat")
+        expect(mod).to be_instance_of(Module)
+      end
     end
 
     describe(".deserialize_file") do

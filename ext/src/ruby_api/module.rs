@@ -22,6 +22,20 @@ impl Module {
         let eng = engine.get();
         // SAFETY: this string is immediately copied and never moved off the stack
         let module = ModuleImpl::new(eng, unsafe { wat_or_wasm.as_slice() })
+            .map_err(|e| error!("Could not build module from file: {:?}", e.to_string()))?;
+
+        Ok(Self { inner: module })
+    }
+
+    /// @yard
+    /// @def from_file(engine, path)
+    /// @param engine [Wasmtime::Engine]
+    /// @param path [String]
+    /// @return [Wasmtime::Module]
+    pub fn from_file(engine: &Engine, path: RString) -> Result<Self, Error> {
+        let eng = engine.get();
+        // SAFETY: this string is immediately copied and never moved off the stack
+        let module = ModuleImpl::from_file(eng, unsafe { path.as_str()? })
             .map_err(|e| error!("Could not build module: {:?}", e.to_string()))?;
 
         Ok(Self { inner: module })
@@ -84,6 +98,7 @@ pub fn init() -> Result<(), Error> {
     let class = root().define_class("Module", Default::default())?;
 
     class.define_singleton_method("new", function!(Module::new, 2))?;
+    class.define_singleton_method("from_file", function!(Module::from_file, 2))?;
     class.define_singleton_method("deserialize", function!(Module::deserialize, 2))?;
     class.define_singleton_method("deserialize_file", function!(Module::deserialize_file, 2))?;
     class.define_method("serialize", method!(Module::serialize, 0))?;

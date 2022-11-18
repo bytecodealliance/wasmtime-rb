@@ -1,6 +1,5 @@
-use crate::helpers::WrappedStruct;
-
-use super::{engine::Engine, func::Caller, root};
+use super::{engine::Engine, func::Caller, root, trap::Trap};
+use crate::{error, helpers::WrappedStruct};
 use magnus::{
     exception::Exception, function, method, scan_args, value::BoxValue, DataTypeFunctions, Error,
     Module, Object, TypedData, Value, QNIL,
@@ -157,6 +156,18 @@ impl<'a> StoreContextValue<'a> {
         match self {
             Self::Store(store) => Ok(store.get()?.context_mut()),
             Self::Caller(caller) => caller.get()?.context_mut(),
+        }
+    }
+
+    pub fn handle_wasm_error(&self, error: anyhow::Error) -> Error {
+        match self.context_mut() {
+            Ok(mut context) => context.data_mut().take_last_error().unwrap_or_else(|| {
+                match error.downcast_ref::<wasmtime::Trap>() {
+                    Some(t) => Trap::from(t.to_owned()).into(),
+                    _ => error!("{}", error),
+                }
+            }),
+            Err(e) => e,
         }
     }
 }

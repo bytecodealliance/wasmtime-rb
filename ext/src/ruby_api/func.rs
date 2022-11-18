@@ -139,14 +139,7 @@ impl<'a> Func<'a> {
         let mut results = vec![Val::null(); func_ty.results().len()];
 
         func.call(store.context_mut()?, &params, &mut results)
-            .map_err(|e| {
-                store
-                    .context_mut()
-                    .expect("store context is still reachable")
-                    .data_mut()
-                    .take_last_error()
-                    .unwrap_or_else(|| error!("Could not invoke function: {}", e))
-            })?;
+            .map_err(|e| store.handle_wasm_error(e))?;
 
         match results.as_slice() {
             [] => Ok(QNIL.into()),

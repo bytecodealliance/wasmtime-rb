@@ -3,9 +3,9 @@ use super::{
     func::Func,
     module::Module,
     root,
-    store::{Store, StoreData},
+    store::{Store, StoreContextValue, StoreData},
 };
-use crate::{err, error, helpers::WrappedStruct};
+use crate::{err, helpers::WrappedStruct};
 use magnus::{
     function, method, scan_args, DataTypeFunctions, Error, Module as _, Object, RArray, RHash,
     RString, TypedData, Value,
@@ -65,13 +65,8 @@ impl Instance {
         };
 
         let module = module.get();
-        let inner = InstanceImpl::new(context, module, &imports).map_err(|e| {
-            store
-                .context_mut()
-                .data_mut()
-                .take_last_error()
-                .unwrap_or_else(|| error!("{}", e))
-        })?;
+        let inner = InstanceImpl::new(context, module, &imports)
+            .map_err(|e| StoreContextValue::from(wrapped_store).handle_wasm_error(e))?;
 
         Ok(Self {
             inner,
@@ -100,7 +95,7 @@ impl Instance {
 
         for export in self.inner.exports(&mut ctx) {
             let export_name: RString = export.name().into();
-            let wrapped_store = self.store.clone();
+            let wrapped_store = self.store;
             let wrapped_export = export
                 .into_extern()
                 .wrap_wasmtime_type(wrapped_store.into())?;
@@ -122,9 +117,7 @@ impl Instance {
             .inner
             .get_export(store.context_mut(), unsafe { str.as_str()? });
         match export {
-            Some(export) => export
-                .wrap_wasmtime_type(self.store.clone().into())
-                .map(Some),
+            Some(export) => export.wrap_wasmtime_type(self.store.into()).map(Some),
             None => Ok(None),
         }
     }
@@ -151,7 +144,7 @@ impl Instance {
 
         let store: &Store = self.store.try_convert()?;
         let func = self.get_func(store.context_mut(), unsafe { name.as_str()? })?;
-        Func::invoke(&self.store.clone().into(), &func, &args[1..]).map_err(|e| e.into())
+        Func::invoke(&self.store.into(), &func, &args[1..]).map_err(|e| e.into())
     }
 
     fn get_func(

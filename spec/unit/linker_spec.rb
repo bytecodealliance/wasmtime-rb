@@ -146,21 +146,6 @@ module Wasmtime
       expect(instance).to be_instance_of(Instance)
     end
 
-    it "instantiate bubbles exceptions from the start func" do
-      error_class = Class.new(StandardError)
-      mod = Wasmtime::Module.new(engine, <<~WAT)
-        (module
-          (import "" "" (func))
-          (start 0))
-      WAT
-      functype = FuncType.new([], [])
-      linker = new_linker
-      linker.func_new("", "", functype) { raise error_class }
-
-      expect { linker.instantiate(Store.new(engine), mod) }
-        .to raise_error(error_class)
-    end
-
     it "get_default" do
       linker = new_linker
       store = Store.new(engine)

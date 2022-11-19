@@ -3,7 +3,7 @@
 require_relative "lib/wasmtime/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "wasmtime-rb"
+  spec.name = "wasmtime"
   spec.version = Wasmtime::VERSION
   spec.authors = ["Ian Ker-Seymer"]
   spec.email = ["hello@ianks.com"]

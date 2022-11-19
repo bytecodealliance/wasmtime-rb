@@ -1,6 +1,6 @@
 require "rake/extensiontask"
 
-GEMSPEC = Bundler.load_gemspec("wasmtime-rb.gemspec")
+GEMSPEC = Bundler.load_gemspec("wasmtime.gemspec")
 
 CROSS_PLATFORMS = [ENV["RUBY_TARGET"]].compact
 

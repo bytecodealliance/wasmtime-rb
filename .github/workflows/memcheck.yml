@@ -16,6 +16,10 @@ on:
           - '2.7'
   push:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   memcheck:
     name: Memcheck

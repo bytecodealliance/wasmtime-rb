@@ -5,8 +5,8 @@ require_relative "lib/wasmtime/version"
 Gem::Specification.new do |spec|
   spec.name = "wasmtime"
   spec.version = Wasmtime::VERSION
-  spec.authors = ["Ian Ker-Seymer"]
-  spec.email = ["hello@ianks.com"]
+  spec.authors = ["The Wasmtime Project Developers"]
+  spec.email = ["hello@bytecodealliance.org"]
 
   spec.summary = "Wasmtime bindings for Ruby"
   spec.description = "A Ruby binding for Wasmtime, a WebAssembly runtime."

@@ -37,7 +37,7 @@ jobs:
 
       - name: Current doc dir
         id: doc-dir
-        uses: k1LoW/github-script-ruby@v1
+        uses: k1LoW/github-script-ruby@v2
         with:
           result-encoding: string
           script: |
@@ -52,7 +52,7 @@ jobs:
           mv doc ${{steps.doc-dir.outputs.result}}
 
       - name: Find the latest doc
-        uses: k1LoW/github-script-ruby@v1
+        uses: k1LoW/github-script-ruby@v2
         id: latest-dir
         with:
           result-encoding: string

@@ -6,6 +6,10 @@ on:
   push:
     branches: ["main", "cross-gem/*"]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   ci-data:
     runs-on: ubuntu-latest

@@ -26,7 +26,7 @@ unsafe impl TypedData for Extern<'_> {
             let mut builder = DataTypeBuilder::<Extern<'_>>::new("Wasmtime::Extern");
             builder.size();
             builder.mark();
-            builder.free_immediatly();
+            builder.free_immediately();
             builder.build()
         })
     }

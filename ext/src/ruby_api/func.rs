@@ -38,7 +38,7 @@ unsafe impl<'a> TypedData for Func<'a> {
             let mut builder = DataTypeBuilder::<Func<'_>>::new("Wasmtime::Func");
             builder.size();
             builder.mark();
-            builder.free_immediatly();
+            builder.free_immediately();
             builder.build()
         })
     }
@@ -362,7 +362,7 @@ unsafe impl<'a> TypedData for Caller<'a> {
     fn data_type() -> &'static magnus::DataType {
         memoize!(magnus::DataType: {
             let mut builder = DataTypeBuilder::<Caller<'_>>::new("Wasmtime::Caller");
-            builder.free_immediatly();
+            builder.free_immediately();
             builder.build()
         })
     }

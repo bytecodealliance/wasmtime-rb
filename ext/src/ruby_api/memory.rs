@@ -28,7 +28,7 @@ unsafe impl TypedData for Memory<'_> {
     fn data_type() -> &'static magnus::DataType {
         memoize!(magnus::DataType: {
             let mut builder = DataTypeBuilder::<Memory<'_>>::new("Wasmtime::Memory");
-            builder.free_immediatly();
+            builder.free_immediately();
             builder.build()
         })
     }

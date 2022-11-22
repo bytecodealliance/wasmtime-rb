@@ -9,18 +9,28 @@ module Wasmtime
     end
 
     describe "#message" do
-      it "has the full message including backtrace" do
-        expect(trap.message).to eq(<<~MSG)
-          wasm trap: wasm `unreachable` instruction executed
-          wasm backtrace:
+      it "has a short message" do
+        expect(trap.message).to eq("wasm trap: wasm `unreachable` instruction executed")
+      end
+    end
+
+    describe "#message_with_backtrace" do
+      it "includes the backtrace" do
+        expect(trap.wasm_backtrace_message).to eq(<<~MSG.rstrip)
+          error while executing at wasm backtrace:
               0:   0x1a - <unknown>!<wasm function 0>
         MSG
       end
     end
 
-    describe "#trap_code" do
+    describe "#wasm_backtrace" do
+      it "returns an enumerable of trace entries" do
+      end
+    end
+
+    describe "#code" do
       it "returns a symbol matching a constant" do
-        expect(trap.trap_code).to eq(TrapCode::UNREACHABLE_CODE_REACHED)
+        expect(trap.code).to eq(Trap::UNREACHABLE_CODE_REACHED)
       end
     end
 

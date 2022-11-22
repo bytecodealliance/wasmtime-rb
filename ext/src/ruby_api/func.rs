@@ -15,7 +15,7 @@ use magnus::{
 use std::cell::UnsafeCell;
 use wasmtime::{
     AsContext, AsContextMut, Caller as CallerImpl, Func as FuncImpl, StoreContext, StoreContextMut,
-    Trap, Val,
+    Val,
 };
 
 /// @yard
@@ -168,7 +168,7 @@ impl From<&Func<'_>> for wasmtime::Extern {
 pub fn make_func_closure(
     ty: &wasmtime::FuncType,
     callable: Proc,
-) -> impl Fn(CallerImpl<'_, StoreData>, &[Val], &mut [Val]) -> Result<(), Trap> + Send + Sync + 'static
+) -> impl Fn(CallerImpl<'_, StoreData>, &[Val], &mut [Val]) -> anyhow::Result<()> + Send + Sync + 'static
 {
     let ty = ty.to_owned();
     let callable = ShareableProc(callable);
@@ -182,9 +182,9 @@ pub fn make_func_closure(
         rparams.push(Value::from(wrapped_caller)).unwrap();
 
         for (i, param) in params.iter().enumerate() {
-            let rparam = param.to_ruby_value(&store_context).map_err(|e| {
-                wasmtime::Trap::new(format!("invalid argument at index {}: {}", i, e))
-            })?;
+            let rparam = param
+                .to_ruby_value(&store_context)
+                .map_err(|e| anyhow::anyhow!(format!("invalid argument at index {}: {}", i, e)))?;
             rparams.push(rparam).unwrap();
         }
 
@@ -223,7 +223,7 @@ pub fn make_func_closure(
                 }
             })
             .map_err(|e| {
-                wasmtime::Trap::new(format!(
+                anyhow::anyhow!(format!(
                     "Error when calling Func {}\n Error: {}",
                     callable.inspect(),
                     e

@@ -5,6 +5,7 @@ use magnus::{
     Module, Object, TypedData, Value, QNIL,
 };
 use std::cell::{RefCell, UnsafeCell};
+use std::convert::TryFrom;
 use wasmtime::{AsContext, AsContextMut, Store as StoreImpl, StoreContext, StoreContextMut};
 
 #[derive(Debug)]
@@ -162,10 +163,9 @@ impl<'a> StoreContextValue<'a> {
     pub fn handle_wasm_error(&self, error: anyhow::Error) -> Error {
         match self.context_mut() {
             Ok(mut context) => context.data_mut().take_last_error().unwrap_or_else(|| {
-                match error.downcast_ref::<wasmtime::Trap>() {
-                    Some(t) => Trap::from(t.to_owned()).into(),
-                    _ => error!("{}", error),
-                }
+                Trap::try_from(error)
+                    .map(|trap| trap.into())
+                    .unwrap_or_else(|e| error!("{}", e))
             }),
             Err(e) => e,
         }

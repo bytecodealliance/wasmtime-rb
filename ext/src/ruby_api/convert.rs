@@ -5,11 +5,11 @@ use wasmtime::{ExternRef, Val, ValType};
 use super::{func::Func, memory::Memory, store::StoreContextValue};
 
 pub trait ToRubyValue {
-    fn to_ruby_value(&self) -> Result<Value, Error>;
+    fn to_ruby_value(&self, store: &StoreContextValue) -> Result<Value, Error>;
 }
 
 impl ToRubyValue for Val {
-    fn to_ruby_value(&self) -> Result<Value, Error> {
+    fn to_ruby_value(&self, store: &StoreContextValue) -> Result<Value, Error> {
         match self {
             Val::I32(i) => Ok(Value::from(*i)),
             Val::I64(i) => Ok(Value::from(*i)),
@@ -23,7 +23,11 @@ impl ToRubyValue for Val {
                     .map(|v| v.0)
                     .ok_or_else(|| error!("failed to extract externref")),
             },
-            _ => err!("unexpected return type: {:?}", self),
+            Val::FuncRef(funcref) => match funcref {
+                None => Ok(magnus::QNIL.into()),
+                Some(funcref) => Ok(Func::from_inner(*store, *funcref).into()),
+            },
+            Val::V128(_) => err!("converting from v128 to Ruby unsupported"),
         }
     }
 }
@@ -46,7 +50,8 @@ impl ToWasmVal for Value {
 
                 Ok(Val::ExternRef(extern_ref_value))
             }
-            _ => err!("unexpected return type: {:?}", ty),
+            ValType::FuncRef => Ok(Val::FuncRef(Some(*self.try_convert::<&Func>()?.inner()))),
+            ValType::V128 => err!("converting from Ruby to v128 not supported"),
         }
     }
 }

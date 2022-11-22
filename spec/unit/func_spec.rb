@@ -25,11 +25,28 @@ module Wasmtime
       expect(roundtrip_value(:externref, obj)).to equal(obj)
     end
 
-    it "converts ref.null into nil" do
+    it "converts ref.null into nil for externref" do
       instance = compile(<<~WAT)
         (module
           (func (export "main") (result externref)
             ref.null extern))
+      WAT
+      expect(instance.invoke("main")).to be_nil
+    end
+
+    it "converts funcref back and forth" do
+      store = Store.new(engine)
+      f1 = Func.new(store, FuncType.new([], [])) {}
+      f2 = Func.new(store, FuncType.new([:funcref], [:funcref])) { |_, arg1| arg1 }
+      returned_func = f2.call(f1)
+      expect(returned_func).to be_instance_of(Func)
+    end
+
+    it "converts ref.null into nil for funcref" do
+      instance = compile(<<~WAT)
+        (module
+          (func (export "main") (result funcref)
+            ref.null func))
       WAT
       expect(instance.invoke("main")).to be_nil
     end

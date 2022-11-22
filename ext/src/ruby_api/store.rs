@@ -116,7 +116,7 @@ impl Store {
 
 /// A wrapper around a Ruby Value that has a store context.
 /// Used in places where both Store or Caller can be used.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum StoreContextValue<'a> {
     Store(WrappedStruct<Store>),
     Caller(WrappedStruct<Caller<'a>>),

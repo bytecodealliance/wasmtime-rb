@@ -183,6 +183,28 @@
         <li class="public ">
   <span class="summary_signature">
     
+      <a href="#from_file-class_method" title="from_file (class method)">.<strong>from_file</strong>(engine, path)  &#x21d2; Wasmtime::Module </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
       <a href="#new-class_method" title="new (class method)">.<strong>new</strong>(engine, wat_or_wasm)  &#x21d2; Wasmtime::Module </a>
     
 
@@ -321,15 +343,15 @@
       <pre class="lines">
 
 
-41
-42
-43
-44
-45
-46</pre>
+55
+56
+57
+58
+59
+60</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 41</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 55</span>
 
 pub fn deserialize(engine: &amp;Engine, compiled: RString) -&gt; Result&lt;Self, Error&gt; {
     // SAFETY: this string is immediately copied and never moved off the stack
@@ -414,19 +436,19 @@ pub fn deserialize(engine: &amp;Engine, compiled: RString) -&gt; Result&lt;Self,
       <pre class="lines">
 
 
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65</pre>
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 56</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 70</span>
 
 pub fn deserialize_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error&gt; {
     unsafe { ModuleImpl::deserialize_file(engine.get(), path.as_str()?) }
@@ -437,6 +459,94 @@ pub fn deserialize_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self
                 e.to_string()
             )
         })
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="from_file-class_method">
+  
+    .<strong>from_file</strong>(engine, path)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::Module (class)">Wasmtime::Module</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>engine</span>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="Engine.html" title="Wasmtime::Engine (class)">Wasmtime::Engine</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>path</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::Module (class)">Wasmtime::Module</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+35
+36
+37
+38
+39
+40
+41
+42</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 35</span>
+
+pub fn from_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error&gt; {
+    let eng = engine.get();
+    // SAFETY: this string is immediately copied and never moved off the stack
+    let module = ModuleImpl::from_file(eng, unsafe { path.as_str()? })
+        .map_err(|e| error!(&quot;Could not build module: {:?}&quot;, e.to_string()))?;
+
+    Ok(Self { inner: module })
 }</pre>
     </td>
   </tr>
@@ -527,7 +637,7 @@ pub fn new(engine: &amp;Engine, wat_or_wasm: RString) -&gt; Result&lt;Self, Erro
     let eng = engine.get();
     // SAFETY: this string is immediately copied and never moved off the stack
     let module = ModuleImpl::new(eng, unsafe { wat_or_wasm.as_slice() })
-        .map_err(|e| error!(&quot;Could not build module: {:?}&quot;, e.to_string()))?;
+        .map_err(|e| error!(&quot;Could not build module from file: {:?}&quot;, e.to_string()))?;
 
     Ok(Self { inner: module })
 }</pre>
@@ -588,15 +698,15 @@ pub fn new(engine: &amp;Engine, wat_or_wasm: RString) -&gt; Result&lt;Self, Erro
       <pre class="lines">
 
 
-71
-72
-73
-74
-75
-76</pre>
+85
+86
+87
+88
+89
+90</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 71</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 85</span>
 
 pub fn serialize(&amp;self) -&gt; Result&lt;RString, Error&gt; {
     self.get()
@@ -614,7 +724,7 @@ pub fn serialize(&amp;self) -&gt; Result&lt;RString, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Mon Nov 21 15:32:37 2022 by
+  Generated on Tue Nov 22 13:38:58 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.2).
 </div>

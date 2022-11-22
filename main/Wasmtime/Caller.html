@@ -218,11 +218,6 @@
       <pre class="lines">
 
 
-322
-323
-324
-325
-326
 327
 328
 329
@@ -230,10 +225,15 @@
 331
 332
 333
-334</pre>
+334
+335
+336
+337
+338
+339</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 322</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 327</span>
 
 pub fn export(
     rb_self: WrappedStruct&lt;Caller&lt;&#39;a&gt;&gt;,
@@ -297,12 +297,12 @@ pub fn export(
       <pre class="lines">
 
 
-315
-316
-317</pre>
+320
+321
+322</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 315</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 320</span>
 
 pub fn store_data(&amp;self) -&gt; Result&lt;Value, Error&gt; {
     self.context().map(|ctx| ctx.data().user_data())
@@ -317,7 +317,7 @@ pub fn store_data(&amp;self) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Mon Nov 21 15:32:37 2022 by
+  Generated on Tue Nov 22 13:38:58 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.2).
 </div>

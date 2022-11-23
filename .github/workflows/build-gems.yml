@@ -80,5 +80,5 @@ jobs:
           bundle exec rake build
           gem install pkg/wasmtime-rb-*.gem --verbose
           script="puts Wasmtime::Engine.new(Wasmtime::Config.new).precompile_module('(module)')"
-          ruby -rwasmtime -e "$script" | grep wasmtime-aot
+          ruby -rwasmtime -e "$script" | grep wasmtime.info
           echo "✅ Successfully gem installed"

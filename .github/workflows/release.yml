@@ -1,0 +1,64 @@
+---
+name: Release
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+    tags:
+      - v*
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check CI success
+        if: ${{ github.event.workflow_run.conclusion != 'success' }}
+        run: exit 1
+      - uses: actions/checkout@v3
+      - uses: ruby/setup-ruby@v1
+
+      - name: Ensure version matches the tag
+        run: |
+          GEM_VERSION=$(grep VERSION lib/wasmtime/version.rb | head -n 1 | cut -d'"' -f2)
+          if [ "v$GEM_VERSION" != "${{ github.ref_name }}" ]; then
+            echo "Gem version does not match tag"
+            echo "  v$GEM_VERSION != ${{ github.ref_name }}"
+            exit 1
+          fi
+
+      - name: Download artifacts
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          name: cross-gem
+          workflow: build-gems.yml
+
+      - name: Push Gem
+        working-directory: pkg/
+        env:
+          GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_KEY }}
+        run: |
+          mkdir -p $HOME/.gem
+          touch $HOME/.gem/credentials
+          chmod 0600 $HOME/.gem/credentials
+          printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
+
+          ls -l
+          for i in *.gem; do
+            if [ -f "$i" ]; then
+              if ! gem push "$i" >push.out; then
+                gemerr=$?
+                sed 's/^/::error:: /' push.out
+                if ! grep -q "Repushing of gem" push.out; then
+                  exit $gemerr
+                fi
+              fi
+            fi
+          done
+
+      - name: Create GitHub release
+        uses: ncipollo/release-action@v1
+        with:
+          generateReleaseNotes: true

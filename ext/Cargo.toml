@@ -13,5 +13,5 @@ crate-type = ["cdylib"]
 lazy_static = "1.4.0"
 magnus = { git = "https://github.com/matsadler/magnus", features = ["rb-sys-interop"] }
 rb-sys = "~0.9.44"
-wasmtime = "2.0.2"
+wasmtime = "3.0.0"
 anyhow = "*" # Use whatever Wasmtime uses

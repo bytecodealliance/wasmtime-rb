@@ -72,5 +72,5 @@ instance.invoke("run")
 instance.export("run").call
 ```
 
-For more, see [`examples`](https://github.com/bytecodealliance/wasmtime-rb/tree/main/examples)
+For more, see [examples](https://github.com/bytecodealliance/wasmtime-rb/tree/main/examples)
 or the [API documentation](https://bytecodealliance.github.io/wasmtime-rb/latest/).

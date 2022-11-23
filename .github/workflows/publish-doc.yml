@@ -70,7 +70,8 @@ jobs:
 
       - name: Commit the changes
         run: |
-          ln -sf ${{steps.latest-dir.outputs.result}} latest
+          rm -f latest
+          ln -s ${{steps.latest-dir.outputs.result}} latest
           git add ${{steps.doc-dir.outputs.result}} latest
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"

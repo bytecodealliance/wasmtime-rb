@@ -20,6 +20,11 @@ pub fn conversion_error() -> ExceptionClass {
     *memoize!(ExceptionClass: root().define_error("ConversionError", base_error()).unwrap())
 }
 
+/// The `Wasmtime::WasiExit` class.
+pub fn wasi_exit_error() -> ExceptionClass {
+    *memoize!(ExceptionClass: root().define_error("WasiExit", base_error()).unwrap())
+}
+
 #[macro_export]
 macro_rules! err {
     ($($arg:expr),*) => {
@@ -51,6 +56,7 @@ macro_rules! conversion_err {
 pub fn init() -> Result<(), Error> {
     let _ = base_error();
     let _ = conversion_error();
+    let _ = wasi_exit_error();
 
     Ok(())
 }

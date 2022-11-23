@@ -1,5 +1,7 @@
-use super::{engine::Engine, func::Caller, root, trap::Trap};
+use super::errors::wasi_exit_error;
+use super::{engine::Engine, func::Caller, root, trap::Trap, wasi_config::WasiConfig};
 use crate::{error, helpers::WrappedStruct};
+use magnus::Class;
 use magnus::{
     exception::Exception, function, method, scan_args, value::BoxValue, DataTypeFunctions, Error,
     Module, Object, TypedData, Value, QNIL,
@@ -7,11 +9,12 @@ use magnus::{
 use std::cell::{RefCell, UnsafeCell};
 use std::convert::TryFrom;
 use wasmtime::{AsContext, AsContextMut, Store as StoreImpl, StoreContext, StoreContextMut};
+use wasmtime_wasi::{I32Exit, WasiCtx};
 
-#[derive(Debug)]
 pub struct StoreData {
     user_data: Value,
     host_exception: HostException,
+    pub wasi: Option<WasiCtx>,
 }
 
 type BoxedException = BoxValue<Exception>;
@@ -38,6 +41,14 @@ impl StoreData {
 
     pub fn user_data(&self) -> Value {
         self.user_data
+    }
+
+    pub fn has_wasi_ctx(&self) -> bool {
+        self.wasi.is_some()
+    }
+
+    pub fn wasi_ctx_mut(&mut self) -> &mut WasiCtx {
+        self.wasi.as_mut().expect("Store must have a WASI context")
     }
 }
 
@@ -85,6 +96,7 @@ impl Store {
         let store_data = StoreData {
             user_data,
             host_exception: HostException::default(),
+            wasi: None,
         };
         let store = Self {
             inner: UnsafeCell::new(StoreImpl::new(eng, store_data)),
@@ -100,6 +112,20 @@ impl Store {
     /// @return [Object] The passed in value in {.new}
     pub fn data(&self) -> Value {
         self.context().data().user_data()
+    }
+
+    /// @yard
+    /// Configure the WASI context on the store.
+    /// @def configure_wasi(wasi_config)
+    /// @param wasi_config [WasiConfig]
+    /// @return [Store] +self+
+    pub fn configure_wasi(
+        rb_self: WrappedStruct<Self>,
+        wasi_config: &WasiConfig,
+    ) -> Result<WrappedStruct<Self>, Error> {
+        rb_self.get()?.context_mut().data_mut().wasi = Some(wasi_config.build_context()?);
+
+        Ok(rb_self)
     }
 
     pub fn context(&self) -> StoreContext<StoreData> {
@@ -163,9 +189,13 @@ impl<'a> StoreContextValue<'a> {
     pub fn handle_wasm_error(&self, error: anyhow::Error) -> Error {
         match self.context_mut() {
             Ok(mut context) => context.data_mut().take_last_error().unwrap_or_else(|| {
-                Trap::try_from(error)
-                    .map(|trap| trap.into())
-                    .unwrap_or_else(|e| error!("{}", e))
+                if let Some(exit) = error.downcast_ref::<I32Exit>() {
+                    wasi_exit_error().new_instance((exit.0,)).unwrap().into()
+                } else {
+                    Trap::try_from(error)
+                        .map(|trap| trap.into())
+                        .unwrap_or_else(|e| error!("{}", e))
+                }
             }),
             Err(e) => e,
         }
@@ -177,6 +207,7 @@ pub fn init() -> Result<(), Error> {
 
     class.define_singleton_method("new", function!(Store::new, -1))?;
     class.define_method("data", method!(Store::data, 0))?;
+    class.define_method("configure_wasi", method!(Store::configure_wasi, 1))?;
 
     Ok(())
 }

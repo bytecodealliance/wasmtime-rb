@@ -77,6 +77,17 @@ module Wasmtime
       end
     end
 
+    it "raises WasiExit on WASI's proc_exit" do
+      linker = Linker.new(engine).tap(&:define_wasi)
+      store = Store.new(engine).configure_wasi(WasiConfig.new)
+      instance = linker.instantiate(store, wasi_module_exiting)
+
+      expect { instance.invoke("_start") }.to raise_error(WasiExit) do |wasi_exit|
+        expect(wasi_exit.code).to eq(0)
+        expect(wasi_exit.message).to eq("WASI exit with code 0")
+      end
+    end
+
     def module_import_func_start
       Wasmtime::Module.new(engine, <<~WAT)
         (module
@@ -97,6 +108,18 @@ module Wasmtime
       Wasmtime::Module.new(engine, <<~WAT)
         (module
           (func (export "f") unreachable))
+      WAT
+    end
+
+    def wasi_module_exiting
+      Module.new(engine, <<~WAT)
+        (module
+          (import "wasi_unstable" "proc_exit"
+            (func $__wasi_proc_exit (param i32)))
+          (memory (export "memory") 0)
+          (func $_start
+            (call $__wasi_proc_exit (i32.const 0)))
+          (export "_start" (func $_start)))
       WAT
     end
   end

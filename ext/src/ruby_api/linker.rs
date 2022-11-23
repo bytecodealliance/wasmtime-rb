@@ -9,12 +9,12 @@ use super::{
     root,
     store::{Store, StoreContextValue, StoreData},
 };
-use crate::{error, helpers::WrappedStruct, ruby_api::convert::ToExtern};
+use crate::{err, error, helpers::WrappedStruct, ruby_api::convert::ToExtern};
 use magnus::{
     block::Proc, function, gc, method, scan_args::scan_args, DataTypeFunctions, Error, Module as _,
     Object, RHash, RString, TypedData, Value,
 };
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use wasmtime::Linker as LinkerImpl;
 
 /// @yard
@@ -24,6 +24,7 @@ use wasmtime::Linker as LinkerImpl;
 pub struct Linker {
     inner: RefCell<LinkerImpl<StoreData>>,
     refs: RefCell<Vec<Value>>,
+    has_wasi: Cell<bool>,
 }
 
 unsafe impl Send for Linker {}
@@ -43,6 +44,7 @@ impl Linker {
         Ok(Self {
             inner: RefCell::new(LinkerImpl::new(engine.get())),
             refs: Default::default(),
+            has_wasi: Cell::new(false),
         })
     }
 
@@ -88,6 +90,16 @@ impl Linker {
             .borrow_mut()
             .define(unsafe { module.as_str()? }, unsafe { name.as_str()? }, item)
             .map(|_| ())
+            .map_err(|e| error!("{}", e))
+    }
+
+    /// @yard
+    /// Define WASI imports in this linker. The {Store} used when instantiating
+    /// *MUST* have a WASI context set by using {Store#configure_wasi}.
+    /// @return [void]
+    pub fn define_wasi(&self) -> Result<(), Error> {
+        self.has_wasi.set(true);
+        wasmtime_wasi::add_to_linker(&mut self.inner.borrow_mut(), |s| s.wasi_ctx_mut())
             .map_err(|e| error!("{}", e))
     }
 
@@ -243,6 +255,15 @@ impl Linker {
     pub fn instantiate(&self, s: WrappedStruct<Store>, module: &Module) -> Result<Instance, Error> {
         let wrapped_store: WrappedStruct<Store> = s.try_convert()?;
         let store = wrapped_store.get()?;
+
+        if self.has_wasi.get() && !store.context().data().has_wasi_ctx() {
+            return err!(
+                "Store is missing WASI configuration.\n\n\
+                When using `Linker#define_wasi`, the Store given to `Linker#instantiate`\n\
+                must have a WASI configuration. To fix this, use `Store#configure_wasi`"
+            );
+        }
+
         self.inner
             .borrow_mut()
             .instantiate(store.context_mut(), module.get())
@@ -283,6 +304,7 @@ pub fn init() -> Result<(), Error> {
         method!(Linker::define_unknown_imports_as_traps, 1),
     )?;
     class.define_method("define", method!(Linker::define, 3))?;
+    class.define_method("define_wasi", method!(Linker::define_wasi, 0))?;
     class.define_method("func_new", method!(Linker::func_new, -1))?;
     class.define_method("get", method!(Linker::get, 3))?;
     class.define_method("instance", method!(Linker::instance, 3))?;

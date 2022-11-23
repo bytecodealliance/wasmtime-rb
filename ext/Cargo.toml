@@ -14,4 +14,9 @@ lazy_static = "1.4.0"
 magnus = { git = "https://github.com/matsadler/magnus", features = ["rb-sys-interop"] }
 rb-sys = "~0.9.44"
 wasmtime = "3.0.0"
+wasmtime-wasi = "3.0.0"
+wasi-common = "3.0.0"
+wasi-cap-std-sync = "3.0.0"
+cap-std = "0.26.0" # Pinned to wasmtime's version
+
 anyhow = "*" # Use whatever Wasmtime uses

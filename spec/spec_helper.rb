@@ -15,6 +15,25 @@ RSpec.shared_context("default lets") do
   end
 end
 
+RSpec.shared_context(:tmpdir) do
+  let(:tmpdir) { Dir.mktmpdir }
+
+  after(:each) do
+    FileUtils.rm_rf(tmpdir)
+  rescue Errno::EACCES => e
+    warn "WARN: Failed to remove #{tmpdir} (#{e})"
+  end
+end
+
+module WasmFixtures
+  include Wasmtime
+  extend self
+
+  def wasi_debug
+    @wasi_debug_module ||= Module.from_file(Engine.new(Wasmtime::Config.new), "spec/fixtures/wasi-debug.wasm")
+  end
+end
+
 RSpec.configure do |config|
   config.filter_run focus: true
   config.run_all_when_everything_filtered = true

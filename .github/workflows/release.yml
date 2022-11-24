@@ -106,7 +106,14 @@ jobs:
               fi
             fi
           done
+
       - name: Create GitHub release
         uses: ncipollo/release-action@v1
         with:
+          allowUpdates: true
           generateReleaseNotes: true
+          draft: true
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
+          omitPrereleaseDuringUpdate: true
+          skipIfReleaseExists: true

@@ -3,63 +3,66 @@ name: Release
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows:
-      - CI
-    types:
-      - completed
-    tags:
-      - v*
+  push:
+    tags: ["v*"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  ci-data:
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.fetch.outputs.result }}
+    steps:
+      - id: fetch
+        uses: oxidize-rb/actions/fetch-ci-data@main
+        with:
+          supported-ruby-platforms: |
+            exclude: [arm-linux] # no cranelift support yet
+          stable-ruby-versions: |
+            exclude: [head]
+
+  build:
+    name: Build native gems
+    needs: ci-data
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-platform: ${{ fromJSON(needs.ci-data.outputs.result).supported-ruby-platforms }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: oxidize-rb/actions/setup-ruby-and-rust@main
+        with:
+          ruby-version: "3.1"
+          bundler-cache: false
+          cargo-cache: true
+          cargo-vendor: true
+          cache-version: v0-${{ matrix.ruby-platform }}
+
+      - uses: oxidize-rb/cross-gem-action@main
+        with:
+          version: latest
+          platform: ${{ matrix.ruby-platform }}
+          ruby-versions: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ', ') }}
+
+      - name: Smoke gem install
+        if: matrix.ruby-platform == 'x86_64-linux' # GitHub actions architecture
+        run: |
+          gem install pkg/wasmtime-*.gem --verbose
+          script="puts Wasmtime::Engine.new.precompile_module('(module)')"
+          ruby -rwasmtime -e "$script" | grep wasmtime.info
+          echo "✅ Successfully gem installed"
+
   release:
+    name: Release
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Check CI success
-        if: ${{ github.event.workflow_run.conclusion != 'success' }}
-        run: exit 1
       - uses: actions/checkout@v3
-      - uses: ruby/setup-ruby@v1
-
-      - name: Ensure version matches the tag
-        run: |
-          GEM_VERSION=$(grep VERSION lib/wasmtime/version.rb | head -n 1 | cut -d'"' -f2)
-          if [ "v$GEM_VERSION" != "${{ github.ref_name }}" ]; then
-            echo "Gem version does not match tag"
-            echo "  v$GEM_VERSION != ${{ github.ref_name }}"
-            exit 1
-          fi
-
-      - name: Download artifacts
-        uses: dawidd6/action-download-artifact@v2
+      - uses: ./.github/actions/release
         with:
-          name: cross-gem
-          workflow: build-gems.yml
-
-      - name: Push Gem
-        working-directory: pkg/
-        env:
-          GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_KEY }}
-        run: |
-          mkdir -p $HOME/.gem
-          touch $HOME/.gem/credentials
-          chmod 0600 $HOME/.gem/credentials
-          printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
-
-          ls -l
-          for i in *.gem; do
-            if [ -f "$i" ]; then
-              if ! gem push "$i" >push.out; then
-                gemerr=$?
-                sed 's/^/::error:: /' push.out
-                if ! grep -q "Repushing of gem" push.out; then
-                  exit $gemerr
-                fi
-              fi
-            fi
-          done
-
-      - name: Create GitHub release
-        uses: ncipollo/release-action@v1
-        with:
-          generateReleaseNotes: true
+          rubygems-token: ${{ secrets.RUBYGEMS_KEY }}

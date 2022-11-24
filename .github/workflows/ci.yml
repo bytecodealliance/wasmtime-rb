@@ -81,3 +81,9 @@ jobs:
           name: doc
           path: doc
           retention-days: 1
+
+      - name: Publish doc
+        if: contains(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
+        uses: ./.github/actions/publish-doc
+        # with:
+        #   github-token: ${{ secrets.GITHUB_TOKEN }}

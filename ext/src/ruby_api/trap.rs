@@ -74,18 +74,6 @@ impl Trap {
         }
     }
 
-    // pub fn wasm_backtrace(&self) -> Option<RArray> {
-    //     self.wasm_backtrace.as_ref().map(|backtrace| {
-    //         let array = RArray::with_capacity(backtrace.frames().len());
-    //         backtrace
-    //             .frames()
-    //             .iter()
-    //             .for_each(|frame| array.push(frame.format()).unwrap());
-
-    //         array
-    //     })
-    // }
-
     pub fn inspect(rb_self: WrappedStruct<Self>) -> Result<String, Error> {
         let rs_self = rb_self.get()?;
 

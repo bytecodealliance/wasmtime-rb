@@ -41,10 +41,10 @@ Example usage:
 require "wasmtime"
 
 # Create an engine. Generally, you only need a single engine and can
-# re-use it a throughout your program
+# re-use it throughout your program.
 engine = Wasmtime::Engine.new
 
-# Compile a Wasm module from either Wasm or WAT.  The compiled module is
+# Compile a Wasm module from either Wasm or WAT. The compiled module is
 # specific to the Engine's configuration.
 mod = Wasmtime::Module.new(engine, <<~WAT)
   (module
@@ -62,13 +62,13 @@ func = Wasmtime::Func.new(store, Wasmtime::FuncType.new([], [])) do |caller|
   puts "Ran #{caller[:count]} time(s)"
 end
 
-# Build the Wasm instance by providing its imports
+# Build the Wasm instance by providing its imports.
 instance = Wasmtime::Instance.new(store, mod, [func])
 
 # Run the `run` export.
 instance.invoke("run")
 
-# Or: get the `run` export and call it
+# Or: get the `run` export and call it.
 instance.export("run").call
 ```
 

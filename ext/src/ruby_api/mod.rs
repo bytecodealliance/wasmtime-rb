@@ -21,7 +21,7 @@ mod params;
 mod static_id;
 mod store;
 mod trap;
-mod wasi_config;
+mod wasi_ctx_builder;
 
 /// The "Wasmtime" Ruby module.
 pub fn root() -> RModule {
@@ -44,7 +44,7 @@ pub fn init() -> Result<(), Error> {
     memory::init()?;
     linker::init()?;
     externals::init()?;
-    wasi_config::init()?;
+    wasi_ctx_builder::init()?;
 
     Ok(())
 }

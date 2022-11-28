@@ -30,16 +30,16 @@ module Wasmtime
       it "returns an instance that can run when store is properly configured" do
         linker = Linker.new(engine).tap(&:define_wasi)
         store = Store.new(engine)
-        store.configure_wasi(WasiConfig.new.set_stdin_string("some str"))
+        store.configure_wasi(WasiCtxBuilder.new.set_stdin_string("some str"))
         linker.instantiate(store, wasi_module).invoke("_start")
       end
     end
 
     # Uses the program from spec/wasi-debug to test the WASI integration
-    describe "WasiConfig" do
+    describe WasiCtxBuilder do
       it "writes std streams to files" do
         File.write(tempfile_path("stdin"), "stdin content")
-        wasi_config = WasiConfig.new
+        wasi_config = WasiCtxBuilder.new
           .set_stdin_file(tempfile_path("stdin"))
           .set_stdout_file(tempfile_path("stdout"))
           .set_stderr_file(tempfile_path("stderr"))
@@ -92,7 +92,7 @@ module Wasmtime
     def wasi_module_env
       stdout_file = tempfile_path("stdout")
 
-      wasi_config = WasiConfig.new
+      wasi_config = WasiCtxBuilder.new
       yield(wasi_config)
       wasi_config.set_stdout_file(stdout_file)
 

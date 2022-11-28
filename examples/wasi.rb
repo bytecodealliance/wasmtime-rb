@@ -7,7 +7,7 @@ linker = Wasmtime::Linker.new(engine)
 linker.define_wasi
 
 store = Wasmtime::Store.new(engine)
-wasi_config = Wasmtime::WasiConfig.new
+wasi_config = Wasmtime::WasiCtxBuilder.new
   .set_stdin_string("hi!")
   .inherit_stdout
   .inherit_stderr

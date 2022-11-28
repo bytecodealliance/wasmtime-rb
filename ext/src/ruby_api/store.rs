@@ -1,5 +1,5 @@
 use super::errors::wasi_exit_error;
-use super::{engine::Engine, func::Caller, root, trap::Trap, wasi_config::WasiConfig};
+use super::{engine::Engine, func::Caller, root, trap::Trap, wasi_ctx_builder::WasiCtxBuilder};
 use crate::{error, helpers::WrappedStruct};
 use magnus::Class;
 use magnus::{
@@ -117,11 +117,11 @@ impl Store {
     /// @yard
     /// Configure the WASI context on the store.
     /// @def configure_wasi(wasi_config)
-    /// @param wasi_config [WasiConfig]
+    /// @param wasi_config [WasiCtxBuilder]
     /// @return [Store] +self+
     pub fn configure_wasi(
         rb_self: WrappedStruct<Self>,
-        wasi_config: &WasiConfig,
+        wasi_config: &WasiCtxBuilder,
     ) -> Result<WrappedStruct<Self>, Error> {
         rb_self.get()?.context_mut().data_mut().wasi = Some(wasi_config.build_context()?);
 

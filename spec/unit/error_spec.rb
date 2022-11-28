@@ -79,7 +79,7 @@ module Wasmtime
 
     it "raises WasiExit on WASI's proc_exit" do
       linker = Linker.new(engine).tap(&:define_wasi)
-      store = Store.new(engine).configure_wasi(WasiConfig.new)
+      store = Store.new(engine).configure_wasi(WasiCtxBuilder.new)
       instance = linker.instantiate(store, wasi_module_exiting)
 
       expect { instance.invoke("_start") }.to raise_error(WasiExit) do |wasi_exit|

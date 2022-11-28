@@ -47,19 +47,17 @@ struct WasiConfigInner {
     args: Option<RArray>,
 }
 
-macro_rules! mark_some {
-    ($expr:expr) => {{
-        if let Some(v) = $expr.as_ref() {
-            v.mark();
-        }
-    }};
-}
-
 impl WasiConfigInner {
     pub fn mark(&self) {
-        mark_some!(self.stdin);
-        mark_some!(self.stdout);
-        mark_some!(self.stderr);
+        if let Some(v) = self.stdin.as_ref() {
+            v.mark();
+        }
+        if let Some(v) = self.stdout.as_ref() {
+            v.mark();
+        }
+        if let Some(v) = self.stderr.as_ref() {
+            v.mark();
+        }
         if let Some(v) = self.env.as_ref() {
             gc::mark(*v);
         }

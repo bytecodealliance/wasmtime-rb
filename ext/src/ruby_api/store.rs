@@ -1,6 +1,6 @@
 use super::errors::wasi_exit_error;
 use super::{engine::Engine, func::Caller, root, trap::Trap, wasi_ctx_builder::WasiCtxBuilder};
-use crate::{error, helpers::WrappedStruct};
+use crate::{define_rb_intern, error, helpers::WrappedStruct};
 use magnus::Class;
 use magnus::{
     exception::Exception, function, method, scan_args, value::BoxValue, DataTypeFunctions, Error,
@@ -11,10 +11,14 @@ use std::convert::TryFrom;
 use wasmtime::{AsContext, AsContextMut, Store as StoreImpl, StoreContext, StoreContextMut};
 use wasmtime_wasi::{I32Exit, WasiCtx};
 
+define_rb_intern!(
+    WASI_CTX => "wasi_ctx",
+);
+
 pub struct StoreData {
     user_data: Value,
     host_exception: HostException,
-    pub wasi: Option<WasiCtx>,
+    wasi: Option<WasiCtx>,
 }
 
 type BoxedException = BoxValue<Exception>;
@@ -74,11 +78,13 @@ unsafe impl Send for StoreData {}
 impl Store {
     /// @yard
     ///
-    /// @def new(engine, data = nil)
+    /// @def new(engine, data = nil, wasi_ctx: nil)
     /// @param engine [Wasmtime::Engine]
     ///   The engine for this store.
     /// @param data [Object]
     ///   The data attached to the store. Can be retrieved through {Wasmtime::Store#data} and {Wasmtime::Caller#data}.
+    /// @param wasi_ctx [Wasmtime::WasiCtxBuilder]
+    ///   The WASI context to use in this store.
     /// @return [Wasmtime::Store]
     ///
     /// @example
@@ -87,16 +93,25 @@ impl Store {
     /// @example
     ///   store = Wasmtime::Store.new(Wasmtime::Engine.new, {})
     pub fn new(args: &[Value]) -> Result<Self, Error> {
-        let args = scan_args::scan_args::<(&Engine,), (Option<Value>,), (), (), (), ()>(args)?;
+        let args = scan_args::scan_args::<(&Engine,), (Option<Value>,), (), (), _, ()>(args)?;
+        let kw = scan_args::get_kwargs::<_, (), (Option<&WasiCtxBuilder>,), ()>(
+            args.keywords,
+            &[],
+            &[*WASI_CTX],
+        )?;
         let (engine,) = args.required;
         let (user_data,) = args.optional;
         let user_data = user_data.unwrap_or_else(|| QNIL.into());
+        let wasi = match kw.optional.0 {
+            None => None,
+            Some(wasi_ctx_builder) => Some(wasi_ctx_builder.build_context()?),
+        };
 
         let eng = engine.get();
         let store_data = StoreData {
             user_data,
             host_exception: HostException::default(),
-            wasi: None,
+            wasi,
         };
         let store = Self {
             inner: UnsafeCell::new(StoreImpl::new(eng, store_data)),
@@ -112,20 +127,6 @@ impl Store {
     /// @return [Object] The passed in value in {.new}
     pub fn data(&self) -> Value {
         self.context().data().user_data()
-    }
-
-    /// @yard
-    /// Configure the WASI context on the store.
-    /// @def configure_wasi(wasi_config)
-    /// @param wasi_config [WasiCtxBuilder]
-    /// @return [Store] +self+
-    pub fn configure_wasi(
-        rb_self: WrappedStruct<Self>,
-        wasi_config: &WasiCtxBuilder,
-    ) -> Result<WrappedStruct<Self>, Error> {
-        rb_self.get()?.context_mut().data_mut().wasi = Some(wasi_config.build_context()?);
-
-        Ok(rb_self)
     }
 
     pub fn context(&self) -> StoreContext<StoreData> {
@@ -207,7 +208,6 @@ pub fn init() -> Result<(), Error> {
 
     class.define_singleton_method("new", function!(Store::new, -1))?;
     class.define_method("data", method!(Store::data, 0))?;
-    class.define_method("configure_wasi", method!(Store::configure_wasi, 1))?;
 
     Ok(())
 }

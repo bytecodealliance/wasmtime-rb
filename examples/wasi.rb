@@ -3,17 +3,15 @@ require "wasmtime"
 engine = Wasmtime::Engine.new
 mod = Wasmtime::Module.from_file(engine, "spec/fixtures/wasi-debug.wasm")
 
-linker = Wasmtime::Linker.new(engine)
-linker.define_wasi
+linker = Wasmtime::Linker.new(engine, wasi: true)
 
-store = Wasmtime::Store.new(engine)
-wasi_config = Wasmtime::WasiCtxBuilder.new
+wasi_ctx = Wasmtime::WasiCtxBuilder.new
   .set_stdin_string("hi!")
   .inherit_stdout
   .inherit_stderr
   .set_argv(ARGV)
   .set_env(ENV)
-store.configure_wasi(wasi_config)
+store = Wasmtime::Store.new(engine, wasi_ctx: wasi_ctx)
 
 instance = linker.instantiate(store, mod)
 instance.invoke("_start")

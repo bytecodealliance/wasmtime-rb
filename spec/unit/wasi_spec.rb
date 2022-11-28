@@ -10,11 +10,9 @@ module Wasmtime
       @compiled_wasi_module = Engine.new.precompile_module(IO.binread("spec/fixtures/wasi-debug.wasm"))
     end
 
-    let(:store) { Store.new(engine) }
-
-    describe "Linker#define_wasi" do
-      it "defines WASI imports" do
-        linker = Linker.new(engine).tap(&:define_wasi)
+    describe "Linker.new" do
+      it "accepts a wasi kwarg to define WASI imports" do
+        linker = Linker.new(engine, wasi: true)
         item = linker.get(Store.new(engine), "wasi_snapshot_preview1", "environ_get")
         expect(item).not_to be nil
       end
@@ -22,15 +20,14 @@ module Wasmtime
 
     describe "Linker#instantiate" do
       it "prevents panic when Store doesn't have a Wasi config" do
-        linker = Linker.new(engine).tap(&:define_wasi)
+        linker = Linker.new(engine, wasi: true)
         expect { linker.instantiate(Store.new(engine), wasi_module).invoke("_start") }
           .to raise_error(Wasmtime::Error, /Store is missing WASI configuration/)
       end
 
       it "returns an instance that can run when store is properly configured" do
-        linker = Linker.new(engine).tap(&:define_wasi)
-        store = Store.new(engine)
-        store.configure_wasi(WasiCtxBuilder.new.set_stdin_string("some str"))
+        linker = Linker.new(engine, wasi: true)
+        store = Store.new(engine, wasi_ctx: WasiCtxBuilder.new.set_stdin_string("some str"))
         linker.instantiate(store, wasi_module).invoke("_start")
       end
     end
@@ -83,9 +80,9 @@ module Wasmtime
       Module.deserialize(engine, @compiled_wasi_module)
     end
 
-    def run_wasi_module(wasi_config)
-      linker = Linker.new(engine).tap(&:define_wasi)
-      store.configure_wasi(wasi_config)
+    def run_wasi_module(wasi_ctx_builder)
+      linker = Linker.new(engine, wasi: true)
+      store = Store.new(engine, wasi_ctx: wasi_ctx_builder)
       linker.instantiate(store, wasi_module).invoke("_start")
     end
 

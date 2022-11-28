@@ -67,12 +67,12 @@ impl WasiCtxBuilderInner {
 }
 
 /// @yard
-/// WASI context builder to be used in {Store#configure_wasi}.
+/// WASI context builder to be sent as {Store#new}’s +wasi_ctx+ keyword argument.
 ///
 /// Instance methods mutate the current object and return +self+.
 ///
 /// @see https://docs.rs/wasmtime-wasi/latest/wasmtime_wasi/sync/struct.WasiCtxBuilder.html
-///   Wasmtime's doc for WasiCtxBuilder.
+///   Wasmtime's Rust doc
 // #[derive(Debug)]
 #[derive(Default, TypedData)]
 #[magnus(class = "Wasmtime::WasiCtxBuilder", size, mark, free_immediatly)]

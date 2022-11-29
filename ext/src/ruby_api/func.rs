@@ -338,6 +338,30 @@ impl<'a> Caller<'a> {
         }
     }
 
+    /// (see Store#fuel_consumed)
+    /// @yard
+    pub fn fuel_consumed(&self) -> Result<Option<u64>, Error> {
+        self.handle.get().map(|c| c.fuel_consumed())
+    }
+
+    /// (see Store#add_fuel)
+    /// @yard
+    pub fn add_fuel(&self, fuel: u64) -> Result<Value, Error> {
+        self.handle
+            .get_mut()
+            .and_then(|c| c.add_fuel(fuel).map_err(|e| error!("{}", e)))?;
+
+        Ok(*QNIL)
+    }
+
+    /// (see Store#consume_fuel)
+    /// @yard
+    pub fn consume_fuel(&self, fuel: u64) -> Result<u64, Error> {
+        self.handle
+            .get_mut()
+            .and_then(|c| c.consume_fuel(fuel).map_err(|e| error!("{}", e)))
+    }
+
     pub fn context(&self) -> Result<StoreContext<StoreData>, Error> {
         self.handle.get().map(|c| c.as_context())
     }
@@ -383,6 +407,9 @@ pub fn init() -> Result<(), Error> {
     let caller = root().define_class("Caller", Default::default())?;
     caller.define_method("store_data", method!(Caller::store_data, 0))?;
     caller.define_method("export", method!(Caller::export, 1))?;
+    caller.define_method("fuel_consumed", method!(Caller::fuel_consumed, 0))?;
+    caller.define_method("add_fuel", method!(Caller::add_fuel, 1))?;
+    caller.define_method("consume_fuel", method!(Caller::consume_fuel, 1))?;
 
     Ok(())
 }

@@ -26,6 +26,13 @@ impl Config {
     }
 
     /// @yard
+    /// @def consume_fuel=(enabled)
+    /// @param enabled [Boolean]
+    pub fn set_consume_fuel(&self, enabled: bool) {
+        self.inner.borrow_mut().consume_fuel(enabled);
+    }
+
+    /// @yard
     /// @def epoch_interruption=(enabled)
     /// @param enabled [Boolean]
     pub fn set_epoch_interruption(&self, enabled: bool) {
@@ -51,6 +58,8 @@ pub fn init() -> Result<(), Error> {
     let class = root().define_class("Config", Default::default())?;
 
     class.define_singleton_method("new", function!(Config::new, 0))?;
+
+    class.define_method("consume_fuel=", method!(Config::set_consume_fuel, 1))?;
 
     class.define_method(
         "epoch_interruption=",

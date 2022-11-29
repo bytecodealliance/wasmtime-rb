@@ -338,14 +338,15 @@ impl<'a> Caller<'a> {
         }
     }
 
-    /// (see Store#fuel_consumed)
     /// @yard
+    /// (see Store#fuel_consumed)
     pub fn fuel_consumed(&self) -> Result<Option<u64>, Error> {
         self.handle.get().map(|c| c.fuel_consumed())
     }
 
-    /// (see Store#add_fuel)
     /// @yard
+    /// (see Store#add_fuel)
+    /// @def add_fuel(fuel)
     pub fn add_fuel(&self, fuel: u64) -> Result<Value, Error> {
         self.handle
             .get_mut()
@@ -354,8 +355,9 @@ impl<'a> Caller<'a> {
         Ok(*QNIL)
     }
 
-    /// (see Store#consume_fuel)
     /// @yard
+    /// (see Store#consume_fuel)
+    /// @def consume_fuel(fuel)
     pub fn consume_fuel(&self, fuel: u64) -> Result<u64, Error> {
         self.handle
             .get_mut()

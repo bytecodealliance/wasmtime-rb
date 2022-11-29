@@ -22,13 +22,7 @@ module Wasmtime
     end
 
     describe(".deserialize_file") do
-      let(:tmpdir) { Dir.mktmpdir }
-
-      after(:each) do
-        FileUtils.rm_rf(tmpdir)
-      rescue Errno::EACCES => e
-        warn "WARN: Failed to remove #{tmpdir} (#{e})"
-      end
+      include_context(:tmpdir)
 
       it("can deserialize a module from a file") do
         tmpfile = create_tmpfile(Module.new(engine, "(module)").serialize)

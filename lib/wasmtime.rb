@@ -29,4 +29,19 @@ module Wasmtime
     ALWAYS_TRAP_ADAPTER = :always_trap_adapter
     UNKNOWN = :unknown
   end
+
+  # Raised when a WASI program terminates early by calling +exit+.
+  class WasiExit < Error
+    # @return [Integer] The system exit code.
+    attr_reader(:code)
+
+    def initialize(code)
+      @code = code
+    end
+
+    # @return [String]
+    def message
+      "WASI exit with code #{code}"
+    end
+  end
 end

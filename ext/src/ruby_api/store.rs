@@ -1,5 +1,7 @@
-use super::{engine::Engine, func::Caller, root, trap::Trap};
-use crate::{error, helpers::WrappedStruct};
+use super::errors::wasi_exit_error;
+use super::{engine::Engine, func::Caller, root, trap::Trap, wasi_ctx_builder::WasiCtxBuilder};
+use crate::{define_rb_intern, error, helpers::WrappedStruct};
+use magnus::Class;
 use magnus::{
     exception::Exception, function, method, scan_args, value::BoxValue, DataTypeFunctions, Error,
     Module, Object, TypedData, Value, QNIL,
@@ -7,11 +9,16 @@ use magnus::{
 use std::cell::{RefCell, UnsafeCell};
 use std::convert::TryFrom;
 use wasmtime::{AsContext, AsContextMut, Store as StoreImpl, StoreContext, StoreContextMut};
+use wasmtime_wasi::{I32Exit, WasiCtx};
 
-#[derive(Debug)]
+define_rb_intern!(
+    WASI_CTX => "wasi_ctx",
+);
+
 pub struct StoreData {
     user_data: Value,
     host_exception: HostException,
+    wasi: Option<WasiCtx>,
 }
 
 type BoxedException = BoxValue<Exception>;
@@ -39,6 +46,14 @@ impl StoreData {
     pub fn user_data(&self) -> Value {
         self.user_data
     }
+
+    pub fn has_wasi_ctx(&self) -> bool {
+        self.wasi.is_some()
+    }
+
+    pub fn wasi_ctx_mut(&mut self) -> &mut WasiCtx {
+        self.wasi.as_mut().expect("Store must have a WASI context")
+    }
 }
 
 /// @yard
@@ -63,11 +78,13 @@ unsafe impl Send for StoreData {}
 impl Store {
     /// @yard
     ///
-    /// @def new(engine, data = nil)
+    /// @def new(engine, data = nil, wasi_ctx: nil)
     /// @param engine [Wasmtime::Engine]
     ///   The engine for this store.
     /// @param data [Object]
     ///   The data attached to the store. Can be retrieved through {Wasmtime::Store#data} and {Wasmtime::Caller#data}.
+    /// @param wasi_ctx [Wasmtime::WasiCtxBuilder]
+    ///   The WASI context to use in this store.
     /// @return [Wasmtime::Store]
     ///
     /// @example
@@ -76,15 +93,25 @@ impl Store {
     /// @example
     ///   store = Wasmtime::Store.new(Wasmtime::Engine.new, {})
     pub fn new(args: &[Value]) -> Result<Self, Error> {
-        let args = scan_args::scan_args::<(&Engine,), (Option<Value>,), (), (), (), ()>(args)?;
+        let args = scan_args::scan_args::<(&Engine,), (Option<Value>,), (), (), _, ()>(args)?;
+        let kw = scan_args::get_kwargs::<_, (), (Option<&WasiCtxBuilder>,), ()>(
+            args.keywords,
+            &[],
+            &[*WASI_CTX],
+        )?;
         let (engine,) = args.required;
         let (user_data,) = args.optional;
         let user_data = user_data.unwrap_or_else(|| QNIL.into());
+        let wasi = match kw.optional.0 {
+            None => None,
+            Some(wasi_ctx_builder) => Some(wasi_ctx_builder.build_context()?),
+        };
 
         let eng = engine.get();
         let store_data = StoreData {
             user_data,
             host_exception: HostException::default(),
+            wasi,
         };
         let store = Self {
             inner: UnsafeCell::new(StoreImpl::new(eng, store_data)),
@@ -163,9 +190,13 @@ impl<'a> StoreContextValue<'a> {
     pub fn handle_wasm_error(&self, error: anyhow::Error) -> Error {
         match self.context_mut() {
             Ok(mut context) => context.data_mut().take_last_error().unwrap_or_else(|| {
-                Trap::try_from(error)
-                    .map(|trap| trap.into())
-                    .unwrap_or_else(|e| error!("{}", e))
+                if let Some(exit) = error.downcast_ref::<I32Exit>() {
+                    wasi_exit_error().new_instance((exit.0,)).unwrap().into()
+                } else {
+                    Trap::try_from(error)
+                        .map(|trap| trap.into())
+                        .unwrap_or_else(|e| error!("{}", e))
+                }
             }),
             Err(e) => e,
         }

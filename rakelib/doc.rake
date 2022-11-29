@@ -1,5 +1,9 @@
 require "yard/rake/yardoc_task"
 
+CLOBBER.include("doc")
+CLEAN.include(".yardoc")
+CLEAN.include("tmp/doc")
+
 YARD::Rake::YardocTask.new do |t|
   t.options += ["--fail-on-warn"]
 
@@ -50,19 +54,16 @@ namespace :doc do
 
   desc "Generate Rust documentation as JSON"
   task :rustdoc do
-    run(<<~CMD)
+    sh <<~CMD
       cargo +nightly rustdoc \
-        --target-dir tmp \
+        --target-dir tmp/doc/target \
         -p ext \
         -- -Zunstable-options --output-format json \
         --document-private-items
     CMD
-  end
 
-  def run(cmd)
-    system(cmd)
-    fail if $? != 0
+    cp "tmp/doc/target/doc/ext.json", "tmp/doc/ext.json"
   end
 end
 
-task doc: "doc:default"
+task doc: ["compile", "doc:default"]

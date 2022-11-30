@@ -27,6 +27,7 @@ module Wasmtime
     UNREACHABLE_CODE_REACHED = :unreachable_code_reached
     INTERRUPT = :interrupt
     ALWAYS_TRAP_ADAPTER = :always_trap_adapter
+    OUT_OF_FUEL = :out_of_fuel
     UNKNOWN = :unknown
   end
 

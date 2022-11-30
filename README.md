@@ -59,7 +59,8 @@ store = Wasmtime::Store.new(engine, {count: 0})
 # Define a Wasm function from Ruby code.
 func = Wasmtime::Func.new(store, Wasmtime::FuncType.new([], [])) do |caller|
   puts "Hello from Func!"
-  puts "Ran #{caller[:count]} time(s)"
+  caller.store_data[:count] += 1
+  puts "Ran #{caller.store_data[:count]} time(s)"
 end
 
 # Build the Wasm instance by providing its imports.
@@ -69,7 +70,7 @@ instance = Wasmtime::Instance.new(store, mod, [func])
 instance.invoke("run")
 
 # Or: get the `run` export and call it.
-instance.export("run").call
+instance.export("run").to_func.call
 ```
 
 For more, see [examples](https://github.com/bytecodealliance/wasmtime-rb/tree/main/examples)

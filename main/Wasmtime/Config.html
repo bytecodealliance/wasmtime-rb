@@ -166,6 +166,28 @@
         <li class="public ">
   <span class="summary_signature">
     
+      <a href="#consume_fuel=-instance_method" title="#consume_fuel= (instance method)">#<strong>consume_fuel=</strong>(enabled)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
       <a href="#epoch_interruption=-instance_method" title="#epoch_interruption= (instance method)">#<strong>epoch_interruption=</strong>(enabled)  &#x21d2; Object </a>
     
 
@@ -301,9 +323,9 @@ pub fn new() -&gt; Self {
 
     
       <div class="method_details first">
-  <h3 class="signature first" id="epoch_interruption=-instance_method">
+  <h3 class="signature first" id="consume_fuel=-instance_method">
   
-    #<strong>epoch_interruption=</strong>(enabled)  &#x21d2; <tt>Object</tt> 
+    #<strong>consume_fuel=</strong>(enabled)  &#x21d2; <tt>Object</tt> 
   
 
   
@@ -345,6 +367,60 @@ pub fn new() -&gt; Self {
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/config.rs', line 31</span>
+
+pub fn set_consume_fuel(&amp;self, enabled: bool) {
+    self.inner.borrow_mut().consume_fuel(enabled);
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="epoch_interruption=-instance_method">
+  
+    #<strong>epoch_interruption=</strong>(enabled)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>enabled</span>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+38
+39
+40</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/config.rs', line 38</span>
 
 pub fn set_epoch_interruption(&amp;self, enabled: bool) {
     self.inner.borrow_mut().epoch_interruption(enabled);
@@ -393,12 +469,12 @@ pub fn set_epoch_interruption(&amp;self, enabled: bool) {
       <pre class="lines">
 
 
-38
-39
-40</pre>
+45
+46
+47</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/config.rs', line 38</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/config.rs', line 45</span>
 
 pub fn set_max_wasm_stack(&amp;self, size: usize) {
     self.inner.borrow_mut().max_wasm_stack(size);
@@ -447,13 +523,13 @@ pub fn set_max_wasm_stack(&amp;self, size: usize) {
       <pre class="lines">
 
 
-45
-46
-47
-48</pre>
+52
+53
+54
+55</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/config.rs', line 45</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/config.rs', line 52</span>
 
 pub fn set_wasm_multi_memory(&amp;self, enabled: bool) {
         self.inner.borrow_mut().wasm_multi_memory(enabled);
@@ -469,7 +545,7 @@ pub fn set_wasm_multi_memory(&amp;self, enabled: bool) {
 </div>
 
       <div id="footer">
-  Generated on Tue Nov 29 14:24:38 2022 by
+  Generated on Tue Nov 29 22:42:43 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

@@ -13,7 +13,7 @@ group :development do
   gem "get_process_mem"
   gem "ruby-lsp", require: false
   gem "yard", require: false
-  gem "yard-rustdoc", "~> 0.3", require: false
+  gem "yard-rustdoc", "~> 0.3.2", require: false
 end
 
 group :test do

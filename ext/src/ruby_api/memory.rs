@@ -68,7 +68,7 @@ impl<'a> Memory<'a> {
     /// @def read(offset, size)
     /// @param offset [Integer]
     /// @param size [Integer]
-    /// @return [String] Binary string of the memory.
+    /// @return [String] Binary +String+ of the memory.
     pub fn read(&self, offset: usize, size: usize) -> Result<RString, Error> {
         self.inner
             .data(self.store.context()?)

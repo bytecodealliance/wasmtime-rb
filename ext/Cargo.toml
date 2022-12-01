@@ -20,3 +20,4 @@ wasi-cap-std-sync = "3.0.0"
 cap-std = "0.26.0" # Pinned to wasmtime's version
 
 anyhow = "*" # Use whatever Wasmtime uses
+wat = "1.0.52"

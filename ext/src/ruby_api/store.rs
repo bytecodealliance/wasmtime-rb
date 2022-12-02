@@ -4,7 +4,7 @@ use crate::{define_rb_intern, error, helpers::WrappedStruct};
 use magnus::Class;
 use magnus::{
     exception::Exception, function, method, scan_args, value::BoxValue, DataTypeFunctions, Error,
-    Module, Object, TypedData, Value, QNIL,
+    Module, Object, RString, TypedData, Value, QNIL,
 };
 use std::cell::{RefCell, UnsafeCell};
 use std::convert::TryFrom;
@@ -19,6 +19,8 @@ pub struct StoreData {
     user_data: Value,
     host_exception: HostException,
     wasi: Option<WasiCtx>,
+    wasi_stdout_string: Option<RString>,
+    wasi_stderr_string: Option<RString>,
 }
 
 type BoxedException = BoxValue<Exception>;
@@ -102,9 +104,12 @@ impl Store {
         let (engine,) = args.required;
         let (user_data,) = args.optional;
         let user_data = user_data.unwrap_or_else(|| QNIL.into());
-        let wasi = match kw.optional.0 {
-            None => None,
-            Some(wasi_ctx_builder) => Some(wasi_ctx_builder.build_context()?),
+        let (wasi, wasi_stdout_string, wasi_stderr_string) = match kw.optional.0 {
+            None => Default::default(),
+            Some(wasi_ctx_builder) => {
+                let res = wasi_ctx_builder.build_context()?;
+                (Some(res.0), res.1, res.2)
+            }
         };
 
         let eng = engine.get();
@@ -112,6 +117,8 @@ impl Store {
             user_data,
             host_exception: HostException::default(),
             wasi,
+            wasi_stdout_string,
+            wasi_stderr_string,
         };
         let store = Self {
             inner: UnsafeCell::new(StoreImpl::new(eng, store_data)),
@@ -119,6 +126,12 @@ impl Store {
         };
 
         store.retain(user_data);
+        if let Some(s) = wasi_stdout_string {
+            store.retain(*s);
+        }
+        if let Some(s) = wasi_stderr_string {
+            store.retain(*s);
+        }
 
         Ok(store)
     }
@@ -162,6 +175,20 @@ impl Store {
         unsafe { &mut *self.inner.get() }
             .consume_fuel(fuel)
             .map_err(|e| error!("{}", e))
+    }
+
+    pub fn wasi_stdout_string(&self) -> Result<RString, Error> {
+        self.context()
+            .data()
+            .wasi_stdout_string
+            .ok_or_else(|| error!("stdout not configured to use String"))
+    }
+
+    pub fn wasi_stderr_string(&self) -> Result<RString, Error> {
+        self.context()
+            .data()
+            .wasi_stderr_string
+            .ok_or_else(|| error!("stderr not configured to use String"))
     }
 
     pub fn context(&self) -> StoreContext<StoreData> {
@@ -250,6 +277,9 @@ pub fn init() -> Result<(), Error> {
     class.define_method("fuel_consumed", method!(Store::fuel_consumed, 0))?;
     class.define_method("add_fuel", method!(Store::add_fuel, 1))?;
     class.define_method("consume_fuel", method!(Store::consume_fuel, 1))?;
+
+    class.define_method("wasi_stdout_string", method!(Store::wasi_stdout_string, 0))?;
+    class.define_method("wasi_stderr_string", method!(Store::wasi_stderr_string, 0))?;
 
     Ok(())
 }

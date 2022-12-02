@@ -6,7 +6,7 @@ use magnus::{
 };
 use std::cell::RefCell;
 use std::{fs::File, path::PathBuf};
-use wasi_common::pipe::ReadPipe;
+use wasi_common::pipe::{ReadPipe, WritePipe};
 
 enum ReadStream {
     Inherit,
@@ -27,12 +27,14 @@ impl ReadStream {
 enum WriteStream {
     Inherit,
     Path(RString),
+    String,
 }
 impl WriteStream {
     pub fn mark(&self) {
         match self {
             Self::Inherit => (),
             Self::Path(v) => gc::mark(*v),
+            Self::String => (),
         }
     }
 }
@@ -150,6 +152,15 @@ impl WasiCtxBuilder {
     }
 
     /// @yard
+    /// Set stdout to write to a +String+.
+    /// @return [WasiCtxBuilder] +self+
+    pub fn set_stdout_string(rb_self: RbSelf) -> Result<RbSelf, Error> {
+        let mut inner = rb_self.get()?.inner.borrow_mut();
+        inner.stdout = Some(WriteStream::String);
+        Ok(rb_self)
+    }
+
+    /// @yard
     /// Inherit stderr from the current Ruby process.
     /// @return [WasiCtxBuilder] +self+
     pub fn inherit_stderr(rb_self: RbSelf) -> Result<RbSelf, Error> {
@@ -167,6 +178,15 @@ impl WasiCtxBuilder {
     pub fn set_stderr_file(rb_self: RbSelf, path: RString) -> Result<RbSelf, Error> {
         let mut inner = rb_self.get()?.inner.borrow_mut();
         inner.stderr = Some(WriteStream::Path(path));
+        Ok(rb_self)
+    }
+
+    /// @yard
+    /// Set stderr to write to a +String+.
+    /// @return [WasiCtxBuilder] +self+
+    pub fn set_stderr_string(rb_self: RbSelf) -> Result<RbSelf, Error> {
+        let mut inner = rb_self.get()?.inner.borrow_mut();
+        inner.stderr = Some(WriteStream::String);
         Ok(rb_self)
     }
 
@@ -192,9 +212,13 @@ impl WasiCtxBuilder {
         Ok(rb_self)
     }
 
-    pub fn build_context(&self) -> Result<wasmtime_wasi::WasiCtx, Error> {
+    pub fn build_context(
+        &self,
+    ) -> Result<(wasmtime_wasi::WasiCtx, Option<RString>, Option<RString>), Error> {
         let mut builder = wasmtime_wasi::WasiCtxBuilder::new();
         let inner = self.inner.borrow();
+        let mut stdout_string: Option<RString> = None;
+        let mut stderr_string: Option<RString> = None;
 
         if let Some(stdin) = inner.stdin.as_ref() {
             builder = match stdin {
@@ -212,6 +236,11 @@ impl WasiCtxBuilder {
             builder = match stdout {
                 WriteStream::Inherit => builder.inherit_stdout(),
                 WriteStream::Path(path) => builder.stdout(file_w(*path).map(wasi_file)?),
+                WriteStream::String => {
+                    let string = RString::buf_new(0);
+                    stdout_string = Some(string);
+                    builder.stdout(Box::new(WritePipe::new(string)))
+                }
             }
         }
 
@@ -219,6 +248,11 @@ impl WasiCtxBuilder {
             builder = match stderr {
                 WriteStream::Inherit => builder.inherit_stderr(),
                 WriteStream::Path(path) => builder.stderr(file_w(*path).map(wasi_file)?),
+                WriteStream::String => {
+                    let string = RString::buf_new(0);
+                    stderr_string = Some(string);
+                    builder.stderr(Box::new(WritePipe::new(string)))
+                }
             }
         }
 
@@ -236,7 +270,7 @@ impl WasiCtxBuilder {
             builder = builder.envs(&env_vec).map_err(|e| error!("{}", e))?;
         }
 
-        Ok(builder.build())
+        Ok((builder.build(), stdout_string, stderr_string))
     }
 }
 
@@ -274,11 +308,19 @@ pub fn init() -> Result<(), Error> {
         "set_stdout_file",
         method!(WasiCtxBuilder::set_stdout_file, 1),
     )?;
+    class.define_method(
+        "set_stdout_string",
+        method!(WasiCtxBuilder::set_stdout_string, 0),
+    )?;
 
     class.define_method("inherit_stderr", method!(WasiCtxBuilder::inherit_stderr, 0))?;
     class.define_method(
         "set_stderr_file",
         method!(WasiCtxBuilder::set_stderr_file, 1),
+    )?;
+    class.define_method(
+        "set_stderr_string",
+        method!(WasiCtxBuilder::set_stderr_string, 0),
     )?;
 
     class.define_method("set_env", method!(WasiCtxBuilder::set_env, 1))?;

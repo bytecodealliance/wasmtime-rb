@@ -50,6 +50,19 @@ module Wasmtime
         expect(stdout.dig("wasi", "stdin")).to eq("stdin content")
       end
 
+      it "writes std streams to strings" do
+        wasi_config = WasiCtxBuilder.new
+          .set_stdout_string
+          .set_stderr_string
+
+        store = run_wasi_module(wasi_config)
+        stdout = JSON.parse(store.wasi_stdout_string)
+        stderr = JSON.parse(store.wasi_stderr_string)
+
+        expect(stdout.fetch("name")).to eq("stdout")
+        expect(stderr.fetch("name")).to eq("stderr")
+      end
+
       it "reads stdin from string" do
         env = wasi_module_env { |config| config.set_stdin_string("¡UTF-8 from Ruby!") }
         expect(env.fetch("stdin")).to eq("¡UTF-8 from Ruby!")
@@ -84,6 +97,8 @@ module Wasmtime
       linker = Linker.new(engine, wasi: true)
       store = Store.new(engine, wasi_ctx: wasi_ctx_builder)
       linker.instantiate(store, wasi_module).invoke("_start")
+
+      store
     end
 
     def wasi_module_env

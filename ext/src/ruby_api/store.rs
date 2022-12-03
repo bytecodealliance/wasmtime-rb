@@ -94,7 +94,8 @@ impl Store {
     ///
     /// @example
     ///   store = Wasmtime::Store.new(Wasmtime::Engine.new, {})
-    pub fn new(args: &[Value]) -> Result<Self, Error> {
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new(args: &[Value]) -> Result<Value, Error> {
         let args = scan_args::scan_args::<(&Engine,), (Option<Value>,), (), (), _, ()>(args)?;
         let kw = scan_args::get_kwargs::<_, (), (Option<&WasiCtxBuilder>,), ()>(
             args.keywords,
@@ -133,7 +134,9 @@ impl Store {
             store.retain(*s);
         }
 
-        Ok(store)
+        // Turn the store into a Value while wasi_stdout and wasi_stderr are
+        // still on the stack, otherwise they get GC'd.
+        Ok(store.into())
     }
 
     /// @yard

@@ -13,7 +13,7 @@ namespace :pkg do
     base_dir = File.join("tmp/pkg", slug)
     staging_dir = File.join(base_dir, "stage")
     unpacked_dir = File.join(base_dir, "unpacked")
-    vendor_dir = "ext/vendor"
+    vendor_dir = "ext/cargo-vendor" # this file gets cleaned up during gem install
     staging_gem_path = File.join(staging_dir, "#{slug}.gem")
 
     puts "Building source gem..."

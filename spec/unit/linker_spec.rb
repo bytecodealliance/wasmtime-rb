@@ -2,7 +2,7 @@ require "spec_helper"
 
 module Wasmtime
   RSpec.describe Linker do
-    it "allow_shadowing" do
+    it "#allow_shadowing" do
       linker = new_linker
       functype = FuncType.new([], [])
       linker.func_new("foo", "bar", functype) {}
@@ -16,7 +16,7 @@ module Wasmtime
         .not_to raise_error
     end
 
-    it "allow_unknown_exports" do
+    it "#allow_unknown_exports" do
       mod = Module.new(engine, <<~WAT)
         (module
           (func (export "_start"))
@@ -31,7 +31,7 @@ module Wasmtime
       expect(linker.module(store, "m", mod)).to be_nil
     end
 
-    it "define_unknown_imports_as_traps" do
+    it "#define_unknown_imports_as_traps" do
       mod = Module.new(engine, '(module (import "" "" (func)))')
       linker = new_linker
       expect { linker.instantiate(store, mod) }.to raise_error(Wasmtime::Error, /unknown import/)
@@ -40,90 +40,78 @@ module Wasmtime
       expect { linker.instantiate(store, mod) }.not_to raise_error
     end
 
-    it "define memory" do
-      linker = new_linker
-      store = Store.new(engine)
-      memory = Memory.new(store, MemoryType.new(1))
-      linker.define("mod", "mem", memory)
-      expect(linker.get(store, "mod", "mem").to_memory).to be_instance_of(Memory)
-    end
-
-    it "define func" do
-      linker = new_linker
-      store = Store.new(engine)
-      func = Func.new(store, FuncType.new([], [])) {}
-      linker.define("mod", "fn", func)
-      expect(linker.get(store, "mod", "fn").to_func).to be_instance_of(Func)
-    end
-
-    it "func_new accepts block" do
-      functype = FuncType.new([], [])
-
-      expect { new_linker.func_new("foo", "bar", functype) }
-        .to raise_error(ArgumentError, "no block given")
-
-      expect { new_linker.func_new("foo", "bar", functype) {} }
-        .not_to raise_error
-    end
-
-    it "func_new imports can be called" do
-      functype = FuncType.new([], [])
-      calls = 0
-      linker = new_linker
-      linker.func_new("", "", functype) do |caller|
-        calls += 1
-        expect(caller).to be_instance_of(Caller)
+    describe "#define" do
+      it "accepts memory" do
+        linker = new_linker
+        store = Store.new(engine)
+        memory = Memory.new(store, MemoryType.new(1))
+        linker.define("mod", "mem", memory)
+        expect(linker.get(store, "mod", "mem").to_memory).to be_instance_of(Memory)
       end
-      func = linker.get(Store.new(engine), "", "").to_func
-      expect { func.call }.to change { calls }.by(1)
+
+      it "accepts func" do
+        linker = new_linker
+        store = Store.new(engine)
+        func = Func.new(store, FuncType.new([], [])) {}
+        linker.define("mod", "fn", func)
+        expect(linker.get(store, "mod", "fn").to_func).to be_instance_of(Func)
+      end
     end
 
-    it "get returns nil for undefined items" do
-      linker = new_linker
-      store = Store.new(engine)
-      expect(linker.get(store, "nope", "nope")).to be_nil
+    describe "func_new" do
+      it "requires a block" do
+        functype = FuncType.new([], [])
+
+        expect { new_linker.func_new("foo", "bar", functype) }
+          .to raise_error(ArgumentError, "no block given")
+
+        expect { new_linker.func_new("foo", "bar", functype) {} }
+          .not_to raise_error
+      end
+
+      it "registers a Func that can be called" do
+        functype = FuncType.new([], [])
+        calls = 0
+        linker = new_linker
+        linker.func_new("", "", functype) do |caller|
+          calls += 1
+          expect(caller).to be_instance_of(Caller)
+        end
+        func = linker.get(Store.new(engine), "", "").to_func
+        expect { func.call }.to change { calls }.by(1)
+      end
     end
 
-    it "get can return Func" do
-      linker = new_linker
-      linker.func_new("mod", "fn", FuncType.new([], [:i32])) { 42 }
-      func = linker.get(Store.new(engine), "mod", "fn").to_func
-      expect(func).to be_instance_of(Func)
-      expect(func.call).to eq(42)
+    describe "#get" do
+      it "returns nil for undefined items" do
+        linker = new_linker
+        store = Store.new(engine)
+        expect(linker.get(store, "nope", "nope")).to be_nil
+      end
+
+      it "returns an Extern" do
+        linker = new_linker
+        linker.func_new("mod", "fn", FuncType.new([], [:i32])) { 42 }
+        extern = linker.get(Store.new(engine), "mod", "fn")
+        expect(extern).to be_instance_of(Extern)
+      end
     end
 
-    it "module" do
-      linker = new_linker
-      store = Store.new(engine)
-      mod1 = Module.new(engine, '(module (func (export "run") ))')
-      linker.module(store, "instance1", mod1)
-
-      mod2 = Module.new(engine, <<~WAT)
-        (module
-            (import "instance1" "run" (func $instance1_run))
-            (func (export "run")))
-      WAT
-
-      instance = linker.instantiate(store, mod2)
-      expect(instance).to be_instance_of(Instance)
-      expect(instance.exports).to have_key("run")
-    end
-
-    it "instance" do
+    it "#instance" do
       linker = new_linker
       mod = Module.new(engine, '(module (func (export "fn")))')
       linker.instance(store, "mod", Wasmtime::Instance.new(store, mod))
       expect(linker.get(store, "mod", "fn")).to be_truthy
     end
 
-    it "module" do
+    it "#module" do
       linker = new_linker
       store = Store.new(engine)
       linker.module(store, "mod1", Module.new(engine, '(module (func (export "fn1")))'))
       expect(linker.get(store, "mod1", "fn1")).to be_truthy
     end
 
-    it "alias" do
+    it "#alias" do
       linker = new_linker
       store = Store.new(engine)
       linker.module(store, "mod1", Module.new(engine, '(module (func (export "fn1")))'))
@@ -131,7 +119,7 @@ module Wasmtime
       expect(linker.get(store, "mod2", "fn2")).to be_truthy
     end
 
-    it "alias_module" do
+    it "#alias_module" do
       linker = new_linker
       store = Store.new(engine)
       linker.module(store, "mod1", Module.new(engine, '(module (func (export "fn1")))'))
@@ -139,14 +127,14 @@ module Wasmtime
       expect(linker.get(store, "mod2", "fn1")).to be_truthy
     end
 
-    it "instantiate" do
+    it "#instantiate" do
       linker = new_linker
       linker.func_new("", "", FuncType.new([], [])) {}
       instance = linker.instantiate(Store.new(engine), func_reexport_module)
       expect(instance).to be_instance_of(Instance)
     end
 
-    it "get_default" do
+    it "#get_default" do
       linker = new_linker
       store = Store.new(engine)
       linker.module(store, "mod1", Module.new(engine, '(module (func (export "")))'))
@@ -156,7 +144,7 @@ module Wasmtime
       expect { linker.get_default(store, "mod2") }.to raise_error(Wasmtime::Error, /not a function/)
     end
 
-    it "instance and func gc stress" do
+    it "GC stresses instance and func" do
       calls = 0
       functype = FuncType.new([], [])
       linker = new_linker

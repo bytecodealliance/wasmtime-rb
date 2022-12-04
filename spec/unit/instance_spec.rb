@@ -16,31 +16,44 @@ module Wasmtime
         expect { Wasmtime::Instance.new(store, mod, nil) }
           .not_to raise_error
       end
+
+      it "imports memory" do
+        mod = Module.new(engine, <<~WAT)
+          (module
+            (import "" "" (memory 1)))
+        WAT
+        memory = Memory.new(store, MemoryType.new(1))
+        Wasmtime::Instance.new(store, mod, [memory])
+      end
     end
 
-    it "exposes the exports" do
-      instance = compile <<~WAT
-        (module
-          (memory $module/mem 1)
-          (func $module/hello (result i32)
-            i32.const 1
+    describe "#exports" do
+      it "returns a Hash of Extern" do
+        instance = compile <<~WAT
+          (module
+            (memory $module/mem 1)
+            (func $module/hello (result i32)
+              i32.const 1
+            )
+            (export "hello" (func $module/hello))
+            (export "mem" (memory $module/mem))
           )
-          (export "hello" (func $module/hello))
-          (export "mem" (memory $module/mem))
-        )
-      WAT
+        WAT
 
-      expect(instance.exports).to include("hello" => be_a(Extern), "mem" => be_a(Extern))
-      expect(instance.exports["hello"].to_func).to be_a(Func)
-      expect(instance.exports["mem"].to_memory).to be_a(Memory)
+        expect(instance.exports).to include("hello" => be_a(Extern), "mem" => be_a(Extern))
+        expect(instance.exports["hello"].to_func).to be_a(Func)
+        expect(instance.exports["mem"].to_memory).to be_a(Memory)
+      end
     end
 
-    it "exposes export" do
-      instance = compile(<<~WAT)
-        (module
-          (func (export "f")))
-      WAT
-      expect(instance.export("f").to_func).to be_a(Func)
+    describe "export" do
+      it "returns a single Extern" do
+        instance = compile(<<~WAT)
+          (module
+            (func (export "f")))
+        WAT
+        expect(instance.export("f").to_func).to be_a(Func)
+      end
     end
 
     describe "invoke" do
@@ -70,47 +83,6 @@ module Wasmtime
         WAT
         expect(instance.invoke("main")).to eq([42, 43])
       end
-
-      it "calls a func with i32" do
-        expect(invoke_identity_function("i32", 1)).to eq(1)
-      end
-
-      it "calls a func with i32 overflow" do
-        expect { invoke_identity_function("i32", 2**50) }.to raise_error(RangeError)
-      end
-
-      it "calls a func with i64" do
-        expect(invoke_identity_function("i64", 2**50)).to eq(2**50)
-      end
-
-      it "calls a func with i64 overflow" do
-        expect { invoke_identity_function("i64", 2**65) }.to raise_error(RangeError)
-      end
-
-      it "calls a func with f32" do
-        expect(invoke_identity_function("f32", 2.0)).to eq(2.0)
-      end
-
-      it "calls a func with f32 overflow" do
-        expect(invoke_identity_function("f32", 5 * 10**40)).to eq(Float::INFINITY)
-      end
-
-      it "calls a func with f64" do
-        expect(invoke_identity_function("f64", 2.0)).to eq(2.0)
-      end
-
-      it "calls a func with f32 overflow" do
-        expect(invoke_identity_function("f32", 5 * 10**40)).to eq(Float::INFINITY)
-      end
-    end
-
-    it "imports memory" do
-      mod = Module.new(engine, <<~WAT)
-        (module
-          (import "" "" (memory 1)))
-      WAT
-      memory = Memory.new(store, MemoryType.new(1))
-      Wasmtime::Instance.new(store, mod, [memory])
     end
 
     private

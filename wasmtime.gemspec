@@ -20,12 +20,15 @@ Gem::Specification.new do |spec|
   spec.metadata["changelog_uri"] = "https://github.com/bytecodealliance/wasmtime-rb/blob/main/CHANGELOG.md"
 
   spec.files = Dir["{lib,ext}/**/*", "LICENSE", "README.md", "Cargo.*"]
+  spec.files.reject! { |f| File.directory?(f) }
   spec.bindir = "exe"
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
   spec.extensions = ["ext/extconf.rb"] # Future: ["ext/Cargo.toml"] with rubygems >= 3.3.24
 
+  spec.rdoc_options += ["--exclude", "vendor"]
+
   # Can be removed for binary gems and rubygems >= 3.3.24
-  spec.add_dependency "rb_sys", "~> 0.9.44"
+  spec.add_dependency "rb_sys", "~> 0.9.45"
 end

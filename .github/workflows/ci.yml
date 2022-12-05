@@ -23,6 +23,9 @@ jobs:
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         ruby: ${{ fromJSON(needs.ci-data.outputs.result).stable-ruby-versions }}
+        include:
+          - os: windows-latest
+            ruby: mswin
     steps:
       - uses: actions/checkout@v3
 
@@ -85,5 +88,3 @@ jobs:
       - name: Publish doc
         if: contains(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
         uses: ./.github/actions/publish-doc
-        # with:
-        #   github-token: ${{ secrets.GITHUB_TOKEN }}

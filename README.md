@@ -21,16 +21,32 @@ The Wasmtime Ruby bindings are still under development, [some features](https://
 
 ## Installation
 
-Install from RubyGems
+Add the `wasmtime` gem to your Gemfile and run `bundle install`:
 
-```shell
+```ruby
+gem "wasmtime"
+```
+
+Alternatively, you can install the gem manually:
+
+```sh
 gem install wasmtime
 ```
 
-Or use in your Gemfile:
+### Precompiled gems
 
-```ruby
-gem "wasmtime", "~> 0.3.0"
+We recommend installing the `wasmtime` precompiled gems, which are available for Linux, macOS, and Windows. This avoids the need to compile from source code, which is generally slower and less-reliable than using a precompiled gem.
+
+When installing the `wasmtime` gem for the first time using `bundle install`, Bundler will automatically download the precompiled gem for your current platform. However, you will need to inform bundler of any additional platforms that you plan to use.
+
+To do this, lock your Bundle to the required platforms you will need from the list of supported platforms below:
+
+```sh
+bundle lock --add-platform x86_64-linux # Standard Linux (e.g. Heroku, GitHub Actions, etc.)
+bundle lock --add-platform x86_64-linux-musl # MUSL Linux deployments (i.e. Alpine Linux)
+bundle lock --add-platform aarch64-linux # ARM64 Linux deployments (i.e. AWS Graviton2)
+bundle lock --add-platform x86_64-darwin # Intel MacOS (i.e. pre-M1)
+bundle lock --add-platform arm64-darwin # Apple Silicon MacOS  (i.e. M1)
 ```
 
 ## Usage

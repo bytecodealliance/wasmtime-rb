@@ -2,7 +2,7 @@ use super::root;
 use crate::{error, helpers::WrappedStruct};
 use magnus::{
     function, gc, method, DataTypeFunctions, Error, Module, Object, RArray, RHash, RString,
-    TypedData,
+    TypedData, Value,
 };
 use std::cell::RefCell;
 use std::{fs::File, path::PathBuf};
@@ -28,6 +28,7 @@ enum WriteStream {
     Inherit,
     Path(RString),
     String,
+    RubyIO(Value),
 }
 impl WriteStream {
     pub fn mark(&self) {
@@ -35,6 +36,7 @@ impl WriteStream {
             Self::Inherit => (),
             Self::Path(v) => gc::mark(*v),
             Self::String => (),
+            Self::RubyIO(v) => gc::mark(v),
         }
     }
 }
@@ -161,6 +163,17 @@ impl WasiCtxBuilder {
     }
 
     /// @yard
+    /// Set stdout to write to an IO object.
+    /// @param path [IO] The +IO+ object.
+    /// @def set_stdout_io(path)
+    /// @return [WasiCtxBuilder] +self+
+    pub fn set_stdout_io(rb_self: RbSelf, io: Value) -> Result<RbSelf, Error> {
+        let mut inner = rb_self.get()?.inner.borrow_mut();
+        inner.stdout = Some(WriteStream::RubyIO(io));
+        Ok(rb_self)
+    }
+
+    /// @yard
     /// Inherit stderr from the current Ruby process.
     /// @return [WasiCtxBuilder] +self+
     pub fn inherit_stderr(rb_self: RbSelf) -> Result<RbSelf, Error> {
@@ -191,6 +204,17 @@ impl WasiCtxBuilder {
     }
 
     /// @yard
+    /// Set stderr to write to an IO object.
+    /// @param path [IO] The +IO+ object.
+    /// @def set_stderr_io(path)
+    /// @return [WasiCtxBuilder] +self+
+    pub fn set_stderr_io(rb_self: RbSelf, io: Value) -> Result<RbSelf, Error> {
+        let mut inner = rb_self.get()?.inner.borrow_mut();
+        inner.stderr = Some(WriteStream::RubyIO(io));
+        Ok(rb_self)
+    }
+
+    /// @yard
     /// Set env to the specified +Hash+.
     /// @param env [Hash<String, String>]
     /// @def set_env(env)
@@ -214,11 +238,11 @@ impl WasiCtxBuilder {
 
     pub fn build_context(
         &self,
-    ) -> Result<(wasmtime_wasi::WasiCtx, Option<RString>, Option<RString>), Error> {
+    ) -> Result<(wasmtime_wasi::WasiCtx, Option<Value>, Option<Value>), Error> {
         let mut builder = wasmtime_wasi::WasiCtxBuilder::new();
         let inner = self.inner.borrow();
-        let mut stdout_string: Option<RString> = None;
-        let mut stderr_string: Option<RString> = None;
+        let mut stdout_string: Option<Value> = None;
+        let mut stderr_string: Option<Value> = None;
 
         if let Some(stdin) = inner.stdin.as_ref() {
             builder = match stdin {
@@ -238,8 +262,12 @@ impl WasiCtxBuilder {
                 WriteStream::Path(path) => builder.stdout(file_w(*path).map(wasi_file)?),
                 WriteStream::String => {
                     let string = RString::buf_new(0);
-                    stdout_string = Some(string);
+                    stdout_string = Some(string.into());
                     builder.stdout(Box::new(WritePipe::new(string)))
+                }
+                WriteStream::RubyIO(v) => {
+                    stdout_string = Some(*v);
+                    builder.stdout(Box::new(WritePipe::new(IOWrapper(*v))))
                 }
             }
         }
@@ -250,8 +278,12 @@ impl WasiCtxBuilder {
                 WriteStream::Path(path) => builder.stderr(file_w(*path).map(wasi_file)?),
                 WriteStream::String => {
                     let string = RString::buf_new(0);
-                    stderr_string = Some(string);
+                    stderr_string = Some(string.into());
                     builder.stderr(Box::new(WritePipe::new(string)))
+                }
+                WriteStream::RubyIO(v) => {
+                    stderr_string = Some(*v);
+                    builder.stderr(Box::new(WritePipe::new(IOWrapper(*v))))
                 }
             }
         }
@@ -292,6 +324,37 @@ fn wasi_file(file: File) -> Box<wasi_cap_std_sync::file::File> {
     Box::new(file)
 }
 
+#[repr(transparent)]
+struct IOWrapper(Value);
+
+impl std::io::Write for IOWrapper {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        self.0
+            .funcall("write", (RString::from_slice(buf),))
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("{}", e)))
+            .and_then(|written: Value| {
+                let s = written.try_convert::<usize>();
+                s.map_err(|_| {
+                    std::io::Error::new(
+                        std::io::ErrorKind::Other,
+                        format!(
+                            "{}#write return value not an int ({})",
+                            unsafe { self.0.classname() },
+                            unsafe { written.classname() },
+                        ),
+                    )
+                })
+            })
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.0
+            .funcall("flush", ())
+            .map(|_: Value| ())
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("{}", e)))
+    }
+}
+
 pub fn init() -> Result<(), Error> {
     let class = root().define_class("WasiCtxBuilder", Default::default())?;
     class.define_singleton_method("new", function!(WasiCtxBuilder::new, 0))?;
@@ -312,6 +375,7 @@ pub fn init() -> Result<(), Error> {
         "set_stdout_string",
         method!(WasiCtxBuilder::set_stdout_string, 0),
     )?;
+    class.define_method("set_stdout_io", method!(WasiCtxBuilder::set_stdout_io, 1))?;
 
     class.define_method("inherit_stderr", method!(WasiCtxBuilder::inherit_stderr, 0))?;
     class.define_method(
@@ -322,6 +386,7 @@ pub fn init() -> Result<(), Error> {
         "set_stderr_string",
         method!(WasiCtxBuilder::set_stderr_string, 0),
     )?;
+    class.define_method("set_stderr_io", method!(WasiCtxBuilder::set_stderr_io, 1))?;
 
     class.define_method("set_env", method!(WasiCtxBuilder::set_env, 1))?;
 

@@ -64,4 +64,39 @@ namespace :bench do
       end
     end
   end
+
+  task "wasi" do
+    require "stringio"
+    engine = Wasmtime::Engine.new
+    mod = Wasmtime::Module.from_file(engine, "examples/wasi-stdout-stress.wasm")
+    linker = Wasmtime::Linker.new(engine, wasi: true)
+    wasi_ctx_string = Wasmtime::WasiCtxBuilder.new
+      .set_stdout_string
+      .set_stderr_string
+
+    wasi_ctx_io = Wasmtime::WasiCtxBuilder.new
+
+    Benchmark.ips do |x|
+      x.report("string") do
+        store = Wasmtime::Store.new(engine, wasi_ctx: wasi_ctx_string)
+        linker.instantiate(store, mod).invoke("_start")
+        store.wasi_stdout_string
+        store.wasi_stderr_string
+      end
+
+      x.report("io") do
+        stdout = StringIO.new
+        stderr = StringIO.new
+        wasi_ctx_io
+          .set_stdout_io(stdout)
+          .set_stderr_io(stderr)
+        store = Wasmtime::Store.new(engine, wasi_ctx: wasi_ctx_string)
+        linker.instantiate(store, mod).invoke("_start")
+        stdout.rewind
+        stderr.rewind
+      end
+
+      x.compare!
+    end
+  end
 end

@@ -4,7 +4,7 @@ use crate::{define_rb_intern, error, helpers::WrappedStruct};
 use magnus::Class;
 use magnus::{
     exception::Exception, function, method, scan_args, value::BoxValue, DataTypeFunctions, Error,
-    Module, Object, RString, TypedData, Value, QNIL,
+    Module, Object, TypedData, Value, QNIL,
 };
 use std::cell::{RefCell, UnsafeCell};
 use std::convert::TryFrom;
@@ -19,8 +19,8 @@ pub struct StoreData {
     user_data: Value,
     host_exception: HostException,
     wasi: Option<WasiCtx>,
-    wasi_stdout_string: Option<RString>,
-    wasi_stderr_string: Option<RString>,
+    wasi_stdout_string: Option<Value>,
+    wasi_stderr_string: Option<Value>,
 }
 
 type BoxedException = BoxValue<Exception>;
@@ -128,10 +128,10 @@ impl Store {
 
         store.retain(user_data);
         if let Some(s) = wasi_stdout_string {
-            store.retain(*s);
+            store.retain(s);
         }
         if let Some(s) = wasi_stderr_string {
-            store.retain(*s);
+            store.retain(s);
         }
 
         // Turn the store into a Value while wasi_stdout and wasi_stderr are
@@ -180,14 +180,14 @@ impl Store {
             .map_err(|e| error!("{}", e))
     }
 
-    pub fn wasi_stdout_string(&self) -> Result<RString, Error> {
+    pub fn wasi_stdout_string(&self) -> Result<Value, Error> {
         self.context()
             .data()
             .wasi_stdout_string
             .ok_or_else(|| error!("stdout not configured to use String"))
     }
 
-    pub fn wasi_stderr_string(&self) -> Result<RString, Error> {
+    pub fn wasi_stderr_string(&self) -> Result<Value, Error> {
         self.context()
             .data()
             .wasi_stderr_string

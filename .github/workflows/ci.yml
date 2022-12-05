@@ -56,6 +56,9 @@ jobs:
       - name: Run examples
         run: bundle exec rake examples
 
+      - name: Run benchmarks
+        run: bundle exec rake bench:all
+
       - name: Lint ruby
         run: bundle exec rake standard
 

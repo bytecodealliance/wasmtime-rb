@@ -8,6 +8,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     ast (2.4.2)
+    benchmark-ips (2.10.0)
     diff-lcs (1.5.0)
     ffi (1.15.5)
     ffi (1.15.5-x64-mingw-ucrt)
@@ -84,6 +85,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  benchmark-ips
   get_process_mem
   rake (~> 13.0)
   rake-compiler

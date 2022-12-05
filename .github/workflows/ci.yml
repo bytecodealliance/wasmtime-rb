@@ -47,6 +47,9 @@ jobs:
         env:
           GC_STRESS: "true"
 
+      - name: Run examples
+        run: bundle exec rake examples
+
       - name: Lint ruby
         run: bundle exec rake standard
 

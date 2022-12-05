@@ -79,14 +79,29 @@
 
 <h2 id="label-Installation">Installation</h2>
 
-<p>Install from RubyGems</p>
+<p>Add the <code>wasmtime</code> gem to your Gemfile and run <code>bundle install</code>:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_gem'>gem</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>wasmtime</span><span class='tstring_end'>&quot;</span></span>
+</code></pre>
+
+<p>Alternatively, you can install the gem manually:</p>
 
 <pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_gem'>gem</span> <span class='id identifier rubyid_install'>install</span> <span class='id identifier rubyid_wasmtime'>wasmtime</span>
 </code></pre>
 
-<p>Or use in your Gemfile:</p>
+<h3 id="label-Precompiled+gems">Precompiled gems</h3>
 
-<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_gem'>gem</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>wasmtime</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>~&gt; 0.3.0</span><span class='tstring_end'>&quot;</span></span>
+<p>We recommend installing the <code>wasmtime</code> precompiled gems available for Linux, macOS, and Windows. Installing a precompiled gem avoids the need to compile from source code, which is generally slower and less reliable.</p>
+
+<p>When installing the <code>wasmtime</code> gem for the first time using <code>bundle install</code>, Bundler will automatically download the precompiled gem for your current platform. However, you will need to inform Bundler of any additional platforms you plan to use.</p>
+
+<p>To do this, lock your Bundle to the required platforms you will need from the list of supported platforms below:</p>
+
+<pre class="code ruby"><code class="ruby">bundle lock --add-platform x86_64-linux # Standard Linux (e.g. Heroku, GitHub Actions, etc.)
+bundle lock --add-platform x86_64-linux-musl # MUSL Linux deployments (i.e. Alpine Linux)
+bundle lock --add-platform aarch64-linux # ARM64 Linux deployments (i.e. AWS Graviton2)
+bundle lock --add-platform x86_64-darwin # Intel MacOS (i.e. pre-M1)
+bundle lock --add-platform arm64-darwin # Apple Silicon MacOS  (i.e. M1)
 </code></pre>
 
 <h2 id="label-Usage">Usage</h2>
@@ -132,7 +147,7 @@
 </div></div>
 
       <div id="footer">
-  Generated on Mon Dec  5 15:56:25 2022 by
+  Generated on Mon Dec  5 17:46:55 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

@@ -247,6 +247,11 @@ impl<'a> StoreContextValue<'a> {
             Err(e) => e,
         }
     }
+
+    pub fn retain(&self, value: Value) -> Result<(), Error> {
+        self.context_mut()?.data_mut().retain(value);
+        Ok(())
+    }
 }
 
 pub fn init() -> Result<(), Error> {

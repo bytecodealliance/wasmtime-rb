@@ -29,7 +29,7 @@ impl ToRubyValue for Val {
                 None => Ok(magnus::QNIL.into()),
                 Some(eref) => eref
                     .data()
-                    .downcast_ref::<OnStackValue>()
+                    .downcast_ref::<RbExternRef>()
                     .map(|v| v.0)
                     .ok_or_else(|| error!("failed to extract externref")),
             },
@@ -55,25 +55,31 @@ impl ToWasmVal for Value {
             ValType::ExternRef => {
                 let extern_ref_value = match self.is_nil() {
                     true => None,
-                    false => Some(ExternRef::new(OnStackValue::from(*self))),
+                    false => Some(ExternRef::new(RbExternRef::from(*self))),
                 };
 
                 Ok(Val::ExternRef(extern_ref_value))
             }
-            ValType::FuncRef => Ok(Val::FuncRef(Some(*self.try_convert::<&Func>()?.inner()))),
+            ValType::FuncRef => {
+                let func_ref_value = match self.is_nil() {
+                    true => None,
+                    false => Some(*self.try_convert::<&Func>()?.inner()),
+                };
+                Ok(Val::FuncRef(func_ref_value))
+            }
             ValType::V128 => err!("converting from Ruby to v128 not supported"),
         }
     }
 }
 
-struct OnStackValue(Value);
-impl From<Value> for OnStackValue {
+struct RbExternRef(Value);
+impl From<Value> for RbExternRef {
     fn from(v: Value) -> Self {
         Self(v)
     }
 }
-unsafe impl Send for OnStackValue {}
-unsafe impl Sync for OnStackValue {}
+unsafe impl Send for RbExternRef {}
+unsafe impl Sync for RbExternRef {}
 
 pub trait ToExtern {
     fn to_extern(&self) -> Result<wasmtime::Extern, Error>;

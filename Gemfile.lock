@@ -93,7 +93,7 @@ DEPENDENCIES
   standard (~> 1.19)
   wasmtime!
   yard
-  yard-rustdoc (~> 0.3)
+  yard-rustdoc (~> 0.3.2)
 
 BUNDLED WITH
    2.3.24

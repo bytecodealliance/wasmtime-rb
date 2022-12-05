@@ -19,10 +19,10 @@ YARD::Rake::YardocTask.new do |t|
       case yard_object.type
       when :module
         mod = Object.const_get(yard_object.path)
-        errors << "Not a module: #{mod.path}" unless mod.is_a?(::Module)
+        errors << "Not a module: #{mod}" unless mod.is_a?(::Module)
       when :class
         klass = Object.const_get(yard_object.path)
-        errors << "Not a class: #{klass.path}" unless klass.is_a?(::Class)
+        errors << "Not a class: #{klass}" unless klass.is_a?(::Class)
       when :method
         namespace = Object.const_get(yard_object.namespace.path)
         case yard_object.scope

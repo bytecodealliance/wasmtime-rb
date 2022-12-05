@@ -2,7 +2,7 @@
 #![allow(rustdoc::invalid_html_tags)]
 #![allow(rustdoc::bare_urls)]
 #![allow(rustdoc::invalid_rust_codeblocks)]
-use magnus::{define_module, memoize, Error, RModule};
+use magnus::{define_module, function, memoize, Error, RModule, RString};
 
 mod config;
 mod convert;
@@ -28,8 +28,27 @@ pub fn root() -> RModule {
     *memoize!(RModule: define_module("Wasmtime").unwrap())
 }
 
+// This Struct is a placeholder for documentation, so that we can hang methods
+// to it and have yard-rustdoc discover them.
+/// @yard
+/// @module
+pub struct Wasmtime;
+impl Wasmtime {
+    /// @yard
+    /// Converts a WAT +String+ into Wasm.
+    /// @param wat [String]
+    /// @def wat2wasm(wat)
+    /// @return [String] The Wasm represented as a binary +String+.
+    pub fn wat2wasm(wat: RString) -> Result<RString, Error> {
+        wat::parse_str(unsafe { wat.as_str()? })
+            .map(|bytes| RString::from_slice(bytes.as_slice()))
+            .map_err(|e| crate::error!("{}", e))
+    }
+}
+
 pub fn init() -> Result<(), Error> {
-    let _ = root();
+    let wasmtime = root();
+    wasmtime.define_module_function("wat2wasm", function!(Wasmtime::wat2wasm, 1))?;
 
     errors::init()?;
     trap::init()?;

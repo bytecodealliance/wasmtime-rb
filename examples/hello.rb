@@ -2,7 +2,8 @@ require "wasmtime"
 
 engine = Wasmtime::Engine.new
 mod = Wasmtime::Module.from_file(engine, "examples/hello.wat")
-store = Wasmtime::Store.new(engine, {count: 0})
+data = {count: 0}
+store = Wasmtime::Store.new(engine, data)
 func = Wasmtime::Func.new(store, Wasmtime::FuncType.new([], [])) do |caller|
   puts "Hello from Func!"
   caller.store_data[:count] += 1

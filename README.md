@@ -35,9 +35,9 @@ gem install wasmtime
 
 ### Precompiled gems
 
-We recommend installing the `wasmtime` precompiled gems, which are available for Linux, macOS, and Windows. This avoids the need to compile from source code, which is generally slower and less-reliable than using a precompiled gem.
+We recommend installing the `wasmtime` precompiled gems available for Linux, macOS, and Windows. Installing a precompiled gem avoids the need to compile from source code, which is generally slower and less reliable.
 
-When installing the `wasmtime` gem for the first time using `bundle install`, Bundler will automatically download the precompiled gem for your current platform. However, you will need to inform bundler of any additional platforms that you plan to use.
+When installing the `wasmtime` gem for the first time using `bundle install`, Bundler will automatically download the precompiled gem for your current platform. However, you will need to inform Bundler of any additional platforms you plan to use.
 
 To do this, lock your Bundle to the required platforms you will need from the list of supported platforms below:
 

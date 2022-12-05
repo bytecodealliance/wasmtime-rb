@@ -3,9 +3,6 @@ name: CI
 
 on: push
 
-env:
-  AR_x86_64_pc_windows_msvc: lib
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true

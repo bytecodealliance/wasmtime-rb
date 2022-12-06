@@ -44,7 +44,7 @@ impl Instance {
         let (s, module) = args.required;
         let wrapped_store: WrappedStruct<Store> = s.try_convert()?;
         let store = wrapped_store.get()?;
-        let context = store.context_mut();
+        let mut context = store.context_mut();
         let imports = args
             .optional
             .0
@@ -56,7 +56,7 @@ impl Instance {
                 let mut imports = Vec::with_capacity(arr.len());
                 for import in arr.each() {
                     let import = import?;
-                    store.retain(import);
+                    context.data_mut().retain(import);
                     imports.push(import.to_extern()?);
                 }
                 imports

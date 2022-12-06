@@ -3,10 +3,10 @@ use super::{engine::Engine, func::Caller, root, trap::Trap, wasi_ctx_builder::Wa
 use crate::{define_rb_intern, error, helpers::WrappedStruct};
 use magnus::Class;
 use magnus::{
-    exception::Exception, function, method, scan_args, value::BoxValue, DataTypeFunctions, Error,
-    Module, Object, TypedData, Value, QNIL,
+    exception::Exception, function, gc, method, scan_args, value::BoxValue, DataTypeFunctions,
+    Error, Module, Object, TypedData, Value, QNIL,
 };
-use std::cell::{RefCell, UnsafeCell};
+use std::cell::UnsafeCell;
 use std::convert::TryFrom;
 use wasmtime::{AsContext, AsContextMut, Store as StoreImpl, StoreContext, StoreContextMut};
 use wasmtime_wasi::{I32Exit, WasiCtx};
@@ -19,6 +19,7 @@ pub struct StoreData {
     user_data: Value,
     host_exception: HostException,
     wasi: Option<WasiCtx>,
+    refs: Vec<Value>,
 }
 
 type BoxedException = BoxValue<Exception>;
@@ -54,6 +55,15 @@ impl StoreData {
     pub fn wasi_ctx_mut(&mut self) -> &mut WasiCtx {
         self.wasi.as_mut().expect("Store must have a WASI context")
     }
+
+    pub fn retain(&mut self, value: Value) {
+        self.refs.push(value);
+    }
+
+    pub fn mark(&self) {
+        gc::mark(&self.user_data);
+        self.refs.iter().for_each(gc::mark);
+    }
 }
 
 /// @yard
@@ -63,12 +73,11 @@ impl StoreData {
 #[magnus(class = "Wasmtime::Store", size, mark, free_immediatly)]
 pub struct Store {
     inner: UnsafeCell<StoreImpl<StoreData>>,
-    refs: RefCell<Vec<Value>>,
 }
 
 impl DataTypeFunctions for Store {
     fn mark(&self) {
-        self.refs.borrow().iter().for_each(magnus::gc::mark);
+        self.context().data().mark();
     }
 }
 
@@ -112,13 +121,11 @@ impl Store {
             user_data,
             host_exception: HostException::default(),
             wasi,
+            refs: Default::default(),
         };
         let store = Self {
             inner: UnsafeCell::new(StoreImpl::new(eng, store_data)),
-            refs: Default::default(),
         };
-
-        store.retain(user_data);
 
         Ok(store)
     }
@@ -173,7 +180,7 @@ impl Store {
     }
 
     pub fn retain(&self, value: Value) {
-        self.refs.borrow_mut().push(value);
+        self.context_mut().data_mut().retain(value);
     }
 
     fn inner_ref(&self) -> &StoreImpl<StoreData> {

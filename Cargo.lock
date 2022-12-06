@@ -523,21 +523,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ext"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "cap-std",
- "lazy_static",
- "magnus",
- "rb-sys",
- "wasi-cap-std-sync",
- "wasi-common",
- "wasmtime",
- "wasmtime-wasi",
-]
-
-[[package]]
 name = "fallible-iterator"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1565,6 +1550,22 @@ dependencies = [
  "cfg-if",
  "libc",
  "windows-sys 0.36.1",
+]
+
+[[package]]
+name = "wasmtime-rb"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "cap-std",
+ "lazy_static",
+ "magnus",
+ "rb-sys",
+ "rb-sys-env",
+ "wasi-cap-std-sync",
+ "wasi-common",
+ "wasmtime",
+ "wasmtime-wasi",
 ]
 
 [[package]]

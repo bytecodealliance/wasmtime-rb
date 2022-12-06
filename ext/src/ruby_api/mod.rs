@@ -23,6 +23,19 @@ mod store;
 mod trap;
 mod wasi_ctx_builder;
 
+pub use engine::Engine;
+pub use func::Func;
+pub use func_type::FuncType;
+pub use instance::Instance;
+pub use linker::Linker;
+pub use memory::Memory;
+pub use memory_type::MemoryType;
+pub use module::Module;
+pub use params::Params;
+pub use store::Store;
+pub use trap::Trap;
+pub use wasi_ctx_builder::WasiCtxBuilder;
+
 /// The "Wasmtime" Ruby module.
 pub fn root() -> RModule {
     *memoize!(RModule: define_module("Wasmtime").unwrap())

@@ -1,7 +1,8 @@
 use magnus::Error;
-
 mod helpers;
 mod ruby_api;
+
+pub use ruby_api::*;
 
 #[magnus::init]
 fn init() -> Result<(), Error> {

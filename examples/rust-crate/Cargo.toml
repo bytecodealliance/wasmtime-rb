@@ -1,0 +1,14 @@
+[package]
+name = "rust-crate"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+doctest = false
+
+[dependencies]
+wasmtime-rb = { path = "../../ext" }
+
+[dev-dependencies]
+magnus = { version = "*", features = ["embed"] } # Only need embed feature for tests
+wasmtime-rb = { path = "../../ext", features = ["embed"] } # Only need embed feature for tests

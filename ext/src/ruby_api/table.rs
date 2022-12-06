@@ -69,6 +69,10 @@ impl<'a> Table<'a> {
         Ok(table)
     }
 
+    pub fn from_inner(store: StoreContextValue<'a>, inner: TableImpl) -> Self {
+        Self { store, inner }
+    }
+
     /// @yard
     /// Returns the table element value at +index+, or +nil+ if index is out of bound.
     ///

@@ -7,6 +7,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  RSPEC_FORMATTER: doc
+
 jobs:
   ci-data:
     runs-on: ubuntu-latest

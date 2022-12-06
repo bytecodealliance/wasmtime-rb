@@ -65,7 +65,7 @@ namespace :mem do
 
       RubyMemcheck.config(binary_name: "ext")
 
-      RubyMemcheck::RSpec::RakeTask.new(check: "compile:release")
+      RubyMemcheck::RSpec::RakeTask.new(check: "compile:dev")
     rescue LoadError
       task :check do
         abort 'Please add `gem "ruby_memcheck"` to your Gemfile to use the "mem:check" task'

@@ -45,7 +45,9 @@ RSpec.configure do |config|
 
   # So memcheck steps can still pass if RSpec fails
   config.failure_exit_code = ENV.fetch("RSPEC_FAILURE_EXIT_CODE", 1).to_i
-  config.default_formatter = ENV.fetch("RSPEC_FORMATTER", "doc")
+  config.default_formatter = ENV.fetch("RSPEC_FORMATTER") do
+    config.files_to_run.one? ? "doc" : "progress"
+  end
 
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = ".rspec_status" unless ENV["CI"]

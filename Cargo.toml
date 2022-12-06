@@ -1,2 +1,7 @@
 [workspace]
 members = ["ext"]
+
+[profile.release]
+codegen-units = 1
+debug = 1
+strip = true

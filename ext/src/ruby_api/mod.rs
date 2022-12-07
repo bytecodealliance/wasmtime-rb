@@ -11,6 +11,7 @@ mod errors;
 mod externals;
 mod func;
 mod func_type;
+mod global_type;
 mod instance;
 mod linker;
 mod macros;
@@ -68,6 +69,7 @@ pub fn init() -> Result<(), Error> {
     wasi_ctx_builder::init()?;
     table::init()?;
     table_type::init()?;
+    global_type::init()?;
 
     Ok(())
 }

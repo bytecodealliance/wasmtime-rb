@@ -9,6 +9,7 @@ concurrency:
 
 env:
   RSPEC_FORMATTER: doc
+  RB_SYS_CARGO_TARGET_DIR: ${{ github.workspace }}/target # shared across all jobs
 
 jobs:
   ci-data:
@@ -40,7 +41,7 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
           cargo-cache: true
-          cache-version: v2
+          cache-version: v3
 
       - name: Compile rust ext
         run: bundle exec rake compile:release

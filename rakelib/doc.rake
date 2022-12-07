@@ -62,7 +62,7 @@ namespace :doc do
         --document-private-items
     CMD
 
-    cp "tmp/doc/target/doc/wasmtime-rb.json", "tmp/doc/wasmtime-rb.json"
+    cp "tmp/doc/target/doc/wasmtime_rb.json", "tmp/doc/wasmtime_rb.json"
   end
 end
 

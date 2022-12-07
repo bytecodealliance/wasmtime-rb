@@ -7,6 +7,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  RSPEC_FORMATTER: doc
+
 jobs:
   ci-data:
     runs-on: ubuntu-latest
@@ -37,10 +40,10 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
           cargo-cache: true
-          cache-version: v1
+          cache-version: v2
 
       - name: Compile rust ext
-        run: bundle exec rake compile
+        run: bundle exec rake compile:release
 
       - name: Run ruby tests
         run: bundle exec rake spec

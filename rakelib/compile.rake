@@ -17,3 +17,11 @@ Rake::ExtensionTask.new("wasmtime_rb", GEMSPEC) do |ext|
     gem_spec.files -= Dir[SOURCE_PATTERN, "**/Cargo.*", "**/extconf.rb"]
   end
 end
+
+namespace :compile do
+  desc 'Compile the extension in "release" mode'
+  task release: ["env:release", "compile"]
+
+  desc 'Compile the extension in "dev" mode'
+  task dev: ["env:dev", "compile"]
+end

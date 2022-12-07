@@ -1,5 +1,5 @@
 use super::errors::wasi_exit_error;
-use super::{engine::Engine, func::Caller, root, trap::Trap, wasi_ctx_builder::WasiCtxBuilder};
+use super::{caller::Caller, engine::Engine, root, trap::Trap, wasi_ctx_builder::WasiCtxBuilder};
 use crate::{define_rb_intern, error, helpers::WrappedStruct};
 use magnus::Class;
 use magnus::{

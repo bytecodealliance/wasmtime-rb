@@ -6,4 +6,4 @@ GEMSPEC = Gem::Specification.load("wasmtime.gemspec")
 
 task build: "pkg:ruby"
 
-task default: %i[compile spec standard]
+task default: %w[env:dev compile spec standard]

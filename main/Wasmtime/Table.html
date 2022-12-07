@@ -396,7 +396,7 @@ pub fn new(
         inner,
     };
 
-    table.retain_extern_ref(default)?;
+    table.retain_non_nil_extern_ref(default)?;
 
     Ok(table)
 }</pre>
@@ -574,7 +574,7 @@ pub fn grow(&amp;self, delta: u32, initial: Value) -&gt; Result&lt;u32, Error&gt
         )
         .map_err(|e| error!(&quot;{}&quot;, e))
         .and_then(|result| {
-            self.retain_extern_ref(initial)?;
+            self.retain_non_nil_extern_ref(initial)?;
             Ok(result)
         })
 }</pre>
@@ -661,7 +661,7 @@ pub fn set(&amp;self, index: u32, value: Value) -&gt; Result&lt;(), Error&gt; {
         )
         .map_err(|e| error!(&quot;{}&quot;, e))
         .and_then(|result| {
-            self.retain_extern_ref(value)?;
+            self.retain_non_nil_extern_ref(value)?;
             Ok(result)
         })
 }</pre>
@@ -786,7 +786,7 @@ pub fn ty(&amp;self) -&gt; Result&lt;TableType, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Dec  6 23:53:56 2022 by
+  Generated on Wed Dec  7 21:11:22 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

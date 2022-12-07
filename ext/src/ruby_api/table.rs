@@ -64,7 +64,7 @@ impl<'a> Table<'a> {
             inner,
         };
 
-        table.retain_extern_ref(default)?;
+        table.retain_non_nil_extern_ref(default)?;
 
         Ok(table)
     }
@@ -102,7 +102,7 @@ impl<'a> Table<'a> {
             )
             .map_err(|e| error!("{}", e))
             .and_then(|result| {
-                self.retain_extern_ref(value)?;
+                self.retain_non_nil_extern_ref(value)?;
                 Ok(result)
             })
     }
@@ -124,7 +124,7 @@ impl<'a> Table<'a> {
             )
             .map_err(|e| error!("{}", e))
             .and_then(|result| {
-                self.retain_extern_ref(initial)?;
+                self.retain_non_nil_extern_ref(initial)?;
                 Ok(result)
             })
     }
@@ -145,7 +145,7 @@ impl<'a> Table<'a> {
         Ok(self.inner.ty(self.store.context()?).element())
     }
 
-    fn retain_extern_ref(&self, value: Value) -> Result<(), Error> {
+    fn retain_non_nil_extern_ref(&self, value: Value) -> Result<(), Error> {
         if wasmtime::ValType::ExternRef == self.value_type()? && !value.is_nil() {
             self.store.retain(value)?;
         }

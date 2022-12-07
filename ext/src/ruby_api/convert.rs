@@ -29,7 +29,7 @@ impl ToRubyValue for Val {
                 None => Ok(magnus::QNIL.into()),
                 Some(eref) => eref
                     .data()
-                    .downcast_ref::<RbExternRef>()
+                    .downcast_ref::<ExternRefValue>()
                     .map(|v| v.0)
                     .ok_or_else(|| error!("failed to extract externref")),
             },
@@ -55,7 +55,7 @@ impl ToWasmVal for Value {
             ValType::ExternRef => {
                 let extern_ref_value = match self.is_nil() {
                     true => None,
-                    false => Some(ExternRef::new(RbExternRef::from(*self))),
+                    false => Some(ExternRef::new(ExternRefValue::from(*self))),
                 };
 
                 Ok(Val::ExternRef(extern_ref_value))
@@ -72,14 +72,14 @@ impl ToWasmVal for Value {
     }
 }
 
-struct RbExternRef(Value);
-impl From<Value> for RbExternRef {
+struct ExternRefValue(Value);
+impl From<Value> for ExternRefValue {
     fn from(v: Value) -> Self {
         Self(v)
     }
 }
-unsafe impl Send for RbExternRef {}
-unsafe impl Sync for RbExternRef {}
+unsafe impl Send for ExternRefValue {}
+unsafe impl Sync for ExternRefValue {}
 
 pub trait ToExtern {
     fn to_extern(&self) -> Result<wasmtime::Extern, Error>;
@@ -148,7 +148,7 @@ impl ToValType for Value {
         }
 
         err!(
-            "invalid Webassembly type, expected one of [:i32, :i64, :f32, :f64, :v128, :funcref, :externref], got {:}",
+            "invalid WebAssembly type, expected one of [:i32, :i64, :f32, :f64, :v128, :funcref, :externref], got {:}",
             self.inspect()
         )
     }

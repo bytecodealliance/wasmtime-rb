@@ -17,7 +17,7 @@ module Wasmtime
 
     it "raises on invalid Wasm type" do
       expect { TableType.new(:nope, 1) }
-        .to raise_error(Wasmtime::Error, /invalid Webassembly type/)
+        .to raise_error(Wasmtime::Error, /invalid WebAssembly type/)
     end
   end
 end

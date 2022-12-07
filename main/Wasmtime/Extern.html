@@ -180,6 +180,30 @@
 </li>
 
       
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#to_table-instance_method" title="#to_table (instance method)">#<strong>to_table</strong>  &#x21d2; Table </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the exported table or raises a ‘<span class='object_link'><a href="ConversionError.html" title="Wasmtime::ConversionError (class)">ConversionError</a></span>` when the export is not a table.</p>
+</div></span>
+  
+</li>
+
+      
     </ul>
   
 
@@ -233,15 +257,15 @@
       <pre class="lines">
 
 
-50
-51
-52
 53
 54
-55</pre>
+55
+56
+57
+58</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/externals.rs', line 50</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/externals.rs', line 53</span>
 
 pub fn to_func(rb_self: WrappedStruct&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
     match rb_self.get()? {
@@ -298,19 +322,84 @@ pub fn to_func(rb_self: WrappedStruct&lt;Self&gt;) -&gt; Result&lt;Value, Error&
       <pre class="lines">
 
 
-61
-62
-63
 64
 65
-66</pre>
+66
+67
+68
+69</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/externals.rs', line 61</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/externals.rs', line 64</span>
 
 pub fn to_memory(rb_self: WrappedStruct&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
     match rb_self.get()? {
-        Extern::Memory(f) =&gt; Ok(f.to_value()),
+        Extern::Memory(m) =&gt; Ok(m.to_value()),
+        _ =&gt; conversion_err!(Self::inner_class(rb_self)?, Memory::class()),
+    }
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="to_table-instance_method">
+  
+    #<strong>to_table</strong>  &#x21d2; <tt><span class='object_link'><a href="Table.html" title="Wasmtime::Table (class)">Table</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns the exported table or raises a ‘<span class='object_link'><a href="ConversionError.html" title="Wasmtime::ConversionError (class)">ConversionError</a></span>` when the export is not a table.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="Table.html" title="Wasmtime::Table (class)">Table</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The exported table.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+74
+75
+76
+77
+78
+79</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/externals.rs', line 74</span>
+
+pub fn to_table(rb_self: WrappedStruct&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
+    match rb_self.get()? {
+        Extern::Table(t) =&gt; Ok(t.to_value()),
         _ =&gt; conversion_err!(Self::inner_class(rb_self)?, Memory::class()),
     }
 }</pre>
@@ -324,7 +413,7 @@ pub fn to_memory(rb_self: WrappedStruct&lt;Self&gt;) -&gt; Result&lt;Value, Erro
 </div>
 
       <div id="footer">
-  Generated on Mon Dec  5 18:29:16 2022 by
+  Generated on Tue Dec  6 23:53:56 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

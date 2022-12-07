@@ -309,13 +309,13 @@
       <pre class="lines">
 
 
-45
-46
-47
-48</pre>
+37
+38
+39
+40</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func_type.rs', line 45</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func_type.rs', line 37</span>
 
 pub fn new(params: RArray, results: RArray) -&gt; Result&lt;Self, Error&gt; {
     let inner = FuncTypeImpl::new(params.to_val_type_vec()?, results.to_val_type_vec()?);
@@ -376,12 +376,12 @@ pub fn new(params: RArray, results: RArray) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-52
-53
-54</pre>
+44
+45
+46</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func_type.rs', line 52</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func_type.rs', line 44</span>
 
 pub fn params(&amp;self) -&gt; Vec&lt;Symbol&gt; {
     self.get().params().map(ToSym::to_sym).collect()
@@ -435,13 +435,13 @@ pub fn params(&amp;self) -&gt; Vec&lt;Symbol&gt; {
       <pre class="lines">
 
 
-58
-59
-60
-61</pre>
+50
+51
+52
+53</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func_type.rs', line 58</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func_type.rs', line 50</span>
 
 pub fn results(&amp;self) -&gt; Vec&lt;Symbol&gt; {
         self.get().results().map(ToSym::to_sym).collect()
@@ -457,7 +457,7 @@ pub fn results(&amp;self) -&gt; Vec&lt;Symbol&gt; {
 </div>
 
       <div id="footer">
-  Generated on Mon Dec  5 18:29:16 2022 by
+  Generated on Tue Dec  6 23:53:56 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

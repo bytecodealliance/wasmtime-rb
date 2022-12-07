@@ -4,7 +4,7 @@
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>
-  Class: Wasmtime::Memory
+  Class: Wasmtime::Table
   
     &mdash; Documentation by YARD 0.9.28
   
@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="../css/common.css" type="text/css" />
 
 <script type="text/javascript">
-  pathId = "Wasmtime::Memory";
+  pathId = "Wasmtime::Table";
   relpath = '../';
 </script>
 
@@ -36,10 +36,10 @@
       <div id="header">
         <div id="menu">
   
-    <a href="../_index.html">Index (M)</a> &raquo;
+    <a href="../_index.html">Index (T)</a> &raquo;
     <span class='title'><span class='object_link'><a href="../Wasmtime.html" title="Wasmtime (module)">Wasmtime</a></span></span>
      &raquo; 
-    <span class="title">Memory</span>
+    <span class="title">Table</span>
   
 </div>
 
@@ -59,7 +59,7 @@
         <div class="clear"></div>
       </div>
 
-      <div id="content"><h1>Class: Wasmtime::Memory
+      <div id="content"><h1>Class: Wasmtime::Table
   
   
   
@@ -74,7 +74,7 @@
         <ul class="fullTree">
           <li>Object</li>
           
-            <li class="next">Wasmtime::Memory</li>
+            <li class="next">Wasmtime::Table</li>
           
         </ul>
         <a href="#" class="inheritanceTree">show all</a>
@@ -94,7 +94,7 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>ext/src/ruby_api/memory.rs</dd>
+    <dd>ext/src/ruby_api/table.rs</dd>
   </dl>
   
 </div>
@@ -102,7 +102,7 @@
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
     
-<p>Represents a WebAssembly memory.</p>
+<p>Represents a WebAssembly table.</p>
 
 
   </div>
@@ -113,7 +113,7 @@
   <p class="tag_title">See Also:</p>
   <ul class="see">
     
-      <li><a href="https://docs.rs/wasmtime/latest/wasmtime/struct.Memory.html" target="_parent" title="Wasmtime&#39;s Rust doc">Wasmtime's Rust doc</a></li>
+      <li><a href="https://docs.rs/wasmtime/latest/wasmtime/struct.Table.html" target="_parent" title="Wasmtime&#39;s Rust doc">Wasmtime's Rust doc</a></li>
     
   </ul>
 
@@ -135,7 +135,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#new-class_method" title="new (class method)">.<strong>new</strong>(store, memtype)  &#x21d2; Object </a>
+      <a href="#new-class_method" title="new (class method)">.<strong>new</strong>(store, tabletype, initial)  &#x21d2; Object </a>
     
 
     
@@ -166,7 +166,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#grow-instance_method" title="#grow (instance method)">#<strong>grow</strong>(delta)  &#x21d2; Integer </a>
+      <a href="#get-instance_method" title="#get (instance method)">#<strong>get</strong>(index)  &#x21d2; Object<sup>?</sup> </a>
     
 
     
@@ -181,7 +181,7 @@
 
   
     <span class="summary_desc"><div class='inline'>
-<p>Grows a memory by <code>delta</code> pages.</p>
+<p>Returns the table element value at <code>index</code>, or <code>nil</code> if index is out of bound.</p>
 </div></span>
   
 </li>
@@ -190,7 +190,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#read-instance_method" title="#read (instance method)">#<strong>read</strong>(offset, size)  &#x21d2; String </a>
+      <a href="#grow-instance_method" title="#grow (instance method)">#<strong>grow</strong>(delta, initial)  &#x21d2; void </a>
     
 
     
@@ -205,7 +205,31 @@
 
   
     <span class="summary_desc"><div class='inline'>
-<p>Read <code>size</code> bytes starting at <code>offset</code>.</p>
+<p>Grows the size of this table by <code>delta</code>.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#set-instance_method" title="#set (instance method)">#<strong>set</strong>(index, value)  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Sets the table entry at <code>index</code> to <code>value</code>.</p>
 </div></span>
   
 </li>
@@ -229,7 +253,7 @@
 
   
     <span class="summary_desc"><div class='inline'>
-<p>The number of pages of the memory.</p>
+<p>The size of the table.</p>
 </div></span>
   
 </li>
@@ -238,7 +262,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#ty-instance_method" title="#ty (instance method)">#<strong>ty</strong>  &#x21d2; MemoryType </a>
+      <a href="#ty-instance_method" title="#ty (instance method)">#<strong>ty</strong>  &#x21d2; TableType </a>
     
 
     
@@ -257,30 +281,6 @@
 </li>
 
       
-        <li class="public ">
-  <span class="summary_signature">
-    
-      <a href="#write-instance_method" title="#write (instance method)">#<strong>write</strong>(offset, value)  &#x21d2; void </a>
-    
-
-    
-  </span>
-  
-  
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'>
-<p>Write <code>value</code> starting at <code>offset</code>.</p>
-</div></span>
-  
-</li>
-
-      
     </ul>
   
 
@@ -293,7 +293,7 @@
       <div class="method_details first">
   <h3 class="signature first" id="new-class_method">
   
-    .<strong>new</strong>(store, memtype)  &#x21d2; <tt>Object</tt> 
+    .<strong>new</strong>(store, tabletype, initial)  &#x21d2; <tt>Object</tt> 
   
 
   
@@ -322,12 +322,28 @@
   
     <li>
       
-        <span class='name'>memtype</span>
+        <span class='name'>tabletype</span>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="MemoryType.html" title="Wasmtime::MemoryType (class)">MemoryType</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="TableType.html" title="Wasmtime::TableType (class)">TableType</a></span></tt>)</span>
       
       
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>initial</span>
+      
+      
+        <span class='type'>(<tt>Value</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The initial value for values in the table.</p>
+</div>
       
     </li>
   
@@ -340,7 +356,6 @@
       <pre class="lines">
 
 
-50
 51
 52
 53
@@ -350,21 +365,40 @@
 57
 58
 59
-60</pre>
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 50</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 51</span>
 
-pub fn new(s: WrappedStruct&lt;Store&gt;, memtype: &amp;MemoryType) -&gt; Result&lt;Self, Error&gt; {
+pub fn new(
+    s: WrappedStruct&lt;Store&gt;,
+    tabletype: &amp;TableType,
+    default: Value,
+) -&gt; Result&lt;Self, Error&gt; {
     let store = s.get()?;
+    let default_val = default.to_wasm_val(&amp;tabletype.get().element())?;
 
-    let inner = MemoryImpl::new(store.context_mut(), memtype.get().clone())
+    let inner = TableImpl::new(store.context_mut(), tabletype.get().clone(), default_val)
         .map_err(|e| error!(&quot;{}&quot;, e))?;
 
-    Ok(Self {
+    let table = Self {
         store: s.into(),
         inner,
-    })
+    };
+
+    table.retain_extern_ref(default)?;
+
+    Ok(table)
 }</pre>
     </td>
   </tr>
@@ -378,9 +412,9 @@ pub fn new(s: WrappedStruct&lt;Store&gt;, memtype: &amp;MemoryType) -&gt; Result
 
     
       <div class="method_details first">
-  <h3 class="signature first" id="grow-instance_method">
+  <h3 class="signature first" id="get-instance_method">
   
-    #<strong>grow</strong>(delta)  &#x21d2; <tt>Integer</tt> 
+    #<strong>get</strong>(index)  &#x21d2; <tt>Object</tt><sup>?</sup> 
   
 
   
@@ -389,7 +423,82 @@ pub fn new(s: WrappedStruct&lt;Store&gt;, memtype: &amp;MemoryType) -&gt; Result
 </h3><div class="docstring">
   <div class="discussion">
     
-<p>Grows a memory by <code>delta</code> pages. Raises if the memory grows beyond its limit.</p>
+<p>Returns the table element value at <code>index</code>, or <code>nil</code> if index is out of bound.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>index</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Object</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+82
+83
+84
+85
+86
+87</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 82</span>
+
+pub fn get(&amp;self, index: u32) -&gt; Result&lt;Value, Error&gt; {
+    match self.inner.get(self.store.context_mut()?, index) {
+        Some(wasm_val) =&gt; wasm_val.to_ruby_value(&amp;self.store),
+        None =&gt; Ok(*QNIL),
+    }
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="grow-instance_method">
+  
+    #<strong>grow</strong>(delta, initial)  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p>
+<p>Grows the size of this table by <code>delta</code>. Raises if the table grows beyond its limit.</p>
 
 
   </div>
@@ -409,31 +518,29 @@ pub fn new(s: WrappedStruct&lt;Store&gt;, memtype: &amp;MemoryType) -&gt; Result
       
         &mdash;
         <div class='inline'>
-<p>The number of pages to grow by.</p>
+<p>The number of elements to add to the table.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>initial</span>
+      
+      
+        <span class='type'>(<tt>Object</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The initial value for newly added table slots.</p>
 </div>
       
     </li>
   
 </ul>
 
-<p class="tag_title">Returns:</p>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt>Integer</tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'>
-<p>The number of pages the memory had before being resized.</p>
-</div>
-      
-    </li>
-  
-</ul>
 
 </div><table class="source_code">
   <tr>
@@ -441,19 +548,35 @@ pub fn new(s: WrappedStruct&lt;Store&gt;, memtype: &amp;MemoryType) -&gt; Result
       <pre class="lines">
 
 
-104
-105
-106
-107
-108</pre>
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 104</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 118</span>
 
-pub fn grow(&amp;self, delta: u64) -&gt; Result&lt;u64, Error&gt; {
+pub fn grow(&amp;self, delta: u32, initial: Value) -&gt; Result&lt;u32, Error&gt; {
     self.inner
-        .grow(self.store.context_mut()?, delta)
+        .grow(
+            self.store.context_mut()?,
+            delta,
+            initial.to_wasm_val(&amp;self.value_type()?)?,
+        )
         .map_err(|e| error!(&quot;{}&quot;, e))
+        .and_then(|result| {
+            self.retain_extern_ref(initial)?;
+            Ok(result)
+        })
 }</pre>
     </td>
   </tr>
@@ -461,9 +584,9 @@ pub fn grow(&amp;self, delta: u64) -&gt; Result&lt;u64, Error&gt; {
 </div>
     
       <div class="method_details ">
-  <h3 class="signature " id="read-instance_method">
+  <h3 class="signature " id="set-instance_method">
   
-    #<strong>read</strong>(offset, size)  &#x21d2; <tt>String</tt> 
+    #<strong>set</strong>(index, value)  &#x21d2; <tt>void</tt> 
   
 
   
@@ -471,8 +594,8 @@ pub fn grow(&amp;self, delta: u64) -&gt; Result&lt;u64, Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Read <code>size</code> bytes starting at <code>offset</code>.</p>
+    <p class="note returns_void">This method returns an undefined value.</p>
+<p>Sets the table entry at <code>index</code> to <code>value</code>.</p>
 
 
   </div>
@@ -483,7 +606,7 @@ pub fn grow(&amp;self, delta: u64) -&gt; Result&lt;u64, Error&gt; {
   
     <li>
       
-        <span class='name'>offset</span>
+        <span class='name'>index</span>
       
       
         <span class='type'>(<tt>Integer</tt>)</span>
@@ -494,10 +617,10 @@ pub fn grow(&amp;self, delta: u64) -&gt; Result&lt;u64, Error&gt; {
   
     <li>
       
-        <span class='name'>size</span>
+        <span class='name'>value</span>
       
       
-        <span class='type'>(<tt>Integer</tt>)</span>
+        <span class='type'>(<tt>Object</tt>)</span>
       
       
       
@@ -505,24 +628,6 @@ pub fn grow(&amp;self, delta: u64) -&gt; Result&lt;u64, Error&gt; {
   
 </ul>
 
-<p class="tag_title">Returns:</p>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt>String</tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'>
-<p>Binary <code>String</code> of the memory.</p>
-</div>
-      
-    </li>
-  
-</ul>
 
 </div><table class="source_code">
   <tr>
@@ -530,25 +635,35 @@ pub fn grow(&amp;self, delta: u64) -&gt; Result&lt;u64, Error&gt; {
       <pre class="lines">
 
 
-73
-74
-75
-76
-77
-78
-79
-80</pre>
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 73</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 96</span>
 
-pub fn read(&amp;self, offset: usize, size: usize) -&gt; Result&lt;RString, Error&gt; {
+pub fn set(&amp;self, index: u32, value: Value) -&gt; Result&lt;(), Error&gt; {
     self.inner
-        .data(self.store.context()?)
-        .get(offset..)
-        .and_then(|s| s.get(..size))
-        .map(RString::from_slice)
-        .ok_or_else(|| error!(&quot;out of bounds memory access&quot;))
+        .set(
+            self.store.context_mut()?,
+            index,
+            value.to_wasm_val(&amp;self.value_type()?)?,
+        )
+        .map_err(|e| error!(&quot;{}&quot;, e))
+        .and_then(|result| {
+            self.retain_extern_ref(value)?;
+            Ok(result)
+        })
 }</pre>
     </td>
   </tr>
@@ -567,7 +682,7 @@ pub fn read(&amp;self, offset: usize, size: usize) -&gt; Result&lt;RString, Erro
 </h3><div class="docstring">
   <div class="discussion">
     
-<p>Returns The number of pages of the memory.</p>
+<p>Returns The size of the table.</p>
 
 
   </div>
@@ -586,7 +701,7 @@ pub fn read(&amp;self, offset: usize, size: usize) -&gt; Result&lt;RString, Erro
       
         &mdash;
         <div class='inline'>
-<p>The number of pages of the memory.</p>
+<p>The size of the table.</p>
 </div>
       
     </li>
@@ -599,14 +714,14 @@ pub fn read(&amp;self, offset: usize, size: usize) -&gt; Result&lt;RString, Erro
       <pre class="lines">
 
 
-112
-113
-114</pre>
+134
+135
+136</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 112</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 134</span>
 
-pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
+pub fn size(&amp;self) -&gt; Result&lt;u32, Error&gt; {
     Ok(self.inner.size(self.store.context()?))
 }</pre>
     </td>
@@ -617,7 +732,7 @@ pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
       <div class="method_details ">
   <h3 class="signature " id="ty-instance_method">
   
-    #<strong>ty</strong>  &#x21d2; <tt><span class='object_link'><a href="MemoryType.html" title="Wasmtime::MemoryType (class)">MemoryType</a></span></tt> 
+    #<strong>ty</strong>  &#x21d2; <tt><span class='object_link'><a href="TableType.html" title="Wasmtime::TableType (class)">TableType</a></span></tt> 
   
 
   
@@ -637,7 +752,7 @@ pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
     <li>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="MemoryType.html" title="Wasmtime::MemoryType (class)">MemoryType</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="TableType.html" title="Wasmtime::TableType (class)">TableType</a></span></tt>)</span>
       
       
       
@@ -651,90 +766,15 @@ pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
       <pre class="lines">
 
 
-118
-119
-120</pre>
+140
+141
+142</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 118</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 140</span>
 
-pub fn ty(&amp;self) -&gt; Result&lt;MemoryType, Error&gt; {
+pub fn ty(&amp;self) -&gt; Result&lt;TableType, Error&gt; {
     Ok(self.inner.ty(self.store.context()?).into())
-}</pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-      <div class="method_details ">
-  <h3 class="signature " id="write-instance_method">
-  
-    #<strong>write</strong>(offset, value)  &#x21d2; <tt>void</tt> 
-  
-
-  
-
-  
-</h3><div class="docstring">
-  <div class="discussion">
-    <p class="note returns_void">This method returns an undefined value.</p>
-<p>Write <code>value</code> starting at <code>offset</code>.</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  <p class="tag_title">Parameters:</p>
-<ul class="param">
-  
-    <li>
-      
-        <span class='name'>offset</span>
-      
-      
-        <span class='type'>(<tt>Integer</tt>)</span>
-      
-      
-      
-    </li>
-  
-    <li>
-      
-        <span class='name'>value</span>
-      
-      
-        <span class='type'>(<tt>String</tt>)</span>
-      
-      
-      
-    </li>
-  
-</ul>
-
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-89
-90
-91
-92
-93
-94
-95</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 89</span>
-
-pub fn write(&amp;self, offset: usize, value: RString) -&gt; Result&lt;(), Error&gt; {
-    let slice = unsafe { value.as_slice() };
-
-    self.inner
-        .write(self.store.context_mut()?, offset, slice)
-        .map_err(|e| error!(&quot;{}&quot;, e))
 }</pre>
     </td>
   </tr>

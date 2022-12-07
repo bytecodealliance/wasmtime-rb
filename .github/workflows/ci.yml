@@ -9,7 +9,7 @@ concurrency:
 
 env:
   RSPEC_FORMATTER: doc
-  RB_SYS_CARGO_TARGET_DIR: ${{ github.workspace }}/target # shared across all jobs
+  RB_SYS_CARGO_TARGET_DIR: ${{ env.GITHUB_WORKSPACE }}/target # shared across all jobs
 
 jobs:
   ci-data:

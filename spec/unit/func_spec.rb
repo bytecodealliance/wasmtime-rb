@@ -73,6 +73,7 @@ module Wasmtime
             (import "" "" (func))
             (memory (export "mem") 1)
             (export "f1_export" (func 1))
+            (table (export "table") 1 funcref)
             (start 0))
         WAT
         store = Store.new(engine)
@@ -92,6 +93,9 @@ module Wasmtime
 
           f1_export = caller.export("f1_export").to_func
           f1_export.call
+
+          table_export = caller.export("table").to_table
+          expect(table_export).to be_instance_of(Table)
         end
         f1 = Func.new(store, FuncType.new([], [])) { calls += 1 }
 

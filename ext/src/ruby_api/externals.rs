@@ -1,5 +1,6 @@
 use super::{
     convert::WrapWasmtimeType, func::Func, memory::Memory, root, store::StoreContextValue,
+    table::Table,
 };
 use crate::{conversion_err, helpers::WrappedStruct, not_implemented};
 use magnus::{
@@ -14,6 +15,7 @@ use magnus::{
 pub enum Extern<'a> {
     Func(WrappedStruct<Func<'a>>),
     Memory(WrappedStruct<Memory<'a>>),
+    Table(WrappedStruct<Table<'a>>),
 }
 
 unsafe impl TypedData for Extern<'_> {
@@ -37,6 +39,7 @@ impl DataTypeFunctions for Extern<'_> {
         match self {
             Extern::Func(f) => f.mark(),
             Extern::Memory(m) => m.mark(),
+            Extern::Table(t) => t.mark(),
         }
     }
 }
@@ -60,7 +63,17 @@ impl Extern<'_> {
     /// @return [Memory] The exported memory.
     pub fn to_memory(rb_self: WrappedStruct<Self>) -> Result<Value, Error> {
         match rb_self.get()? {
-            Extern::Memory(f) => Ok(f.to_value()),
+            Extern::Memory(m) => Ok(m.to_value()),
+            _ => conversion_err!(Self::inner_class(rb_self)?, Memory::class()),
+        }
+    }
+
+    /// @yard
+    /// Returns the exported table or raises a `{ConversionError}` when the export is not a table.
+    /// @return [Table] The exported table.
+    pub fn to_table(rb_self: WrappedStruct<Self>) -> Result<Value, Error> {
+        match rb_self.get()? {
+            Extern::Table(t) => Ok(t.to_value()),
             _ => conversion_err!(Self::inner_class(rb_self)?, Memory::class()),
         }
     }
@@ -71,6 +84,7 @@ impl Extern<'_> {
         let inner_string: String = match rs_self {
             Extern::Func(f) => f.inspect(),
             Extern::Memory(m) => m.inspect(),
+            Extern::Table(t) => t.inspect(),
         };
 
         Ok(format!(
@@ -84,6 +98,7 @@ impl Extern<'_> {
         match rb_self.get()? {
             Extern::Func(f) => Ok(f.to_value().class()),
             Extern::Memory(m) => Ok(m.to_value().class()),
+            Extern::Table(t) => Ok(t.to_value().class()),
         }
     }
 }
@@ -96,7 +111,9 @@ impl<'a> WrapWasmtimeType<'a, Extern<'a>> for wasmtime::Extern {
                 Ok(Extern::Memory(Memory::from_inner(store, *mem).into()))
             }
             wasmtime::Extern::Global(_) => not_implemented!("global not yet supported"),
-            wasmtime::Extern::Table(_) => not_implemented!("table not yet supported"),
+            wasmtime::Extern::Table(table) => {
+                Ok(Extern::Table(Table::from_inner(store, *table).into()))
+            }
             wasmtime::Extern::SharedMemory(_) => not_implemented!("shared memory not supported"),
         }
     }
@@ -107,6 +124,7 @@ pub fn init() -> Result<(), Error> {
 
     class.define_method("to_func", method!(Extern::to_func, 0))?;
     class.define_method("to_memory", method!(Extern::to_memory, 0))?;
+    class.define_method("to_table", method!(Extern::to_table, 0))?;
     class.define_method("inspect", method!(Extern::inspect, 0))?;
 
     Ok(())

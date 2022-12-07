@@ -4,7 +4,8 @@ module Wasmtime
   RSpec.describe Extern do
     cases = {
       f: [:to_func, Func],
-      m: [:to_memory, Memory]
+      m: [:to_memory, Memory],
+      t: [:to_table, Table]
     }
 
     cases.each do |name, (meth, klass)|
@@ -41,6 +42,7 @@ module Wasmtime
         (module
           (func (export "f"))
           (memory (export "m") 1)
+          (table (export "t") 1 funcref)
         )
       WAT
     end

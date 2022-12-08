@@ -32,7 +32,7 @@ impl TableType {
     }
 
     /// @yard
-    /// @return [Symbol] The type of elements in the {Table}.
+    /// @return [Symbol] The Wasm type of elements in the {Table}.
     pub fn element(&self) -> Symbol {
         self.inner.element().to_sym()
     }

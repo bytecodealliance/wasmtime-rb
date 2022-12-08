@@ -9,7 +9,7 @@ use magnus::{
     function, memoize, method, r_typed_data::DataTypeBuilder, DataTypeFunctions, Error,
     Module as _, Object, RClass, TypedData, Value, QNIL,
 };
-use wasmtime::Table as TableImpl;
+use wasmtime::{Extern, Table as TableImpl};
 
 /// @yard
 /// @rename Wasmtime::Table
@@ -150,6 +150,16 @@ impl<'a> Table<'a> {
             self.store.retain(value)?;
         }
         Ok(())
+    }
+
+    pub fn inner(&self) -> TableImpl {
+        self.inner
+    }
+}
+
+impl From<&Table<'_>> for Extern {
+    fn from(table: &Table) -> Self {
+        Self::Table(table.inner())
     }
 }
 

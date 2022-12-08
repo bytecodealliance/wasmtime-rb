@@ -1,6 +1,6 @@
 use super::{
-    convert::WrapWasmtimeType, func::Func, memory::Memory, root, store::StoreContextValue,
-    table::Table,
+    convert::WrapWasmtimeType, func::Func, global::Global, memory::Memory, root,
+    store::StoreContextValue, table::Table,
 };
 use crate::{conversion_err, helpers::WrappedStruct, not_implemented};
 use magnus::{
@@ -14,6 +14,7 @@ use magnus::{
 /// @see https://docs.rs/wasmtime/latest/wasmtime/enum.Extern.html Wasmtime's Rust doc
 pub enum Extern<'a> {
     Func(WrappedStruct<Func<'a>>),
+    Global(WrappedStruct<Global<'a>>),
     Memory(WrappedStruct<Memory<'a>>),
     Table(WrappedStruct<Table<'a>>),
 }
@@ -38,6 +39,7 @@ impl DataTypeFunctions for Extern<'_> {
     fn mark(&self) {
         match self {
             Extern::Func(f) => f.mark(),
+            Extern::Global(g) => g.mark(),
             Extern::Memory(m) => m.mark(),
             Extern::Table(t) => t.mark(),
         }
@@ -54,6 +56,16 @@ impl Extern<'_> {
         match rb_self.get()? {
             Extern::Func(f) => Ok(f.to_value()),
             _ => conversion_err!(Self::inner_class(rb_self)?, Func::class()),
+        }
+    }
+
+    /// @yard
+    /// Returns the exported global or raises a `{ConversionError}` when the export is not a global.
+    /// @return [Global] The exported global.
+    pub fn to_global(rb_self: WrappedStruct<Self>) -> Result<Value, Error> {
+        match rb_self.get()? {
+            Extern::Global(g) => Ok(g.to_value()),
+            _ => conversion_err!(Self::inner_class(rb_self)?, Global::class()),
         }
     }
 
@@ -83,6 +95,7 @@ impl Extern<'_> {
 
         let inner_string: String = match rs_self {
             Extern::Func(f) => f.inspect(),
+            Extern::Global(g) => g.inspect(),
             Extern::Memory(m) => m.inspect(),
             Extern::Table(t) => t.inspect(),
         };
@@ -97,6 +110,7 @@ impl Extern<'_> {
     fn inner_class(rb_self: WrappedStruct<Self>) -> Result<RClass, Error> {
         match rb_self.get()? {
             Extern::Func(f) => Ok(f.to_value().class()),
+            Extern::Global(g) => Ok(g.to_value().class()),
             Extern::Memory(m) => Ok(m.to_value().class()),
             Extern::Table(t) => Ok(t.to_value().class()),
         }
@@ -107,10 +121,12 @@ impl<'a> WrapWasmtimeType<'a, Extern<'a>> for wasmtime::Extern {
     fn wrap_wasmtime_type(&self, store: StoreContextValue<'a>) -> Result<Extern<'a>, Error> {
         match self {
             wasmtime::Extern::Func(func) => Ok(Extern::Func(Func::from_inner(store, *func).into())),
+            wasmtime::Extern::Global(global) => {
+                Ok(Extern::Global(Global::from_inner(store, *global).into()))
+            }
             wasmtime::Extern::Memory(mem) => {
                 Ok(Extern::Memory(Memory::from_inner(store, *mem).into()))
             }
-            wasmtime::Extern::Global(_) => not_implemented!("global not yet supported"),
             wasmtime::Extern::Table(table) => {
                 Ok(Extern::Table(Table::from_inner(store, *table).into()))
             }
@@ -123,6 +139,7 @@ pub fn init() -> Result<(), Error> {
     let class = root().define_class("Extern", Default::default())?;
 
     class.define_method("to_func", method!(Extern::to_func, 0))?;
+    class.define_method("to_global", method!(Extern::to_global, 0))?;
     class.define_method("to_memory", method!(Extern::to_memory, 0))?;
     class.define_method("to_table", method!(Extern::to_table, 0))?;
     class.define_method("inspect", method!(Extern::inspect, 0))?;

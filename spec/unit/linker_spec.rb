@@ -63,6 +63,14 @@ module Wasmtime
         linker.define("mod", "table", table)
         expect(linker.get(store, "mod", "table").to_table).to be_instance_of(Table)
       end
+
+      it "accepts global" do
+        linker = new_linker
+        store = Store.new(engine)
+        global = Global.new(store, GlobalType.var(:i32), 1)
+        linker.define("mod", "glob", global)
+        expect(linker.get(store, "mod", "glob").to_global).to be_instance_of(Global)
+      end
     end
 
     describe "func_new" do

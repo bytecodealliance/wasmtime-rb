@@ -5,7 +5,8 @@ module Wasmtime
     cases = {
       f: [:to_func, Func],
       m: [:to_memory, Memory],
-      t: [:to_table, Table]
+      t: [:to_table, Table],
+      g: [:to_global, Global]
     }
 
     cases.each do |name, (meth, klass)|
@@ -43,6 +44,7 @@ module Wasmtime
           (func (export "f"))
           (memory (export "m") 1)
           (table (export "t") 1 funcref)
+          (global (export "g") (mut i32) (i32.const 1))
         )
       WAT
     end

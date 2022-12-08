@@ -14,6 +14,7 @@ group :development do
   gem "ruby-lsp", require: false
   gem "yard", require: false
   gem "yard-rustdoc", "~> 0.3.2", require: false
+  gem "benchmark-ips", require: false
 end
 
 group :test do

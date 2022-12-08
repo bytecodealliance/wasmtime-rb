@@ -7,6 +7,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  RSPEC_FORMATTER: doc
+
 jobs:
   ci-data:
     runs-on: ubuntu-latest
@@ -27,12 +30,6 @@ jobs:
           - os: windows-latest
             ruby: mswin
     steps:
-      - name: Set environment
-        shell: bash
-        run: |
-          echo "RB_SYS_CARGO_TARGET_DIR=$PWD/target" >> $GITHUB_ENV # for better caching by sharing dir
-          echo "RSPEC_FORMATTER=doc" >> $GITHUB_ENV # for better log
-
       - uses: actions/checkout@v3
 
       - name: Remove Gemfile.lock

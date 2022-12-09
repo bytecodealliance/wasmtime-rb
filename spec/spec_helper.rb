@@ -37,6 +37,8 @@ module WasmFixtures
 end
 
 RSpec.configure do |config|
+  config.include(ForkHelper)
+
   config.filter_run focus: true
   config.run_all_when_everything_filtered = true
   if ENV["CI"]
@@ -61,7 +63,7 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 
-  if ENV["GC_STRESS"]
+  if ENV["GC_STRESS"] == "1"
     config.around :each do |ex|
       GC.stress = true
       ex.run
@@ -70,7 +72,17 @@ RSpec.configure do |config|
     end
   end
 
-  config.include(ForkHelper)
+  if ENV["VALGRIND"] == "1"
+    config.around(:each) do |ex|
+      ex.run
+    rescue => e
+      if e.message.include?("mmap failed to allocate")
+        pending "Valgrind has a bug that causes mmap to fail"
+      else
+        raise
+      end
+    end
+  end
 end
 
 at_exit { GC.start(full_mark: true) }

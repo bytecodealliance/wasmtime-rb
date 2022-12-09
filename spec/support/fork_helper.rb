@@ -10,6 +10,7 @@ module ForkHelper
       puts "ERROR: #{e}"
       Marshal.dump({status: :error, result: e}, writer)
     ensure
+      at_exit { GC.start(full_mark: true) }
       writer.close
     end
 

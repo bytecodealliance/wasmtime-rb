@@ -51,7 +51,7 @@ jobs:
       - name: Run ruby tests (hard-mode with GC.stress)
         run: bundle exec rake spec
         env:
-          GC_STRESS: "true"
+          GC_STRESS: "1"
 
       - name: Run examples
         run: bundle exec rake examples

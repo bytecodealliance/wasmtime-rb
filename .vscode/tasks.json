@@ -1,0 +1,11 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "compile:dev",
+      "type": "shell",
+      "command": "bin/rake",
+      "args": ["compile:dev"]
+    }
+  ]
+}

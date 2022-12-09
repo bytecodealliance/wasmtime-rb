@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "internalConsoleOptions": "neverOpen",
+      "name": "dbg-spec",
+      "program": "ruby",
+      "args": ["bin/test"],
+      "cwd": "${workspaceFolder}",
+      "sourceLanguages": ["rust"],
+      "preLaunchTask": "compile:dev",
+      "env": {
+        "FORK_HELPER_TIMEOUT_KILL": "1"
+      }
+    }
+  ]
+}

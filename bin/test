@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+ENV["BUNDLE_GEMFILE"] ||= File.expand_path("../Gemfile", __dir__)
+
+require "rubygems"
+require "bundler/setup"
+
+def optparse!
+  require "optparse"
+
+  OptionParser.new do |parser|
+    parser.on("-c", "--compile [ENV]", "Compile the extension") do |env|
+      require "open3"
+      env ||= "dev"
+      warn "🦀 Compiling the extension (#{env} on Ruby #{RUBY_VERSION})..."
+      cmd = "rake compile:#{env}"
+      result_or_err, process_status = Open3.capture2e(cmd)
+      abort(result_or_err) unless process_status.success?
+    end
+  end.parse!
+end
+
+optparse! unless ARGV.empty?
+
+ARGV.unshift("spec/") unless ARGV.any? { |arg| arg.start_with?("spec/") }
+
+load Gem.bin_path("rspec-core", "rspec")

@@ -171,6 +171,20 @@ impl Store {
             .map_err(|e| error!("{}", e))
     }
 
+    /// @yard
+    /// Sets the epoch deadline to a certain number of ticks in the future.
+    ///
+    /// Raises if there isn't enough fuel left in the {Store}, or
+    /// when the {Engine}’s {Config} does not have fuel enabled.
+    ///
+    /// @see ttps://docs.rs/wasmtime/latest/wasmtime/struct.Store.html#method.set_epoch_deadline Rust's doc on +set_epoch_deadline_ for more details.
+    /// @def set_epoch_deadline(ticks_beyond_current)
+    /// @param ticks_beyond_current [Integer] The number of ticks before this store reaches the deadline.
+    /// @return [nil]
+    pub fn set_epoch_deadline(&self, ticks_beyond_current: u64) {
+        unsafe { &mut *self.inner.get() }.set_epoch_deadline(ticks_beyond_current);
+    }
+
     pub fn context(&self) -> StoreContext<StoreData> {
         unsafe { (*self.inner.get()).as_context() }
     }
@@ -262,6 +276,7 @@ pub fn init() -> Result<(), Error> {
     class.define_method("fuel_consumed", method!(Store::fuel_consumed, 0))?;
     class.define_method("add_fuel", method!(Store::add_fuel, 1))?;
     class.define_method("consume_fuel", method!(Store::consume_fuel, 1))?;
+    class.define_method("set_epoch_deadline", method!(Store::set_epoch_deadline, 1))?;
 
     Ok(())
 }

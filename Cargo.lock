@@ -1267,6 +1267,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokio"
+version = "1.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eab6d665857cc6ca78d6e80303a02cea7a7851e85dfbd77cbdc09bd129f1ef46"
+dependencies = [
+ "autocfg",
+ "num_cpus",
+ "pin-project-lite",
+ "windows-sys 0.42.0",
+]
+
+[[package]]
 name = "toml"
 version = "0.5.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1570,6 +1582,7 @@ dependencies = [
  "magnus",
  "rb-sys",
  "rb-sys-env",
+ "tokio",
  "wasi-cap-std-sync",
  "wasi-common",
  "wasmtime",

@@ -24,6 +24,7 @@ wasi-cap-std-sync = "3.0.1"
 cap-std = "0.26.0" # Pinned to wasmtime's version
 anyhow = "*" # Use whatever Wasmtime uses
 wat = "1.0.52"
+tokio = { version = "1.23.0", features = ["rt", "rt-multi-thread", "time"] }
 
 [build-dependencies]
 rb-sys-env = "0.1.1"

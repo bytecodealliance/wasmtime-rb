@@ -7,3 +7,9 @@ begin
 rescue LoadError
   # No RSpec installed
 end
+
+desc "Run the specs (release mode)"
+task "spec:release" => ["compile:release", "spec"]
+
+desc "Run the specs (dev mode)"
+task "spec:dev" => ["compile:dev", "spec"]

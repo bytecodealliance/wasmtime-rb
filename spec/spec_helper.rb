@@ -2,6 +2,8 @@
 
 require "wasmtime"
 
+Dir["./spec/support/**/*.rb"].sort.each { |f| require f }
+
 RSpec.shared_context("default lets") do
   let(:engine_config) { Wasmtime::Config.new }
   let(:engine) { Wasmtime::Engine.new(engine_config) }
@@ -67,6 +69,8 @@ RSpec.configure do |config|
       GC.stress = false
     end
   end
+
+  config.include(ForkHelper)
 end
 
 at_exit { GC.start(full_mark: true) }

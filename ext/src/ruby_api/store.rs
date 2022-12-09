@@ -62,7 +62,7 @@ impl StoreData {
 
     pub fn mark(&self) {
         gc::mark(&self.user_data);
-        self.refs.iter().for_each(gc::mark);
+        gc::mark_slice(self.refs.as_slice());
     }
 }
 

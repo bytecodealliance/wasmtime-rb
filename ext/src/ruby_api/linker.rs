@@ -35,7 +35,7 @@ unsafe impl Send for Linker {}
 
 impl DataTypeFunctions for Linker {
     fn mark(&self) {
-        self.refs.borrow().iter().for_each(gc::mark);
+        gc::mark_slice(self.refs.borrow().as_slice());
     }
 }
 

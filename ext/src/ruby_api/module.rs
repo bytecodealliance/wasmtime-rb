@@ -22,7 +22,7 @@ impl Module {
         let eng = engine.get();
         // SAFETY: this string is immediately copied and never moved off the stack
         let module = ModuleImpl::new(eng, unsafe { wat_or_wasm.as_slice() })
-            .map_err(|e| error!("Could not build module from file: {:?}", e.to_string()))?;
+            .map_err(|e| error!("Could not build module: {}", e))?;
 
         Ok(Self { inner: module })
     }
@@ -36,7 +36,7 @@ impl Module {
         let eng = engine.get();
         // SAFETY: this string is immediately copied and never moved off the stack
         let module = ModuleImpl::from_file(eng, unsafe { path.as_str()? })
-            .map_err(|e| error!("Could not build module: {:?}", e.to_string()))?;
+            .map_err(|e| error!("Could not build module from file: {}", e))?;
 
         Ok(Self { inner: module })
     }
@@ -56,7 +56,7 @@ impl Module {
         // SAFETY: this string is immediately copied and never moved off the stack
         unsafe { ModuleImpl::deserialize(engine.get(), compiled.as_slice()) }
             .map(|module| Self { inner: module })
-            .map_err(|e| error!("Could not deserialize module: {:?}", e.to_string()))
+            .map_err(|e| error!("Could not deserialize module: {}", e))
     }
 
     /// @yard
@@ -70,12 +70,7 @@ impl Module {
     pub fn deserialize_file(engine: &Engine, path: RString) -> Result<Self, Error> {
         unsafe { ModuleImpl::deserialize_file(engine.get(), path.as_str()?) }
             .map(|module| Self { inner: module })
-            .map_err(|e| {
-                error!(
-                    "Could not deserialize module from file: {:?}",
-                    e.to_string()
-                )
-            })
+            .map_err(|e| error!("Could not deserialize module from file: {}", e))
     }
 
     /// @yard

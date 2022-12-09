@@ -223,8 +223,9 @@ impl WasiCtxBuilder {
         }
 
         if let Some(args) = inner.args.as_ref() {
-            for item in args.each() {
-                let arg = item?.try_convert::<RString>()?;
+            // SAFETY: no gc can happen nor do we write to `args`.
+            for item in unsafe { args.as_slice() } {
+                let arg = item.try_convert::<RString>()?;
                 // SAFETY: &str copied before calling in to Ruby, no GC can happen before.
                 let arg = unsafe { arg.as_str() }?;
                 builder = builder.arg(arg).map_err(|e| error!("{}", e))?

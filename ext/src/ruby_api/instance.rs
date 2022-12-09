@@ -54,9 +54,9 @@ impl Instance {
             Some(arr) => {
                 let arr: RArray = arr.try_convert()?;
                 let mut imports = Vec::with_capacity(arr.len());
-                for import in arr.each() {
-                    let import = import?;
-                    context.data_mut().retain(import);
+                // SAFETY: arr won't get gc'd (it's on the stack) and we don't mutate it.
+                for import in unsafe { arr.as_slice() } {
+                    context.data_mut().retain(*import);
                     imports.push(import.to_extern()?);
                 }
                 imports

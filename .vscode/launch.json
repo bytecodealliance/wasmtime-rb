@@ -7,7 +7,7 @@
       "internalConsoleOptions": "neverOpen",
       "name": "dbg-spec",
       "program": "ruby",
-      "args": ["bin/test"],
+      "args": ["bin/test", "--no-compile"],
       "cwd": "${workspaceFolder}",
       "sourceLanguages": ["rust"],
       "preLaunchTask": "compile:dev",

@@ -6,23 +6,54 @@ ENV["BUNDLE_GEMFILE"] ||= File.expand_path("../Gemfile", __dir__)
 require "rubygems"
 require "bundler/setup"
 
+def pretty_dots_while_you_wait(cmd, msg)
+  require "open3"
+
+  t = Thread.new { loop { sleep(4) && print(".") } }
+  print msg
+  result_or_err, process_status = Open3.capture2e(cmd)
+  t.kill
+
+  if process_status.success?
+    puts
+  else
+    abort result_or_err
+  end
+end
+
+def compile(opts)
+  require "open3"
+  env = opts[:env]
+  cmd = "rake compile:#{env}"
+  pretty_dots_while_you_wait(cmd, "🦀 Compiling the extension (#{env})")
+end
+
 def optparse!
   require "optparse"
 
+  opts = {compile: true, env: "dev"}
+
   OptionParser.new do |parser|
-    parser.on("-c", "--compile [ENV]", "Compile the extension") do |env|
-      require "open3"
-      env ||= "dev"
-      warn "🦀 Compiling the extension (#{env} on Ruby #{RUBY_VERSION})..."
-      cmd = "rake compile:#{env}"
-      result_or_err, process_status = Open3.capture2e(cmd)
-      abort(result_or_err) unless process_status.success?
+    parser.on("--env=ENV", "Set the build profile (i.e. dev or release)") do |env|
+      opts[:env] = env
+    end
+
+    parser.on("--[no-]compile", "Compile the extension") do |bool|
+      opts[:compile] = bool
+    end
+
+    parser.on("--gc-stress", "Run the tests with an absurdly overactive GC") do
+      warn "😅 Running the tests in GC stress mode"
+      ENV["GC_STRESS"] = "1"
+      opts[:env] = "release"
     end
   end.parse!
+
+  compile(opts) if opts[:compile]
+
+  ARGV.unshift("spec/") unless ARGV.any? { |arg| arg.start_with?("spec/") }
 end
 
-optparse! unless ARGV.empty?
-
-ARGV.unshift("spec/") unless ARGV.any? { |arg| arg.start_with?("spec/") }
+optparse!
 
 load Gem.bin_path("rspec-core", "rspec")

@@ -74,7 +74,7 @@ impl Extern<'_> {
     pub fn to_table(rb_self: WrappedStruct<Self>) -> Result<Value, Error> {
         match rb_self.get()? {
             Extern::Table(t) => Ok(t.to_value()),
-            _ => conversion_err!(Self::inner_class(rb_self)?, Memory::class()),
+            _ => conversion_err!(Self::inner_class(rb_self)?, Table::class()),
         }
     }
 

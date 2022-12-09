@@ -2,7 +2,7 @@ use crate::{define_rb_intern, err, error};
 use magnus::{Error, Symbol, TypedData, Value};
 use wasmtime::{ExternRef, Val, ValType};
 
-use super::{func::Func, memory::Memory, store::StoreContextValue, table::Table};
+use super::{func::Func, global::Global, memory::Memory, store::StoreContextValue, table::Table};
 
 define_rb_intern!(
     I32 => "i32",
@@ -93,6 +93,8 @@ impl ToExtern for Value {
             Ok(self.try_convert::<&Memory>()?.into())
         } else if self.is_kind_of(Table::class()) {
             Ok(self.try_convert::<&Table>()?.into())
+        } else if self.is_kind_of(Global::class()) {
+            Ok(self.try_convert::<&Global>()?.into())
         } else {
             Err(Error::new(
                 magnus::exception::type_error(),

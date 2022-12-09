@@ -1,5 +1,7 @@
 [workspace]
+resolver = "2"
 members = ["ext"]
+exclude = ["examples/rust-crate"]
 
 [profile.release]
 codegen-units = 1

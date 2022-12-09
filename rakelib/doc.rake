@@ -57,12 +57,12 @@ namespace :doc do
     sh <<~CMD
       cargo +nightly rustdoc \
         --target-dir tmp/doc/target \
-        -p ext \
+        -p wasmtime-rb \
         -- -Zunstable-options --output-format json \
         --document-private-items
     CMD
 
-    cp "tmp/doc/target/doc/ext.json", "tmp/doc/ext.json"
+    cp "tmp/doc/target/doc/wasmtime_rb.json", "tmp/doc/wasmtime_rb.json"
   end
 end
 

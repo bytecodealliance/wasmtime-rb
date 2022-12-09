@@ -4,6 +4,7 @@
 #![allow(rustdoc::invalid_rust_codeblocks)]
 use magnus::{define_module, function, memoize, Error, RModule, RString};
 
+mod caller;
 mod config;
 mod convert;
 mod engine;
@@ -26,6 +27,20 @@ mod table;
 mod table_type;
 mod trap;
 mod wasi_ctx_builder;
+
+pub use caller::Caller;
+pub use engine::Engine;
+pub use func::Func;
+pub use func_type::FuncType;
+pub use instance::Instance;
+pub use linker::Linker;
+pub use memory::Memory;
+pub use memory_type::MemoryType;
+pub use module::Module;
+pub use params::Params;
+pub use store::Store;
+pub use trap::Trap;
+pub use wasi_ctx_builder::WasiCtxBuilder;
 
 /// The "Wasmtime" Ruby module.
 pub fn root() -> RModule {
@@ -62,6 +77,7 @@ pub fn init() -> Result<(), Error> {
     store::init()?;
     instance::init()?;
     func::init()?;
+    caller::init()?;
     func_type::init()?;
     memory_type::init()?;
     memory::init()?;

@@ -3,7 +3,7 @@ require "rake/extensiontask"
 CROSS_PLATFORMS = [ENV["RUBY_TARGET"]].compact
 SOURCE_PATTERN = "**/src/**/*.{rs,toml,lock}"
 
-Rake::ExtensionTask.new("ext", GEMSPEC) do |ext|
+Rake::ExtensionTask.new("wasmtime_rb", GEMSPEC) do |ext|
   ext.lib_dir = "lib/wasmtime"
   ext.ext_dir = "ext"
   ext.cross_compile = ENV.key?("RUST_TARGET")

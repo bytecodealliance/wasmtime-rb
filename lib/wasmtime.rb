@@ -5,9 +5,9 @@ require_relative "wasmtime/version"
 # Tries to require the extension for the given Ruby version first
 begin
   RUBY_VERSION =~ /(\d+\.\d+)/
-  require "wasmtime/#{Regexp.last_match(1)}/ext"
+  require "wasmtime/#{Regexp.last_match(1)}/wasmtime_rb"
 rescue LoadError
-  require "wasmtime/ext"
+  require "wasmtime/wasmtime_rb"
 end
 
 module Wasmtime

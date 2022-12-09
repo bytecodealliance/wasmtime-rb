@@ -1,5 +1,5 @@
 [package]
-name = "ext"
+name = "wasmtime-rb"
 version = "0.1.0"
 edition = "2018"
 authors = ["Ian Ker-Seymer <hello@ianks.com>"]
@@ -7,7 +7,11 @@ license = "Apache-2.0"
 publish = false
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []
+embed = ["magnus/embed"]
 
 [dependencies]
 lazy_static = "1.4.0"
@@ -20,3 +24,6 @@ wasi-cap-std-sync = "3.0.1"
 cap-std = "0.26.0" # Pinned to wasmtime's version
 anyhow = "*" # Use whatever Wasmtime uses
 wat = "1.0.52"
+
+[build-dependencies]
+rb-sys-env = "0.1.1"

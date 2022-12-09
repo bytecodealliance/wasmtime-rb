@@ -390,9 +390,9 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
         Some(arr) =&gt; {
             let arr: RArray = arr.try_convert()?;
             let mut imports = Vec::with_capacity(arr.len());
-            for import in arr.each() {
-                let import = import?;
-                context.data_mut().retain(import);
+            // SAFETY: arr won&#39;t get gc&#39;d (it&#39;s on the stack) and we don&#39;t mutate it.
+            for import in unsafe { arr.as_slice() } {
+                context.data_mut().retain(*import);
                 imports.push(import.to_extern()?);
             }
             imports
@@ -726,7 +726,7 @@ pub fn invoke(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Fri Dec  9 02:55:44 2022 by
+  Generated on Fri Dec  9 14:12:50 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

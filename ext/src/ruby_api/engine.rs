@@ -1,5 +1,6 @@
 use super::{config::Config, root};
 use crate::error;
+use async_timer::Interval;
 use lazy_static::lazy_static;
 use magnus::{function, method, scan_args, Error, Module, Object, RString, Value};
 use std::cell::RefCell;
@@ -11,6 +12,7 @@ lazy_static! {
         .thread_name("wasmtime-engine-timers")
         .worker_threads(1)
         .enable_time()
+        .enable_io()
         .build()
         .unwrap();
 }
@@ -64,11 +66,10 @@ impl Engine {
 
         let handle = TOKIO_RT.spawn(async move {
             let tick_every = time::Duration::from_millis(milliseconds);
-            let start = time::Instant::now() + tick_every;
-            let mut interval = time::interval_at(start, tick_every);
+            let mut interval = Interval::platform_new(tick_every);
 
             loop {
-                interval.tick().await;
+                interval.wait().await;
                 engine.increment_epoch();
             }
         });

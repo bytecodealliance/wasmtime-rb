@@ -1,6 +1,6 @@
 use super::{config::Config, root};
 use crate::error;
-use magnus::{function, method, scan_args, Error, Module, Object, RString, Value};
+use magnus::{function, memoize, method, scan_args, Error, Module, Object, RClass, RString, Value};
 use wasmtime::Engine as EngineImpl;
 
 /// @yard
@@ -52,15 +52,32 @@ impl Engine {
             .map(|bytes| RString::from_slice(&bytes))
             .map_err(|e| error!("{}", e.to_string()))
     }
+
+    /// @yard
+    /// Eagerly initialize thread-local functionality shared by all Engines.
+    ///
+    /// @def tls_eager_initialize!(wat_or_wasm)
+    /// @return [Wasmtime::Engine]
+    /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Engine.html#method.tls_eager_initialize
+    pub fn tls_eager_initialize() -> Result<(), Error> {
+        wasmtime::Engine::tls_eager_initialize();
+        Ok(())
+    }
+}
+
+fn class() -> RClass {
+    *memoize!(RClass: root().define_class("Engine", Default::default()).unwrap())
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Engine", Default::default())?;
-
+    let class = class();
     class.define_singleton_method("new", function!(Engine::new, -1))?;
-
     class.define_method("==", method!(Engine::is_equal, 1))?;
     class.define_method("precompile_module", method!(Engine::precompile_module, 1))?;
+    class.define_singleton_method(
+        "tls_eager_initialize!",
+        function!(Engine::tls_eager_initialize, 0),
+    )?;
 
     Ok(())
 }

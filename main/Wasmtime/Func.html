@@ -370,6 +370,11 @@
       <pre class="lines">
 
 
+81
+82
+83
+84
+85
 86
 87
 88
@@ -383,15 +388,10 @@
 96
 97
 98
-99
-100
-101
-102
-103
-104</pre>
+99</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 86</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 81</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let args = scan_args::&lt;(Value, &amp;FuncType), (), (), (), (), Proc&gt;(args)?;
@@ -494,12 +494,12 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-127
-128
-129</pre>
+122
+123
+124</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 127</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 122</span>
 
 pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
     Self::invoke(&amp;self.store, &amp;self.inner, args).map_err(|e| e.into())
@@ -514,7 +514,7 @@ pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Fri Dec  9 20:47:14 2022 by
+  Generated on Mon Dec 12 10:19:20 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

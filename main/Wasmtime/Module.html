@@ -357,7 +357,7 @@ pub fn deserialize(engine: &amp;Engine, compiled: RString) -&gt; Result&lt;Self,
     // SAFETY: this string is immediately copied and never moved off the stack
     unsafe { ModuleImpl::deserialize(engine.get(), compiled.as_slice()) }
         .map(|module| Self { inner: module })
-        .map_err(|e| error!(&quot;Could not deserialize module: {:?}&quot;, e.to_string()))
+        .map_err(|e| error!(&quot;Could not deserialize module: {}&quot;, e))
 }</pre>
     </td>
   </tr>
@@ -440,12 +440,7 @@ pub fn deserialize(engine: &amp;Engine, compiled: RString) -&gt; Result&lt;Self,
 71
 72
 73
-74
-75
-76
-77
-78
-79</pre>
+74</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 70</span>
@@ -453,12 +448,7 @@ pub fn deserialize(engine: &amp;Engine, compiled: RString) -&gt; Result&lt;Self,
 pub fn deserialize_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error&gt; {
     unsafe { ModuleImpl::deserialize_file(engine.get(), path.as_str()?) }
         .map(|module| Self { inner: module })
-        .map_err(|e| {
-            error!(
-                &quot;Could not deserialize module from file: {:?}&quot;,
-                e.to_string()
-            )
-        })
+        .map_err(|e| error!(&quot;Could not deserialize module from file: {}&quot;, e))
 }</pre>
     </td>
   </tr>
@@ -544,7 +534,7 @@ pub fn from_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error
     let eng = engine.get();
     // SAFETY: this string is immediately copied and never moved off the stack
     let module = ModuleImpl::from_file(eng, unsafe { path.as_str()? })
-        .map_err(|e| error!(&quot;Could not build module: {:?}&quot;, e.to_string()))?;
+        .map_err(|e| error!(&quot;Could not build module from file: {}&quot;, e))?;
 
     Ok(Self { inner: module })
 }</pre>
@@ -637,7 +627,7 @@ pub fn new(engine: &amp;Engine, wat_or_wasm: RString) -&gt; Result&lt;Self, Erro
     let eng = engine.get();
     // SAFETY: this string is immediately copied and never moved off the stack
     let module = ModuleImpl::new(eng, unsafe { wat_or_wasm.as_slice() })
-        .map_err(|e| error!(&quot;Could not build module from file: {:?}&quot;, e.to_string()))?;
+        .map_err(|e| error!(&quot;Could not build module: {}&quot;, e))?;
 
     Ok(Self { inner: module })
 }</pre>
@@ -698,15 +688,15 @@ pub fn new(engine: &amp;Engine, wat_or_wasm: RString) -&gt; Result&lt;Self, Erro
       <pre class="lines">
 
 
-85
-86
-87
-88
-89
-90</pre>
+80
+81
+82
+83
+84
+85</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 85</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 80</span>
 
 pub fn serialize(&amp;self) -&gt; Result&lt;RString, Error&gt; {
     self.get()
@@ -724,7 +714,7 @@ pub fn serialize(&amp;self) -&gt; Result&lt;RString, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Fri Dec  9 20:47:14 2022 by
+  Generated on Mon Dec 12 10:19:20 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

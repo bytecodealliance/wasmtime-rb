@@ -16,7 +16,7 @@ embed = ["magnus/embed"]
 [dependencies]
 lazy_static = "1.4.0"
 magnus = { version = "0.4.3", features = ["rb-sys-interop"] }
-rb-sys = "~0.9.46"
+rb-sys = "~0.9.48"
 wasmtime = "3.0.1"
 wasmtime-wasi = "3.0.1"
 wasi-common = "3.0.1"

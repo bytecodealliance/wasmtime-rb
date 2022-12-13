@@ -15,6 +15,7 @@ mod func_type;
 mod global;
 mod global_type;
 mod instance;
+mod instance_pre;
 mod linker;
 mod macros;
 mod memory;
@@ -88,6 +89,7 @@ pub fn init() -> Result<(), Error> {
     table_type::init()?;
     global::init()?;
     global_type::init()?;
+    instance_pre::init()?;
 
     Ok(())
 }

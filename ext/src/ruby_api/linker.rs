@@ -5,6 +5,7 @@ use super::{
     func::{self, Func},
     func_type::FuncType,
     instance::Instance,
+    instance_pre::InstancePre,
     module::Module,
     root,
     store::{Store, StoreContextValue, StoreData},
@@ -296,6 +297,24 @@ impl Linker {
             .map(|func| Func::from_inner(s.into(), func))
             .map_err(|e| error!("{}", e))
     }
+
+    /// @yard
+    /// Returns an {InstancePre}, ready to be instantiated.
+    /// @def instantiate_pre(store, mod)
+    /// @param store [Store]
+    /// @param module [Module]
+    /// @return [InstancePre]
+    pub fn instantiate_pre(
+        &self,
+        s: WrappedStruct<Store>,
+        module: &Module,
+    ) -> Result<InstancePre, Error> {
+        self.inner
+            .borrow()
+            .instantiate_pre(s.get()?.context_mut(), module.get())
+            .map(|inner| InstancePre::from_inner(s, inner, self.has_wasi))
+            .map_err(|e| error!("{}", e))
+    }
 }
 
 pub fn init() -> Result<(), Error> {
@@ -319,6 +338,7 @@ pub fn init() -> Result<(), Error> {
     class.define_method("alias_module", method!(Linker::alias_module, 2))?;
     class.define_method("instantiate", method!(Linker::instantiate, 2))?;
     class.define_method("get_default", method!(Linker::get_default, 2))?;
+    class.define_method("instantiate_pre", method!(Linker::instantiate_pre, 2))?;
 
     Ok(())
 }

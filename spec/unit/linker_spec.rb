@@ -159,6 +159,15 @@ module Wasmtime
       expect { linker.get_default(store, "mod2") }.to raise_error(Wasmtime::Error, /not a function/)
     end
 
+    it "#instantiate_pre" do
+      mod = Module.new(engine, '(module (func (export "fn")))')
+      linker = new_linker
+      store = Store.new(engine)
+      instance_pre = linker.instantiate_pre(store, mod)
+      expect(instance_pre).to be_instance_of(InstancePre)
+      expect(instance_pre.instantiate(store)).to be_instance_of(Instance)
+    end
+
     it "GC stresses instance and func" do
       calls = 0
       functype = FuncType.new([], [])

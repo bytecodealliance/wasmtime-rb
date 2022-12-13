@@ -66,7 +66,7 @@ module Wasmtime
         engine.stop_epoch_interval
         store.set_epoch_deadline(1)
 
-        sleep 2.0 / 1000 # 2 ms
+        sleep_ms(2)
 
         expect { Instance.new(store, autostart_mod) }.not_to raise_error
       end
@@ -78,6 +78,35 @@ module Wasmtime
         engine.stop_epoch_interval
         engine.stop_epoch_interval
       end
+
+      it "does not interrupt host call" do
+        host_call_finished = false
+        mod = Module.new(engine, <<~WAT)
+          (module
+            (func $host_call (import "" ""))
+            (func $noop)
+            (func (export "f")
+              call $host_call
+              call $noop ;; new func call forces epoch check
+            )
+          )
+        WAT
+        f = Func.new(store_deadline_1, FuncType.new([], [])) do |c|
+          sleep_ms(30)
+          engine.increment_epoch
+          host_call_finished = true
+        end
+
+        instance = Instance.new(store_deadline_1, mod, [f])
+        # GC stress makes Ruby very slow; we always tick before intering Wasm.
+        engine.start_epoch_interval(1) unless GC.stress
+        expect { instance.invoke("f") }.to raise_error(Trap)
+        expect(host_call_finished).to be true
+      end
+    end
+
+    def sleep_ms(ms)
+      sleep ms.to_f / 1000
     end
   end
 end

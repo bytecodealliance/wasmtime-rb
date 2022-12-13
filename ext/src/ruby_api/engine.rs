@@ -11,7 +11,6 @@ lazy_static! {
     static ref TOKIO_RT: runtime::Runtime = runtime::Builder::new_multi_thread()
         .thread_name("wasmtime-engine-timers")
         .worker_threads(1)
-        .enable_time()
         .enable_io()
         .build()
         .unwrap();

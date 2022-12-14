@@ -22,7 +22,7 @@ module Wasmtime
           (module
             (import "" "" (memory 1)))
         WAT
-        memory = Memory.new(store, MemoryType.new(1))
+        memory = Memory.new(store, min_size: 1)
         Wasmtime::Instance.new(store, mod, [memory])
       end
     end

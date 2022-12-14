@@ -43,7 +43,7 @@ module Wasmtime
       it "accepts memory" do
         linker = new_linker
         store = Store.new(engine)
-        memory = Memory.new(store, MemoryType.new(1))
+        memory = Memory.new(store, min_size: 1)
         linker.define("mod", "mem", memory)
         expect(linker.get(store, "mod", "mem").to_memory).to be_instance_of(Memory)
       end

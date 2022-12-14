@@ -106,7 +106,7 @@ module Wasmtime
     private
 
     def noop_func
-      Func.new(store, FuncType.new([], [])) { |_| }
+      Func.new(store, [], []) { |_| }
     end
 
     def generate_new_objects

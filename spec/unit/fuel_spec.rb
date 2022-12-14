@@ -11,7 +11,7 @@ module Wasmtime
 
       context "on Caller" do
         it desc do
-          func = Func.new(send(store), FuncType.new([], [])) do |caller|
+          func = Func.new(send(store), [], []) do |caller|
             instance_exec(caller, &block)
           end
           func.call

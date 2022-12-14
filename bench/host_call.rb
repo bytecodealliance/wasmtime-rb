@@ -8,7 +8,7 @@ Bench.ips do |x|
       (export "run" (func 0)))
   WAT
   linker = Wasmtime::Linker.new(engine)
-  linker.func_new("host", "succ", Wasmtime::FuncType.new([:i32], [:i32])) do |_caller, arg1|
+  linker.func_new("host", "succ", [:i32], [:i32]) do |_caller, arg1|
     arg1.succ
   end
 

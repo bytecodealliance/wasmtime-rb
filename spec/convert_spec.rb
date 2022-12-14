@@ -53,8 +53,8 @@ module Wasmtime
     describe "for funcref" do
       it "converts back and forth" do
         store = Store.new(engine)
-        f1 = Func.new(store, FuncType.new([], [])) {}
-        f2 = Func.new(store, FuncType.new([:funcref], [:funcref])) { |_, arg1| arg1 }
+        f1 = Func.new(store, [], []) {}
+        f2 = Func.new(store, [:funcref], [:funcref]) { |_, arg1| arg1 }
         returned_func = f2.call(f1)
         expect(returned_func).to be_instance_of(Func)
       end
@@ -73,10 +73,7 @@ module Wasmtime
 
     def roundtrip_value(type, value)
       Func
-        .new(
-          Store.new(engine),
-          FuncType.new([type], [type])
-        ) do |_caller, arg|
+        .new(Store.new(engine), [type], [type]) do |_caller, arg|
           arg
         end
         .call(value)

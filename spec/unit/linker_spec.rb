@@ -4,15 +4,14 @@ module Wasmtime
   RSpec.describe Linker do
     it "#allow_shadowing" do
       linker = new_linker
-      functype = FuncType.new([], [])
-      linker.func_new("foo", "bar", functype) {}
+      linker.func_new("foo", "bar", [], []) {}
 
       linker.allow_shadowing = false
-      expect { linker.func_new("foo", "bar", functype) {} }
+      expect { linker.func_new("foo", "bar", [], []) {} }
         .to raise_error(Wasmtime::Error)
 
       linker.allow_shadowing = true
-      expect { linker.func_new("foo", "bar", functype) {} }
+      expect { linker.func_new("foo", "bar", [], []) {} }
         .not_to raise_error
     end
 
@@ -52,7 +51,7 @@ module Wasmtime
       it "accepts func" do
         linker = new_linker
         store = Store.new(engine)
-        func = Func.new(store, FuncType.new([], [])) {}
+        func = Func.new(store, [], []) {}
         linker.define("mod", "fn", func)
         expect(linker.get(store, "mod", "fn").to_func).to be_instance_of(Func)
       end
@@ -75,20 +74,17 @@ module Wasmtime
 
     describe "func_new" do
       it "requires a block" do
-        functype = FuncType.new([], [])
-
-        expect { new_linker.func_new("foo", "bar", functype) }
+        expect { new_linker.func_new("foo", "bar", [], []) }
           .to raise_error(ArgumentError, "no block given")
 
-        expect { new_linker.func_new("foo", "bar", functype) {} }
+        expect { new_linker.func_new("foo", "bar", [], []) {} }
           .not_to raise_error
       end
 
       it "registers a Func that can be called" do
-        functype = FuncType.new([], [])
         calls = 0
         linker = new_linker
-        linker.func_new("", "", functype) do |caller|
+        linker.func_new("", "", [], []) do |caller|
           calls += 1
           expect(caller).to be_instance_of(Caller)
         end
@@ -106,7 +102,7 @@ module Wasmtime
 
       it "returns an Extern" do
         linker = new_linker
-        linker.func_new("mod", "fn", FuncType.new([], [:i32])) { 42 }
+        linker.func_new("mod", "fn", [], [:i32]) { 42 }
         extern = linker.get(Store.new(engine), "mod", "fn")
         expect(extern).to be_instance_of(Extern)
       end
@@ -144,7 +140,7 @@ module Wasmtime
 
     it "#instantiate" do
       linker = new_linker
-      linker.func_new("", "", FuncType.new([], [])) {}
+      linker.func_new("", "", [], []) {}
       instance = linker.instantiate(Store.new(engine), func_reexport_module)
       expect(instance).to be_instance_of(Instance)
     end
@@ -161,9 +157,8 @@ module Wasmtime
 
     it "GC stresses instance and func" do
       calls = 0
-      functype = FuncType.new([], [])
       linker = new_linker
-      linker.func_new("", "", functype) { calls += 1 }
+      linker.func_new("", "", [], []) { calls += 1 }
       instance = linker.instantiate(Store.new(engine), func_reexport_module)
       linker = nil # rubocop:disable Lint/UselessAssignment
 

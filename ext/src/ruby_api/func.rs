@@ -1,6 +1,5 @@
 use super::{
-    convert::{ToRubyValue, ToWasmVal},
-    func_type::FuncType,
+    convert::{ToRubyValue, ToSym, ToValTypeVec, ToWasmVal},
     params::Params,
     root,
     store::{Store, StoreContextValue, StoreData},
@@ -9,7 +8,7 @@ use crate::{error, helpers::WrappedStruct, Caller};
 use magnus::{
     block::Proc, function, memoize, method, r_typed_data::DataTypeBuilder, scan_args::scan_args,
     value::BoxValue, DataTypeFunctions, Error, Exception, Module as _, Object, RArray, RClass,
-    TryConvert, TypedData, Value, QNIL,
+    Symbol, TryConvert, TypedData, Value, QNIL,
 };
 use wasmtime::{Caller as CallerImpl, Func as FuncImpl, Val};
 
@@ -57,15 +56,22 @@ unsafe impl Send for Func<'_> {}
 
 impl<'a> Func<'a> {
     /// @yard
-    /// @def new(store, type, callable, &block)
+    ///
+    /// Creates a WebAssembly function from a Ruby block. WebAssembly functions
+    /// can have 0 or more parameters and results. Each param must be a valid
+    /// WebAssembly type represented as a symbol. The valid symbols are: +:i32+,
+    /// +:i64+, +:f32+, +:f64+, +:v128+, +:funcref+, +:externref+.
+    ///
+    /// @def new(store, params, results, &block)
     /// @param store [Store]
-    /// @param type [FuncType]
-    /// @param block [Block] The funcs's implementation
+    /// @param params [Array<Symbol>] The function's parameters.
+    /// @param results [Array<Symbol>] The function's results.
+    /// @param block [Block] The function's implementation.
     ///
     /// @yield [caller, *args] The function's body
     /// @yieldparam caller [Caller] Caller which can be used to interact with the {Store}.
-    /// @yieldparam *args [Object] Splat of Ruby objects matching the {FuncType}’s params arity.
-    /// @yieldreturn [nil, Object, Array<Object>] The return type depends on {FuncType}’s results arity:
+    /// @yieldparam *args [Object] Splat of Ruby objects matching the function’s params arity.
+    /// @yieldreturn [nil, Object, Array<Object>] The return type depends on functions’s results arity:
     ///   * 0 => +nil+
     ///   * 1 => +Object+
     ///   * > 1 => +Array<Object>+
@@ -74,13 +80,12 @@ impl<'a> Func<'a> {
     ///
     /// @example Function that increments an i32:
     ///   store = Wasmtime::Store.new(Wasmtime::Engine.new)
-    ///   type = FuncType.new([:i32], [:i32])
-    ///   Wasmtime::Func.new(store, type) do |_caller, arg1|
+    ///   Wasmtime::Func.new(store, [:i32], [:i32]) do |_caller, arg1|
     ///     arg1.succ
     ///   end
     pub fn new(args: &[Value]) -> Result<Self, Error> {
-        let args = scan_args::<(Value, &FuncType), (), (), (), (), Proc>(args)?;
-        let (s, functype) = args.required;
+        let args = scan_args::<(Value, RArray, RArray), (), (), (), (), Proc>(args)?;
+        let (s, params, results) = args.required;
         let callable = args.block;
 
         let wrapped_store: WrappedStruct<Store> = s.try_convert()?;
@@ -88,9 +93,9 @@ impl<'a> Func<'a> {
 
         store.retain(callable.into());
         let context = store.context_mut();
-        let ty = functype.get();
-
-        let inner = wasmtime::Func::new(context, ty.clone(), make_func_closure(ty, callable));
+        let ty = wasmtime::FuncType::new(params.to_val_type_vec()?, results.to_val_type_vec()?);
+        let func_closure = make_func_closure(&ty, callable);
+        let inner = wasmtime::Func::new(context, ty, func_closure);
 
         Ok(Self {
             store: wrapped_store.into(),
@@ -115,7 +120,7 @@ impl<'a> Func<'a> {
     ///   The arguments to send to the Wasm function. Raises if the arguments do
     ///   not conform to the Wasm function's parameters.
     ///
-    /// @return [nil, Object, Array<Object>] The return type depends on {FuncType}’s results arity:
+    /// @return [nil, Object, Array<Object>] The return type depends on {Func}’s results arity:
     ///   * 0 => +nil+
     ///   * 1 => +Object+
     ///   * > 1 => +Array<Object>+
@@ -125,6 +130,30 @@ impl<'a> Func<'a> {
 
     pub fn inner(&self) -> &FuncImpl {
         &self.inner
+    }
+
+    /// @yard
+    /// @return [Array<Symbol>] The function's parameter types.
+    pub fn params(&self) -> Result<Vec<Symbol>, Error> {
+        let params = self
+            .inner
+            .ty(self.store.context()?)
+            .params()
+            .map(ToSym::to_sym)
+            .collect();
+        Ok(params)
+    }
+
+    /// @yard
+    /// @return [Array<Symbol>] The function's result types.
+    pub fn results(&self) -> Result<Vec<Symbol>, Error> {
+        let results = self
+            .inner
+            .ty(self.store.context()?)
+            .results()
+            .map(ToSym::to_sym)
+            .collect();
+        Ok(results)
     }
 
     pub fn invoke(
@@ -263,6 +292,8 @@ pub fn init() -> Result<(), Error> {
     let func = root().define_class("Func", Default::default())?;
     func.define_singleton_method("new", function!(Func::new, -1))?;
     func.define_method("call", method!(Func::call, -1))?;
+    func.define_method("params", method!(Func::params, 0))?;
+    func.define_method("results", method!(Func::results, 0))?;
 
     Ok(())
 }

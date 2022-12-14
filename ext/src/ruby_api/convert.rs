@@ -1,5 +1,5 @@
 use crate::{define_rb_intern, err, error};
-use magnus::{Error, Symbol, TypedData, Value};
+use magnus::{Error, RArray, Symbol, TypedData, Value};
 use wasmtime::{ExternRef, Val, ValType};
 
 use super::{func::Func, global::Global, memory::Memory, store::StoreContextValue, table::Table};
@@ -155,6 +155,19 @@ impl ToValType for Value {
             "invalid WebAssembly type, expected one of [:i32, :i64, :f32, :f64, :v128, :funcref, :externref], got {:}",
             self.inspect()
         )
+    }
+}
+
+pub trait ToValTypeVec {
+    fn to_val_type_vec(&self) -> Result<Vec<ValType>, Error>;
+}
+
+impl ToValTypeVec for RArray {
+    fn to_val_type_vec(&self) -> Result<Vec<ValType>, Error> {
+        unsafe { self.as_slice() }
+            .iter()
+            .map(ToValType::to_val_type)
+            .collect::<Result<Vec<ValType>, Error>>()
     }
 }
 

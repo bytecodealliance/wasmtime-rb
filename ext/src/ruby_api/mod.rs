@@ -21,7 +21,6 @@ mod params;
 mod static_id;
 mod store;
 mod table;
-mod table_type;
 mod trap;
 mod wasi_ctx_builder;
 
@@ -78,7 +77,6 @@ pub fn init() -> Result<(), Error> {
     externals::init()?;
     wasi_ctx_builder::init()?;
     table::init()?;
-    table_type::init()?;
     global::init()?;
 
     Ok(())

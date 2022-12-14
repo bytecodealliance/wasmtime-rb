@@ -58,7 +58,7 @@ module Wasmtime
 
       it "accepts table" do
         linker = new_linker
-        table = Table.new(store, TableType.new(:funcref, 1), nil)
+        table = Table.new(store, :funcref, nil, min_size: 1)
         linker.define("mod", "table", table)
         expect(linker.get(store, "mod", "table").to_table).to be_instance_of(Table)
       end

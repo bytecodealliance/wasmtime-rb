@@ -135,7 +135,64 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#new-class_method" title="new (class method)">.<strong>new</strong>(store, globaltype, value)  &#x21d2; Object </a>
+      <a href="#const-class_method" title="const (class method)">.<strong>const</strong>(store, type, default)  &#x21d2; Global </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>A constant global.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#var-class_method" title="var (class method)">.<strong>var</strong>(store, type, default:)  &#x21d2; Global </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>A variable global.</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+    <h2>
+      Instance Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#const%3F-instance_method" title="#const? (instance method)">#<strong>const?</strong>  &#x21d2; Boolean </a>
     
 
     
@@ -153,15 +210,6 @@
   
 </li>
 
-      
-    </ul>
-  
-    <h2>
-      Instance Method Summary
-      <small><a href="#" class="summary_toggle">collapse</a></small>
-    </h2>
-
-    <ul class="summary">
       
         <li class="public ">
   <span class="summary_signature">
@@ -214,7 +262,31 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#ty-instance_method" title="#ty (instance method)">#<strong>ty</strong>  &#x21d2; GlobalType </a>
+      <a href="#type-instance_method" title="#type (instance method)">#<strong>type</strong>  &#x21d2; Symbol </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>The Wasm type of the global‘s content.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#var%3F-instance_method" title="#var? (instance method)">#<strong>var?</strong>  &#x21d2; Boolean </a>
     
 
     
@@ -243,9 +315,9 @@
 
     
       <div class="method_details first">
-  <h3 class="signature first" id="new-class_method">
+  <h3 class="signature first" id="const-class_method">
   
-    .<strong>new</strong>(store, globaltype, value)  &#x21d2; <tt>Object</tt> 
+    .<strong>const</strong>(store, type, default)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::Global (class)">Global</a></span></tt> 
   
 
   
@@ -254,6 +326,8 @@
 </h3><div class="docstring">
   <div class="discussion">
     
+<p>Returns A constant global.</p>
+
 
   </div>
 </div>
@@ -274,18 +348,23 @@
   
     <li>
       
-        <span class='name'>globaltype</span>
+        <span class='name'>type</span>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="GlobalType.html" title="Wasmtime::GlobalType (class)">GlobalType</a></span></tt>)</span>
+        <span class='type'>(<tt>Symbol</tt>)</span>
       
       
+      
+        &mdash;
+        <div class='inline'>
+<p>The WebAssembly type of the value held by this global.</p>
+</div>
       
     </li>
   
     <li>
       
-        <span class='name'>value</span>
+        <span class='name'>default</span>
       
       
         <span class='type'>(<tt>Object</tt>)</span>
@@ -294,13 +373,31 @@
       
         &mdash;
         <div class='inline'>
-<p>The value of the global.</p>
+<p>The default value of this global.</p>
 </div>
       
     </li>
   
 </ul>
 
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::Global (class)">Global</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>A constant global.</p>
+</div>
+      
+    </li>
+  
+</ul>
 
 </div><table class="source_code">
   <tr>
@@ -314,49 +411,131 @@
 54
 55
 56
-57
-58
-59
-60
-61
-62
-63
-64
+57</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 51</span>
+
+pub fn const_(
+    store: WrappedStruct&lt;Store&gt;,
+    value_type: Symbol,
+    default: Value,
+) -&gt; Result&lt;Self, Error&gt; {
+    Self::new(store, value_type, default, Mutability::Const)
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="var-class_method">
+  
+    .<strong>var</strong>(store, type, default:)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::Global (class)">Global</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns A variable global.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>store</span>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>type</span>
+      
+      
+        <span class='type'>(<tt>Symbol</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The WebAssembly type of the value held by this global.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>default</span>
+      
+      
+        <span class='type'>(<tt>Object</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The default value of this global.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::Global (class)">Global</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>A variable global.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
 65
 66
 67
 68
 69
 70
-71
-72
-73</pre>
+71</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 51</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 65</span>
 
-pub fn new(
-    s: WrappedStruct&lt;Store&gt;,
-    globaltype: &amp;GlobalType,
-    value: Value,
+pub fn var(
+    store: WrappedStruct&lt;Store&gt;,
+    value_type: Symbol,
+    default: Value,
 ) -&gt; Result&lt;Self, Error&gt; {
-    let store = s.get()?;
-
-    let inner = GlobalImpl::new(
-        store.context_mut(),
-        globaltype.get().clone(),
-        value.to_wasm_val(globaltype.get().content())?,
-    )
-    .map_err(|e| error!(&quot;{}&quot;, e))?;
-
-    let global = Self {
-        store: s.into(),
-        inner,
-    };
-
-    global.retain_non_nil_extern_ref(value)?;
-
-    Ok(global)
+    Self::new(store, value_type, default, Mutability::Var)
 }</pre>
     </td>
   </tr>
@@ -370,7 +549,59 @@ pub fn new(
 
     
       <div class="method_details first">
-  <h3 class="signature first" id="get-instance_method">
+  <h3 class="signature first" id="const?-instance_method">
+  
+    #<strong>const?</strong>  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+106
+107
+108</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 106</span>
+
+pub fn is_const(&amp;self) -&gt; Result&lt;bool, Error&gt; {
+    self.ty().map(|ty| ty.mutability() == Mutability::Const)
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="get-instance_method">
   
     #<strong>get</strong>  &#x21d2; <tt>Object</tt> 
   
@@ -413,14 +644,14 @@ pub fn new(
       <pre class="lines">
 
 
-81
-82
-83
-84
-85</pre>
+126
+127
+128
+129
+130</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 81</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 126</span>
 
 pub fn get(&amp;self) -&gt; Result&lt;Value, Error&gt; {
     self.inner
@@ -491,21 +722,21 @@ pub fn get(&amp;self) -&gt; Result&lt;Value, Error&gt; {
       <pre class="lines">
 
 
-92
-93
-94
-95
-96
-97
-98
-99
-100
-101
-102
-103</pre>
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 92</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 137</span>
 
 pub fn set(&amp;self, value: Value) -&gt; Result&lt;(), Error&gt; {
     self.inner
@@ -525,9 +756,68 @@ pub fn set(&amp;self, value: Value) -&gt; Result&lt;(), Error&gt; {
 </div>
     
       <div class="method_details ">
-  <h3 class="signature " id="ty-instance_method">
+  <h3 class="signature " id="type-instance_method">
   
-    #<strong>ty</strong>  &#x21d2; <tt><span class='object_link'><a href="GlobalType.html" title="Wasmtime::GlobalType (class)">GlobalType</a></span></tt> 
+    #<strong>type</strong>  &#x21d2; <tt>Symbol</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns The Wasm type of the global‘s content.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Symbol</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The Wasm type of the global‘s content.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+120
+121
+122</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 120</span>
+
+pub fn type_(&amp;self) -&gt; Result&lt;Symbol, Error&gt; {
+    self.ty().map(|ty| ty.content().clone().to_sym())
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="var?-instance_method">
+  
+    #<strong>var?</strong>  &#x21d2; <tt>Boolean</tt> 
   
 
   
@@ -547,7 +837,7 @@ pub fn set(&amp;self, value: Value) -&gt; Result&lt;(), Error&gt; {
     <li>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="GlobalType.html" title="Wasmtime::GlobalType (class)">GlobalType</a></span></tt>)</span>
+        <span class='type'>(<tt>Boolean</tt>)</span>
       
       
       
@@ -561,15 +851,15 @@ pub fn set(&amp;self, value: Value) -&gt; Result&lt;(), Error&gt; {
       <pre class="lines">
 
 
-107
-108
-109</pre>
+113
+114
+115</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 107</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 113</span>
 
-pub fn ty(&amp;self) -&gt; Result&lt;GlobalType, Error&gt; {
-    Ok(self.inner.ty(self.store.context()?).into())
+pub fn is_var(&amp;self) -&gt; Result&lt;bool, Error&gt; {
+    self.ty().map(|ty| ty.mutability() == Mutability::Var)
 }</pre>
     </td>
   </tr>
@@ -581,7 +871,7 @@ pub fn ty(&amp;self) -&gt; Result&lt;GlobalType, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Dec 13 20:46:05 2022 by
+  Generated on Wed Dec 14 20:01:46 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

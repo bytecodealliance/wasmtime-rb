@@ -135,7 +135,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#new-class_method" title="new (class method)">.<strong>new</strong>(store, memtype)  &#x21d2; Object </a>
+      <a href="#new-class_method" title="new (class method)">.<strong>new</strong>(store, min_size:, max_size: nil)  &#x21d2; Object </a>
     
 
     
@@ -182,6 +182,54 @@
   
     <span class="summary_desc"><div class='inline'>
 <p>Grows a memory by <code>delta</code> pages.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#max_size-instance_method" title="#max_size (instance method)">#<strong>max_size</strong>  &#x21d2; Integer<sup>?</sup> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>The maximum number of memory pages.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#min_size-instance_method" title="#min_size (instance method)">#<strong>min_size</strong>  &#x21d2; Integer </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>The minimum number of memory pages.</p>
 </div></span>
   
 </li>
@@ -238,28 +286,6 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#ty-instance_method" title="#ty (instance method)">#<strong>ty</strong>  &#x21d2; MemoryType </a>
-    
-
-    
-  </span>
-  
-  
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'></div></span>
-  
-</li>
-
-      
-        <li class="public ">
-  <span class="summary_signature">
-    
       <a href="#write-instance_method" title="#write (instance method)">#<strong>write</strong>(offset, value)  &#x21d2; void </a>
     
 
@@ -293,7 +319,7 @@
       <div class="method_details first">
   <h3 class="signature first" id="new-class_method">
   
-    .<strong>new</strong>(store, memtype)  &#x21d2; <tt>Object</tt> 
+    .<strong>new</strong>(store, min_size:, max_size: nil)  &#x21d2; <tt>Object</tt> 
   
 
   
@@ -322,12 +348,35 @@
   
     <li>
       
-        <span class='name'>memtype</span>
+        <span class='name'>min_size</span>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="MemoryType.html" title="Wasmtime::MemoryType (class)">MemoryType</a></span></tt>)</span>
+        <span class='type'>(<tt>Integer</tt>)</span>
       
       
+      
+        &mdash;
+        <div class='inline'>
+<p>The minimum memory pages.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>max_size</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The maximum memory pages.</p>
+</div>
       
     </li>
   
@@ -340,26 +389,44 @@
       <pre class="lines">
 
 
-50
-51
-52
-53
-54
 55
 56
 57
 58
 59
-60</pre>
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 50</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 55</span>
 
-pub fn new(s: WrappedStruct&lt;Store&gt;, memtype: &amp;MemoryType) -&gt; Result&lt;Self, Error&gt; {
+pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
+    let args = scan_args::scan_args::&lt;(WrappedStruct&lt;Store&gt;,), (), (), (), _, ()&gt;(args)?;
+    let kw = scan_args::get_kwargs::&lt;_, (u32,), (Option&lt;u32&gt;,), ()&gt;(
+        args.keywords,
+        &amp;[*MIN_SIZE],
+        &amp;[*MAX_SIZE],
+    )?;
+    let (s,) = args.required;
+    let (min,) = kw.required;
+    let (max,) = kw.optional;
     let store = s.get()?;
 
-    let inner = MemoryImpl::new(store.context_mut(), memtype.get().clone())
-        .map_err(|e| error!(&quot;{}&quot;, e))?;
+    let memtype = wasmtime::MemoryType::new(min, max);
+    let inner = MemoryImpl::new(store.context_mut(), memtype).map_err(|e| error!(&quot;{}&quot;, e))?;
 
     Ok(Self {
         store: s.into(),
@@ -441,19 +508,137 @@ pub fn new(s: WrappedStruct&lt;Store&gt;, memtype: &amp;MemoryType) -&gt; Result
       <pre class="lines">
 
 
-104
-105
-106
-107
-108</pre>
+130
+131
+132
+133
+134</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 104</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 130</span>
 
 pub fn grow(&amp;self, delta: u64) -&gt; Result&lt;u64, Error&gt; {
     self.inner
         .grow(self.store.context_mut()?, delta)
         .map_err(|e| error!(&quot;{}&quot;, e))
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="max_size-instance_method">
+  
+    #<strong>max_size</strong>  &#x21d2; <tt>Integer</tt><sup>?</sup> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns The maximum number of memory pages.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Integer</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The maximum number of memory pages.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+88
+89
+90</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 88</span>
+
+pub fn max_size(&amp;self) -&gt; Result&lt;Option&lt;u64&gt;, Error&gt; {
+    Ok(self.inner.ty(self.store.context()?).maximum())
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="min_size-instance_method">
+  
+    #<strong>min_size</strong>  &#x21d2; <tt>Integer</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns The minimum number of memory pages.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The minimum number of memory pages.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+82
+83
+84</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 82</span>
+
+pub fn min_size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
+    Ok(self.inner.ty(self.store.context()?).minimum())
 }</pre>
     </td>
   </tr>
@@ -530,17 +715,17 @@ pub fn grow(&amp;self, delta: u64) -&gt; Result&lt;u64, Error&gt; {
       <pre class="lines">
 
 
-73
-74
-75
-76
-77
-78
-79
-80</pre>
+99
+100
+101
+102
+103
+104
+105
+106</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 73</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 99</span>
 
 pub fn read(&amp;self, offset: usize, size: usize) -&gt; Result&lt;RString, Error&gt; {
     self.inner
@@ -599,67 +784,15 @@ pub fn read(&amp;self, offset: usize, size: usize) -&gt; Result&lt;RString, Erro
       <pre class="lines">
 
 
-112
-113
-114</pre>
+138
+139
+140</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 112</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 138</span>
 
 pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
     Ok(self.inner.size(self.store.context()?))
-}</pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-      <div class="method_details ">
-  <h3 class="signature " id="ty-instance_method">
-  
-    #<strong>ty</strong>  &#x21d2; <tt><span class='object_link'><a href="MemoryType.html" title="Wasmtime::MemoryType (class)">MemoryType</a></span></tt> 
-  
-
-  
-
-  
-</h3><div class="docstring">
-  <div class="discussion">
-    
-
-  </div>
-</div>
-<div class="tags">
-  
-<p class="tag_title">Returns:</p>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt><span class='object_link'><a href="MemoryType.html" title="Wasmtime::MemoryType (class)">MemoryType</a></span></tt>)</span>
-      
-      
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-118
-119
-120</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 118</span>
-
-pub fn ty(&amp;self) -&gt; Result&lt;MemoryType, Error&gt; {
-    Ok(self.inner.ty(self.store.context()?).into())
 }</pre>
     </td>
   </tr>
@@ -718,16 +851,16 @@ pub fn ty(&amp;self) -&gt; Result&lt;MemoryType, Error&gt; {
       <pre class="lines">
 
 
-89
-90
-91
-92
-93
-94
-95</pre>
+115
+116
+117
+118
+119
+120
+121</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 89</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 115</span>
 
 pub fn write(&amp;self, offset: usize, value: RString) -&gt; Result&lt;(), Error&gt; {
     let slice = unsafe { value.as_slice() };
@@ -746,7 +879,7 @@ pub fn write(&amp;self, offset: usize, value: RString) -&gt; Result&lt;(), Error
 </div>
 
       <div id="footer">
-  Generated on Tue Dec 13 20:46:05 2022 by
+  Generated on Wed Dec 14 20:01:46 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

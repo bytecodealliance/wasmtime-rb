@@ -135,7 +135,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#new-class_method" title="new (class method)">.<strong>new</strong>(store, tabletype, initial)  &#x21d2; Object </a>
+      <a href="#new-class_method" title="new (class method)">.<strong>new</strong>(store, type, initial, min_size:, max_size: nil)  &#x21d2; Object </a>
     
 
     
@@ -214,6 +214,54 @@
         <li class="public ">
   <span class="summary_signature">
     
+      <a href="#max_size-instance_method" title="#max_size (instance method)">#<strong>max_size</strong>  &#x21d2; Integer<sup>?</sup> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>The maximum size of this table.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#min_size-instance_method" title="#min_size (instance method)">#<strong>min_size</strong>  &#x21d2; Integer </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>The minimum size of this table.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
       <a href="#set-instance_method" title="#set (instance method)">#<strong>set</strong>(index, value)  &#x21d2; void </a>
     
 
@@ -262,7 +310,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#ty-instance_method" title="#ty (instance method)">#<strong>ty</strong>  &#x21d2; TableType </a>
+      <a href="#type-instance_method" title="#type (instance method)">#<strong>type</strong>  &#x21d2; Symbol </a>
     
 
     
@@ -276,7 +324,9 @@
   
 
   
-    <span class="summary_desc"><div class='inline'></div></span>
+    <span class="summary_desc"><div class='inline'>
+<p>The Wasm type of the elements of this table.</p>
+</div></span>
   
 </li>
 
@@ -293,7 +343,7 @@
       <div class="method_details first">
   <h3 class="signature first" id="new-class_method">
   
-    .<strong>new</strong>(store, tabletype, initial)  &#x21d2; <tt>Object</tt> 
+    .<strong>new</strong>(store, type, initial, min_size:, max_size: nil)  &#x21d2; <tt>Object</tt> 
   
 
   
@@ -322,12 +372,17 @@
   
     <li>
       
-        <span class='name'>tabletype</span>
+        <span class='name'>type</span>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="TableType.html" title="Wasmtime::TableType (class)">TableType</a></span></tt>)</span>
+        <span class='type'>(<tt>Symbol</tt>)</span>
       
       
+      
+        &mdash;
+        <div class='inline'>
+<p>The WebAssembly type of the value held by this table.</p>
+</div>
       
     </li>
   
@@ -342,7 +397,41 @@
       
         &mdash;
         <div class='inline'>
-<p>The initial value for values in the table.</p>
+<p>The initial value of values in the table.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>min_size</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The minimum number of elements in the table.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>max_size</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The maximum number of elements in the table.</p>
 </div>
       
     </li>
@@ -356,12 +445,6 @@
       <pre class="lines">
 
 
-51
-52
-53
-54
-55
-56
 57
 58
 59
@@ -375,21 +458,49 @@
 67
 68
 69
-70</pre>
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 51</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 57</span>
 
-pub fn new(
-    s: WrappedStruct&lt;Store&gt;,
-    tabletype: &amp;TableType,
-    default: Value,
-) -&gt; Result&lt;Self, Error&gt; {
+pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
+    let args =
+        scan_args::scan_args::&lt;(WrappedStruct&lt;Store&gt;, Symbol, Value), (), (), (), _, ()&gt;(args)?;
+    let kw = scan_args::get_kwargs::&lt;_, (u32,), (Option&lt;u32&gt;,), ()&gt;(
+        args.keywords,
+        &amp;[*MIN_SIZE],
+        &amp;[*MAX_SIZE],
+    )?;
+    let (s, value_type, default) = args.required;
+    let (min,) = kw.required;
+    let (max,) = kw.optional;
     let store = s.get()?;
-    let default_val = default.to_wasm_val(&amp;tabletype.get().element())?;
+    let wasm_type = value_type.to_val_type()?;
+    let wasm_default = default.to_wasm_val(&amp;wasm_type)?;
 
-    let inner = TableImpl::new(store.context_mut(), tabletype.get().clone(), default_val)
-        .map_err(|e| error!(&quot;{}&quot;, e))?;
+    let inner = TableImpl::new(
+        store.context_mut(),
+        TableType::new(wasm_type, min, max),
+        wasm_default,
+    )
+    .map_err(|e| error!(&quot;{}&quot;, e))?;
 
     let table = Self {
         store: s.into(),
@@ -465,15 +576,15 @@ pub fn new(
       <pre class="lines">
 
 
-82
-83
-84
-85
-86
-87</pre>
+118
+119
+120
+121
+122
+123</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 82</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 118</span>
 
 pub fn get(&amp;self, index: u32) -&gt; Result&lt;Value, Error&gt; {
     match self.inner.get(self.store.context_mut()?, index) {
@@ -548,22 +659,22 @@ pub fn get(&amp;self, index: u32) -&gt; Result&lt;Value, Error&gt; {
       <pre class="lines">
 
 
-118
-119
-120
-121
-122
-123
-124
-125
-126
-127
-128
-129
-130</pre>
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 118</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 154</span>
 
 pub fn grow(&amp;self, delta: u32, initial: Value) -&gt; Result&lt;u32, Error&gt; {
     self.inner
@@ -577,6 +688,124 @@ pub fn grow(&amp;self, delta: u32, initial: Value) -&gt; Result&lt;u32, Error&gt
             self.retain_non_nil_extern_ref(initial)?;
             Ok(result)
         })
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="max_size-instance_method">
+  
+    #<strong>max_size</strong>  &#x21d2; <tt>Integer</tt><sup>?</sup> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns The maximum size of this table.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Integer</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The maximum size of this table.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+108
+109
+110</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 108</span>
+
+pub fn max_size(&amp;self) -&gt; Result&lt;Option&lt;u32&gt;, Error&gt; {
+    self.ty().map(|ty| ty.maximum())
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="min_size-instance_method">
+  
+    #<strong>min_size</strong>  &#x21d2; <tt>Integer</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns The minimum size of this table.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The minimum size of this table.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+102
+103
+104</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 102</span>
+
+pub fn min_size(&amp;self) -&gt; Result&lt;u32, Error&gt; {
+    self.ty().map(|ty| ty.minimum())
 }</pre>
     </td>
   </tr>
@@ -635,22 +864,22 @@ pub fn grow(&amp;self, delta: u32, initial: Value) -&gt; Result&lt;u32, Error&gt
       <pre class="lines">
 
 
-96
-97
-98
-99
-100
-101
-102
-103
-104
-105
-106
-107
-108</pre>
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 96</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 132</span>
 
 pub fn set(&amp;self, index: u32, value: Value) -&gt; Result&lt;(), Error&gt; {
     self.inner
@@ -714,12 +943,12 @@ pub fn set(&amp;self, index: u32, value: Value) -&gt; Result&lt;(), Error&gt; {
       <pre class="lines">
 
 
-134
-135
-136</pre>
+170
+171
+172</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 134</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 170</span>
 
 pub fn size(&amp;self) -&gt; Result&lt;u32, Error&gt; {
     Ok(self.inner.size(self.store.context()?))
@@ -730,9 +959,9 @@ pub fn size(&amp;self) -&gt; Result&lt;u32, Error&gt; {
 </div>
     
       <div class="method_details ">
-  <h3 class="signature " id="ty-instance_method">
+  <h3 class="signature " id="type-instance_method">
   
-    #<strong>ty</strong>  &#x21d2; <tt><span class='object_link'><a href="TableType.html" title="Wasmtime::TableType (class)">TableType</a></span></tt> 
+    #<strong>type</strong>  &#x21d2; <tt>Symbol</tt> 
   
 
   
@@ -741,6 +970,8 @@ pub fn size(&amp;self) -&gt; Result&lt;u32, Error&gt; {
 </h3><div class="docstring">
   <div class="discussion">
     
+<p>Returns The Wasm type of the elements of this table.</p>
+
 
   </div>
 </div>
@@ -752,9 +983,14 @@ pub fn size(&amp;self) -&gt; Result&lt;u32, Error&gt; {
     <li>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="TableType.html" title="Wasmtime::TableType (class)">TableType</a></span></tt>)</span>
+        <span class='type'>(<tt>Symbol</tt>)</span>
       
       
+      
+        &mdash;
+        <div class='inline'>
+<p>The Wasm type of the elements of this table.</p>
+</div>
       
     </li>
   
@@ -766,15 +1002,15 @@ pub fn size(&amp;self) -&gt; Result&lt;u32, Error&gt; {
       <pre class="lines">
 
 
-140
-141
-142</pre>
+96
+97
+98</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 140</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 96</span>
 
-pub fn ty(&amp;self) -&gt; Result&lt;TableType, Error&gt; {
-    Ok(self.inner.ty(self.store.context()?).into())
+pub fn type_(&amp;self) -&gt; Result&lt;Symbol, Error&gt; {
+    self.ty().map(|ty| ty.element().to_sym())
 }</pre>
     </td>
   </tr>
@@ -786,7 +1022,7 @@ pub fn ty(&amp;self) -&gt; Result&lt;TableType, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Dec 13 20:46:05 2022 by
+  Generated on Wed Dec 14 20:01:46 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

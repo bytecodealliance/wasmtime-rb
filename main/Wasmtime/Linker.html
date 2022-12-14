@@ -284,7 +284,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#func_new-instance_method" title="#func_new (instance method)">#<strong>func_new</strong>(mod, name, type, &amp;block)  &#x21d2; void </a>
+      <a href="#func_new-instance_method" title="#func_new (instance method)">#<strong>func_new</strong>(mod, name, params, results, &amp;block)  &#x21d2; void </a>
     
 
     
@@ -615,9 +615,6 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-220
-221
-222
 223
 224
 225
@@ -632,10 +629,13 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
 234
 235
 236
-237</pre>
+237
+238
+239
+240</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 220</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 223</span>
 
 pub fn alias(
     &amp;self,
@@ -942,7 +942,7 @@ pub fn define_unknown_imports_as_traps(&amp;self, module: &amp;Module) -&gt; Res
       <div class="method_details ">
   <h3 class="signature " id="func_new-instance_method">
   
-    #<strong>func_new</strong>(mod, name, type, &amp;block)  &#x21d2; <tt>void</tt> 
+    #<strong>func_new</strong>(mod, name, params, results, &amp;block)  &#x21d2; <tt>void</tt> 
   
 
   
@@ -994,12 +994,33 @@ pub fn define_unknown_imports_as_traps(&amp;self, module: &amp;Module) -&gt; Res
   
     <li>
       
-        <span class='name'>type</span>
+        <span class='name'>params</span>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="FuncType.html" title="Wasmtime::FuncType (class)">FuncType</a></span></tt>)</span>
+        <span class='type'>(<tt>Array&lt;Symbol&gt;</tt>)</span>
       
       
+      
+        &mdash;
+        <div class='inline'>
+<p>The function’s parameters.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>results</span>
+      
+      
+        <span class='type'>(<tt>Array&lt;Symbol&gt;</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The function’s results.</p>
+</div>
       
     </li>
   
@@ -1027,6 +1048,8 @@ pub fn define_unknown_imports_as_traps(&amp;self, module: &amp;Module) -&gt; Res
     
       <li><span class='object_link'><a href="Func.html#new-class_method" title="Wasmtime::Func.new (method)">Func.new</a></span></li>
     
+      <li><span class='object_link'><a href="Func.html#new-class_method" title="Wasmtime::Func.new (method)">Func.new</a></span></li>
+    
   </ul>
 
 </div><table class="source_code">
@@ -1035,8 +1058,6 @@ pub fn define_unknown_imports_as_traps(&amp;self, module: &amp;Module) -&gt; Res
       <pre class="lines">
 
 
-122
-123
 124
 125
 126
@@ -1053,16 +1074,20 @@ pub fn define_unknown_imports_as_traps(&amp;self, module: &amp;Module) -&gt; Res
 137
 138
 139
-140</pre>
+140
+141
+142
+143</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 122</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 124</span>
 
 pub fn func_new(&amp;self, args: &amp;[Value]) -&gt; Result&lt;(), Error&gt; {
-    let args = scan_args::&lt;(RString, RString, &amp;FuncType), (), (), (), RHash, Proc&gt;(args)?;
-    let (module, name, ty) = args.required;
+    let args = scan_args::&lt;(RString, RString, RArray, RArray), (), (), (), RHash, Proc&gt;(args)?;
+    let (module, name, params, results) = args.required;
     let callable = args.block;
-    let func_closure = func::make_func_closure(ty.get(), callable);
+    let ty = wasmtime::FuncType::new(params.to_val_type_vec()?, results.to_val_type_vec()?);
+    let func_closure = func::make_func_closure(&amp;ty, callable);
 
     self.refs.borrow_mut().push(callable.into());
 
@@ -1071,7 +1096,7 @@ pub fn func_new(&amp;self, args: &amp;[Value]) -&gt; Result&lt;(), Error&gt; {
         .func_new(
             unsafe { module.as_str() }?,
             unsafe { name.as_str() }?,
-            ty.get().clone(),
+            ty,
             func_closure,
         )
         .map_err(|e| error!(&quot;{}&quot;, e))
@@ -1173,9 +1198,6 @@ pub fn func_new(&amp;self, args: &amp;[Value]) -&gt; Result&lt;(), Error&gt; {
       <pre class="lines">
 
 
-150
-151
-152
 153
 154
 155
@@ -1191,10 +1213,13 @@ pub fn func_new(&amp;self, args: &amp;[Value]) -&gt; Result&lt;(), Error&gt; {
 165
 166
 167
-168</pre>
+168
+169
+170
+171</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 150</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 153</span>
 
 pub fn get(
     &amp;self,
@@ -1290,19 +1315,19 @@ pub fn get(
       <pre class="lines">
 
 
-290
-291
-292
 293
 294
 295
 296
 297
 298
-299</pre>
+299
+300
+301
+302</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 290</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 293</span>
 
 pub fn get_default(&amp;self, s: WrappedStruct&lt;Store&gt;, module: RString) -&gt; Result&lt;Func, Error&gt; {
         let store = s.get()?;
@@ -1387,9 +1412,6 @@ pub fn get_default(&amp;self, s: WrappedStruct&lt;Store&gt;, module: RString) -&
       <pre class="lines">
 
 
-178
-179
-180
 181
 182
 183
@@ -1402,10 +1424,13 @@ pub fn get_default(&amp;self, s: WrappedStruct&lt;Store&gt;, module: RString) -&
 190
 191
 192
-193</pre>
+193
+194
+195
+196</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 178</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 181</span>
 
 pub fn instance(
     &amp;self,
@@ -1493,9 +1518,6 @@ pub fn instance(
       <pre class="lines">
 
 
-260
-261
-262
 263
 264
 265
@@ -1515,10 +1537,13 @@ pub fn instance(
 279
 280
 281
-282</pre>
+282
+283
+284
+285</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 260</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 263</span>
 
 pub fn instantiate(&amp;self, s: WrappedStruct&lt;Store&gt;, module: &amp;Module) -&gt; Result&lt;Instance, Error&gt; {
     let wrapped_store: WrappedStruct&lt;Store&gt; = s.try_convert()?;
@@ -1616,16 +1641,16 @@ pub fn instantiate(&amp;self, s: WrappedStruct&lt;Store&gt;, module: &amp;Module
       <pre class="lines">
 
 
-203
-204
-205
 206
 207
 208
-209</pre>
+209
+210
+211
+212</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 203</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 206</span>
 
 pub fn module(&amp;self, store: &amp;Store, name: RString, module: &amp;Module) -&gt; Result&lt;(), Error&gt; {
     self.inner
@@ -1644,7 +1669,7 @@ pub fn module(&amp;self, store: &amp;Store, name: RString, module: &amp;Module) 
 </div>
 
       <div id="footer">
-  Generated on Tue Dec 13 20:46:05 2022 by
+  Generated on Wed Dec 14 20:01:46 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

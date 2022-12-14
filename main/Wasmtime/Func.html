@@ -135,7 +135,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#new-class_method" title="new (class method)">.<strong>new</strong>(store, type, callable, &amp;block) {|caller, *args| ... } &#x21d2; Func </a>
+      <a href="#new-class_method" title="new (class method)">.<strong>new</strong>(store, params, results, &amp;block) {|caller, *args| ... } &#x21d2; Func </a>
     
 
     
@@ -149,7 +149,9 @@
   
 
   
-    <span class="summary_desc"><div class='inline'></div></span>
+    <span class="summary_desc"><div class='inline'>
+<p>Creates a WebAssembly function from a Ruby block.</p>
+</div></span>
   
 </li>
 
@@ -187,6 +189,54 @@
 </li>
 
       
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#params-instance_method" title="#params (instance method)">#<strong>params</strong>  &#x21d2; Array&lt;Symbol&gt; </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>The function’s parameter types.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#results-instance_method" title="#results (instance method)">#<strong>results</strong>  &#x21d2; Array&lt;Symbol&gt; </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>The function’s result types.</p>
+</div></span>
+  
+</li>
+
+      
     </ul>
   
 
@@ -199,7 +249,7 @@
       <div class="method_details first">
   <h3 class="signature first" id="new-class_method">
   
-    .<strong>new</strong>(store, type, callable, &amp;block) {|caller, *args| ... } &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::Func (class)">Func</a></span></tt> 
+    .<strong>new</strong>(store, params, results, &amp;block) {|caller, *args| ... } &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::Func (class)">Func</a></span></tt> 
   
 
   
@@ -208,6 +258,8 @@
 </h3><div class="docstring">
   <div class="discussion">
     
+<p>Creates a WebAssembly function from a Ruby block. WebAssembly functions can have 0 or more parameters and results. Each param must be a valid WebAssembly type represented as a symbol. The valid symbols are: <code>:i32</code>, <code>:i64</code>, <code>:f32</code>, <code>:f64</code>, <code>:v128</code>, <code>:funcref</code>, <code>:externref</code>.</p>
+
 
   </div>
 </div>
@@ -222,8 +274,7 @@
 </div></p>
       
       <pre class="example code"><code><span class='id identifier rubyid_store'>store</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../Wasmtime.html" title="Wasmtime (module)">Wasmtime</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="Store.html#new-class_method" title="Wasmtime::Store.new (method)">new</a></span></span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="../Wasmtime.html" title="Wasmtime (module)">Wasmtime</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Engine.html" title="Wasmtime::Engine (class)">Engine</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="Engine.html#new-class_method" title="Wasmtime::Engine.new (method)">new</a></span></span><span class='rparen'>)</span>
-<span class='id identifier rubyid_type'>type</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="FuncType.html" title="Wasmtime::FuncType (class)">FuncType</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="FuncType.html#new-class_method" title="Wasmtime::FuncType.new (method)">new</a></span></span><span class='lparen'>(</span><span class='lbracket'>[</span><span class='symbol'>:i32</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='lbracket'>[</span><span class='symbol'>:i32</span><span class='rbracket'>]</span><span class='rparen'>)</span>
-<span class='const'><span class='object_link'><a href="../Wasmtime.html" title="Wasmtime (module)">Wasmtime</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="" title="Wasmtime::Func (class)">Func</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='id identifier rubyid_store'>store</span><span class='comma'>,</span> <span class='id identifier rubyid_type'>type</span><span class='rparen'>)</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid__caller'>_caller</span><span class='comma'>,</span> <span class='id identifier rubyid_arg1'>arg1</span><span class='op'>|</span>
+<span class='const'><span class='object_link'><a href="../Wasmtime.html" title="Wasmtime (module)">Wasmtime</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="" title="Wasmtime::Func (class)">Func</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='id identifier rubyid_store'>store</span><span class='comma'>,</span> <span class='lbracket'>[</span><span class='symbol'>:i32</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='lbracket'>[</span><span class='symbol'>:i32</span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid__caller'>_caller</span><span class='comma'>,</span> <span class='id identifier rubyid_arg1'>arg1</span><span class='op'>|</span>
   <span class='id identifier rubyid_arg1'>arg1</span><span class='period'>.</span><span class='id identifier rubyid_succ'>succ</span>
 <span class='kw'>end</span></code></pre>
     
@@ -244,12 +295,33 @@
   
     <li>
       
-        <span class='name'>type</span>
+        <span class='name'>params</span>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="FuncType.html" title="Wasmtime::FuncType (class)">FuncType</a></span></tt>)</span>
+        <span class='type'>(<tt>Array&lt;Symbol&gt;</tt>)</span>
       
       
+      
+        &mdash;
+        <div class='inline'>
+<p>The function’s parameters.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>results</span>
+      
+      
+        <span class='type'>(<tt>Array&lt;Symbol&gt;</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The function’s results.</p>
+</div>
       
     </li>
   
@@ -264,7 +336,7 @@
       
         &mdash;
         <div class='inline'>
-<p>The funcs’s implementation</p>
+<p>The function’s implementation.</p>
 </div>
       
     </li>
@@ -319,7 +391,7 @@
       
         &mdash;
         <div class='inline'>
-<p>Splat of Ruby objects matching the <span class='object_link'><a href="FuncType.html" title="Wasmtime::FuncType (class)">Wasmtime::FuncType</a></span>’s params arity.</p>
+<p>Splat of Ruby objects matching the function’s params arity.</p>
 </div>
       
     </li>
@@ -337,7 +409,7 @@
       
         &mdash;
         <div class='inline'>
-<p>The return type depends on <span class='object_link'><a href="FuncType.html" title="Wasmtime::FuncType (class)">Wasmtime::FuncType</a></span>’s results arity:</p>
+<p>The return type depends on functions’s results arity:</p>
 <ul><li>
 <p>0 =&gt; <code>nil</code></p>
 </li><li>
@@ -370,11 +442,6 @@
       <pre class="lines">
 
 
-81
-82
-83
-84
-85
 86
 87
 88
@@ -388,14 +455,19 @@
 96
 97
 98
-99</pre>
+99
+100
+101
+102
+103
+104</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 81</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 86</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
-    let args = scan_args::&lt;(Value, &amp;FuncType), (), (), (), (), Proc&gt;(args)?;
-    let (s, functype) = args.required;
+    let args = scan_args::&lt;(Value, RArray, RArray), (), (), (), (), Proc&gt;(args)?;
+    let (s, params, results) = args.required;
     let callable = args.block;
 
     let wrapped_store: WrappedStruct&lt;Store&gt; = s.try_convert()?;
@@ -403,9 +475,9 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
 
     store.retain(callable.into());
     let context = store.context_mut();
-    let ty = functype.get();
-
-    let inner = wasmtime::Func::new(context, ty.clone(), make_func_closure(ty, callable));
+    let ty = wasmtime::FuncType::new(params.to_val_type_vec()?, results.to_val_type_vec()?);
+    let func_closure = make_func_closure(&amp;ty, callable);
+    let inner = wasmtime::Func::new(context, ty, func_closure);
 
     Ok(Self {
         store: wrapped_store.into(),
@@ -474,7 +546,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       
         &mdash;
         <div class='inline'>
-<p>The return type depends on <span class='object_link'><a href="FuncType.html" title="Wasmtime::FuncType (class)">Wasmtime::FuncType</a></span>’s results arity:</p>
+<p>The return type depends on <span class='object_link'><a href="" title="Wasmtime::Func (class)">Wasmtime::Func</a></span>’s results arity:</p>
 <ul><li>
 <p>0 =&gt; <code>nil</code></p>
 </li><li>
@@ -494,15 +566,157 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-122
-123
-124</pre>
+127
+128
+129</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 122</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 127</span>
 
 pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
     Self::invoke(&amp;self.store, &amp;self.inner, args).map_err(|e| e.into())
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="params-instance_method">
+  
+    #<strong>params</strong>  &#x21d2; <tt>Array&lt;Symbol&gt;</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns The function’s parameter types.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Array&lt;Symbol&gt;</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The function’s parameter types.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+137
+138
+139
+140
+141
+142
+143
+144
+145</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 137</span>
+
+pub fn params(&amp;self) -&gt; Result&lt;Vec&lt;Symbol&gt;, Error&gt; {
+    let params = self
+        .inner
+        .ty(self.store.context()?)
+        .params()
+        .map(ToSym::to_sym)
+        .collect();
+    Ok(params)
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="results-instance_method">
+  
+    #<strong>results</strong>  &#x21d2; <tt>Array&lt;Symbol&gt;</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns The function’s result types.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Array&lt;Symbol&gt;</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The function’s result types.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+149
+150
+151
+152
+153
+154
+155
+156
+157</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 149</span>
+
+pub fn results(&amp;self) -&gt; Result&lt;Vec&lt;Symbol&gt;, Error&gt; {
+    let results = self
+        .inner
+        .ty(self.store.context()?)
+        .results()
+        .map(ToSym::to_sym)
+        .collect();
+    Ok(results)
 }</pre>
     </td>
   </tr>
@@ -514,7 +728,7 @@ pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Dec 13 20:46:05 2022 by
+  Generated on Wed Dec 14 20:01:46 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

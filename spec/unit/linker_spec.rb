@@ -66,7 +66,7 @@ module Wasmtime
       it "accepts global" do
         linker = new_linker
         store = Store.new(engine)
-        global = Global.new(store, GlobalType.var(:i32), 1)
+        global = Global.var(store, :i32, 1)
         linker.define("mod", "glob", global)
         expect(linker.get(store, "mod", "glob").to_global).to be_instance_of(Global)
       end

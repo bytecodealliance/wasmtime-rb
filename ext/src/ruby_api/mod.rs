@@ -12,7 +12,6 @@ mod errors;
 mod externals;
 mod func;
 mod global;
-mod global_type;
 mod instance;
 mod linker;
 mod macros;
@@ -81,7 +80,6 @@ pub fn init() -> Result<(), Error> {
     table::init()?;
     table_type::init()?;
     global::init()?;
-    global_type::init()?;
 
     Ok(())
 }

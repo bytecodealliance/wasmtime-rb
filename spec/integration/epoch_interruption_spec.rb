@@ -91,7 +91,7 @@ module Wasmtime
             )
           )
         WAT
-        f = Func.new(store_deadline_1, FuncType.new([], [])) do |c|
+        f = Func.new(store_deadline_1, [], []) do |c|
           sleep_ms(30)
           engine.increment_epoch
           host_call_finished = true

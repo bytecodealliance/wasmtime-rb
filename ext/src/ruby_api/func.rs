@@ -58,9 +58,9 @@ impl<'a> Func<'a> {
     /// @yard
     ///
     /// Creates a WebAssembly function from a Ruby block. WebAssembly functions
-    /// can have 0 or more parameters and results. Each param must be a valid
-    /// WebAssembly type represented as a symbol. The valid symbols are: +:i32+,
-    /// +:i64+, +:f32+, +:f64+, +:v128+, +:funcref+, +:externref+.
+    /// can have 0 or more parameters and results. Each param and result must be a
+    /// valid WebAssembly type represented as a symbol. The valid symbols are:
+    /// +:i32+, +:i64+, +:f32+, +:f64+, +:v128+, +:funcref+, +:externref+.
     ///
     /// @def new(store, params, results, &block)
     /// @param store [Store]
@@ -71,7 +71,7 @@ impl<'a> Func<'a> {
     /// @yield [caller, *args] The function's body
     /// @yieldparam caller [Caller] Caller which can be used to interact with the {Store}.
     /// @yieldparam *args [Object] Splat of Ruby objects matching the function’s params arity.
-    /// @yieldreturn [nil, Object, Array<Object>] The return type depends on functions’s results arity:
+    /// @yieldreturn [nil, Object, Array<Object>] The return type depends on function’s results arity:
     ///   * 0 => +nil+
     ///   * 1 => +Object+
     ///   * > 1 => +Array<Object>+
@@ -82,6 +82,12 @@ impl<'a> Func<'a> {
     ///   store = Wasmtime::Store.new(Wasmtime::Engine.new)
     ///   Wasmtime::Func.new(store, [:i32], [:i32]) do |_caller, arg1|
     ///     arg1.succ
+    ///   end
+    ///
+    /// @example Function with 2 params and 2 results:
+    ///   store = Wasmtime::Store.new(Wasmtime::Engine.new)
+    ///   Wasmtime::Func.new(store, [:i32, :i32], [:i32, :i32]) do |_caller, arg1, arg2|
+    ///     [arg1.succ, arg2.succ]
     ///   end
     pub fn new(args: &[Value]) -> Result<Self, Error> {
         let args = scan_args::<(Value, RArray, RArray), (), (), (), (), Proc>(args)?;
@@ -120,10 +126,16 @@ impl<'a> Func<'a> {
     ///   The arguments to send to the Wasm function. Raises if the arguments do
     ///   not conform to the Wasm function's parameters.
     ///
-    /// @return [nil, Object, Array<Object>] The return type depends on {Func}’s results arity:
+    /// @return [nil, Object, Array<Object>] The return type depends on the function's results arity:
     ///   * 0 => +nil+
     ///   * 1 => +Object+
     ///   * > 1 => +Array<Object>+
+    /// @example
+    ///   store = Wasmtime::Store.new(Wasmtime::Engine.new)
+    ///   func = Wasmtime::Func.new(store, [:i32, :i32], [:i32, :i32]) do |_caller, arg1, arg2|
+    ///     [arg1.succ, arg2.succ]
+    ///   end
+    ///   func.call(1, 2) # => [2, 3]
     pub fn call(&self, args: &[Value]) -> Result<Value, Error> {
         Self::invoke(&self.store, &self.inner, args).map_err(|e| e.into())
     }

@@ -166,6 +166,30 @@
         <li class="public ">
   <span class="summary_signature">
     
+      <a href="#increment_epoch-instance_method" title="#increment_epoch (instance method)">#<strong>increment_epoch</strong>  &#x21d2; nil </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Manually increment the engine’s epoch.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
       <a href="#precompile_module-instance_method" title="#precompile_module (instance method)">#<strong>precompile_module</strong>(wat_or_wasm)  &#x21d2; String </a>
     
 
@@ -182,6 +206,54 @@
   
     <span class="summary_desc"><div class='inline'>
 <p>AoT compile a WebAssembly text or WebAssembly binary module for later use.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#start_epoch_interval-instance_method" title="#start_epoch_interval (instance method)">#<strong>start_epoch_interval</strong>(milliseconds)  &#x21d2; nil </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Starts a timer that will increment the engine’s epoch every <code>milliseconds</code>.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#stop_epoch_interval-instance_method" title="#stop_epoch_interval (instance method)">#<strong>stop_epoch_interval</strong>  &#x21d2; nil </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Stops a previously started timer with <span class='object_link'><a href="#start_epoch_interval-instance_method" title="Wasmtime::Engine#start_epoch_interval (method)">#start_epoch_interval</a></span>.</p>
 </div></span>
   
 </li>
@@ -235,21 +307,24 @@
       <pre class="lines">
 
 
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30</pre>
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 19</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 38</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let args = scan_args::scan_args::&lt;(), (Option&lt;Value&gt;,), (), (), (), ()&gt;(args)?;
@@ -261,7 +336,10 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
         None =&gt; EngineImpl::default(),
     };
 
-    Ok(Self { inner })
+    Ok(Self {
+        inner,
+        timer_task: Default::default(),
+    })
 }</pre>
     </td>
   </tr>
@@ -275,7 +353,61 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
 
     
       <div class="method_details first">
-  <h3 class="signature first" id="precompile_module-instance_method">
+  <h3 class="signature first" id="increment_epoch-instance_method">
+  
+    #<strong>increment_epoch</strong>  &#x21d2; <tt>nil</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Manually increment the engine’s epoch. Note: this cannot be used from a different thread while WebAssembly is running because the Global VM lock (GVL) is not released. Using <span class='object_link'><a href="#start_epoch_interval-instance_method" title="Wasmtime::Engine#start_epoch_interval (method)">#start_epoch_interval</a></span> is recommended because it sidesteps the GVL.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>nil</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+95
+96
+97</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 95</span>
+
+<span class='id identifier rubyid_pub'>pub</span> <span class='id identifier rubyid_fn'>fn</span> <span class='id identifier rubyid_increment_epoch'>increment_epoch</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='kw'>self</span><span class='rparen'>)</span> <span class='lbrace'>{</span>
+    <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_inner'>inner</span><span class='period'>.</span><span class='id identifier rubyid_increment_epoch'>increment_epoch</span><span class='lparen'>(</span><span class='rparen'>)</span><span class='semicolon'>;</span>
+<span class='rbrace'>}</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="precompile_module-instance_method">
   
     #<strong>precompile_module</strong>(wat_or_wasm)  &#x21d2; <tt>String</tt> 
   
@@ -347,22 +479,175 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-49
-50
-51
-52
-53
-54
-55</pre>
+112
+113
+114
+115
+116
+117</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 49</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 112</span>
 
 pub fn precompile_module(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RString, Error&gt; {
-        self.inner
-            .precompile_module(unsafe { wat_or_wasm.as_slice() })
-            .map(|bytes| RString::from_slice(&amp;bytes))
-            .map_err(|e| error!(&quot;{}&quot;, e.to_string()))
+    self.inner
+        .precompile_module(unsafe { wat_or_wasm.as_slice() })
+        .map(|bytes| RString::from_slice(&amp;bytes))
+        .map_err(|e| error!(&quot;{}&quot;, e.to_string()))
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="start_epoch_interval-instance_method">
+  
+    #<strong>start_epoch_interval</strong>(milliseconds)  &#x21d2; <tt>nil</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Starts a timer that will increment the engine’s epoch every <code>milliseconds</code>. Waits <code>milliseconds</code> before incrementing for the first time.</p>
+
+<p>If a prior timer was started, it will be stopped.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>milliseconds</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>nil</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 62</span>
+
+pub fn start_epoch_interval(&amp;self, milliseconds: u64) {
+    self.stop_epoch_interval();
+    let engine = self.inner.clone();
+
+    let handle = TOKIO_RT.spawn(async move {
+        let tick_every = time::Duration::from_millis(milliseconds);
+        let mut interval = Interval::platform_new(tick_every);
+
+        loop {
+            interval.wait().await;
+            engine.increment_epoch();
+        }
+    });
+
+    *self.timer_task.borrow_mut() = Some(handle);
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="stop_epoch_interval-instance_method">
+  
+    #<strong>stop_epoch_interval</strong>  &#x21d2; <tt>nil</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Stops a previously started timer with <span class='object_link'><a href="#start_epoch_interval-instance_method" title="Wasmtime::Engine#start_epoch_interval (method)">#start_epoch_interval</a></span>. Does nothing if there is no running timer.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>nil</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+83
+84
+85
+86
+87</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 83</span>
+
+pub fn stop_epoch_interval(&amp;self) {
+    if let Some(handle) = self.timer_task.take() {
+        handle.abort();
     }
 }</pre>
     </td>
@@ -375,7 +660,7 @@ pub fn precompile_module(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RStrin
 </div>
 
       <div id="footer">
-  Generated on Thu Dec 15 15:22:28 2022 by
+  Generated on Thu Dec 15 19:34:25 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

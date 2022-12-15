@@ -16,7 +16,7 @@ data = MyData.new
 engine = Wasmtime::Engine.new
 mod = Wasmtime::Module.from_file(engine, "examples/hello.wat")
 store = Wasmtime::Store.new(engine, data)
-func = Wasmtime::Func.new(store, Wasmtime::FuncType.new([], [])) do |caller|
+func = Wasmtime::Func.new(store, [], []) do |caller|
   puts "Hello from Func!"
   caller.store_data.increment!
 end

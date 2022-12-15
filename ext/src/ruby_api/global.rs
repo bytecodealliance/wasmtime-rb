@@ -1,15 +1,14 @@
 use super::{
-    convert::{ToRubyValue, ToWasmVal},
-    global_type::GlobalType,
+    convert::{ToRubyValue, ToSym, ToValType, ToWasmVal},
     root,
     store::{Store, StoreContextValue},
 };
 use crate::{error, helpers::WrappedStruct};
 use magnus::{
     function, memoize, method, r_typed_data::DataTypeBuilder, DataTypeFunctions, Error,
-    Module as _, Object, RClass, TypedData, Value,
+    Module as _, Object, RClass, Symbol, TypedData, Value,
 };
-use wasmtime::{Extern, Global as GlobalImpl};
+use wasmtime::{Extern, Global as GlobalImpl, GlobalType, Mutability};
 
 /// @yard
 /// @rename Wasmtime::Global
@@ -44,21 +43,46 @@ impl DataTypeFunctions for Global<'_> {
 
 impl<'a> Global<'a> {
     /// @yard
-    /// @def new(store, globaltype, value)
+    /// @def const(store, type, default)
     /// @param store [Store]
-    /// @param globaltype [GlobalType]
-    /// @param value [Object] The value of the global.
-    pub fn new(
-        s: WrappedStruct<Store>,
-        globaltype: &GlobalType,
-        value: Value,
+    /// @param type [Symbol] The WebAssembly type of the value held by this global.
+    /// @param default [Object] The default value of this global.
+    /// @return [Global] A constant global.
+    pub fn const_(
+        store: WrappedStruct<Store>,
+        value_type: Symbol,
+        default: Value,
     ) -> Result<Self, Error> {
-        let store = s.get()?;
+        Self::new(store, value_type, default, Mutability::Const)
+    }
 
+    /// @yard
+    /// @def var(store, type, default:)
+    /// @param store [Store]
+    /// @param type [Symbol] The WebAssembly type of the value held by this global.
+    /// @param default [Object] The default value of this global.
+    /// @return [Global] A variable global.
+    pub fn var(
+        store: WrappedStruct<Store>,
+        value_type: Symbol,
+        default: Value,
+    ) -> Result<Self, Error> {
+        Self::new(store, value_type, default, Mutability::Var)
+    }
+
+    fn new(
+        s: WrappedStruct<Store>,
+        value_type: Symbol,
+        default: Value,
+        mutability: Mutability,
+    ) -> Result<Self, Error> {
+        let wasm_type = value_type.to_val_type()?;
+        let wasm_default = default.to_wasm_val(&wasm_type)?;
+        let store = s.get()?;
         let inner = GlobalImpl::new(
             store.context_mut(),
-            globaltype.get().clone(),
-            value.to_wasm_val(globaltype.get().content())?,
+            GlobalType::new(wasm_type, mutability),
+            wasm_default,
         )
         .map_err(|e| error!("{}", e))?;
 
@@ -67,13 +91,34 @@ impl<'a> Global<'a> {
             inner,
         };
 
-        global.retain_non_nil_extern_ref(value)?;
+        global.retain_non_nil_extern_ref(default)?;
 
         Ok(global)
     }
 
     pub fn from_inner(store: StoreContextValue<'a>, inner: GlobalImpl) -> Self {
         Self { store, inner }
+    }
+
+    /// @yard
+    /// @def const?
+    /// @return [Boolean]
+    pub fn is_const(&self) -> Result<bool, Error> {
+        self.ty().map(|ty| ty.mutability() == Mutability::Const)
+    }
+
+    /// @yard
+    /// @def var?
+    /// @return [Boolean]
+    pub fn is_var(&self) -> Result<bool, Error> {
+        self.ty().map(|ty| ty.mutability() == Mutability::Var)
+    }
+
+    /// @yard
+    /// @def type
+    /// @return [Symbol] The Wasm type of the global‘s content.
+    pub fn type_(&self) -> Result<Symbol, Error> {
+        self.ty().map(|ty| ty.content().clone().to_sym())
     }
 
     /// @yard
@@ -102,14 +147,12 @@ impl<'a> Global<'a> {
             })
     }
 
-    /// @yard
-    /// @return [GlobalType]
-    pub fn ty(&self) -> Result<GlobalType, Error> {
-        Ok(self.inner.ty(self.store.context()?).into())
+    fn ty(&self) -> Result<GlobalType, Error> {
+        Ok(self.inner.ty(self.store.context()?))
     }
 
     fn value_type(&self) -> Result<wasmtime::ValType, Error> {
-        Ok(self.inner.ty(self.store.context()?).content().clone())
+        self.ty().map(|ty| ty.content().clone())
     }
 
     fn retain_non_nil_extern_ref(&self, value: Value) -> Result<(), Error> {
@@ -132,10 +175,15 @@ impl From<&Global<'_>> for Extern {
 
 pub fn init() -> Result<(), Error> {
     let class = root().define_class("Global", Default::default())?;
-    class.define_singleton_method("new", function!(Global::new, 3))?;
+    class.define_singleton_method("var", function!(Global::var, 3))?;
+    class.define_singleton_method("const", function!(Global::const_, 3))?;
+
+    class.define_method("const?", method!(Global::is_const, 0))?;
+    class.define_method("var?", method!(Global::is_var, 0))?;
+    class.define_method("type", method!(Global::type_, 0))?;
+
     class.define_method("get", method!(Global::get, 0))?;
     class.define_method("set", method!(Global::set, 1))?;
-    class.define_method("ty", method!(Global::ty, 0))?;
 
     Ok(())
 }

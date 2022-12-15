@@ -7,7 +7,7 @@ module Wasmtime
     context "on instance start" do
       context "from Instance.new" do
         it "bubbles host exception" do
-          func = Func.new(store, FuncType.new([], [])) { raise error_class }
+          func = Func.new(store, [], []) { raise error_class }
 
           expect { Wasmtime::Instance.new(store, module_import_func_start, [func]) }
             .to raise_error(error_class)
@@ -22,7 +22,7 @@ module Wasmtime
       context "from Linker#instantiate" do
         it "bubbles host exception" do
           linker = Linker.new(engine)
-          linker.func_new("", "", FuncType.new([], [])) { raise error_class }
+          linker.func_new("", "", [], []) { raise error_class }
           store = Store.new(engine)
 
           expect { linker.instantiate(store, module_import_func_start) }.to raise_error(error_class)
@@ -42,7 +42,7 @@ module Wasmtime
       context "from Func#call" do
         it "bubbles host exception" do
           store = Store.new(engine)
-          func = Func.new(store, FuncType.new([], [])) { raise error_class }
+          func = Func.new(store, [], []) { raise error_class }
 
           expect { func.call }.to raise_error(error_class)
         end
@@ -64,7 +64,7 @@ module Wasmtime
               (import "" "" (func))
               (export "f" (func 0)))
           WAT
-          func = Func.new(store, FuncType.new([], [])) { raise error_class }
+          func = Func.new(store, [], []) { raise error_class }
           instance = Wasmtime::Instance.new(store, mod, [func])
 
           expect { instance.invoke("f") }.to raise_error(error_class)

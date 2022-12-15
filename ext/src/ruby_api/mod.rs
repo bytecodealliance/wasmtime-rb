@@ -11,31 +11,25 @@ mod engine;
 mod errors;
 mod externals;
 mod func;
-mod func_type;
 mod global;
-mod global_type;
 mod instance;
 mod linker;
 mod macros;
 mod memory;
-mod memory_type;
 mod module;
 mod params;
 mod static_id;
 mod store;
 mod table;
-mod table_type;
 mod trap;
 mod wasi_ctx_builder;
 
 pub use caller::Caller;
 pub use engine::Engine;
 pub use func::Func;
-pub use func_type::FuncType;
 pub use instance::Instance;
 pub use linker::Linker;
 pub use memory::Memory;
-pub use memory_type::MemoryType;
 pub use module::Module;
 pub use params::Params;
 pub use store::Store;
@@ -78,16 +72,12 @@ pub fn init() -> Result<(), Error> {
     instance::init()?;
     func::init()?;
     caller::init()?;
-    func_type::init()?;
-    memory_type::init()?;
     memory::init()?;
     linker::init()?;
     externals::init()?;
     wasi_ctx_builder::init()?;
     table::init()?;
-    table_type::init()?;
     global::init()?;
-    global_type::init()?;
 
     Ok(())
 }

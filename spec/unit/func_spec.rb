@@ -4,14 +4,36 @@ module Wasmtime
   RSpec.describe Func do
     describe ".new" do
       it "accepts block" do
-        store = Store.new(engine, {})
-        func = Func.new(store, FuncType.new([], [])) {}
+        func = build_func([], []) {}
         func.call
       end
 
       it "raises without a block" do
         expect { build_func([], []) }
           .to raise_error(ArgumentError)
+      end
+
+      it "accepts supported Wasm types" do
+        supported_types = [:i32, :i64, :f32, :f64, :v128, :funcref, :externref]
+        supported_types.each do |type|
+          func = build_func([type], []) {}
+          expect(func.params).to eq([type])
+          expect(func.results).to eq([])
+
+          func = build_func([], [type]) {}
+          expect(func.params).to eq([])
+          expect(func.results).to eq([type])
+        end
+      end
+
+      it "rejects unknown symbols" do
+        expect { build_func([:nope], []) {} }
+          .to raise_error(Wasmtime::Error, /expected one of \[:i32, :i64, :f32, :f64, :v128, :funcref, :externref\], got :nope/)
+      end
+
+      it "rejects non-symbols" do
+        expect { build_func(nil, nil) {} }.to raise_error(Wasmtime::Error)
+        expect { build_func([1], [2]) {} }.to raise_error(Wasmtime::Error)
       end
     end
 
@@ -42,8 +64,8 @@ module Wasmtime
 
       it "re-enters into Wasm from Ruby" do
         called = false
-        func1 = Func.new(store, FuncType.new([], [])) { called = true }
-        func2 = Func.new(store, FuncType.new([], [])) { func1.call }
+        func1 = Func.new(store, [], []) { called = true }
+        func2 = Func.new(store, [], []) { func1.call }
         func2.call
         expect(called).to be true
       end
@@ -53,7 +75,7 @@ module Wasmtime
         store_data = BasicObject.new
 
         store = Store.new(engine, store_data)
-        func = Func.new(store, FuncType.new([:i32], [])) do |caller, _|
+        func = Func.new(store, [:i32], []) do |caller, _|
           called = true
           expect(caller).to be_instance_of(Caller)
           expect(caller.store_data).to equal(store_data)
@@ -83,7 +105,7 @@ module Wasmtime
         f1_export = nil
         caller = nil
 
-        f0 = Func.new(store, FuncType.new([], [])) do |c|
+        f0 = Func.new(store, [], []) do |c|
           caller = c
           calls += 1
 
@@ -97,7 +119,7 @@ module Wasmtime
           table_export = caller.export("table").to_table
           expect(table_export).to be_instance_of(Table)
         end
-        f1 = Func.new(store, FuncType.new([], [])) { calls += 1 }
+        f1 = Func.new(store, [], []) { calls += 1 }
 
         Instance.new(store, mod, [f0, f1])
         expect(calls).to eq(2)
@@ -113,7 +135,7 @@ module Wasmtime
 
     def build_func(params, results, &block)
       store = Store.new(engine, {})
-      Func.new(store, FuncType.new(params, results), &block)
+      Func.new(store, params, results, &block)
     end
   end
 end

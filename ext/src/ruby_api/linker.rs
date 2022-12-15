@@ -1,18 +1,18 @@
 use super::{
     convert::WrapWasmtimeType,
+    convert::{ToExtern, ToValTypeVec},
     engine::Engine,
     externals::Extern,
     func::{self, Func},
-    func_type::FuncType,
     instance::Instance,
     module::Module,
     root,
     store::{Store, StoreContextValue, StoreData},
 };
-use crate::{define_rb_intern, err, error, helpers::WrappedStruct, ruby_api::convert::ToExtern};
+use crate::{define_rb_intern, err, error, helpers::WrappedStruct};
 use magnus::{
     block::Proc, function, gc, method, scan_args, scan_args::scan_args, DataTypeFunctions, Error,
-    Module as _, Object, RHash, RString, TypedData, Value,
+    Module as _, Object, RArray, RHash, RString, TypedData, Value,
 };
 use std::cell::RefCell;
 use wasmtime::Linker as LinkerImpl;
@@ -111,19 +111,22 @@ impl Linker {
     /// @yard
     /// Define a function in this linker.
     ///
-    /// @def func_new(mod, name, type, &block)
+    /// @see Wasmtime::Func.new
     ///
+    /// @def func_new(mod, name, params, results, &block)
     /// @param mod [String] Module name
     /// @param name [String] Import name
-    /// @param type [FuncType]
+    /// @param params [Array<Symbol>] The function's parameters.
+    /// @param results [Array<Symbol>] The function's results.
     /// @param block [Block] See {Func.new} for block argument details.
     /// @return [void]
     /// @see Func.new
     pub fn func_new(&self, args: &[Value]) -> Result<(), Error> {
-        let args = scan_args::<(RString, RString, &FuncType), (), (), (), RHash, Proc>(args)?;
-        let (module, name, ty) = args.required;
+        let args = scan_args::<(RString, RString, RArray, RArray), (), (), (), RHash, Proc>(args)?;
+        let (module, name, params, results) = args.required;
         let callable = args.block;
-        let func_closure = func::make_func_closure(ty.get(), callable);
+        let ty = wasmtime::FuncType::new(params.to_val_type_vec()?, results.to_val_type_vec()?);
+        let func_closure = func::make_func_closure(&ty, callable);
 
         self.refs.borrow_mut().push(callable.into());
 
@@ -132,7 +135,7 @@ impl Linker {
             .func_new(
                 unsafe { module.as_str() }?,
                 unsafe { name.as_str() }?,
-                ty.get().clone(),
+                ty,
                 func_closure,
             )
             .map_err(|e| error!("{}", e))

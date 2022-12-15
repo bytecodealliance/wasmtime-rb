@@ -1,15 +1,19 @@
 use super::{
-    convert::{ToRubyValue, ToWasmVal},
+    convert::{ToRubyValue, ToSym, ToValType, ToWasmVal},
     root,
     store::{Store, StoreContextValue},
-    table_type::TableType,
 };
-use crate::{error, helpers::WrappedStruct};
+use crate::{define_rb_intern, error, helpers::WrappedStruct};
 use magnus::{
-    function, memoize, method, r_typed_data::DataTypeBuilder, DataTypeFunctions, Error,
-    Module as _, Object, RClass, TypedData, Value, QNIL,
+    function, memoize, method, r_typed_data::DataTypeBuilder, scan_args, DataTypeFunctions, Error,
+    Module as _, Object, RClass, Symbol, TypedData, Value, QNIL,
 };
-use wasmtime::{Extern, Table as TableImpl};
+use wasmtime::{Extern, Table as TableImpl, TableType};
+
+define_rb_intern!(
+    MIN_SIZE => "min_size",
+    MAX_SIZE => "max_size",
+);
 
 /// @yard
 /// @rename Wasmtime::Table
@@ -44,20 +48,33 @@ impl DataTypeFunctions for Table<'_> {
 
 impl<'a> Table<'a> {
     /// @yard
-    /// @def new(store, tabletype, initial)
+    /// @def new(store, type, initial, min_size:, max_size: nil)
     /// @param store [Store]
-    /// @param tabletype [TableType]
-    /// @param initial [Value] The initial value for values in the table.
-    pub fn new(
-        s: WrappedStruct<Store>,
-        tabletype: &TableType,
-        default: Value,
-    ) -> Result<Self, Error> {
+    /// @param type [Symbol] The WebAssembly type of the value held by this table.
+    /// @param initial [Value] The initial value of values in the table.
+    /// @param min_size [Integer] The minimum number of elements in the table.
+    /// @param max_size [Integer, nil] The maximum number of elements in the table.
+    pub fn new(args: &[Value]) -> Result<Self, Error> {
+        let args =
+            scan_args::scan_args::<(WrappedStruct<Store>, Symbol, Value), (), (), (), _, ()>(args)?;
+        let kw = scan_args::get_kwargs::<_, (u32,), (Option<u32>,), ()>(
+            args.keywords,
+            &[*MIN_SIZE],
+            &[*MAX_SIZE],
+        )?;
+        let (s, value_type, default) = args.required;
+        let (min,) = kw.required;
+        let (max,) = kw.optional;
         let store = s.get()?;
-        let default_val = default.to_wasm_val(&tabletype.get().element())?;
+        let wasm_type = value_type.to_val_type()?;
+        let wasm_default = default.to_wasm_val(&wasm_type)?;
 
-        let inner = TableImpl::new(store.context_mut(), tabletype.get().clone(), default_val)
-            .map_err(|e| error!("{}", e))?;
+        let inner = TableImpl::new(
+            store.context_mut(),
+            TableType::new(wasm_type, min, max),
+            wasm_default,
+        )
+        .map_err(|e| error!("{}", e))?;
 
         let table = Self {
             store: s.into(),
@@ -71,6 +88,25 @@ impl<'a> Table<'a> {
 
     pub fn from_inner(store: StoreContextValue<'a>, inner: TableImpl) -> Self {
         Self { store, inner }
+    }
+
+    /// @yard
+    /// @def type
+    /// @return [Symbol] The Wasm type of the elements of this table.
+    pub fn type_(&self) -> Result<Symbol, Error> {
+        self.ty().map(|ty| ty.element().to_sym())
+    }
+
+    /// @yard
+    /// @return [Integer] The minimum size of this table.
+    pub fn min_size(&self) -> Result<u32, Error> {
+        self.ty().map(|ty| ty.minimum())
+    }
+
+    /// @yard
+    /// @return [Integer, nil] The maximum size of this table.
+    pub fn max_size(&self) -> Result<Option<u32>, Error> {
+        self.ty().map(|ty| ty.maximum())
     }
 
     /// @yard
@@ -135,10 +171,8 @@ impl<'a> Table<'a> {
         Ok(self.inner.size(self.store.context()?))
     }
 
-    /// @yard
-    /// @return [TableType]
-    pub fn ty(&self) -> Result<TableType, Error> {
-        Ok(self.inner.ty(self.store.context()?).into())
+    fn ty(&self) -> Result<TableType, Error> {
+        Ok(self.inner.ty(self.store.context()?))
     }
 
     fn value_type(&self) -> Result<wasmtime::ValType, Error> {
@@ -165,12 +199,16 @@ impl From<&Table<'_>> for Extern {
 
 pub fn init() -> Result<(), Error> {
     let class = root().define_class("Table", Default::default())?;
-    class.define_singleton_method("new", function!(Table::new, 3))?;
+    class.define_singleton_method("new", function!(Table::new, -1))?;
+
+    class.define_method("type", method!(Table::type_, 0))?;
+    class.define_method("min_size", method!(Table::min_size, 0))?;
+    class.define_method("max_size", method!(Table::max_size, 0))?;
+
     class.define_method("get", method!(Table::get, 1))?;
     class.define_method("set", method!(Table::set, 2))?;
     class.define_method("grow", method!(Table::grow, 2))?;
     class.define_method("size", method!(Table::size, 0))?;
-    class.define_method("ty", method!(Table::ty, 0))?;
 
     Ok(())
 }

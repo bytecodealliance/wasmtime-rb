@@ -1,14 +1,18 @@
 use super::{
-    memory_type::MemoryType,
     root,
     store::{Store, StoreContextValue},
 };
-use crate::{error, helpers::WrappedStruct};
+use crate::{define_rb_intern, error, helpers::WrappedStruct};
 use magnus::{
-    function, memoize, method, r_string::RString, r_typed_data::DataTypeBuilder, DataTypeFunctions,
-    Error, Module as _, Object, RClass, TypedData,
+    function, memoize, method, r_string::RString, r_typed_data::DataTypeBuilder, scan_args,
+    DataTypeFunctions, Error, Module as _, Object, RClass, TypedData, Value,
 };
 use wasmtime::{Extern, Memory as MemoryImpl};
+
+define_rb_intern!(
+    MIN_SIZE => "min_size",
+    MAX_SIZE => "max_size",
+);
 
 /// @yard
 /// @rename Wasmtime::Memory
@@ -44,14 +48,24 @@ unsafe impl Send for Memory<'_> {}
 
 impl<'a> Memory<'a> {
     /// @yard
-    /// @def new(store, memtype)
+    /// @def new(store, min_size:, max_size: nil)
     /// @param store [Store]
-    /// @param memtype [MemoryType]
-    pub fn new(s: WrappedStruct<Store>, memtype: &MemoryType) -> Result<Self, Error> {
+    /// @param min_size [Integer] The minimum memory pages.
+    /// @param max_size [Integer, nil] The maximum memory pages.
+    pub fn new(args: &[Value]) -> Result<Self, Error> {
+        let args = scan_args::scan_args::<(WrappedStruct<Store>,), (), (), (), _, ()>(args)?;
+        let kw = scan_args::get_kwargs::<_, (u32,), (Option<u32>,), ()>(
+            args.keywords,
+            &[*MIN_SIZE],
+            &[*MAX_SIZE],
+        )?;
+        let (s,) = args.required;
+        let (min,) = kw.required;
+        let (max,) = kw.optional;
         let store = s.get()?;
 
-        let inner = MemoryImpl::new(store.context_mut(), memtype.get().clone())
-            .map_err(|e| error!("{}", e))?;
+        let memtype = wasmtime::MemoryType::new(min, max);
+        let inner = MemoryImpl::new(store.context_mut(), memtype).map_err(|e| error!("{}", e))?;
 
         Ok(Self {
             store: s.into(),
@@ -61,6 +75,18 @@ impl<'a> Memory<'a> {
 
     pub fn from_inner(store: StoreContextValue<'a>, inner: MemoryImpl) -> Self {
         Self { store, inner }
+    }
+
+    /// @yard
+    /// @return [Integer] The minimum number of memory pages.
+    pub fn min_size(&self) -> Result<u64, Error> {
+        Ok(self.inner.ty(self.store.context()?).minimum())
+    }
+
+    /// @yard
+    /// @return [Integer, nil] The maximum number of memory pages.
+    pub fn max_size(&self) -> Result<Option<u64>, Error> {
+        Ok(self.inner.ty(self.store.context()?).maximum())
     }
 
     /// @yard
@@ -113,12 +139,6 @@ impl<'a> Memory<'a> {
         Ok(self.inner.size(self.store.context()?))
     }
 
-    /// @yard
-    /// @return [MemoryType]
-    pub fn ty(&self) -> Result<MemoryType, Error> {
-        Ok(self.inner.ty(self.store.context()?).into())
-    }
-
     pub fn get(&self) -> MemoryImpl {
         self.inner
     }
@@ -132,12 +152,13 @@ impl From<&Memory<'_>> for Extern {
 
 pub fn init() -> Result<(), Error> {
     let class = root().define_class("Memory", Default::default())?;
-    class.define_singleton_method("new", function!(Memory::new, 2))?;
+    class.define_singleton_method("new", function!(Memory::new, -1))?;
+    class.define_method("min_size", method!(Memory::min_size, 0))?;
+    class.define_method("max_size", method!(Memory::max_size, 0))?;
     class.define_method("read", method!(Memory::read, 2))?;
     class.define_method("write", method!(Memory::write, 2))?;
     class.define_method("grow", method!(Memory::grow, 1))?;
     class.define_method("size", method!(Memory::size, 0))?;
-    class.define_method("ty", method!(Memory::ty, 0))?;
 
     Ok(())
 }

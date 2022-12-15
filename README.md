@@ -73,7 +73,7 @@ WAT
 store = Wasmtime::Store.new(engine, {count: 0})
 
 # Define a Wasm function from Ruby code.
-func = Wasmtime::Func.new(store, Wasmtime::FuncType.new([], [])) do |caller|
+func = Wasmtime::Func.new(store, [], []) do |caller|
   puts "Hello from Func!"
   caller.store_data[:count] += 1
   puts "Ran #{caller.store_data[:count]} time(s)"

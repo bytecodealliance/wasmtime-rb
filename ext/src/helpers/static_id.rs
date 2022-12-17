@@ -40,3 +40,9 @@ impl From<StaticId> for Symbol {
         id.into()
     }
 }
+
+impl std::cmp::PartialEq<Id> for StaticId {
+    fn eq(&self, other: &Id) -> bool {
+        other.as_raw() as usize == self.0.get()
+    }
+}

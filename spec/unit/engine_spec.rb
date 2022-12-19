@@ -2,17 +2,50 @@ require "spec_helper"
 
 module Wasmtime
   RSpec.describe Engine do
-    let(:engine) { Engine.new(Wasmtime::Config.new) }
+    let(:engine) { Engine.new }
 
     describe ".new" do
-      it("accepts a config") { Engine.new(Wasmtime::Config.new) }
+      it("accepts a config Hash") { Engine.new(consume_fuel: true) }
       it("accepts no config") { Engine.new }
       it("accepts nil config") { Engine.new(nil) }
-      it "rejects non-config arg" do
+      it "rejects non-hash config" do
         expect { Engine.new(1) }.to raise_error(TypeError)
+      end
+      it "rejects unknown options" do
+        expect { Engine.new(nope: 1) }.to raise_error(ArgumentError, "Unknown option: :nope")
       end
       it "rejects multiple args" do
         expect { Engine.new(1, 2) }.to raise_error(ArgumentError)
+      end
+
+      # bool & numeric options
+      [
+        [:debug_info, true],
+        [:wasm_backtrace_details, true],
+        [:native_unwind_info, true],
+        [:consume_fuel, true],
+        [:epoch_interruption, true],
+        [:max_wasm_stack, 400, true],
+        [:wasm_threads, true],
+        [:wasm_multi_memory, true],
+        [:wasm_memory64, true],
+        [:parallel_compilation, true]
+      ].each do |option, valid, invalid = nil|
+        it "supports #{option}" do
+          Engine.new(option => valid)
+          expect { Engine.new(option => invalid) }.to raise_error(TypeError, /#{option}/) if invalid
+        end
+      end
+
+      # enum options represented as symbols
+      [
+        [:cranelift_opt_level, [:none, :speed, :speed_and_size]]
+      ].each do |option, valid|
+        it "supports #{option}" do
+          valid.each { |value| Engine.new(option => value) }
+          expect { Engine.new(option => :nope) }
+            .to raise_error(ArgumentError, /invalid :#{option}.*:nope/)
+        end
       end
     end
 

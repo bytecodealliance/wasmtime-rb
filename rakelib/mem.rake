@@ -24,8 +24,7 @@ namespace :mem do
     WAT
 
     wasmtime_interaction = -> do
-      config = Wasmtime::Config.new
-      engine = Wasmtime::Engine.new(config)
+      engine = Wasmtime::Engine.new
       store = Wasmtime::Store.new(engine, {})
       mod = Wasmtime::Module.deserialize(engine, precompiled)
       import0 = Wasmtime::Func.new(store, [:externref], [:externref]) { |o| o }

@@ -63,7 +63,6 @@ pub fn init() -> Result<(), Error> {
 
     errors::init()?;
     trap::init()?;
-    config::init()?;
     engine::init()?;
     module::init()?;
     store::init()?;

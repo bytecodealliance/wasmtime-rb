@@ -1,5 +1,8 @@
 # Contributing
 
+`wasmtime-rb` is a [Bytecode Alliance] project. It follows the Bytecode
+Alliance's [Code of Conduct] and [Organizational Code of Conduct].
+
 ## Getting started
 
 Install dependencies:
@@ -26,3 +29,8 @@ bundle exec rake
 1. The release workflow will run and push a new version to RubyGems and create
    a new draft release on GitHub. Edit the release notes if needed, then
    mark the release as published when the release workflow succeeds.
+
+
+[Bytecode Alliance]: https://bytecodealliance.org/
+[Code of Conduct]: https://github.com/bytecodealliance/wasmtime/blob/main/CODE_OF_CONDUCT.md
+[Organizational Code of Conduct]: https://github.com/bytecodealliance/wasmtime/blob/main/ORG_CODE_OF_CONDUCT.md

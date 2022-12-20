@@ -79,6 +79,6 @@ jobs:
         run: |
           bundle exec rake build
           gem install pkg/wasmtime-*.gem --verbose
-          script="puts Wasmtime::Engine.new(Wasmtime::Config.new).precompile_module('(module)')"
+          script="puts Wasmtime::Engine.new.precompile_module('(module)')"
           ruby -rwasmtime -e "$script" | grep wasmtime.info
           echo "✅ Successfully gem installed"

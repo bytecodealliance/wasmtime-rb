@@ -1,4 +1,5 @@
-use crate::{define_rb_intern, err, error};
+use crate::{define_rb_intern, err, error, helpers::SymbolEnum};
+use lazy_static::lazy_static;
 use magnus::{Error, RArray, Symbol, TypedData, Value};
 use wasmtime::{ExternRef, Val, ValType};
 
@@ -13,6 +14,22 @@ define_rb_intern!(
     FUNCREF => "funcref",
     EXTERNREF => "externref",
 );
+
+lazy_static! {
+    static ref VALTYPE_MAPPING: SymbolEnum<'static, ValType> = {
+        let mapping = vec![
+            (*I32, ValType::I32),
+            (*I64, ValType::I64),
+            (*F32, ValType::F32),
+            (*F64, ValType::F64),
+            (*V128, ValType::V128),
+            (*FUNCREF, ValType::FuncRef),
+            (*EXTERNREF, ValType::ExternRef),
+        ];
+
+        SymbolEnum::new("WebAssembly type", mapping)
+    };
+}
 
 pub trait ToRubyValue {
     fn to_ruby_value(&self, store: &StoreContextValue) -> Result<Value, Error>;
@@ -127,34 +144,7 @@ pub trait ToValType {
 
 impl ToValType for Value {
     fn to_val_type(&self) -> Result<ValType, Error> {
-        if let Ok(symbol) = self.try_convert::<Symbol>() {
-            if let Ok(true) = symbol.equal(Symbol::from(*I32)) {
-                return Ok(ValType::I32);
-            }
-            if let Ok(true) = symbol.equal(Symbol::from(*I64)) {
-                return Ok(ValType::I64);
-            }
-            if let Ok(true) = symbol.equal(Symbol::from(*F32)) {
-                return Ok(ValType::F32);
-            }
-            if let Ok(true) = symbol.equal(Symbol::from(*F64)) {
-                return Ok(ValType::F64);
-            }
-            if let Ok(true) = symbol.equal(Symbol::from(*V128)) {
-                return Ok(ValType::V128);
-            }
-            if let Ok(true) = symbol.equal(Symbol::from(*FUNCREF)) {
-                return Ok(ValType::FuncRef);
-            }
-            if let Ok(true) = symbol.equal(Symbol::from(*EXTERNREF)) {
-                return Ok(ValType::ExternRef);
-            }
-        }
-
-        err!(
-            "invalid WebAssembly type, expected one of [:i32, :i64, :f32, :f64, :v128, :funcref, :externref], got {:}",
-            self.inspect()
-        )
+        VALTYPE_MAPPING.get(*self)
     }
 }
 

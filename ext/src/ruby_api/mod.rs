@@ -14,11 +14,9 @@ mod func;
 mod global;
 mod instance;
 mod linker;
-mod macros;
 mod memory;
 mod module;
 mod params;
-mod static_id;
 mod store;
 mod table;
 mod trap;
@@ -65,7 +63,6 @@ pub fn init() -> Result<(), Error> {
 
     errors::init()?;
     trap::init()?;
-    config::init()?;
     engine::init()?;
     module::init()?;
     store::init()?;

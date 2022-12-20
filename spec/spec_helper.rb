@@ -3,8 +3,7 @@
 require "wasmtime"
 
 RSpec.shared_context("default lets") do
-  let(:engine_config) { Wasmtime::Config.new }
-  let(:engine) { Wasmtime::Engine.new(engine_config) }
+  let(:engine) { Wasmtime::Engine.new }
   let(:store_data) { {} }
   let(:store) { Wasmtime::Store.new(engine, store_data) }
   let(:wat) { "(module)" }
@@ -30,7 +29,7 @@ module WasmFixtures
   extend self
 
   def wasi_debug
-    @wasi_debug_module ||= Module.from_file(Engine.new(Wasmtime::Config.new), "spec/fixtures/wasi-debug.wasm")
+    @wasi_debug_module ||= Module.from_file(Engine.new, "spec/fixtures/wasi-debug.wasm")
   end
 end
 

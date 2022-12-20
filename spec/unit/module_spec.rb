@@ -5,8 +5,6 @@ require "pathname"
 
 module Wasmtime
   RSpec.describe Module do
-    let(:engine) { Engine.new(Wasmtime::Config.new) }
-
     it "can be serialized and deserialized" do
       mod = Module.new(engine, wat)
       serialized = mod.serialize

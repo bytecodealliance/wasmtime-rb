@@ -19,7 +19,7 @@ module Wasmtime
       end
     end
 
-    let(:engine) { build_engine_with_fuel }
+    let(:engine) { Engine.new(consume_fuel: true) }
     let(:store) { Store.new(engine) }
     let(:store_without_fuel) { Store.new(Engine.new) }
 
@@ -69,12 +69,6 @@ module Wasmtime
       expect { instance.invoke("f") }.to raise_error(Trap, /all fuel consumed/) do |error|
         expect(error.code).to eq(Trap::OUT_OF_FUEL)
       end
-    end
-
-    def build_engine_with_fuel
-      config = Config.new
-      config.consume_fuel = true
-      Engine.new(config)
     end
   end
 end

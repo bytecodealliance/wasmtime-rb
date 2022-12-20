@@ -138,7 +138,7 @@ impl Store {
 
     /// @yard
     /// Returns the amount of fuel consumed by this {Store}’s execution so far,
-    /// or +nil+ when the {Engine}’s {Config} does not have fuel enabled.
+    /// or +nil+ when the {Engine}’s config does not have fuel enabled.
     /// @return [Integer, Nil]
     pub fn fuel_consumed(&self) -> Option<u64> {
         self.inner_ref().fuel_consumed()
@@ -160,7 +160,7 @@ impl Store {
     /// @yard
     /// Synthetically consumes fuel from this {Store}.
     /// Raises if there isn't enough fuel left in the {Store}, or
-    /// when the {Engine}’s {Config} does not have fuel enabled.
+    /// when the {Engine}’s config does not have fuel enabled.
     ///
     /// @param fuel [Integer] The fuel to consume.
     /// @def consume_fuel(fuel)
@@ -175,7 +175,7 @@ impl Store {
     /// Sets the epoch deadline to a certain number of ticks in the future.
     ///
     /// Raises if there isn't enough fuel left in the {Store}, or
-    /// when the {Engine}’s {Config} does not have fuel enabled.
+    /// when the {Engine}’s config does not have fuel enabled.
     ///
     /// @see ttps://docs.rs/wasmtime/latest/wasmtime/struct.Store.html#method.set_epoch_deadline Rust's doc on +set_epoch_deadline_ for more details.
     /// @def set_epoch_deadline(ticks_beyond_current)

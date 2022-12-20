@@ -1,8 +1,6 @@
 require "wasmtime"
 
-config = Wasmtime::Config.new
-config.consume_fuel = true
-engine = Wasmtime::Engine.new(config)
+engine = Wasmtime::Engine.new(consume_fuel: true)
 mod = Wasmtime::Module.from_file(engine, "examples/fuel.wat")
 
 store = Wasmtime::Store.new(engine)

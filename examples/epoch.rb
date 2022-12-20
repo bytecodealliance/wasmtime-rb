@@ -1,8 +1,6 @@
 require "wasmtime"
 
-config = Wasmtime::Config.new
-config.epoch_interruption = true
-engine = Wasmtime::Engine.new(config)
+engine = Wasmtime::Engine.new(epoch_interruption: true)
 # Re-use fibonacci function from the Fuel example
 mod = Wasmtime::Module.from_file(engine, "examples/fuel.wat")
 store = Wasmtime::Store.new(engine)

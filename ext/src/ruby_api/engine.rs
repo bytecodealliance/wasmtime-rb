@@ -1,8 +1,8 @@
-use super::{config::Config, root};
+use super::{config::hash_to_config, root};
 use crate::error;
 use async_timer::Interval;
 use lazy_static::lazy_static;
-use magnus::{function, method, scan_args, Error, Module, Object, RString, Value};
+use magnus::{function, method, scan_args, Error, Module, Object, RHash, RString, Value};
 use std::cell::RefCell;
 use tokio::{runtime, task::JoinHandle, time};
 use wasmtime::Engine as EngineImpl;
@@ -33,15 +33,34 @@ impl Drop for Engine {
 
 impl Engine {
     /// @yard
-    /// @def new(config)
-    /// @param config [Configuration]
+    /// @def new(config = {})
+    /// @param config [Hash] The engine's config.
+    ///   See the {https://docs.rs/wasmtime/latest/wasmtime/struct.Engine.html +Config+‘s Rust doc} for detailed description of
+    ///   the different options and the defaults.
+    /// @option config [Boolean] :debug_info
+    /// @option config [Boolean] :wasm_backtrace_details
+    /// @option config [Boolean] :native_unwind_info
+    /// @option config [Boolean] :consume_fuel
+    /// @option config [Boolean] :epoch_interruption
+    /// @option config [Integer] :max_wasm_stack
+    /// @option config [Boolean] :wasm_threads
+    /// @option config [Boolean] :wasm_multi_memory
+    /// @option config [Boolean] :wasm_memory64
+    /// @option config [Boolean] :parallel_compilation
+    /// @option config [Sumbol] :cranelift_opt_level One of +none+, +speed+, +speed_and_size+.
+    ///
+    /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Engine.html
+    ///     Wasmtime's Rust doc for details of the configuration options.
     pub fn new(args: &[Value]) -> Result<Self, Error> {
         let args = scan_args::scan_args::<(), (Option<Value>,), (), (), (), ()>(args)?;
         let (config,) = args.optional;
         let config = config.and_then(|v| if v.is_nil() { None } else { Some(v) });
         let inner = match config {
-            Some(config) => EngineImpl::new(&config.try_convert::<&Config>()?.get())
-                .map_err(|e| error!("{}", e))?,
+            Some(config) => {
+                let config = config.try_convert::<RHash>().and_then(hash_to_config)?;
+
+                EngineImpl::new(&config).map_err(|e| error!("{}", e))?
+            }
             None => EngineImpl::default(),
         };
 

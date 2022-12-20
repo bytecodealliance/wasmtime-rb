@@ -1,10 +1,6 @@
 module Wasmtime
   RSpec.describe "Epoch interruption" do
-    let(:engine) do
-      config = Config.new
-      config.epoch_interruption = true
-      Engine.new(config)
-    end
+    let(:engine) { Engine.new(epoch_interruption: true) }
 
     let(:store_deadline_0) { Store.new(engine) }
     let(:store_deadline_1) { Store.new(engine).tap { |store| store.set_epoch_deadline(1) } }

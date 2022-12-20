@@ -11,7 +11,7 @@ module Wasmtime
 
       it "raises on invalid Wasm type" do
         expect { Global.const(store, :nope, 1) }
-          .to raise_error(Wasmtime::Error, /invalid WebAssembly type/)
+          .to raise_error(ArgumentError, /invalid WebAssembly type/)
       end
     end
 
@@ -24,7 +24,7 @@ module Wasmtime
 
       it "raises on invalid Wasm type" do
         expect { Global.var(store, :nope, 1) }
-          .to raise_error(Wasmtime::Error, /invalid WebAssembly type/)
+          .to raise_error(ArgumentError, /invalid WebAssembly type/)
       end
     end
 

@@ -28,12 +28,12 @@ module Wasmtime
 
       it "rejects unknown symbols" do
         expect { build_func([:nope], []) {} }
-          .to raise_error(Wasmtime::Error, /expected one of \[:i32, :i64, :f32, :f64, :v128, :funcref, :externref\], got :nope/)
+          .to raise_error(ArgumentError, /expected one of \[:i32, :i64, :f32, :f64, :v128, :funcref, :externref\], got :nope/)
       end
 
       it "rejects non-symbols" do
-        expect { build_func(nil, nil) {} }.to raise_error(Wasmtime::Error)
-        expect { build_func([1], [2]) {} }.to raise_error(Wasmtime::Error)
+        expect { build_func(nil, nil) {} }.to raise_error(ArgumentError)
+        expect { build_func([1], [2]) {} }.to raise_error(ArgumentError)
       end
     end
 

@@ -1,77 +1,122 @@
-use super::root;
-use magnus::{function, method, Error, Module, Object};
-use std::cell::RefCell;
-use wasmtime::Config as ConfigImpl;
+use crate::{define_rb_intern, helpers::SymbolEnum};
+use lazy_static::lazy_static;
+use magnus::{
+    exception::{arg_error, type_error},
+    r_hash::ForEach,
+    Error, RHash, Symbol, Value,
+};
+use std::convert::{TryFrom, TryInto};
+use wasmtime::{Config, OptLevel, WasmBacktraceDetails};
 
-/// @yard
-/// Wasmtime {Engine} configuration.
-/// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Config.html Wasmtime's Rust doc
-#[derive(Clone, Debug)]
-#[magnus::wrap(class = "Wasmtime::Config")]
-pub struct Config {
-    inner: RefCell<ConfigImpl>,
+define_rb_intern!(
+    DEBUG_INFO => "debug_info",
+    WASM_BACKTRACE_DETAILS => "wasm_backtrace_details",
+    NATIVE_UNWIND_INFO => "native_unwind_info",
+    CONSUME_FUEL => "consume_fuel",
+    EPOCH_INTERRUPTION => "epoch_interruption",
+    MAX_WASM_STACK => "max_wasm_stack",
+    WASM_THREADS => "wasm_threads",
+    WASM_MULTI_MEMORY => "wasm_multi_memory",
+    WASM_MEMORY64 => "wasm_memory64",
+    CRANELIFT_OPT_LEVEL => "cranelift_opt_level",
+    PARALLEL_COMPILATION => "parallel_compilation",
+    OPT_LEVEL_NONE => "none",
+    OPT_LEVEL_SPEED => "speed",
+    OPT_LEVEL_SPEED_AND_SIZE => "speed_and_size",
+);
+
+lazy_static! {
+    static ref OPT_LEVEL_MAPPING: SymbolEnum<'static, OptLevel> = {
+        let mapping = vec![
+            (*OPT_LEVEL_NONE, OptLevel::None),
+            (*OPT_LEVEL_SPEED, OptLevel::Speed),
+            (*OPT_LEVEL_SPEED_AND_SIZE, OptLevel::SpeedAndSize),
+        ];
+
+        SymbolEnum::new(":cranelift_opt_level", mapping)
+    };
 }
 
-impl Config {
-    /// @yard
-    /// @return [Config]
-    pub fn new() -> Self {
-        Self {
-            inner: RefCell::new(ConfigImpl::new()),
+pub fn hash_to_config(hash: RHash) -> Result<Config, Error> {
+    let mut config = Config::new();
+    hash.foreach(|name: Symbol, value: Value| {
+        let id = magnus::value::Id::from(name);
+        let entry = ConfigEntry(name, value);
+
+        if *DEBUG_INFO == id {
+            config.debug_info(entry.try_into()?);
+        } else if *WASM_BACKTRACE_DETAILS == id {
+            config.wasm_backtrace_details(entry.try_into()?);
+        } else if *NATIVE_UNWIND_INFO == id {
+            config.native_unwind_info(entry.try_into()?);
+        } else if *CONSUME_FUEL == id {
+            config.consume_fuel(entry.try_into()?);
+        } else if *EPOCH_INTERRUPTION == id {
+            config.epoch_interruption(entry.try_into()?);
+        } else if *MAX_WASM_STACK == id {
+            config.max_wasm_stack(entry.try_into()?);
+        } else if *WASM_THREADS == id {
+            config.wasm_threads(entry.try_into()?);
+        } else if *WASM_MULTI_MEMORY == id {
+            config.wasm_multi_memory(entry.try_into()?);
+        } else if *WASM_MEMORY64 == id {
+            config.wasm_memory64(entry.try_into()?);
+        } else if *PARALLEL_COMPILATION == id {
+            config.parallel_compilation(entry.try_into()?);
+        } else if *CRANELIFT_OPT_LEVEL == id {
+            config.cranelift_opt_level(entry.try_into()?);
+        } else {
+            return Err(Error::new(
+                arg_error(),
+                format!("Unknown option: {}", name.inspect()),
+            ));
         }
-    }
 
-    pub fn get(&self) -> ConfigImpl {
-        self.inner.borrow().clone()
-    }
+        Ok(ForEach::Continue)
+    })?;
 
-    /// @yard
-    /// @def consume_fuel=(enabled)
-    /// @param enabled [Boolean]
-    pub fn set_consume_fuel(&self, enabled: bool) {
-        self.inner.borrow_mut().consume_fuel(enabled);
-    }
+    Ok(config)
+}
 
-    /// @yard
-    /// @def epoch_interruption=(enabled)
-    /// @param enabled [Boolean]
-    pub fn set_epoch_interruption(&self, enabled: bool) {
-        self.inner.borrow_mut().epoch_interruption(enabled);
-    }
+struct ConfigEntry(Symbol, Value);
 
-    /// @yard
-    /// @def max_wasm_stack=(size)
-    /// @param size [Integer]
-    pub fn set_max_wasm_stack(&self, size: usize) {
-        self.inner.borrow_mut().max_wasm_stack(size);
-    }
-
-    /// @yard
-    /// @def wasm_multi_memory=(enabled)
-    /// @param enabled [Boolean]
-    pub fn set_wasm_multi_memory(&self, enabled: bool) {
-        self.inner.borrow_mut().wasm_multi_memory(enabled);
+impl ConfigEntry {
+    fn invalid_type(&self) -> Error {
+        Error::new(
+            type_error(),
+            format!("Invalid option {}: {}", self.1, self.0),
+        )
     }
 }
 
-pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Config", Default::default())?;
+impl TryFrom<ConfigEntry> for bool {
+    type Error = magnus::Error;
+    fn try_from(value: ConfigEntry) -> Result<Self, Self::Error> {
+        value.1.try_convert().map_err(|_| value.invalid_type())
+    }
+}
 
-    class.define_singleton_method("new", function!(Config::new, 0))?;
+impl TryFrom<ConfigEntry> for usize {
+    type Error = magnus::Error;
+    fn try_from(value: ConfigEntry) -> Result<Self, Self::Error> {
+        value.1.try_convert().map_err(|_| value.invalid_type())
+    }
+}
 
-    class.define_method("consume_fuel=", method!(Config::set_consume_fuel, 1))?;
+impl TryFrom<ConfigEntry> for WasmBacktraceDetails {
+    type Error = magnus::Error;
+    fn try_from(value: ConfigEntry) -> Result<WasmBacktraceDetails, Error> {
+        let val: bool = value.1.try_convert().map_err(|_| value.invalid_type())?;
+        Ok(match val {
+            true => WasmBacktraceDetails::Enable,
+            false => WasmBacktraceDetails::Disable,
+        })
+    }
+}
 
-    class.define_method(
-        "epoch_interruption=",
-        method!(Config::set_epoch_interruption, 1),
-    )?;
-
-    class.define_method("max_wasm_stack=", method!(Config::set_max_wasm_stack, 1))?;
-
-    class.define_method(
-        "wasm_multi_memory=",
-        method!(Config::set_wasm_multi_memory, 1),
-    )?;
-
-    Ok(())
+impl TryFrom<ConfigEntry> for wasmtime::OptLevel {
+    type Error = magnus::Error;
+    fn try_from(value: ConfigEntry) -> Result<Self, Error> {
+        OPT_LEVEL_MAPPING.get(value.1)
+    }
 }

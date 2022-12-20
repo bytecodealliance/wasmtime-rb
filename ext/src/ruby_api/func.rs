@@ -228,12 +228,6 @@ pub fn make_func_closure(
 
         let result = callable
             .call(unsafe { rparams.as_slice() })
-            .map_err(|e| {
-                if let Error::Exception(exception) = e {
-                    caller.hold_exception(exception);
-                }
-                e
-            })
             .and_then(|proc_result| {
                 match results.len() {
                     0 => Ok(()), // Ignore return value
@@ -258,13 +252,7 @@ pub fn make_func_closure(
                     }
                 }
             })
-            .map_err(|e| {
-                anyhow::anyhow!(format!(
-                    "Error when calling Func {}\n Error: {}",
-                    callable.inspect(),
-                    e
-                ))
-            });
+            .map_err(|e| anyhow::anyhow!(e));
 
         // Drop the wasmtime::Caller so it does not outlive the Func call, if e.g. the user
         // assigned the Ruby Wasmtime::Caller instance to a global.

@@ -15,9 +15,10 @@
   </p>
 </div>
 
-## Status
+## Goal
 
-The Wasmtime Ruby bindings are still under development, [some features](https://github.com/bytecodealliance/wasmtime-rb/issues?q=is%3Aissue+is%3Aopen+label%3A%22missing+feature%22) are still missing.
+`wasmtime-rb`'s goal is to expose the full power of Wasmtime in Ruby with
+minimal overhead, serving as a foundation layer for other projects or gems.
 
 ## Installation
 

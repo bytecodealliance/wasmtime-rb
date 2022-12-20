@@ -59,6 +59,8 @@ impl Trap {
     /// @return [Symbol, nil]
     pub fn code(&self) -> Result<Option<Symbol>, Error> {
         match self.trap {
+            wasmtime::Trap::StackOverflow => trap_const!(STACK_OVERFLOW),
+            wasmtime::Trap::MemoryOutOfBounds => trap_const!(MEMORY_OUT_OF_BOUNDS),
             wasmtime::Trap::HeapMisaligned => trap_const!(HEAP_MISALIGNED),
             wasmtime::Trap::TableOutOfBounds => trap_const!(TABLE_OUT_OF_BOUNDS),
             wasmtime::Trap::IndirectCallToNull => trap_const!(INDIRECT_CALL_TO_NULL),

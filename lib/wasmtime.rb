@@ -17,6 +17,7 @@ module Wasmtime
 
   class Trap < Error
     STACK_OVERFLOW = :stack_overflow
+    MEMORY_OUT_OF_BOUNDS = :memory_out_of_bounds
     HEAP_MISALIGNED = :heap_misaligned
     TABLE_OUT_OF_BOUNDS = :table_out_of_bounds
     INDIRECT_CALL_TO_NULL = :indirect_call_to_null

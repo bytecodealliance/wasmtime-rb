@@ -1,10 +1,11 @@
 use super::{
     convert::{ToRubyValue, ToSym, ToValTypeVec, ToWasmVal},
+    errors::result_error,
     params::Params,
     root,
     store::{Store, StoreContextValue, StoreData},
 };
-use crate::{error, helpers::WrappedStruct, Caller};
+use crate::{helpers::WrappedStruct, Caller};
 use magnus::{
     block::Proc, function, memoize, method, r_typed_data::DataTypeBuilder, scan_args::scan_args,
     value::BoxValue, DataTypeFunctions, Error, Exception, Module as _, Object, RArray, RClass,
@@ -235,18 +236,28 @@ pub fn make_func_closure(
                         // For len=1, accept both `val` and `[val]`
                         let proc_result = RArray::try_convert(proc_result)?;
                         if proc_result.len() != n {
-                            return Result::Err(error!(
-                                "wrong number of results (given {}, expected {})",
-                                proc_result.len(),
-                                n
+                            return Err(Error::new(
+                                result_error(),
+                                format!(
+                                    "wrong number of results (given {}, expected {}) in {}",
+                                    proc_result.len(),
+                                    n,
+                                    callable,
+                                ),
                             ));
                         }
-                        for ((rb_val, wasm_val), ty) in unsafe { proc_result.as_slice() }
+                        for (i, ((rb_val, wasm_val), ty)) in unsafe { proc_result.as_slice() }
                             .iter()
                             .zip(results.iter_mut())
                             .zip(ty.results())
+                            .enumerate()
                         {
-                            *wasm_val = rb_val.to_wasm_val(&ty)?;
+                            *wasm_val = rb_val.to_wasm_val(&ty).map_err(|e| {
+                                Error::new(
+                                    result_error(),
+                                    format!("{} (result index {} in {})", e, i, callable),
+                                )
+                            })?;
                         }
                         Ok(())
                     }

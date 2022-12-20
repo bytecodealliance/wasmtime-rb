@@ -43,23 +43,38 @@ module Wasmtime
         expect(func.call).to be_nil
       end
 
+      it "accepts singlement element for single result" do
+        func = build_func([], [:i32]) { 1 }
+        expect(func.call).to eq(1)
+      end
+
       it "accepts array of 1 element for single result" do
         func = build_func([], [:i32]) { [1] }
         expect(func.call).to eq(1)
       end
 
+      it "rejects mismatching arguments size" do
+        func = build_func([:i32, :i32], []) {}
+        expect { func.call }.to raise_error(ArgumentError, /wrong number of arguments \(given 0, expected 2\)/)
+      end
+
+      it "rejects mismatching argument type" do
+        func = build_func([:i32], []) {}
+        expect { func.call("foo") }.to raise_error(TypeError, /\(param index 0\)/)
+      end
+
       it "rejects mismatching results size" do
         func = build_func([], [:i32]) { [1, 2] }
-        expect { func.call }.to raise_error(Wasmtime::Error, /wrong number of results \(given 2, expected 1\)/)
+        expect { func.call }.to raise_error(Wasmtime::ResultError, /wrong number of results \(given 2, expected 1\)/)
       end
 
       it "rejects mismatching result type" do
-        func = build_func([], [:i32]) { [nil] }
-        expect { func.call }.to raise_error(Wasmtime::Error)
-      end
-
-      it "tells you which result failed to convert in the error message" do
-        skip("TODO!")
+        func = build_func([], [:i32, :i32]) { [1, nil] }
+        expect { func.call }.to raise_error(Wasmtime::ResultError) do |error|
+          expect(error.message).to match(/no implicit conversion of nil into Integer/)
+          expect(error.message).to match(/result index 1/)
+          expect(error.message).to match(/func_spec.rb:\d+/)
+        end
       end
 
       it "re-enters into Wasm from Ruby" do

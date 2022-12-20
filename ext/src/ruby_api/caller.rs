@@ -1,8 +1,8 @@
 use super::{convert::WrapWasmtimeType, externals::Extern, root, store::StoreData};
 use crate::{error, helpers::WrappedStruct};
 use magnus::{
-    memoize, method, r_typed_data::DataTypeBuilder, DataTypeFunctions, Error, Exception,
-    Module as _, RClass, RString, TypedData, Value, QNIL,
+    memoize, method, r_typed_data::DataTypeBuilder, DataTypeFunctions, Error, Module as _, RClass,
+    RString, TypedData, Value, QNIL,
 };
 use std::cell::UnsafeCell;
 use wasmtime::{AsContext, AsContextMut, Caller as CallerImpl, StoreContext, StoreContextMut};
@@ -117,14 +117,6 @@ impl<'a> Caller<'a> {
 
     pub fn expire(&self) {
         self.handle.expire();
-    }
-
-    pub fn hold_exception(&self, exception: Exception) {
-        self.context_mut()
-            .unwrap()
-            .data_mut()
-            .exception()
-            .hold(exception);
     }
 }
 

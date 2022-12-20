@@ -15,6 +15,11 @@ pub fn not_implemented_error() -> ExceptionClass {
     })
 }
 
+/// The `Wasmtime::ResultError` class.
+pub fn result_error() -> ExceptionClass {
+    *memoize!(ExceptionClass: root().define_error("ResultError", base_error()).unwrap())
+}
+
 /// The `Wasmtime::ConversionError` class.
 pub fn conversion_error() -> ExceptionClass {
     *memoize!(ExceptionClass: root().define_error("ConversionError", base_error()).unwrap())
@@ -55,6 +60,7 @@ macro_rules! conversion_err {
 
 pub fn init() -> Result<(), Error> {
     let _ = base_error();
+    let _ = result_error();
     let _ = conversion_error();
     let _ = wasi_exit_error();
 

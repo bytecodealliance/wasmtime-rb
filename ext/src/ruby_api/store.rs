@@ -3,8 +3,8 @@ use super::{caller::Caller, engine::Engine, root, trap::Trap, wasi_ctx_builder::
 use crate::{define_rb_intern, error, helpers::WrappedStruct};
 use magnus::Class;
 use magnus::{
-    exception::Exception, function, gc, method, scan_args, value::BoxValue, DataTypeFunctions,
-    Error, Module, Object, TypedData, Value, QNIL,
+    function, gc, method, scan_args, DataTypeFunctions, Error, Module, Object, TypedData, Value,
+    QNIL,
 };
 use std::cell::UnsafeCell;
 use std::convert::TryFrom;
@@ -17,33 +17,11 @@ define_rb_intern!(
 
 pub struct StoreData {
     user_data: Value,
-    host_exception: HostException,
     wasi: Option<WasiCtx>,
     refs: Vec<Value>,
 }
 
-type BoxedException = BoxValue<Exception>;
-#[derive(Debug, Default)]
-pub struct HostException(Option<BoxedException>);
-impl HostException {
-    pub fn take(&mut self) -> Option<Exception> {
-        std::mem::take(&mut self.0).map(|e| e.to_owned())
-    }
-
-    pub fn hold(&mut self, e: Exception) {
-        self.0 = Some(BoxValue::new(e));
-    }
-}
-
 impl StoreData {
-    pub fn exception(&mut self) -> &mut HostException {
-        &mut self.host_exception
-    }
-
-    pub fn take_last_error(&mut self) -> Option<Error> {
-        self.host_exception.take().map(Error::from)
-    }
-
     pub fn user_data(&self) -> Value {
         self.user_data
     }
@@ -119,7 +97,6 @@ impl Store {
         let eng = engine.get();
         let store_data = StoreData {
             user_data,
-            host_exception: HostException::default(),
             wasi,
             refs: Default::default(),
         };
@@ -248,17 +225,15 @@ impl<'a> StoreContextValue<'a> {
     }
 
     pub fn handle_wasm_error(&self, error: anyhow::Error) -> Error {
-        match self.context_mut() {
-            Ok(mut context) => context.data_mut().take_last_error().unwrap_or_else(|| {
-                if let Some(exit) = error.downcast_ref::<I32Exit>() {
-                    wasi_exit_error().new_instance((exit.0,)).unwrap().into()
-                } else {
-                    Trap::try_from(error)
-                        .map(|trap| trap.into())
-                        .unwrap_or_else(|e| error!("{}", e))
-                }
-            }),
-            Err(e) => e,
+        if let Some(exit) = error.downcast_ref::<I32Exit>() {
+            wasi_exit_error().new_instance((exit.0,)).unwrap().into()
+        } else {
+            Trap::try_from(error)
+                .map(|trap| trap.into())
+                .unwrap_or_else(|error| match error.downcast::<magnus::Error>() {
+                    Ok(e) => e,
+                    Err(e) => error!("{}", e),
+                })
         }
     }
 

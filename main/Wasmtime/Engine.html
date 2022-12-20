@@ -135,7 +135,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#new-class_method" title="new (class method)">.<strong>new</strong>(config)  &#x21d2; Object </a>
+      <a href="#new-class_method" title="new (class method)">.<strong>new</strong>(config = {})  &#x21d2; Object </a>
     
 
     
@@ -271,7 +271,7 @@
       <div class="method_details first">
   <h3 class="signature first" id="new-class_method">
   
-    .<strong>new</strong>(config)  &#x21d2; <tt>Object</tt> 
+    .<strong>new</strong>(config = {})  &#x21d2; <tt>Object</tt> 
   
 
   
@@ -292,14 +292,140 @@
         <span class='name'>config</span>
       
       
-        <span class='type'>(<tt>Configuration</tt>)</span>
+        <span class='type'>(<tt>Hash</tt>)</span>
       
       
+        <em class="default">(defaults to: <tt>{}</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The engine’s config. See the <a href="https://docs.rs/wasmtime/latest/wasmtime/struct.Engine.html" target="_parent" title="&lt;code&gt;Config&lt;/code&gt;‘s Rust doc"><code>Config</code>‘s Rust doc</a> for detailed description of the different options and the defaults.</p>
+</div>
       
     </li>
   
 </ul>
 
+  
+    
+    
+    <p class="tag_title">Options Hash (<tt>config</tt>):</p>
+    <ul class="option">
+      
+        <li>
+          <span class="name">:debug_info</span>
+          <span class="type">(<tt>Boolean</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+        </li>
+      
+        <li>
+          <span class="name">:wasm_backtrace_details</span>
+          <span class="type">(<tt>Boolean</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+        </li>
+      
+        <li>
+          <span class="name">:native_unwind_info</span>
+          <span class="type">(<tt>Boolean</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+        </li>
+      
+        <li>
+          <span class="name">:consume_fuel</span>
+          <span class="type">(<tt>Boolean</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+        </li>
+      
+        <li>
+          <span class="name">:epoch_interruption</span>
+          <span class="type">(<tt>Boolean</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+        </li>
+      
+        <li>
+          <span class="name">:max_wasm_stack</span>
+          <span class="type">(<tt>Integer</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+        </li>
+      
+        <li>
+          <span class="name">:wasm_threads</span>
+          <span class="type">(<tt>Boolean</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+        </li>
+      
+        <li>
+          <span class="name">:wasm_multi_memory</span>
+          <span class="type">(<tt>Boolean</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+        </li>
+      
+        <li>
+          <span class="name">:wasm_memory64</span>
+          <span class="type">(<tt>Boolean</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+        </li>
+      
+        <li>
+          <span class="name">:parallel_compilation</span>
+          <span class="type">(<tt>Boolean</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+        </li>
+      
+        <li>
+          <span class="name">:cranelift_opt_level</span>
+          <span class="type">(<tt>Sumbol</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+            &mdash; <div class='inline'>
+<p>One of <code>none</code>, <code>speed</code>, <code>speed_and_size</code>.</p>
+</div>
+          
+        </li>
+      
+    </ul>
+  
+
+
+  <p class="tag_title">See Also:</p>
+  <ul class="see">
+    
+      <li><a href="https://docs.rs/wasmtime/latest/wasmtime/struct.Engine.html" target="_parent" title="Wasmtime&#39;s Rust doc for details of the configuration options.">Wasmtime's Rust doc for details of the configuration options.</a></li>
+    
+  </ul>
 
 </div><table class="source_code">
   <tr>
@@ -307,32 +433,38 @@
       <pre class="lines">
 
 
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52</pre>
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 38</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 54</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let args = scan_args::scan_args::&lt;(), (Option&lt;Value&gt;,), (), (), (), ()&gt;(args)?;
     let (config,) = args.optional;
     let config = config.and_then(|v| if v.is_nil() { None } else { Some(v) });
     let inner = match config {
-        Some(config) =&gt; EngineImpl::new(&amp;config.try_convert::&lt;&amp;Config&gt;()?.get())
-            .map_err(|e| error!(&quot;{}&quot;, e))?,
+        Some(config) =&gt; {
+            let config = config.try_convert::&lt;RHash&gt;().and_then(hash_to_config)?;
+
+            EngineImpl::new(&amp;config).map_err(|e| error!(&quot;{}&quot;, e))?
+        }
         None =&gt; EngineImpl::default(),
     };
 
@@ -391,12 +523,12 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-95
-96
-97</pre>
+114
+115
+116</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 95</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 114</span>
 
 <span class='id identifier rubyid_pub'>pub</span> <span class='id identifier rubyid_fn'>fn</span> <span class='id identifier rubyid_increment_epoch'>increment_epoch</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='kw'>self</span><span class='rparen'>)</span> <span class='lbrace'>{</span>
     <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_inner'>inner</span><span class='period'>.</span><span class='id identifier rubyid_increment_epoch'>increment_epoch</span><span class='lparen'>(</span><span class='rparen'>)</span><span class='semicolon'>;</span>
@@ -479,15 +611,15 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-112
-113
-114
-115
-116
-117</pre>
+131
+132
+133
+134
+135
+136</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 112</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 131</span>
 
 pub fn precompile_module(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RString, Error&gt; {
     self.inner
@@ -556,25 +688,25 @@ pub fn precompile_module(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RStrin
       <pre class="lines">
 
 
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77</pre>
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 62</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 81</span>
 
 pub fn start_epoch_interval(&amp;self, milliseconds: u64) {
     self.stop_epoch_interval();
@@ -636,14 +768,14 @@ pub fn start_epoch_interval(&amp;self, milliseconds: u64) {
       <pre class="lines">
 
 
-83
-84
-85
-86
-87</pre>
+102
+103
+104
+105
+106</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 83</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 102</span>
 
 pub fn stop_epoch_interval(&amp;self) {
     if let Some(handle) = self.timer_task.take() {
@@ -660,7 +792,7 @@ pub fn stop_epoch_interval(&amp;self) {
 </div>
 
       <div id="footer">
-  Generated on Tue Dec 20 03:42:43 2022 by
+  Generated on Tue Dec 20 13:43:08 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

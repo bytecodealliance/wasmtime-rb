@@ -8,8 +8,8 @@ use super::{
 use crate::{helpers::WrappedStruct, Caller};
 use magnus::{
     block::Proc, function, memoize, method, r_typed_data::DataTypeBuilder, scan_args::scan_args,
-    value::BoxValue, DataTypeFunctions, Error, Exception, Module as _, Object, RArray, RClass,
-    Symbol, TryConvert, TypedData, Value, QNIL,
+    DataTypeFunctions, Error, Module as _, Object, RArray, RClass, Symbol, TryConvert, TypedData,
+    Value, QNIL,
 };
 use wasmtime::{Caller as CallerImpl, Func as FuncImpl, Val};
 
@@ -138,7 +138,7 @@ impl<'a> Func<'a> {
     ///   end
     ///   func.call(1, 2) # => [2, 3]
     pub fn call(&self, args: &[Value]) -> Result<Value, Error> {
-        Self::invoke(&self.store, &self.inner, args).map_err(|e| e.into())
+        Self::invoke(&self.store, &self.inner, args)
     }
 
     pub fn inner(&self) -> &FuncImpl {
@@ -173,7 +173,7 @@ impl<'a> Func<'a> {
         store: &StoreContextValue,
         func: &wasmtime::Func,
         args: &[Value],
-    ) -> Result<Value, InvokeError> {
+    ) -> Result<Value, Error> {
         let func_ty = func.ty(store.context_mut()?);
         let param_types = func_ty.params().collect::<Vec<_>>();
         let params = Params::new(args, param_types)?.to_vec()?;
@@ -184,7 +184,7 @@ impl<'a> Func<'a> {
 
         match results.as_slice() {
             [] => Ok(QNIL.into()),
-            [result] => result.to_ruby_value(store).map_err(|e| e.into()),
+            [result] => result.to_ruby_value(store),
             _ => {
                 let array = RArray::with_capacity(results.len());
                 for result in results {
@@ -270,32 +270,6 @@ pub fn make_func_closure(
         caller.expire();
 
         result
-    }
-}
-
-pub enum InvokeError {
-    BoxedException(BoxValue<Exception>),
-    Error(Error),
-}
-
-impl From<InvokeError> for magnus::Error {
-    fn from(e: InvokeError) -> Self {
-        match e {
-            InvokeError::Error(e) => e,
-            InvokeError::BoxedException(e) => Error::from(e.to_owned()),
-        }
-    }
-}
-
-impl From<magnus::Error> for InvokeError {
-    fn from(e: magnus::Error) -> Self {
-        InvokeError::Error(e)
-    }
-}
-
-impl From<BoxValue<Exception>> for InvokeError {
-    fn from(e: BoxValue<Exception>) -> Self {
-        InvokeError::BoxedException(e)
     }
 }
 

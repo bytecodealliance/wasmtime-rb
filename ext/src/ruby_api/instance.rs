@@ -144,7 +144,7 @@ impl Instance {
 
         let store: &Store = self.store.try_convert()?;
         let func = self.get_func(store.context_mut(), unsafe { name.as_str()? })?;
-        Func::invoke(&self.store.into(), &func, &args[1..]).map_err(|e| e.into())
+        Func::invoke(&self.store.into(), &func, &args[1..])
     }
 
     fn get_func(

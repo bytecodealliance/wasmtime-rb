@@ -11,7 +11,7 @@ use magnus::{
     DataTypeFunctions, Error, Module as _, Object, RArray, RClass, Symbol, TryConvert, TypedData,
     Value, QNIL,
 };
-use wasmtime::{Caller as CallerImpl, Func as FuncImpl, Val};
+use wasmtime::{Caller as CallerImpl, Func as FuncImpl, Val, ValRaw};
 
 /// @yard
 /// @rename Wasmtime::Func
@@ -176,19 +176,32 @@ impl<'a> Func<'a> {
     ) -> Result<Value, Error> {
         let mut context = store.context_mut()?;
         let func_ty = func.ty(&mut context);
-        let params = Params::new(&func_ty, args)?.to_vec()?;
-        let mut results = vec![Val::null(); func_ty.results().len()];
+        let params_len = func_ty.params().len();
+        let results_len = func_ty.results().len();
+        let params = Params::new(&func_ty, args)?;
 
-        func.call(context, &params, &mut results)
+        let mut params_and_results = vec![ValRaw::i32(0); params_len.max(results_len)];
+        params.fill(&mut context, &mut params_and_results)?;
+
+        // SAFETY: TODO
+        unsafe { func.call_unchecked(&mut context, params_and_results.as_mut_ptr()) }
             .map_err(|e| store.handle_wasm_error(e))?;
 
-        match results.as_slice() {
-            [] => Ok(QNIL.into()),
-            [result] => result.to_ruby_value(store),
+        match results_len {
+            0 => Ok(QNIL.into()),
+            1 => unsafe {
+                Val::from_raw(
+                    &mut context,
+                    params_and_results[0],
+                    func_ty.results().next().unwrap(),
+                )
+            }
+            .to_ruby_value(store),
             _ => {
-                let array = RArray::with_capacity(results.len());
-                for result in results {
-                    array.push(result.to_ruby_value(store)?)?;
+                let array = RArray::with_capacity(results_len);
+                for (val_raw, ty) in params_and_results.iter().zip(func_ty.results()) {
+                    let val = unsafe { Val::from_raw(&mut context, *val_raw, ty) };
+                    array.push(val.to_ruby_value(store)?)?;
                 }
                 Ok(array.into())
             }

@@ -1,6 +1,6 @@
 use super::convert::ToWasmVal;
 use magnus::{exception::arg_error, Error, ExceptionClass, Value};
-use wasmtime::{FuncType, ValType};
+use wasmtime::{AsContextMut, FuncType, ValType};
 
 #[derive(Debug)]
 struct Param<'a> {
@@ -45,13 +45,16 @@ impl<'a> Params<'a> {
         Ok(Self(ty, params_slice))
     }
 
-    pub fn to_vec(&self) -> Result<Vec<wasmtime::Val>, Error> {
-        let mut vals = Vec::with_capacity(self.0.params().len());
+    pub fn fill(
+        &self,
+        mut context: impl AsContextMut,
+        buf: &mut [wasmtime::ValRaw],
+    ) -> Result<(), Error> {
         for (i, (param, value)) in self.0.params().zip(self.1.iter()).enumerate() {
             let param = Param::new(i, param.clone(), value);
-            vals.push(param.to_wasmtime_val()?);
+            let val = param.to_wasmtime_val()?;
+            buf[i] = unsafe { val.to_raw(&mut context) }
         }
-
-        Ok(vals)
+        Ok(())
     }
 }

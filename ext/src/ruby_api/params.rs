@@ -1,6 +1,6 @@
 use super::convert::ToWasmVal;
 use magnus::{exception::arg_error, Error, ExceptionClass, Value};
-use wasmtime::ValType;
+use wasmtime::{FuncType, ValType};
 
 #[derive(Debug)]
 struct Param<'a> {
@@ -28,26 +28,26 @@ impl<'a> Param<'a> {
     }
 }
 
-pub struct Params<'a>(Vec<ValType>, &'a [Value]);
+pub struct Params<'a>(&'a FuncType, &'a [Value]);
 
 impl<'a> Params<'a> {
-    pub fn new(params_slice: &'a [Value], param_types: Vec<ValType>) -> Result<Self, Error> {
-        if param_types.len() != params_slice.len() {
+    pub fn new(ty: &'a FuncType, params_slice: &'a [Value]) -> Result<Self, Error> {
+        if ty.params().len() != params_slice.len() {
             return Err(Error::new(
                 arg_error(),
                 format!(
                     "wrong number of arguments (given {}, expected {})",
                     params_slice.len(),
-                    param_types.len()
+                    ty.params().len()
                 ),
             ));
         }
-        Ok(Self(param_types, params_slice))
+        Ok(Self(ty, params_slice))
     }
 
     pub fn to_vec(&self) -> Result<Vec<wasmtime::Val>, Error> {
-        let mut vals = Vec::with_capacity(self.0.len());
-        for (i, (param, value)) in self.0.iter().zip(self.1.iter()).enumerate() {
+        let mut vals = Vec::with_capacity(self.0.params().len());
+        for (i, (param, value)) in self.0.params().zip(self.1.iter()).enumerate() {
             let param = Param::new(i, param.clone(), value);
             vals.push(param.to_wasmtime_val()?);
         }

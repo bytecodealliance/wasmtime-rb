@@ -5,7 +5,7 @@ use super::{
     root,
     store::{Store, StoreContextValue, StoreData},
 };
-use crate::{helpers::WrappedStruct, Caller};
+use crate::{define_data_class, helpers::WrappedStruct, Caller};
 use magnus::{
     block::Proc, function, memoize, method, scan_args::scan_args, typed_data::DataTypeBuilder,
     DataTypeFunctions, Error, Module as _, Object, RArray, RClass, Symbol, TypedData, Value, QNIL,
@@ -24,7 +24,7 @@ pub struct Func<'a> {
 
 unsafe impl<'a> TypedData for Func<'a> {
     fn class() -> magnus::RClass {
-        *memoize!(RClass: root().define_class("Func", Default::default()).unwrap())
+        *memoize!(RClass: define_data_class!(root(), "Func"))
     }
 
     fn data_type() -> &'static magnus::DataType {

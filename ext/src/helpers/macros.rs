@@ -10,3 +10,15 @@ macro_rules! define_rb_intern {
         )*
     };
 }
+
+#[macro_export]
+macro_rules! define_data_class {
+    ($namespace:expr, $name:expr, $parent:expr) => {{
+        let class = $namespace.define_class($name, $parent).unwrap();
+        magnus::Class::undef_alloc_func(class);
+        class
+    }};
+    ($namespace:expr, $name:expr) => {
+        define_data_class!($namespace, $name, magnus::RClass::default())
+    };
+}

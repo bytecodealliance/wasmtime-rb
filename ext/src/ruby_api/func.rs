@@ -174,12 +174,12 @@ impl<'a> Func<'a> {
         func: &wasmtime::Func,
         args: &[Value],
     ) -> Result<Value, Error> {
-        let func_ty = func.ty(store.context_mut()?);
-        let param_types = func_ty.params().collect::<Vec<_>>();
-        let params = Params::new(args, param_types)?.to_vec()?;
+        let mut context = store.context_mut()?;
+        let func_ty = func.ty(&mut context);
+        let params = Params::new(&func_ty, args)?.to_vec()?;
         let mut results = vec![Val::null(); func_ty.results().len()];
 
-        func.call(store.context_mut()?, &params, &mut results)
+        func.call(context, &params, &mut results)
             .map_err(|e| store.handle_wasm_error(e))?;
 
         match results.as_slice() {

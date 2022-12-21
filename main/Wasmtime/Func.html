@@ -452,7 +452,6 @@
       <pre class="lines">
 
 
-92
 93
 94
 95
@@ -470,10 +469,11 @@
 107
 108
 109
-110</pre>
+110
+111</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 92</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 93</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let args = scan_args::&lt;(Value, RArray, RArray), (), (), (), (), Proc&gt;(args)?;
@@ -588,15 +588,15 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-139
 140
-141</pre>
+141
+142</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 139</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 140</span>
 
 pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
-    Self::invoke(&amp;self.store, &amp;self.inner, args).map_err(|e| e.into())
+    Self::invoke(&amp;self.store, &amp;self.inner, args)
 }</pre>
     </td>
   </tr>
@@ -647,7 +647,6 @@ pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
       <pre class="lines">
 
 
-149
 150
 151
 152
@@ -655,10 +654,11 @@ pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
 154
 155
 156
-157</pre>
+157
+158</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 149</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 150</span>
 
 pub fn params(&amp;self) -&gt; Result&lt;Vec&lt;Symbol&gt;, Error&gt; {
     let params = self
@@ -718,7 +718,6 @@ pub fn params(&amp;self) -&gt; Result&lt;Vec&lt;Symbol&gt;, Error&gt; {
       <pre class="lines">
 
 
-161
 162
 163
 164
@@ -726,10 +725,11 @@ pub fn params(&amp;self) -&gt; Result&lt;Vec&lt;Symbol&gt;, Error&gt; {
 166
 167
 168
-169</pre>
+169
+170</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 161</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 162</span>
 
 pub fn results(&amp;self) -&gt; Result&lt;Vec&lt;Symbol&gt;, Error&gt; {
     let results = self
@@ -750,7 +750,7 @@ pub fn results(&amp;self) -&gt; Result&lt;Vec&lt;Symbol&gt;, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Dec 20 13:43:08 2022 by
+  Generated on Wed Dec 21 14:50:03 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

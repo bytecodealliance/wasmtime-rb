@@ -98,8 +98,8 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>ext/src/ruby_api/trap.rs<span class="defines">,<br />
-  lib/wasmtime.rb</span>
+    <dd>lib/wasmtime.rb<span class="defines">,<br />
+  ext/src/ruby_api/trap.rs</span>
 </dd>
   </dl>
   
@@ -118,6 +118,11 @@
           
         </dt>
         <dd><pre class="code"><span class='symbol'>:stack_overflow</span></pre></dd>
+      
+        <dt id="MEMORY_OUT_OF_BOUNDS-constant" class="">MEMORY_OUT_OF_BOUNDS =
+          
+        </dt>
+        <dd><pre class="code"><span class='symbol'>:memory_out_of_bounds</span></pre></dd>
       
         <dt id="HEAP_MISALIGNED-constant" class="">HEAP_MISALIGNED =
           
@@ -339,13 +344,17 @@
 73
 74
 75
-76</pre>
+76
+77
+78</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/trap.rs', line 60</span>
 
 pub fn code(&amp;self) -&gt; Result&lt;Option&lt;Symbol&gt;, Error&gt; {
     match self.trap {
+        wasmtime::Trap::StackOverflow =&gt; trap_const!(STACK_OVERFLOW),
+        wasmtime::Trap::MemoryOutOfBounds =&gt; trap_const!(MEMORY_OUT_OF_BOUNDS),
         wasmtime::Trap::HeapMisaligned =&gt; trap_const!(HEAP_MISALIGNED),
         wasmtime::Trap::TableOutOfBounds =&gt; trap_const!(TABLE_OUT_OF_BOUNDS),
         wasmtime::Trap::IndirectCallToNull =&gt; trap_const!(INDIRECT_CALL_TO_NULL),
@@ -486,7 +495,7 @@ pub fn wasm_backtrace_message(&amp;self) -&gt; Option&lt;String&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Dec 20 13:43:08 2022 by
+  Generated on Wed Dec 21 14:50:03 2022 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>
-  Exception: Wasmtime::ConversionError
+  Exception: Wasmtime::ResultError
   
     &mdash; Documentation by YARD 0.9.28
   
@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="../css/common.css" type="text/css" />
 
 <script type="text/javascript">
-  pathId = "Wasmtime::ConversionError";
+  pathId = "Wasmtime::ResultError";
   relpath = '../';
 </script>
 
@@ -36,10 +36,10 @@
       <div id="header">
         <div id="menu">
   
-    <a href="../_index.html">Index (C)</a> &raquo;
+    <a href="../_index.html">Index (R)</a> &raquo;
     <span class='title'><span class='object_link'><a href="../Wasmtime.html" title="Wasmtime (module)">Wasmtime</a></span></span>
      &raquo; 
-    <span class="title">ConversionError</span>
+    <span class="title">ResultError</span>
   
 </div>
 
@@ -59,7 +59,7 @@
         <div class="clear"></div>
       </div>
 
-      <div id="content"><h1>Exception: Wasmtime::ConversionError
+      <div id="content"><h1>Exception: Wasmtime::ResultError
   
   
   
@@ -78,7 +78,7 @@
           
             <li class="next"><span class='object_link'><a href="Error.html" title="Wasmtime::Error (class)">Error</a></span></li>
           
-            <li class="next">Wasmtime::ConversionError</li>
+            <li class="next">Wasmtime::ResultError</li>
           
         </ul>
         <a href="#" class="inheritanceTree">show all</a>
@@ -106,7 +106,7 @@
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
     
-<p>Raised when converting an <span class='object_link'><a href="Extern.html" title="Wasmtime::Extern (class)">Extern</a></span> to its concrete type fails.</p>
+<p>Raised when failing to convert the return value of a Ruby-backed Func to Wasm types.</p>
 
 
   </div>

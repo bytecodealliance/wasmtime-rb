@@ -1,7 +1,7 @@
 use super::{convert::WrapWasmtimeType, externals::Extern, root, store::StoreData};
 use crate::{error, helpers::WrappedStruct};
 use magnus::{
-    memoize, method, r_typed_data::DataTypeBuilder, DataTypeFunctions, Error, Module as _, RClass,
+    memoize, method, typed_data::DataTypeBuilder, DataTypeFunctions, Error, Module as _, RClass,
     RString, TypedData, Value, QNIL,
 };
 use std::cell::UnsafeCell;

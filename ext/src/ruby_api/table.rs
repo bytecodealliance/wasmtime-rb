@@ -5,7 +5,7 @@ use super::{
 };
 use crate::{define_rb_intern, error, helpers::WrappedStruct};
 use magnus::{
-    function, memoize, method, r_typed_data::DataTypeBuilder, scan_args, DataTypeFunctions, Error,
+    function, memoize, method, scan_args, typed_data::DataTypeBuilder, DataTypeFunctions, Error,
     Module as _, Object, RClass, Symbol, TypedData, Value, QNIL,
 };
 use wasmtime::{Extern, Table as TableImpl, TableType};

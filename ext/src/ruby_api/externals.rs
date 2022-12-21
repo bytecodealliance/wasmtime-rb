@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{conversion_err, helpers::WrappedStruct, not_implemented};
 use magnus::{
-    memoize, method, r_typed_data::DataTypeBuilder, rb_sys::AsRawValue, DataTypeFunctions, Error,
+    memoize, method, rb_sys::AsRawValue, typed_data::DataTypeBuilder, DataTypeFunctions, Error,
     Module, RClass, TypedData, Value,
 };
 

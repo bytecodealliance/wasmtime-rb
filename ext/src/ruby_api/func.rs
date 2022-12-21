@@ -7,7 +7,7 @@ use super::{
 };
 use crate::{helpers::WrappedStruct, Caller};
 use magnus::{
-    block::Proc, function, memoize, method, r_typed_data::DataTypeBuilder, scan_args::scan_args,
+    block::Proc, function, memoize, method, scan_args::scan_args, typed_data::DataTypeBuilder,
     DataTypeFunctions, Error, Module as _, Object, RArray, RClass, Symbol, TryConvert, TypedData,
     Value, QNIL,
 };

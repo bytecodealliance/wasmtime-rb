@@ -5,8 +5,8 @@ use super::{
 };
 use crate::{error, helpers::WrappedStruct};
 use magnus::{
-    function, memoize, method, r_typed_data::DataTypeBuilder, DataTypeFunctions, Error,
-    Module as _, Object, RClass, Symbol, TypedData, Value,
+    function, memoize, method, typed_data::DataTypeBuilder, DataTypeFunctions, Error, Module as _,
+    Object, RClass, Symbol, TypedData, Value,
 };
 use wasmtime::{Extern, Global as GlobalImpl, GlobalType, Mutability};
 

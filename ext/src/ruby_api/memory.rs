@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{define_rb_intern, error, helpers::WrappedStruct};
 use magnus::{
-    function, memoize, method, r_string::RString, r_typed_data::DataTypeBuilder, scan_args,
+    function, memoize, method, r_string::RString, scan_args, typed_data::DataTypeBuilder,
     DataTypeFunctions, Error, Module as _, Object, RClass, TypedData, Value,
 };
 use wasmtime::{Extern, Memory as MemoryImpl};

@@ -1,11 +1,10 @@
 use std::convert::TryFrom;
 
-use crate::helpers::WrappedStruct;
 use crate::ruby_api::{errors::base_error, root};
 use magnus::Error;
 use magnus::{
-    memoize, method, rb_sys::AsRawValue, DataTypeFunctions, ExceptionClass, Module as _, Symbol,
-    TypedData, Value,
+    memoize, method, rb_sys::AsRawValue, typed_data::Obj, DataTypeFunctions, ExceptionClass,
+    Module as _, Symbol, TypedData, Value,
 };
 
 pub fn trap_error() -> ExceptionClass {
@@ -77,12 +76,12 @@ impl Trap {
         }
     }
 
-    pub fn inspect(rb_self: WrappedStruct<Self>) -> Result<String, Error> {
-        let rs_self = rb_self.get()?;
+    pub fn inspect(rb_self: Obj<Self>) -> Result<String, Error> {
+        let rs_self = rb_self.get();
 
         Ok(format!(
             "#<Wasmtime::Trap:0x{:016x} @trap_code={}>",
-            rb_self.to_value().as_raw(),
+            rb_self.as_raw(),
             Value::from(rs_self.code()?).inspect()
         ))
     }

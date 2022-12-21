@@ -9,10 +9,10 @@ use super::{
     root,
     store::{Store, StoreContextValue, StoreData},
 };
-use crate::{define_rb_intern, err, error, helpers::WrappedStruct};
+use crate::{define_rb_intern, err, error};
 use magnus::{
-    block::Proc, function, gc, method, scan_args, scan_args::scan_args, DataTypeFunctions, Error,
-    Module as _, Object, RArray, RHash, RString, TypedData, Value,
+    block::Proc, function, gc, method, scan_args, scan_args::scan_args, typed_data::Obj,
+    DataTypeFunctions, Error, Module as _, Object, RArray, RHash, RString, TypedData, Value,
 };
 use std::cell::RefCell;
 use wasmtime::Linker as LinkerImpl;
@@ -152,7 +152,7 @@ impl Linker {
     /// @return [Extern, nil] The item if it exists, nil otherwise.
     pub fn get(
         &self,
-        s: WrappedStruct<Store>,
+        s: Obj<Store>,
         module: RString,
         name: RString,
     ) -> Result<Option<Extern>, Error> {
@@ -260,9 +260,9 @@ impl Linker {
     /// @param store [Store]
     /// @param mod [Module]
     /// @return [Instance]
-    pub fn instantiate(&self, s: WrappedStruct<Store>, module: &Module) -> Result<Instance, Error> {
-        let wrapped_store: WrappedStruct<Store> = s.try_convert()?;
-        let store = wrapped_store.get()?;
+    pub fn instantiate(&self, s: Obj<Store>, module: &Module) -> Result<Instance, Error> {
+        let wrapped_store: Obj<Store> = s.try_convert()?;
+        let store = wrapped_store.get();
 
         if self.has_wasi && !store.context().data().has_wasi_ctx() {
             return err!(
@@ -290,8 +290,8 @@ impl Linker {
     /// @param store [Store]
     /// @param mod [String] Module name
     /// @return [Func]
-    pub fn get_default(&self, s: WrappedStruct<Store>, module: RString) -> Result<Func, Error> {
-        let store = s.get()?;
+    pub fn get_default(&self, s: Obj<Store>, module: RString) -> Result<Func, Error> {
+        let store = s.get();
 
         self.inner
             .borrow()

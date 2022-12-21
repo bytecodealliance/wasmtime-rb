@@ -2,9 +2,12 @@ use super::{
     root,
     store::{Store, StoreContextValue},
 };
-use crate::{define_data_class, define_rb_intern, error, helpers::WrappedStruct};
+use crate::{define_data_class, define_rb_intern, error};
 use magnus::{
-    function, memoize, method, r_string::RString, scan_args, typed_data::DataTypeBuilder,
+    function, memoize, method,
+    r_string::RString,
+    scan_args,
+    typed_data::{DataTypeBuilder, Obj},
     DataTypeFunctions, Error, Module as _, Object, RClass, TypedData, Value,
 };
 use wasmtime::{Extern, Memory as MemoryImpl};
@@ -53,7 +56,7 @@ impl<'a> Memory<'a> {
     /// @param min_size [Integer] The minimum memory pages.
     /// @param max_size [Integer, nil] The maximum memory pages.
     pub fn new(args: &[Value]) -> Result<Self, Error> {
-        let args = scan_args::scan_args::<(WrappedStruct<Store>,), (), (), (), _, ()>(args)?;
+        let args = scan_args::scan_args::<(Obj<Store>,), (), (), (), _, ()>(args)?;
         let kw = scan_args::get_kwargs::<_, (u32,), (Option<u32>,), ()>(
             args.keywords,
             &[*MIN_SIZE],
@@ -62,7 +65,7 @@ impl<'a> Memory<'a> {
         let (s,) = args.required;
         let (min,) = kw.required;
         let (max,) = kw.optional;
-        let store = s.get()?;
+        let store = s.get();
 
         let memtype = wasmtime::MemoryType::new(min, max);
         let inner = MemoryImpl::new(store.context_mut(), memtype).map_err(|e| error!("{}", e))?;

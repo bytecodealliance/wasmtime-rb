@@ -5,9 +5,12 @@ use super::{
     root,
     store::{Store, StoreContextValue, StoreData},
 };
-use crate::{define_data_class, helpers::WrappedStruct, Caller};
+use crate::{define_data_class, Caller};
 use magnus::{
-    block::Proc, function, memoize, method, scan_args::scan_args, typed_data::DataTypeBuilder,
+    block::Proc,
+    function, memoize, method,
+    scan_args::scan_args,
+    typed_data::{DataTypeBuilder, Obj},
     DataTypeFunctions, Error, Module as _, Object, RArray, RClass, Symbol, TypedData, Value, QNIL,
 };
 use wasmtime::{Caller as CallerImpl, Func as FuncImpl, Val};
@@ -94,8 +97,8 @@ impl<'a> Func<'a> {
         let (s, params, results) = args.required;
         let callable = args.block;
 
-        let wrapped_store: WrappedStruct<Store> = s.try_convert()?;
-        let store = wrapped_store.get()?;
+        let wrapped_store: Obj<Store> = s.try_convert()?;
+        let store = wrapped_store.get();
 
         store.retain(callable.into());
         let context = store.context_mut();
@@ -210,8 +213,8 @@ pub fn make_func_closure(
     let callable = ShareableProc(callable);
 
     move |caller_impl: CallerImpl<'_, StoreData>, params: &[Val], results: &mut [Val]| {
-        let wrapped_caller: WrappedStruct<Caller> = Caller::new(caller_impl).into();
-        let caller = wrapped_caller.get().unwrap();
+        let wrapped_caller = Obj::wrap(Caller::new(caller_impl));
+        let caller = wrapped_caller.get();
         let store_context = StoreContextValue::from(wrapped_caller);
 
         let rparams = RArray::with_capacity(params.len() + 1);

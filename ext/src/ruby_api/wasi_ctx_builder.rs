@@ -1,8 +1,8 @@
 use super::root;
-use crate::{error, helpers::WrappedStruct};
+use crate::error;
 use magnus::{
-    function, gc, method, DataTypeFunctions, Error, Module, Object, RArray, RHash, RString,
-    TypedData,
+    function, gc, method, typed_data::Obj, DataTypeFunctions, Error, Module, Object, RArray, RHash,
+    RString, TypedData,
 };
 use std::cell::RefCell;
 use std::{fs::File, path::PathBuf};
@@ -86,7 +86,7 @@ impl DataTypeFunctions for WasiCtxBuilder {
     }
 }
 
-type RbSelf = WrappedStruct<WasiCtxBuilder>;
+type RbSelf = Obj<WasiCtxBuilder>;
 
 impl WasiCtxBuilder {
     /// @yard
@@ -101,7 +101,7 @@ impl WasiCtxBuilder {
     /// Inherit stdin from the current Ruby process.
     /// @return [WasiCtxBuilder] +self+
     pub fn inherit_stdin(rb_self: RbSelf) -> Result<RbSelf, Error> {
-        let mut inner = rb_self.get()?.inner.borrow_mut();
+        let mut inner = rb_self.get().inner.borrow_mut();
         inner.stdin = Some(ReadStream::Inherit);
         Ok(rb_self)
     }
@@ -112,7 +112,7 @@ impl WasiCtxBuilder {
     /// @def set_stdin_file(path)
     /// @return [WasiCtxBuilder] +self+
     pub fn set_stdin_file(rb_self: RbSelf, path: RString) -> Result<RbSelf, Error> {
-        let mut inner = rb_self.get()?.inner.borrow_mut();
+        let mut inner = rb_self.get().inner.borrow_mut();
         inner.stdin = Some(ReadStream::Path(path));
         Ok(rb_self)
     }
@@ -123,7 +123,7 @@ impl WasiCtxBuilder {
     /// @def set_stdin_string(content)
     /// @return [WasiCtxBuilder] +self+
     pub fn set_stdin_string(rb_self: RbSelf, content: RString) -> Result<RbSelf, Error> {
-        let mut inner = rb_self.get()?.inner.borrow_mut();
+        let mut inner = rb_self.get().inner.borrow_mut();
         inner.stdin = Some(ReadStream::String(content));
         Ok(rb_self)
     }
@@ -132,7 +132,7 @@ impl WasiCtxBuilder {
     /// Inherit stdout from the current Ruby process.
     /// @return [WasiCtxBuilder] +self+
     pub fn inherit_stdout(rb_self: RbSelf) -> Result<RbSelf, Error> {
-        let mut inner = rb_self.get()?.inner.borrow_mut();
+        let mut inner = rb_self.get().inner.borrow_mut();
         inner.stdout = Some(WriteStream::Inherit);
         Ok(rb_self)
     }
@@ -144,7 +144,7 @@ impl WasiCtxBuilder {
     /// @def set_stdout_file(path)
     /// @return [WasiCtxBuilder] +self+
     pub fn set_stdout_file(rb_self: RbSelf, path: RString) -> Result<RbSelf, Error> {
-        let mut inner = rb_self.get()?.inner.borrow_mut();
+        let mut inner = rb_self.get().inner.borrow_mut();
         inner.stdout = Some(WriteStream::Path(path));
         Ok(rb_self)
     }
@@ -153,7 +153,7 @@ impl WasiCtxBuilder {
     /// Inherit stderr from the current Ruby process.
     /// @return [WasiCtxBuilder] +self+
     pub fn inherit_stderr(rb_self: RbSelf) -> Result<RbSelf, Error> {
-        let mut inner = rb_self.get()?.inner.borrow_mut();
+        let mut inner = rb_self.get().inner.borrow_mut();
         inner.stderr = Some(WriteStream::Inherit);
         Ok(rb_self)
     }
@@ -165,7 +165,7 @@ impl WasiCtxBuilder {
     /// @def set_stderr_file(path)
     /// @return [WasiCtxBuilder] +self+
     pub fn set_stderr_file(rb_self: RbSelf, path: RString) -> Result<RbSelf, Error> {
-        let mut inner = rb_self.get()?.inner.borrow_mut();
+        let mut inner = rb_self.get().inner.borrow_mut();
         inner.stderr = Some(WriteStream::Path(path));
         Ok(rb_self)
     }
@@ -176,7 +176,7 @@ impl WasiCtxBuilder {
     /// @def set_env(env)
     /// @return [WasiCtxBuilder] +self+
     pub fn set_env(rb_self: RbSelf, env: RHash) -> Result<RbSelf, Error> {
-        let mut inner = rb_self.get()?.inner.borrow_mut();
+        let mut inner = rb_self.get().inner.borrow_mut();
         inner.env = Some(env);
         Ok(rb_self)
     }
@@ -187,7 +187,7 @@ impl WasiCtxBuilder {
     /// @def set_argv(args)
     /// @return [WasiCtxBuilder] +self+
     pub fn set_argv(rb_self: RbSelf, argv: RArray) -> Result<RbSelf, Error> {
-        let mut inner = rb_self.get()?.inner.borrow_mut();
+        let mut inner = rb_self.get().inner.borrow_mut();
         inner.args = Some(argv);
         Ok(rb_self)
     }

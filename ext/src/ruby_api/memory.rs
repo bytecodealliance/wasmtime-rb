@@ -2,7 +2,7 @@ use super::{
     root,
     store::{Store, StoreContextValue},
 };
-use crate::{define_rb_intern, error, helpers::WrappedStruct};
+use crate::{define_data_class, define_rb_intern, error, helpers::WrappedStruct};
 use magnus::{
     function, memoize, method, r_string::RString, r_typed_data::DataTypeBuilder, scan_args,
     DataTypeFunctions, Error, Module as _, Object, RClass, TypedData, Value,
@@ -26,7 +26,7 @@ pub struct Memory<'a> {
 
 unsafe impl TypedData for Memory<'_> {
     fn class() -> magnus::RClass {
-        *memoize!(RClass: root().define_class("Memory", Default::default()).unwrap())
+        *memoize!(RClass: define_data_class!(root(), "Memory"))
     }
 
     fn data_type() -> &'static magnus::DataType {

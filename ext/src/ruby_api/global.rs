@@ -3,7 +3,7 @@ use super::{
     root,
     store::{Store, StoreContextValue},
 };
-use crate::{error, helpers::WrappedStruct};
+use crate::{define_data_class, error, helpers::WrappedStruct};
 use magnus::{
     function, memoize, method, r_typed_data::DataTypeBuilder, DataTypeFunctions, Error,
     Module as _, Object, RClass, Symbol, TypedData, Value,
@@ -22,7 +22,7 @@ pub struct Global<'a> {
 
 unsafe impl TypedData for Global<'_> {
     fn class() -> magnus::RClass {
-        *memoize!(RClass: root().define_class("Global", Default::default()).unwrap())
+        *memoize!(RClass: define_data_class!(root(), "Global"))
     }
 
     fn data_type() -> &'static magnus::DataType {

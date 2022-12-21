@@ -1,5 +1,5 @@
 use super::{convert::WrapWasmtimeType, externals::Extern, root, store::StoreData};
-use crate::{error, helpers::WrappedStruct};
+use crate::{define_data_class, error, helpers::WrappedStruct};
 use magnus::{
     memoize, method, r_typed_data::DataTypeBuilder, DataTypeFunctions, Error, Module as _, RClass,
     RString, TypedData, Value, QNIL,
@@ -122,7 +122,7 @@ impl<'a> Caller<'a> {
 
 unsafe impl<'a> TypedData for Caller<'a> {
     fn class() -> magnus::RClass {
-        *memoize!(RClass: root().define_class("Caller", Default::default()).unwrap())
+        *memoize!(RClass: define_data_class!(root(), "Caller"))
     }
 
     fn data_type() -> &'static magnus::DataType {

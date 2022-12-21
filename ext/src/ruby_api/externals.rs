@@ -2,7 +2,7 @@ use super::{
     convert::WrapWasmtimeType, func::Func, global::Global, memory::Memory, root,
     store::StoreContextValue, table::Table,
 };
-use crate::{conversion_err, helpers::WrappedStruct, not_implemented};
+use crate::{conversion_err, define_data_class, helpers::WrappedStruct, not_implemented};
 use magnus::{
     memoize, method, r_typed_data::DataTypeBuilder, rb_sys::AsRawValue, DataTypeFunctions, Error,
     Module, RClass, TypedData, Value,
@@ -21,7 +21,7 @@ pub enum Extern<'a> {
 
 unsafe impl TypedData for Extern<'_> {
     fn class() -> magnus::RClass {
-        *memoize!(RClass: root().define_class("Extern", Default::default()).unwrap())
+        *memoize!(RClass: define_data_class!(root(), "Extern"))
     }
 
     fn data_type() -> &'static magnus::DataType {

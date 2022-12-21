@@ -32,7 +32,7 @@ module Wasmtime
       end
 
       it "rejects non-symbols" do
-        expect { build_func(nil, nil) {} }.to raise_error(ArgumentError)
+        expect { build_func(nil, nil) {} }.to raise_error(TypeError)
         expect { build_func([1], [2]) {} }.to raise_error(ArgumentError)
       end
     end

@@ -7,7 +7,10 @@ module Wasmtime
         mod = Wasmtime::Module.new(engine, "(module)")
 
         expect { Wasmtime::Instance.new(store, mod, "not an array") }
-          .to raise_error(TypeError, %(unexpected extern: "not an array"))
+          .to raise_error(TypeError)
+
+        expect { Wasmtime::Instance.new(store, mod, [:not_extern]) }
+          .to raise_error(TypeError, "unexpected extern: :not_extern")
       end
 
       it "accepts nil for imports" do

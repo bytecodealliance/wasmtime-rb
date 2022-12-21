@@ -8,8 +8,7 @@ use super::{
 use crate::{helpers::WrappedStruct, Caller};
 use magnus::{
     block::Proc, function, memoize, method, scan_args::scan_args, typed_data::DataTypeBuilder,
-    DataTypeFunctions, Error, Module as _, Object, RArray, RClass, Symbol, TryConvert, TypedData,
-    Value, QNIL,
+    DataTypeFunctions, Error, Module as _, Object, RArray, RClass, Symbol, TypedData, Value, QNIL,
 };
 use wasmtime::{Caller as CallerImpl, Func as FuncImpl, Val};
 
@@ -234,7 +233,7 @@ pub fn make_func_closure(
                     0 => Ok(()), // Ignore return value
                     n => {
                         // For len=1, accept both `val` and `[val]`
-                        let proc_result = RArray::try_convert(proc_result)?;
+                        let proc_result = RArray::to_ary(proc_result)?;
                         if proc_result.len() != n {
                             return Err(Error::new(
                                 result_error(),

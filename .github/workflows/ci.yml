@@ -41,7 +41,6 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
           cargo-cache: true
-          cache-version: v3
 
       - name: Compile rust ext
         run: bundle exec rake compile:release
@@ -80,7 +79,6 @@ jobs:
           rustup-toolchain: "nightly"
           bundler-cache: true
           cargo-cache: true
-          cache-version: v1
 
       - name: Compile rust ext
         run: bundle exec rake compile

@@ -41,7 +41,6 @@ jobs:
           bundler-cache: false
           cargo-cache: true
           cargo-vendor: true
-          cache-version: v0-${{ matrix.ruby-platform }}
 
       - uses: oxidize-rb/cross-gem-action@main
         with:
@@ -72,7 +71,6 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
           cargo-cache: true
-          cache-version: v1
 
       - name: Smoke test gem install
         shell: bash

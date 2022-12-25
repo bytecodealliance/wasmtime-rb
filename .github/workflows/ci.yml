@@ -19,7 +19,7 @@ jobs:
       - id: fetch
         uses: oxidize-rb/actions/fetch-ci-data@main
 
-  ci:
+  tests:
     runs-on: ${{ matrix.os }}
     needs: ci-data
     strategy:
@@ -49,16 +49,49 @@ jobs:
       - name: Run ruby tests
         run: bundle exec rake spec
 
-      - name: Run ruby tests (hard-mode with GC.stress)
-        run: bundle exec rake spec
-        env:
-          GC_STRESS: "true"
-
       - name: Run examples
         run: bundle exec rake examples
 
       - name: Run benchmarks
         run: bundle exec rake bench:all
+
+  gc-stress:
+    runs-on: ubuntu-latest
+    needs: ci-data
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Remove Gemfile.lock
+        run: rm Gemfile.lock
+
+      - uses: oxidize-rb/actions/setup-ruby-and-rust@main
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+          cargo-cache: true
+
+      - name: Compile rust ext
+        run: bundle exec rake compile:release
+
+      - name: Run ruby tests (hard-mode with GC.stress)
+        run: bundle exec rake spec
+        env:
+          GC_STRESS: "true"
+
+  lint:
+    runs-on: ubuntu-latest
+    needs: ci-data
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Remove Gemfile.lock
+        run: rm Gemfile.lock
+
+      - uses: oxidize-rb/actions/setup-ruby-and-rust@main
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+          cargo-cache: true
 
       - name: Lint ruby
         run: bundle exec rake standard
@@ -76,7 +109,7 @@ jobs:
 
       - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
         with:
-          ruby-version: "3.1"
+          ruby-version: "3.2"
           rustup-toolchain: "nightly"
           bundler-cache: true
           cargo-cache: true

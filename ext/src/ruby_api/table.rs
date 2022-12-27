@@ -3,7 +3,7 @@ use super::{
     root,
     store::{Store, StoreContextValue},
 };
-use crate::{define_rb_intern, error, helpers::WrappedStruct};
+use crate::{define_data_class, define_rb_intern, error, helpers::WrappedStruct};
 use magnus::{
     function, memoize, method, r_typed_data::DataTypeBuilder, scan_args, DataTypeFunctions, Error,
     Module as _, Object, RClass, Symbol, TypedData, Value, QNIL,
@@ -27,7 +27,7 @@ pub struct Table<'a> {
 
 unsafe impl TypedData for Table<'_> {
     fn class() -> magnus::RClass {
-        *memoize!(RClass: root().define_class("Table", Default::default()).unwrap())
+        *memoize!(RClass: define_data_class!(root(), "Table"))
     }
 
     fn data_type() -> &'static magnus::DataType {

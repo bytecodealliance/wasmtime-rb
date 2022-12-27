@@ -9,7 +9,7 @@ group :development do
   gem "rake", "~> 13.0"
   gem "rake-compiler"
   gem "rb_sys"
-  gem "standard", "~> 1.19"
+  gem "standard", "~> 1.20"
   gem "get_process_mem"
   gem "ruby-lsp", require: false
   gem "yard", require: false

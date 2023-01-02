@@ -48,6 +48,8 @@ jobs:
           version: latest
           platform: ${{ matrix.ruby-platform }}
           ruby-versions: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ', ') }}
+        env:
+          RCD_IMAGE: "ghcr.io/rake-compiler/rake-compiler-dock-snapshot:${{ matrix.ruby-platform }}"
 
       - name: Smoke gem install
         if: matrix.ruby-platform == 'x86_64-linux' # GitHub actions architecture

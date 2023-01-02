@@ -42,6 +42,7 @@ jobs:
           bundler-cache: true
           cargo-cache: true
           cache-version: v3
+          cargo-cache-extra-path: tmp/*/wasmtime_rb/target
 
       - name: Compile rust ext
         run: bundle exec rake compile:release

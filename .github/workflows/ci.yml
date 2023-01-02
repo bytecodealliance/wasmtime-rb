@@ -121,9 +121,6 @@ jobs:
           cargo-cache: true
           cache-version: v1
 
-      - name: Compile rust ext
-        run: bundle exec rake compile
-
       - name: Generate doc
         run: bundle exec rake doc
 

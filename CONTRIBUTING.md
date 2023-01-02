@@ -20,6 +20,16 @@ bundle exec rake
 ## Releasing
 
 1. Bump the `VERSION` in `lib/wasmtime/version.rb`
+1. Run `bundle install` to bump the version in `Gemfile.lock`
+1. Update the changelog (requires the `github_changelog_generator` gem and being authenticated with `gh`)
+  
+```
+github_changelog_generator \
+  -u bytecodealliance \
+  -p wasmtime-rb \
+  -t $(gh auth token) \
+  --future-release v$(grep VERSION lib/wasmtime/version.rb | head -n 1 | cut -d'"' -f2)
+```
 1. Create a new tag for that release, prefixed with `v` (`git tag v1.0.0`):
   
   ```

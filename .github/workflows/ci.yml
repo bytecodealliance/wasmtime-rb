@@ -36,13 +36,13 @@ jobs:
       - name: Remove Gemfile.lock
         run: rm Gemfile.lock
 
-      - uses: oxidize-rb/actions/setup-ruby-and-rust@main
+      - uses: jbourassa/oxidize-rb-actions/setup-ruby-and-rust@main
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
           cargo-cache: true
           cache-version: faster-extra-path-1
-          cargo-cache-extra-path: tmp/*/wasmtime_rb/target examples/rust-crate/target
+          cargo-cache-extra-path: examples/rust-crate/target
 
       - name: Compile rust ext
         run: bundle exec rake compile:release
@@ -70,7 +70,7 @@ jobs:
       - name: Remove Gemfile.lock
         run: rm Gemfile.lock
 
-      - uses: oxidize-rb/actions/setup-ruby-and-rust@main
+      - uses: jbourassa/oxidize-rb-actions/setup-ruby-and-rust@main
         with:
           ruby-version: "3.2"
           bundler-cache: true
@@ -93,7 +93,7 @@ jobs:
       - name: Remove Gemfile.lock
         run: rm Gemfile.lock
 
-      - uses: oxidize-rb/actions/setup-ruby-and-rust@main
+      - uses: jbourassa/oxidize-rb-actions/setup-ruby-and-rust@main
         with:
           ruby-version: "3.2"
           bundler-cache: true
@@ -113,7 +113,7 @@ jobs:
       - name: Remove Gemfile.lock
         run: rm Gemfile.lock
 
-      - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
+      - uses: jbourassa/oxidize-rb-actions/setup-ruby-and-rust@main
         with:
           ruby-version: "3.2"
           rustup-toolchain: "nightly"

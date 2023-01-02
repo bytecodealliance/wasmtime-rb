@@ -41,7 +41,7 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
           cargo-cache: true
-          cache-version: v3
+          cache-version: faster-extra-path-1
           cargo-cache-extra-path: tmp/*/wasmtime_rb/target
 
       - name: Compile rust ext

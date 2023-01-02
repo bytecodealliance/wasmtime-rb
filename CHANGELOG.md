@@ -1,5 +1,16 @@
 # Changelog
 
+## [v0.4.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v0.4.1) (2023-01-02)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v0.4.0...v0.4.1)
+
+**Merged pull requests:**
+
+- Fix allocator warning on Ruby 3.2 [\#102](https://github.com/bytecodealliance/wasmtime-rb/pull/102) ([jbourassa](https://github.com/jbourassa))
+- Bump rb-sys to v0.9.53 \(Ruby 3.2 support\) [\#101](https://github.com/bytecodealliance/wasmtime-rb/pull/101) ([jbourassa](https://github.com/jbourassa))
+- Bump cap-std from 1.0.2 to 1.0.3 [\#99](https://github.com/bytecodealliance/wasmtime-rb/pull/99) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump standard from 1.19.1 to 1.20.0 [\#98](https://github.com/bytecodealliance/wasmtime-rb/pull/98) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v0.4.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v0.4.0) (2022-12-21)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v0.3.0...v0.4.0)
@@ -10,6 +21,7 @@
 - Can't use git source with bundler [\#51](https://github.com/bytecodealliance/wasmtime-rb/issues/51)
 - Support fuel [\#25](https://github.com/bytecodealliance/wasmtime-rb/issues/25)
 - Support Epoch interruption [\#23](https://github.com/bytecodealliance/wasmtime-rb/issues/23)
+- Missing engine Config [\#22](https://github.com/bytecodealliance/wasmtime-rb/issues/22)
 - Support WASI [\#21](https://github.com/bytecodealliance/wasmtime-rb/issues/21)
 - Support Tables [\#20](https://github.com/bytecodealliance/wasmtime-rb/issues/20)
 - Support Globals [\#19](https://github.com/bytecodealliance/wasmtime-rb/issues/19)

@@ -17,7 +17,7 @@ jobs:
       result: ${{ steps.fetch.outputs.result }}
     steps:
       - id: fetch
-        uses: oxidize-rb/actions/fetch-ci-data@main
+        uses: oxidize-rb/actions/fetch-ci-data@v1
         with:
           supported-ruby-platforms: |
             exclude: [arm-linux] # no cranelift support yet
@@ -35,7 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: oxidize-rb/actions/setup-ruby-and-rust@main
+      - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
         with:
           ruby-version: "3.1"
           bundler-cache: false
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: oxidize-rb/actions/setup-ruby-and-rust@main
+      - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
         with:
           ruby-version: "3.1"
           bundler-cache: true

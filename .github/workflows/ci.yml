@@ -17,7 +17,7 @@ jobs:
       result: ${{ steps.fetch.outputs.result }}
     steps:
       - id: fetch
-        uses: oxidize-rb/actions/fetch-ci-data@main
+        uses: oxidize-rb/actions/fetch-ci-data@v1
 
   ci:
     runs-on: ${{ matrix.os }}
@@ -36,7 +36,7 @@ jobs:
       - name: Remove Gemfile.lock
         run: rm Gemfile.lock
 
-      - uses: oxidize-rb/actions/setup-ruby-and-rust@main
+      - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true

@@ -32,6 +32,7 @@ jobs:
           ruby-version: ${{ inputs.ruby-version || '3.1' }}
           bundler-cache: true
           cargo-cache: true
+          cargo-cache-extra-path: examples/rust-crate/target
 
       - name: Install deps
         run: |

@@ -41,6 +41,7 @@ jobs:
           bundler-cache: false
           cargo-cache: true
           cargo-vendor: true
+          cargo-cache-extra-path: examples/rust-crate/target
 
       - uses: oxidize-rb/cross-gem-action@main
         with:
@@ -71,6 +72,7 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
           cargo-cache: true
+          cargo-cache-extra-path: examples/rust-crate/target
 
       - name: Smoke test gem install
         shell: bash

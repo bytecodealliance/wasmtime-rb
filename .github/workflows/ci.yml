@@ -69,6 +69,7 @@ jobs:
           ruby-version: "3.1"
           bundler-cache: true
           cargo-cache: true
+          cargo-cache-extra-path: examples/rust-crate/target
 
       - name: Compile rust ext
         run: bundle exec rake compile:release
@@ -92,6 +93,7 @@ jobs:
           ruby-version: "3.1"
           bundler-cache: true
           cargo-cache: true
+          cargo-cache-extra-path: examples/rust-crate/target
 
       - name: Lint ruby
         run: bundle exec rake standard

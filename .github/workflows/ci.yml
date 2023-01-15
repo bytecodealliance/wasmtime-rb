@@ -41,6 +41,7 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
           cargo-cache: true
+          cargo-cache-extra-path: examples/rust-crate/target
 
       - name: Compile rust ext
         run: bundle exec rake compile:release

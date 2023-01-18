@@ -180,6 +180,7 @@ impl<'a> MemoryGuard<'a> {
 }
 
 pub fn init() -> Result<(), Error> {
+    Slice::class().define_method("to_s", method!(Slice::to_str, 0))?;
     Slice::class().define_method("to_str", method!(Slice::to_str, 0))?;
 
     #[cfg(ruby_gte_3_0)]

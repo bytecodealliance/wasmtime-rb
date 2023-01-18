@@ -128,7 +128,7 @@ impl<'a> Memory<'a> {
     }
 
     /// @yard
-    /// Read +size+ bytes starting at +offset+ into a `[Wasmtime::Memory::Slice`. This
+    /// Read +size+ bytes starting at +offset+ into a {Slice}. This
     /// provides a way to read a slice of memory without copying the data.
     ///
     /// Resizing the memory (as with `Wasmtime::Memory#grow`) will invalidate

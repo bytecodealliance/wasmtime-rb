@@ -39,16 +39,27 @@ impl StoreData {
     }
 
     pub fn mark(&self) {
-        gc::mark(&self.user_data);
-        gc::mark_slice(self.refs.as_slice());
+        gc::mark_movable(&self.user_data);
+
+        for value in self.refs.iter() {
+            gc::mark_movable(value);
+        }
+    }
+
+    pub fn compact(&mut self) {
+        self.user_data = gc::location(self.user_data);
+
+        for value in self.refs.iter_mut() {
+            *value = gc::location(*value);
+        }
     }
 }
 
 /// @yard
-/// Represents a WebAssebmly store.
+/// Represents a WebAssembly store.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Store.html Wasmtime's Rust doc
 #[derive(Debug, TypedData)]
-#[magnus(class = "Wasmtime::Store", size, mark, free_immediatly)]
+#[magnus(class = "Wasmtime::Store", size, mark, compact, free_immediatly)]
 pub struct Store {
     inner: UnsafeCell<StoreImpl<StoreData>>,
 }
@@ -56,6 +67,10 @@ pub struct Store {
 impl DataTypeFunctions for Store {
     fn mark(&self) {
         self.context().data().mark();
+    }
+
+    fn compact(&self) {
+        self.context_mut().data_mut().compact();
     }
 }
 

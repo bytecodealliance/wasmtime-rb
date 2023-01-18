@@ -99,15 +99,17 @@ module Wasmtime
         expect(str).to be_frozen
       end
 
-      it "exposes a memory view" do
-        mem = Memory.new(store, min_size: 3)
-        mem.write(0, "foo")
-        view = mem.slice(0, 3).to_memory_view
+      if RUBY_VERSION >= "3.0.0"
+        it "exposes a memory view" do
+          mem = Memory.new(store, min_size: 3)
+          mem.write(0, "foo")
+          view = mem.slice(0, 3).to_memory_view
 
-        expect(view).to be_a(Fiddle::MemoryView)
-        expect(view).to be_readonly
-        expect(view.ndim).to eq(1)
-        expect(view.to_s).to eq("foo")
+          expect(view).to be_a(Fiddle::MemoryView)
+          expect(view).to be_readonly
+          expect(view.ndim).to eq(1)
+          expect(view.to_s).to eq("foo")
+        end
       end
 
       it "invalidates the size when the memory is resized" do
@@ -118,8 +120,11 @@ module Wasmtime
 
         expect { slice.to_str }
           .to raise_error(Wasmtime::Error, "memory slice was invalidated by resize")
-        expect { slice.to_memory_view }
-          .to raise_error(ArgumentError, /Unable to get a memory view from/)
+
+        if RUBY_VERSION >= "3.0.0"
+          expect { slice.to_memory_view }
+            .to raise_error(ArgumentError, /Unable to get a memory view from/)
+        end
       end
 
       it "errors when the memory is out of bounds" do

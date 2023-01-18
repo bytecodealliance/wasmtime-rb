@@ -1,16 +1,18 @@
 use crate::{define_data_class, define_rb_intern, error, helpers::WrappedStruct, Memory};
+#[cfg(ruby_gte_3_0)]
+use magnus::{class::object, gc, require, RModule};
 use magnus::{
-    class::object,
-    gc, memoize, method,
+    memoize, method,
     r_typed_data::DataTypeBuilder,
     rb_sys::{AsRawId, AsRawValue, FromRawValue},
-    require,
     value::Id,
-    DataTypeFunctions, Error, Module as _, RClass, RModule, TypedData, Value,
+    DataTypeFunctions, Error, Module as _, RClass, TypedData, Value,
 };
+use rb_sys::{rb_ivar_set, rb_obj_freeze, rb_str_new_static};
+#[cfg(ruby_gte_3_0)]
 use rb_sys::{
-    rb_ivar_set, rb_memory_view_entry_t, rb_memory_view_init_as_byte_array,
-    rb_memory_view_register, rb_memory_view_t, rb_obj_freeze, rb_str_new_static, VALUE,
+    rb_memory_view_entry_t, rb_memory_view_init_as_byte_array, rb_memory_view_register,
+    rb_memory_view_t, VALUE,
 };
 use std::ops::Range;
 
@@ -47,6 +49,7 @@ impl DataTypeFunctions for Slice<'_> {
     }
 }
 
+#[cfg(ruby_gte_3_0)]
 fn fiddle_memory_view_class() -> Option<RClass> {
     let fiddle = object().const_get::<_, RModule>("Fiddle").ok()?;
     fiddle.const_get("MemoryView").ok()
@@ -66,6 +69,7 @@ impl<'a> Slice<'a> {
     ///
     /// @def to_memory_view
     /// @return [Fiddle::MemoryView] Memory view of the slice.
+    #[cfg(ruby_gte_3_0)]
     pub fn to_memory_view(rb_self: WrappedStruct<Self>) -> Result<Value, Error> {
         let klass = *memoize!(RClass: {
             let c = fiddle_memory_view_class().unwrap();
@@ -101,6 +105,7 @@ impl<'a> Slice<'a> {
             .ok_or_else(|| error!("out of bounds memory access"))
     }
 
+    #[cfg(ruby_gte_3_0)]
     fn register_memory_view() -> Result<(), Error> {
         let class = Self::class();
 
@@ -117,6 +122,7 @@ impl<'a> Slice<'a> {
         }
     }
 
+    #[cfg(ruby_gte_3_0)]
     extern "C" fn initialize_memory_view(
         value: VALUE,
         view: *mut rb_memory_view_t,
@@ -131,6 +137,7 @@ impl<'a> Slice<'a> {
         unsafe { rb_memory_view_init_as_byte_array(view, value, ptr as _, size as _, true) }
     }
 
+    #[cfg(ruby_gte_3_0)]
     extern "C" fn is_memory_view_available(value: VALUE) -> bool {
         let obj = unsafe { Value::from_raw(value) };
         let Ok(memory) = obj.try_convert::<WrappedStruct<Slice>>() else { return false };
@@ -175,6 +182,7 @@ impl<'a> MemoryGuard<'a> {
 pub fn init() -> Result<(), Error> {
     Slice::class().define_method("to_str", method!(Slice::to_str, 0))?;
 
+    #[cfg(ruby_gte_3_0)]
     if require("fiddle").is_ok() && fiddle_memory_view_class().is_some() {
         Slice::register_memory_view()?;
         Slice::class().define_method("to_memory_view", method!(Slice::to_memory_view, 0))?;

@@ -9,8 +9,8 @@ use magnus::{
     DataTypeFunctions, Error, Module as _, RClass, RModule, TypedData, Value,
 };
 use rb_sys::{
-    rb_ivar_set, rb_memory_view_entry, rb_memory_view_init_as_byte_array, rb_memory_view_register,
-    rb_memory_view_t, rb_obj_freeze, rb_str_new_static, VALUE,
+    rb_ivar_set, rb_memory_view_entry_t, rb_memory_view_init_as_byte_array,
+    rb_memory_view_register, rb_memory_view_t, rb_obj_freeze, rb_str_new_static, VALUE,
 };
 use std::ops::Range;
 
@@ -104,7 +104,7 @@ impl<'a> Slice<'a> {
     fn register_memory_view() -> Result<(), Error> {
         let class = Self::class();
 
-        static ENTRY: rb_memory_view_entry = rb_memory_view_entry {
+        static ENTRY: rb_memory_view_entry_t = rb_memory_view_entry_t {
             get_func: Some(Slice::initialize_memory_view),
             release_func: None,
             available_p_func: Some(Slice::is_memory_view_available),

@@ -17,25 +17,29 @@ use rb_sys::{
 use std::ops::Range;
 
 /// @yard
-/// @rename Wasmtime::Memory::Slice
+/// @rename Wasmtime::Memory::UnsafeSlice
 /// Represents a slice of a WebAssembly memory. This is useful for creating Ruby
 /// strings from WASM memory without any extra memory allocations.
+///
+/// The returned {Slice} lazily reads the underlying memory, meaning that
+/// the actual pointer to the string buffer is not materialzed until
+/// `Slice#to_str` is called.k
 #[derive(Debug)]
-pub struct Slice<'a> {
+pub struct UnsafeSlice<'a> {
     memory: MemoryGuard<'a>,
     range: Range<usize>,
 }
 
-define_rb_intern!(IVAR_NAME => "@__slice__",);
+define_rb_intern!(IVAR_NAME => "__slice__",);
 
-unsafe impl TypedData for Slice<'_> {
+unsafe impl TypedData for UnsafeSlice<'_> {
     fn class() -> magnus::RClass {
-        *memoize!(RClass: define_data_class!(Memory::class(), "Slice"))
+        *memoize!(RClass: define_data_class!(Memory::class(), "UnsafeSlice"))
     }
 
     fn data_type() -> &'static magnus::DataType {
         memoize!(magnus::DataType: {
-            let mut builder = DataTypeBuilder::<Slice>::new("Wasmtime::Memory::Slice");
+            let mut builder = DataTypeBuilder::<UnsafeSlice>::new("Wasmtime::Memory::UnsafeSlice");
             builder.free_immediately();
             builder.mark();
             builder.build()
@@ -43,7 +47,7 @@ unsafe impl TypedData for Slice<'_> {
     }
 }
 
-impl DataTypeFunctions for Slice<'_> {
+impl DataTypeFunctions for UnsafeSlice<'_> {
     fn mark(&self) {
         self.memory.mark()
     }
@@ -55,7 +59,7 @@ fn fiddle_memory_view_class() -> Option<RClass> {
     fiddle.const_get("MemoryView").ok()
 }
 
-impl<'a> Slice<'a> {
+impl<'a> UnsafeSlice<'a> {
     pub fn new(memory: WrappedStruct<Memory<'a>>, range: Range<usize>) -> Result<Self, Error> {
         let memory = MemoryGuard::new(memory)?;
         let slice = Self { memory, range };
@@ -110,9 +114,9 @@ impl<'a> Slice<'a> {
         let class = Self::class();
 
         static ENTRY: rb_memory_view_entry_t = rb_memory_view_entry_t {
-            get_func: Some(Slice::initialize_memory_view),
+            get_func: Some(UnsafeSlice::initialize_memory_view),
             release_func: None,
-            available_p_func: Some(Slice::is_memory_view_available),
+            available_p_func: Some(UnsafeSlice::is_memory_view_available),
         };
 
         if unsafe { rb_memory_view_register(class.as_raw(), &ENTRY) } {
@@ -129,7 +133,7 @@ impl<'a> Slice<'a> {
         _flags: i32,
     ) -> bool {
         let obj = unsafe { Value::from_raw(value) };
-        let Ok(memory) = obj.try_convert::<WrappedStruct<Slice>>() else { return false };
+        let Ok(memory) = obj.try_convert::<WrappedStruct<UnsafeSlice>>() else { return false };
         let Ok(memory) = memory.get() else { return false; };
         let Ok(raw_slice) = memory.get_raw_slice() else { return false; };
         let (ptr, size) = (raw_slice.as_ptr(), raw_slice.len());
@@ -140,7 +144,7 @@ impl<'a> Slice<'a> {
     #[cfg(ruby_gte_3_0)]
     extern "C" fn is_memory_view_available(value: VALUE) -> bool {
         let obj = unsafe { Value::from_raw(value) };
-        let Ok(memory) = obj.try_convert::<WrappedStruct<Slice>>() else { return false };
+        let Ok(memory) = obj.try_convert::<WrappedStruct<UnsafeSlice>>() else { return false };
         let Ok(memory) = memory.get() else { return false; };
 
         memory.get_raw_slice().is_ok()
@@ -180,13 +184,13 @@ impl<'a> MemoryGuard<'a> {
 }
 
 pub fn init() -> Result<(), Error> {
-    Slice::class().define_method("to_s", method!(Slice::to_str, 0))?;
-    Slice::class().define_method("to_str", method!(Slice::to_str, 0))?;
+    UnsafeSlice::class().define_method("to_str", method!(UnsafeSlice::to_str, 0))?;
 
     #[cfg(ruby_gte_3_0)]
     if require("fiddle").is_ok() && fiddle_memory_view_class().is_some() {
-        Slice::register_memory_view()?;
-        Slice::class().define_method("to_memory_view", method!(Slice::to_memory_view, 0))?;
+        UnsafeSlice::register_memory_view()?;
+        UnsafeSlice::class()
+            .define_method("to_memory_view", method!(UnsafeSlice::to_memory_view, 0))?;
     }
 
     Ok(())

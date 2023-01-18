@@ -1,6 +1,6 @@
-mod slice;
+mod unsafe_slice;
 
-use self::slice::Slice;
+use self::unsafe_slice::UnsafeSlice;
 
 use super::{
     root,
@@ -131,19 +131,32 @@ impl<'a> Memory<'a> {
     /// Read +size+ bytes starting at +offset+ into a {Slice}. This
     /// provides a way to read a slice of memory without copying the data.
     ///
-    /// Resizing the memory (as with `Wasmtime::Memory#grow`) will invalidate
-    /// the slice, causing any attempt to read the slice to raise an error.
+    /// The returned {Slice} lazily reads the underlying memory, meaning that
+    /// the actual pointer to the string buffer is not materialzed until
+    /// `Slice#to_str` is called.
     ///
-    /// @def slice(offset, size)
+    /// SAFETY: Resizing the memory (as with `Wasmtime::Memory#grow`) will invalidate
+    /// the slice, causing any attempt to read the slice to raise an error.
+    /// However, it is not possible to invalidate the Ruby {String} object after
+    /// calling `Slice#to_str`.
+    ///
+    /// As such, the caller must ensure that the Wasmtime {Memory} is not
+    /// resized will the while holding the Ruby string.  Failing to do so could
+    /// result in reading invalid memory.
+    ///
+    /// In general, you should prefer using `Memory#read` or `Memory#read_utf8`
+    /// over this method, unless you know what you're doing.
+    ///
+    /// @def read_unsafe_slice(offset, size)
     /// @param offset [Integer]
     /// @param size [Integer]
-    /// @return [Wasmtime::Memory::Slice] Slice of the memory.
-    pub fn slice(
+    /// @return [Wasmtime::Memory::UnsafeSlice] Slice of the memory.
+    pub fn read_unsafe_slice(
         rb_self: WrappedStruct<Self>,
         offset: usize,
         size: usize,
-    ) -> Result<WrappedStruct<Slice<'a>>, Error> {
-        Ok(Slice::new(rb_self, offset..(offset + size))?.into())
+    ) -> Result<WrappedStruct<UnsafeSlice<'a>>, Error> {
+        Ok(UnsafeSlice::new(rb_self, offset..(offset + size))?.into())
     }
 
     /// @yard
@@ -205,9 +218,9 @@ pub fn init() -> Result<(), Error> {
     class.define_method("write", method!(Memory::write, 2))?;
     class.define_method("grow", method!(Memory::grow, 1))?;
     class.define_method("size", method!(Memory::size, 0))?;
-    class.define_method("slice", method!(Memory::slice, 2))?;
+    class.define_method("read_unsafe_slice", method!(Memory::read_unsafe_slice, 2))?;
 
-    slice::init()?;
+    unsafe_slice::init()?;
 
     Ok(())
 }

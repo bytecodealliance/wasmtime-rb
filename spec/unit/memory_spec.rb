@@ -88,11 +88,11 @@ module Wasmtime
       end
     end
 
-    describe "#slice" do
+    describe "#unsafe_slice" do
       it "exposes a frozen string" do
         mem = Memory.new(store, min_size: 1)
         mem.write(0, "foo")
-        str = String(mem.slice(0, 3))
+        str = String(mem.read_unsafe_slice(0, 3))
 
         expect(str).to eq("foo")
         expect(str.encoding).to eq(Encoding::ASCII_8BIT)
@@ -103,7 +103,7 @@ module Wasmtime
         it "exposes a memory view" do
           mem = Memory.new(store, min_size: 3)
           mem.write(0, "foo")
-          view = mem.slice(0, 3).to_memory_view
+          view = mem.read_unsafe_slice(0, 3).to_memory_view
 
           expect(view).to be_a(Fiddle::MemoryView)
           expect(view).to be_readonly
@@ -115,7 +115,7 @@ module Wasmtime
       it "invalidates the size when the memory is resized" do
         mem = Memory.new(store, min_size: 1)
         mem.write(0, "foo")
-        slice = mem.slice(0, 3)
+        slice = mem.read_unsafe_slice(0, 3)
         mem.grow(1)
 
         expect { slice.to_str }
@@ -130,7 +130,7 @@ module Wasmtime
       it "errors when the memory is out of bounds" do
         mem = Memory.new(store, min_size: 1)
 
-        expect { mem.slice(64 * 2**10, 1) }
+        expect { mem.read_unsafe_slice(64 * 2**10, 1) }
           .to raise_error(Wasmtime::Error, "out of bounds memory access")
       end
     end

@@ -90,7 +90,7 @@ impl<'a> Memory<'a> {
     }
 
     /// @yard
-    /// Read +size+ bytes starting at +offset+.
+    /// Read +size+ bytes starting at +offset+. Result is a ASCII-8BIT encoded string.
     ///
     /// @def read(offset, size)
     /// @param offset [Integer]
@@ -103,6 +103,23 @@ impl<'a> Memory<'a> {
             .and_then(|s| s.get(..size))
             .map(RString::from_slice)
             .ok_or_else(|| error!("out of bounds memory access"))
+    }
+
+    /// @yard
+    /// Read +size+ bytes starting at +offset+. Result is a UTF-8 encoded string.
+    ///
+    /// @def read_utf8(offset, size)
+    /// @param offset [Integer]
+    /// @param size [Integer]
+    /// @return [String] UTF-8 +String+ of the memory.
+    pub fn read_utf8(&self, offset: usize, size: usize) -> Result<RString, Error> {
+        self.inner
+            .data(self.store.context()?)
+            .get(offset..)
+            .and_then(|s| s.get(..size))
+            .ok_or_else(|| error!("out of bounds memory access"))
+            .and_then(|s| std::str::from_utf8(s).map_err(|e| error!("{}", e)))
+            .map(RString::new)
     }
 
     /// @yard
@@ -156,6 +173,7 @@ pub fn init() -> Result<(), Error> {
     class.define_method("min_size", method!(Memory::min_size, 0))?;
     class.define_method("max_size", method!(Memory::max_size, 0))?;
     class.define_method("read", method!(Memory::read, 2))?;
+    class.define_method("read_utf8", method!(Memory::read_utf8, 2))?;
     class.define_method("write", method!(Memory::write, 2))?;
     class.define_method("grow", method!(Memory::grow, 1))?;
     class.define_method("size", method!(Memory::size, 0))?;

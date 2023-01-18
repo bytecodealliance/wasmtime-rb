@@ -68,5 +68,23 @@ module Wasmtime
           .to raise_error(Wasmtime::Error, "out of bounds memory access")
       end
     end
+
+    describe "#read_utf8" do
+      it "reads a UTF-8 string" do
+        mem = Memory.new(store, min_size: 1)
+        expect(mem.write(0, "foo")).to be_nil
+        str = mem.read_utf8(0, 3)
+        expect(str).to eq("foo")
+        expect(str.encoding).to eq(Encoding::UTF_8)
+      end
+
+      it "raises when the utf8 is invalid" do
+        invalid_utf8 = [0x80, 0x80, 0x80].pack("C*")
+        mem = Memory.new(store, min_size: 1)
+        expect(mem.write(0, invalid_utf8)).to be_nil
+
+        expect { mem.read_utf8(0, 3) }.to raise_error(Wasmtime::Error, /invalid utf-8/)
+      end
+    end
   end
 end

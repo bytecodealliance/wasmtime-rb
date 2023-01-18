@@ -90,7 +90,7 @@ module Wasmtime
 
     describe "#slice" do
       it "exposes a frozen string" do
-        mem = Memory.new(store, min_size: 3)
+        mem = Memory.new(store, min_size: 1)
         mem.write(0, "foo")
         str = String(mem.slice(0, 3))
 

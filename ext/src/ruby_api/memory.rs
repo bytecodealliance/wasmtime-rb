@@ -129,23 +129,23 @@ impl<'a> Memory<'a> {
 
     /// @yard
     /// Read +size+ bytes starting at +offset+ into a {Slice}. This
-    /// provides a way to read a slice of memory without copying the data.
+    /// provides a way to read a slice of memory without copying the underlying
+    /// data.
     ///
     /// The returned {Slice} lazily reads the underlying memory, meaning that
     /// the actual pointer to the string buffer is not materialzed until
-    /// `Slice#to_str` is called.
+    /// `Slice#to_str` or {Slice#to_memory_view} is called.
     ///
-    /// SAFETY: Resizing the memory (as with `Wasmtime::Memory#grow`) will invalidate
-    /// the slice, causing any attempt to read the slice to raise an error.
-    /// However, it is not possible to invalidate the Ruby {String} object after
-    /// calling `Slice#to_str`.
-    ///
-    /// As such, the caller must ensure that the Wasmtime {Memory} is not
-    /// resized will the while holding the Ruby string.  Failing to do so could
-    /// result in reading invalid memory.
+    /// SAFETY: Resizing the memory (as with `Wasmtime::Memory#grow`) will
+    /// invalidate the {Slice}, and future attempts to read the slice wil raise
+    /// an error.  However, it is not possible to invalidate the Ruby {String}
+    /// object after calling `Slice#to_str`. As such, the caller must ensure
+    /// that the Wasmtime {Memory} is not resized while holding the Ruby string.
+    /// Failing to do so could result in the {String} buffer pointing to invalid
+    /// memory.
     ///
     /// In general, you should prefer using `Memory#read` or `Memory#read_utf8`
-    /// over this method, unless you know what you're doing.
+    /// over this method unless you know what you're doing.
     ///
     /// @def read_unsafe_slice(offset, size)
     /// @param offset [Integer]

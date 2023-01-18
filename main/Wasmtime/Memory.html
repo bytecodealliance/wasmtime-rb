@@ -262,6 +262,30 @@
         <li class="public ">
   <span class="summary_signature">
     
+      <a href="#read_utf8-instance_method" title="#read_utf8 (instance method)">#<strong>read_utf8</strong>(offset, size)  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Read <code>size</code> bytes starting at <code>offset</code>.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
       <a href="#size-instance_method" title="#size (instance method)">#<strong>size</strong>  &#x21d2; Integer </a>
     
 
@@ -508,14 +532,14 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-130
-131
-132
-133
-134</pre>
+147
+148
+149
+150
+151</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 130</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 147</span>
 
 pub fn grow(&amp;self, delta: u64) -&gt; Result&lt;u64, Error&gt; {
     self.inner
@@ -657,7 +681,7 @@ pub fn min_size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
 </h3><div class="docstring">
   <div class="discussion">
     
-<p>Read <code>size</code> bytes starting at <code>offset</code>.</p>
+<p>Read <code>size</code> bytes starting at <code>offset</code>. Result is a ASCII-8BIT encoded string.</p>
 
 
   </div>
@@ -741,6 +765,103 @@ pub fn read(&amp;self, offset: usize, size: usize) -&gt; Result&lt;RString, Erro
 </div>
     
       <div class="method_details ">
+  <h3 class="signature " id="read_utf8-instance_method">
+  
+    #<strong>read_utf8</strong>(offset, size)  &#x21d2; <tt>String</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Read <code>size</code> bytes starting at <code>offset</code>. Result is a UTF-8 encoded string.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>offset</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>size</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>UTF-8 <code>String</code> of the memory.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+115
+116
+117
+118
+119
+120
+121
+122
+123</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 115</span>
+
+pub fn read_utf8(&amp;self, offset: usize, size: usize) -&gt; Result&lt;RString, Error&gt; {
+    self.inner
+        .data(self.store.context()?)
+        .get(offset..)
+        .and_then(|s| s.get(..size))
+        .ok_or_else(|| error!(&quot;out of bounds memory access&quot;))
+        .and_then(|s| std::str::from_utf8(s).map_err(|e| error!(&quot;{}&quot;, e)))
+        .map(RString::new)
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
   <h3 class="signature " id="size-instance_method">
   
     #<strong>size</strong>  &#x21d2; <tt>Integer</tt> 
@@ -784,12 +905,12 @@ pub fn read(&amp;self, offset: usize, size: usize) -&gt; Result&lt;RString, Erro
       <pre class="lines">
 
 
-138
-139
-140</pre>
+155
+156
+157</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 138</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 155</span>
 
 pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
     Ok(self.inner.size(self.store.context()?))
@@ -851,16 +972,16 @@ pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
       <pre class="lines">
 
 
-115
-116
-117
-118
-119
-120
-121</pre>
+132
+133
+134
+135
+136
+137
+138</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 115</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 132</span>
 
 pub fn write(&amp;self, offset: usize, value: RString) -&gt; Result&lt;(), Error&gt; {
     let slice = unsafe { value.as_slice() };
@@ -879,7 +1000,7 @@ pub fn write(&amp;self, offset: usize, value: RString) -&gt; Result&lt;(), Error
 </div>
 
       <div id="footer">
-  Generated on Mon Jan 16 10:26:31 2023 by
+  Generated on Tue Jan 17 23:41:54 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

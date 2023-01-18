@@ -92,7 +92,7 @@ module Wasmtime
       it "exposes a frozen string" do
         mem = Memory.new(store, min_size: 3)
         mem.write(0, "foo")
-        str = mem.slice(0, 3).to_s
+        str = String(mem.slice(0, 3))
 
         expect(str).to eq("foo")
         expect(str.encoding).to eq(Encoding::ASCII_8BIT)
@@ -116,7 +116,7 @@ module Wasmtime
         slice = mem.slice(0, 3)
         mem.grow(1)
 
-        expect { slice.to_s }
+        expect { slice.to_str }
           .to raise_error(Wasmtime::Error, "memory slice was invalidated by resize")
         expect { slice.to_memory_view }
           .to raise_error(ArgumentError, /Unable to get a memory view from/)

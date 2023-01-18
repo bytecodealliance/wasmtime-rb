@@ -79,9 +79,9 @@ impl<'a> Slice<'a> {
     /// @yard
     /// Gets the memory slice as a Ruby string without copying the underlying buffer.
     ///
-    /// @def to_s
+    /// @def to_str
     /// @return [String] Binary +String+ of the memory.
-    pub fn to_s(rb_self: WrappedStruct<Self>) -> Result<Value, Error> {
+    pub fn to_str(rb_self: WrappedStruct<Self>) -> Result<Value, Error> {
         let raw_slice = rb_self.get()?.get_raw_slice()?;
         let id: Id = (*IVAR_NAME).into();
         let rstring = unsafe {
@@ -173,7 +173,7 @@ impl<'a> MemoryGuard<'a> {
 }
 
 pub fn init() -> Result<(), Error> {
-    Slice::class().define_method("to_s", method!(Slice::to_s, 0))?;
+    Slice::class().define_method("to_str", method!(Slice::to_str, 0))?;
 
     if require("fiddle").is_ok() && fiddle_memory_view_class().is_some() {
         Slice::register_memory_view()?;

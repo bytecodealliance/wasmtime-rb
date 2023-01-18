@@ -1,4 +1,5 @@
 require "spec_helper"
+require "fiddle"
 
 module Wasmtime
   RSpec.describe Memory do
@@ -84,6 +85,48 @@ module Wasmtime
         expect(mem.write(0, invalid_utf8)).to be_nil
 
         expect { mem.read_utf8(0, 3) }.to raise_error(Wasmtime::Error, /invalid utf-8/)
+      end
+    end
+
+    describe "#slice" do
+      it "exposes a frozen string" do
+        mem = Memory.new(store, min_size: 3)
+        mem.write(0, "foo")
+        str = mem.slice(0, 3).to_s
+
+        expect(str).to eq("foo")
+        expect(str.encoding).to eq(Encoding::ASCII_8BIT)
+        expect(str).to be_frozen
+      end
+
+      it "exposes a memory view" do
+        mem = Memory.new(store, min_size: 3)
+        mem.write(0, "foo")
+        view = mem.slice(0, 3).to_memory_view
+
+        expect(view).to be_a(Fiddle::MemoryView)
+        expect(view).to be_readonly
+        expect(view.ndim).to eq(1)
+        expect(view.to_s).to eq("foo")
+      end
+
+      it "invalidates the size when the memory is resized" do
+        mem = Memory.new(store, min_size: 1)
+        mem.write(0, "foo")
+        slice = mem.slice(0, 3)
+        mem.grow(1)
+
+        expect { slice.to_s }
+          .to raise_error(Wasmtime::Error, "memory slice was invalidated by resize")
+        expect { slice.to_memory_view }
+          .to raise_error(ArgumentError, /Unable to get a memory view from/)
+      end
+
+      it "errors when the memory is out of bounds" do
+        mem = Memory.new(store, min_size: 1)
+
+        expect { mem.slice(64 * 2**10, 1) }
+          .to raise_error(Wasmtime::Error, "out of bounds memory access")
       end
     end
   end

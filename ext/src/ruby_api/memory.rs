@@ -1,3 +1,7 @@
+mod slice;
+
+use self::slice::Slice;
+
 use super::{
     root,
     store::{Store, StoreContextValue},
@@ -7,6 +11,7 @@ use magnus::{
     function, memoize, method, r_string::RString, r_typed_data::DataTypeBuilder, scan_args,
     DataTypeFunctions, Error, Module as _, Object, RClass, TypedData, Value,
 };
+
 use wasmtime::{Extern, Memory as MemoryImpl};
 
 define_rb_intern!(
@@ -123,6 +128,22 @@ impl<'a> Memory<'a> {
     }
 
     /// @yard
+    /// Read +size+ bytes starting at +offset+ into a `[Wasmtime::Memory::Slice`. This
+    /// proivdes a way to read a slice of memory without copying the data.
+    ///
+    /// @def slice(offset, size)
+    /// @param offset [Integer]
+    /// @param size [Integer]
+    /// @return [Wasmtime::Memory::Slice] Slice of the memory.
+    pub fn slice(
+        rb_self: WrappedStruct<Self>,
+        offset: usize,
+        size: usize,
+    ) -> Result<WrappedStruct<Slice<'a>>, Error> {
+        Ok(Slice::new(rb_self, offset..(offset + size))?.into())
+    }
+
+    /// @yard
     /// Write +value+ starting at +offset+.
     ///
     /// @def write(offset, value)
@@ -159,6 +180,10 @@ impl<'a> Memory<'a> {
     pub fn get(&self) -> MemoryImpl {
         self.inner
     }
+
+    fn data(&self) -> Result<&[u8], Error> {
+        Ok(self.inner.data(self.store.context()?))
+    }
 }
 
 impl From<&Memory<'_>> for Extern {
@@ -168,7 +193,7 @@ impl From<&Memory<'_>> for Extern {
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Memory", Default::default())?;
+    let class = Memory::class();
     class.define_singleton_method("new", function!(Memory::new, -1))?;
     class.define_method("min_size", method!(Memory::min_size, 0))?;
     class.define_method("max_size", method!(Memory::max_size, 0))?;
@@ -177,6 +202,9 @@ pub fn init() -> Result<(), Error> {
     class.define_method("write", method!(Memory::write, 2))?;
     class.define_method("grow", method!(Memory::grow, 1))?;
     class.define_method("size", method!(Memory::size, 0))?;
+    class.define_method("slice", method!(Memory::slice, 2))?;
+
+    slice::init()?;
 
     Ok(())
 }

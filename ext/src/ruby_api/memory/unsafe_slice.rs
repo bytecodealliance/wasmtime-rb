@@ -21,9 +21,9 @@ use std::ops::Range;
 /// Represents a slice of a WebAssembly memory. This is useful for creating Ruby
 /// strings from WASM memory without any extra memory allocations.
 ///
-/// The returned {Slice} lazily reads the underlying memory, meaning that
+/// The returned {UnsafeSlice} lazily reads the underlying memory, meaning that
 /// the actual pointer to the string buffer is not materialzed until
-/// `Slice#to_str` is called.k
+/// {UnsafeSlice#to_str} is called.
 #[derive(Debug)]
 pub struct UnsafeSlice<'a> {
     memory: MemoryGuard<'a>,

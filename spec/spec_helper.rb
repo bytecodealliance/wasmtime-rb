@@ -4,7 +4,7 @@ require "wasmtime"
 
 RSpec.shared_context("default lets") do
   let(:engine) { Wasmtime::Engine.new }
-  let(:store_data) { {} }
+  let(:store_data) { Object.new }
   let(:store) { Wasmtime::Store.new(engine, store_data) }
   let(:wat) { "(module)" }
 

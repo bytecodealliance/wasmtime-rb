@@ -1,3 +1,7 @@
+mod unsafe_slice;
+
+use self::unsafe_slice::UnsafeSlice;
+
 use super::{
     root,
     store::{Store, StoreContextValue},
@@ -7,6 +11,7 @@ use magnus::{
     function, memoize, method, r_string::RString, r_typed_data::DataTypeBuilder, scan_args,
     DataTypeFunctions, Error, Module as _, Object, RClass, TypedData, Value,
 };
+
 use wasmtime::{Extern, Memory as MemoryImpl};
 
 define_rb_intern!(
@@ -123,6 +128,38 @@ impl<'a> Memory<'a> {
     }
 
     /// @yard
+    /// Read +size+ bytes starting at +offset+ into an {UnsafeSlice}. This
+    /// provides a way to read a slice of memory without copying the underlying
+    /// data.
+    ///
+    /// The returned {UnsafeSlice} lazily reads the underlying memory, meaning that
+    /// the actual pointer to the string buffer is not materialzed until
+    /// {UnsafeSlice#to_str} or {UnsafeSlice#to_memory_view} is called.
+    ///
+    /// SAFETY: Resizing the memory (as with {Wasmtime::Memory#grow}) will
+    /// invalidate the {UnsafeSlice}, and future attempts to read the slice will raise
+    /// an error.  However, it is not possible to invalidate the Ruby +String+
+    /// object after calling {Memory::UnsafeSlice#to_str}. As such, the caller must ensure
+    /// that the Wasmtime {Memory} is not resized while holding the Ruby string.
+    /// Failing to do so could result in the +String+ buffer pointing to invalid
+    /// memory.
+    ///
+    /// In general, you should prefer using {Memory#read} or {Memory#read_utf8}
+    /// over this method unless you know what you're doing.
+    ///
+    /// @def read_unsafe_slice(offset, size)
+    /// @param offset [Integer]
+    /// @param size [Integer]
+    /// @return [Wasmtime::Memory::UnsafeSlice] Slice of the memory.
+    pub fn read_unsafe_slice(
+        rb_self: WrappedStruct<Self>,
+        offset: usize,
+        size: usize,
+    ) -> Result<WrappedStruct<UnsafeSlice<'a>>, Error> {
+        Ok(UnsafeSlice::new(rb_self, offset..(offset + size))?.into())
+    }
+
+    /// @yard
     /// Write +value+ starting at +offset+.
     ///
     /// @def write(offset, value)
@@ -159,6 +196,10 @@ impl<'a> Memory<'a> {
     pub fn get(&self) -> MemoryImpl {
         self.inner
     }
+
+    fn data(&self) -> Result<&[u8], Error> {
+        Ok(self.inner.data(self.store.context()?))
+    }
 }
 
 impl From<&Memory<'_>> for Extern {
@@ -168,7 +209,7 @@ impl From<&Memory<'_>> for Extern {
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Memory", Default::default())?;
+    let class = Memory::class();
     class.define_singleton_method("new", function!(Memory::new, -1))?;
     class.define_method("min_size", method!(Memory::min_size, 0))?;
     class.define_method("max_size", method!(Memory::max_size, 0))?;
@@ -177,6 +218,9 @@ pub fn init() -> Result<(), Error> {
     class.define_method("write", method!(Memory::write, 2))?;
     class.define_method("grow", method!(Memory::grow, 1))?;
     class.define_method("size", method!(Memory::size, 0))?;
+    class.define_method("read_unsafe_slice", method!(Memory::read_unsafe_slice, 2))?;
+
+    unsafe_slice::init()?;
 
     Ok(())
 }

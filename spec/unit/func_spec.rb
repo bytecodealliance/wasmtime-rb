@@ -149,7 +149,7 @@ module Wasmtime
     private
 
     def build_func(params, results, &block)
-      store = Store.new(engine, {})
+      store = Store.new(engine, Object.new)
       Func.new(store, params, results, &block)
     end
   end

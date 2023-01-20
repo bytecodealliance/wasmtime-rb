@@ -58,6 +58,12 @@ macro_rules! conversion_err {
     };
 }
 
+pub fn load_errors_from_ruby() -> Result<(), Error> {
+    let err_string = include_str!(concat!(env!("OUT_DIR"), "/error.rb"));
+    magnus::eval::<Value>(err_string)?;
+    Ok(())
+}
+
 pub fn init() -> Result<(), Error> {
     let _ = base_error();
     let _ = result_error();

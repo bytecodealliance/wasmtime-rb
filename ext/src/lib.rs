@@ -5,6 +5,6 @@ mod ruby_api;
 pub use ruby_api::*;
 
 #[magnus::init]
-fn init() -> Result<(), Error> {
+pub fn init() -> Result<(), Error> {
     ruby_api::init()
 }

@@ -123,7 +123,7 @@
     
   
     
-      <strong class="classes">Classes:</strong> <span class='object_link'><a href="Memory/Slice.html" title="Wasmtime::Memory::Slice (class)">Slice</a></span>
+      <strong class="classes">Classes:</strong> <span class='object_link'><a href="Memory/UnsafeSlice.html" title="Wasmtime::Memory::UnsafeSlice (class)">UnsafeSlice</a></span>
     
   
 </p>
@@ -272,6 +272,30 @@
         <li class="public ">
   <span class="summary_signature">
     
+      <a href="#read_unsafe_slice-instance_method" title="#read_unsafe_slice (instance method)">#<strong>read_unsafe_slice</strong>(offset, size)  &#x21d2; Wasmtime::Memory::UnsafeSlice </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Read <code>size</code> bytes starting at <code>offset</code> into an <span class='object_link'><a href="Memory/UnsafeSlice.html" title="Wasmtime::Memory::UnsafeSlice (class)">UnsafeSlice</a></span>.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
       <a href="#read_utf8-instance_method" title="#read_utf8 (instance method)">#<strong>read_utf8</strong>(offset, size)  &#x21d2; String </a>
     
 
@@ -312,30 +336,6 @@
   
     <span class="summary_desc"><div class='inline'>
 <p>The number of pages of the memory.</p>
-</div></span>
-  
-</li>
-
-      
-        <li class="public ">
-  <span class="summary_signature">
-    
-      <a href="#slice-instance_method" title="#slice (instance method)">#<strong>slice</strong>(offset, size)  &#x21d2; Wasmtime::Memory::Slice </a>
-    
-
-    
-  </span>
-  
-  
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'>
-<p>Read <code>size</code> bytes starting at <code>offset</code> into a <span class='object_link'><a href="Memory/Slice.html" title="Wasmtime::Memory::Slice (class)">Slice</a></span>.</p>
 </div></span>
   
 </li>
@@ -566,14 +566,14 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-171
-172
-173
-174
-175</pre>
+184
+185
+186
+187
+188</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 171</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 184</span>
 
 pub fn grow(&amp;self, delta: u64) -&gt; Result&lt;u64, Error&gt; {
     self.inner
@@ -799,6 +799,105 @@ pub fn read(&amp;self, offset: usize, size: usize) -&gt; Result&lt;RString, Erro
 </div>
     
       <div class="method_details ">
+  <h3 class="signature " id="read_unsafe_slice-instance_method">
+  
+    #<strong>read_unsafe_slice</strong>(offset, size)  &#x21d2; <tt><span class='object_link'><a href="Memory/UnsafeSlice.html" title="Wasmtime::Memory::UnsafeSlice (class)">Wasmtime::Memory::UnsafeSlice</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Read <code>size</code> bytes starting at <code>offset</code> into an <span class='object_link'><a href="Memory/UnsafeSlice.html" title="Wasmtime::Memory::UnsafeSlice (class)">UnsafeSlice</a></span>. This provides a way to read a slice of memory without copying the underlying data.</p>
+
+<p>The returned <span class='object_link'><a href="Memory/UnsafeSlice.html" title="Wasmtime::Memory::UnsafeSlice (class)">UnsafeSlice</a></span> lazily reads the underlying memory, meaning that the actual pointer to the string buffer is not materialzed until <span class='object_link'><a href="Memory/UnsafeSlice.html#to_str-instance_method" title="Wasmtime::Memory::UnsafeSlice#to_str (method)">Wasmtime::Memory::UnsafeSlice#to_str</a></span> or <span class='object_link'><a href="Memory/UnsafeSlice.html#to_memory_view-instance_method" title="Wasmtime::Memory::UnsafeSlice#to_memory_view (method)">Wasmtime::Memory::UnsafeSlice#to_memory_view</a></span> is called.</p>
+
+<p>SAFETY: Resizing the memory (as with <span class='object_link'><a href="#grow-instance_method" title="Wasmtime::Memory#grow (method)">#grow</a></span>) will invalidate the <span class='object_link'><a href="Memory/UnsafeSlice.html" title="Wasmtime::Memory::UnsafeSlice (class)">UnsafeSlice</a></span>, and future attempts to read the slice will raise an error.  However, it is not possible to invalidate the Ruby <code>String</code> object after calling <span class='object_link'><a href="Memory/UnsafeSlice.html#to_str-instance_method" title="Wasmtime::Memory::UnsafeSlice#to_str (method)">Wasmtime::Memory::UnsafeSlice#to_str</a></span>. As such, the caller must ensure that the Wasmtime <span class='object_link'><a href="" title="Wasmtime::Memory (class)">Wasmtime::Memory</a></span> is not resized while holding the Ruby string. Failing to do so could result in the <code>String</code> buffer pointing to invalid memory.</p>
+
+<p>In general, you should prefer using <span class='object_link'><a href="#read-instance_method" title="Wasmtime::Memory#read (method)">#read</a></span> or <span class='object_link'><a href="#read_utf8-instance_method" title="Wasmtime::Memory#read_utf8 (method)">#read_utf8</a></span> over this method unless you know what you’re doing.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>offset</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>size</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="Memory/UnsafeSlice.html" title="Wasmtime::Memory::UnsafeSlice (class)">Wasmtime::Memory::UnsafeSlice</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>Slice of the memory.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+154
+155
+156
+157
+158
+159
+160</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 154</span>
+
+pub fn read_unsafe_slice(
+    rb_self: WrappedStruct&lt;Self&gt;,
+    offset: usize,
+    size: usize,
+) -&gt; Result&lt;WrappedStruct&lt;UnsafeSlice&lt;&#39;a&gt;&gt;, Error&gt; {
+    Ok(UnsafeSlice::new(rb_self, offset..(offset + size))?.into())
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
   <h3 class="signature " id="read_utf8-instance_method">
   
     #<strong>read_utf8</strong>(offset, size)  &#x21d2; <tt>String</tt> 
@@ -939,110 +1038,15 @@ pub fn read_utf8(&amp;self, offset: usize, size: usize) -&gt; Result&lt;RString,
       <pre class="lines">
 
 
-179
-180
-181</pre>
+192
+193
+194</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 179</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 192</span>
 
 pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
     Ok(self.inner.size(self.store.context()?))
-}</pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-      <div class="method_details ">
-  <h3 class="signature " id="slice-instance_method">
-  
-    #<strong>slice</strong>(offset, size)  &#x21d2; <tt><span class='object_link'><a href="Memory/Slice.html" title="Wasmtime::Memory::Slice (class)">Wasmtime::Memory::Slice</a></span></tt> 
-  
-
-  
-
-  
-</h3><div class="docstring">
-  <div class="discussion">
-    
-<p>Read <code>size</code> bytes starting at <code>offset</code> into a <span class='object_link'><a href="Memory/Slice.html" title="Wasmtime::Memory::Slice (class)">Slice</a></span>. This provides a way to read a slice of memory without copying the data.</p>
-
-<p>Resizing the memory (as with ‘Wasmtime::Memory#grow`) will invalidate the slice, causing any attempt to read the slice to raise an error.</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  <p class="tag_title">Parameters:</p>
-<ul class="param">
-  
-    <li>
-      
-        <span class='name'>offset</span>
-      
-      
-        <span class='type'>(<tt>Integer</tt>)</span>
-      
-      
-      
-    </li>
-  
-    <li>
-      
-        <span class='name'>size</span>
-      
-      
-        <span class='type'>(<tt>Integer</tt>)</span>
-      
-      
-      
-    </li>
-  
-</ul>
-
-<p class="tag_title">Returns:</p>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt><span class='object_link'><a href="Memory/Slice.html" title="Wasmtime::Memory::Slice (class)">Wasmtime::Memory::Slice</a></span></tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'>
-<p>Slice of the memory.</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-141
-142
-143
-144
-145
-146
-147</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 141</span>
-
-pub fn slice(
-    rb_self: WrappedStruct&lt;Self&gt;,
-    offset: usize,
-    size: usize,
-) -&gt; Result&lt;WrappedStruct&lt;Slice&lt;&#39;a&gt;&gt;, Error&gt; {
-    Ok(Slice::new(rb_self, offset..(offset + size))?.into())
 }</pre>
     </td>
   </tr>
@@ -1101,16 +1105,16 @@ pub fn slice(
       <pre class="lines">
 
 
-156
-157
-158
-159
-160
-161
-162</pre>
+169
+170
+171
+172
+173
+174
+175</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 156</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 169</span>
 
 pub fn write(&amp;self, offset: usize, value: RString) -&gt; Result&lt;(), Error&gt; {
     let slice = unsafe { value.as_slice() };
@@ -1129,7 +1133,7 @@ pub fn write(&amp;self, offset: usize, value: RString) -&gt; Result&lt;(), Error
 </div>
 
       <div id="footer">
-  Generated on Wed Jan 18 20:13:24 2023 by
+  Generated on Fri Jan 20 20:57:55 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

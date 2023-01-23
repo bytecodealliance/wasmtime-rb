@@ -30,6 +30,7 @@ github_changelog_generator \
   -t $(gh auth token) \
   --future-release v$(grep VERSION lib/wasmtime/version.rb | head -n 1 | cut -d'"' -f2)
 ```
+1. Commit your changes
 1. Create a new tag for that release, prefixed with `v` (`git tag v1.0.0`):
   
   ```

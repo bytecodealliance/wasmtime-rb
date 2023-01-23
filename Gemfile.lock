@@ -26,7 +26,7 @@ GEM
     rake-compiler (1.2.1)
       rake
     rb_sys (0.9.58)
-    regexp_parser (2.6.1)
+    regexp_parser (2.6.2)
     rexml (3.2.5)
     rspec (3.12.0)
       rspec-core (~> 3.12.0)
@@ -62,7 +62,7 @@ GEM
       syntax_tree (>= 5.0.0, < 6)
     ruby-progressbar (1.11.0)
     sorbet-runtime (0.5.10626)
-    standard (1.22.0)
+    standard (1.22.1)
       language_server-protocol (~> 3.17.0.2)
       rubocop (= 1.42.0)
       rubocop-performance (= 1.15.2)

@@ -1,5 +1,16 @@
 # Changelog
 
+## [v5.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v5.0.0) (2023-01-23)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v0.4.1...v5.0.0)
+
+**Merged pull requests:**
+
+- Wasmtime v5 [\#115](https://github.com/bytecodealliance/wasmtime-rb/pull/115) ([jbourassa](https://github.com/jbourassa))
+- Add `Memory#slice` for zero-copy data access [\#114](https://github.com/bytecodealliance/wasmtime-rb/pull/114) ([ianks](https://github.com/ianks))
+- Add `Memory#read_utf8` [\#113](https://github.com/bytecodealliance/wasmtime-rb/pull/113) ([ianks](https://github.com/ianks))
+- Implement GC compaction for store data [\#112](https://github.com/bytecodealliance/wasmtime-rb/pull/112) ([ianks](https://github.com/ianks))
+
 ## [v0.4.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v0.4.1) (2023-01-02)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v0.4.0...v0.4.1)

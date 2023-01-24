@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative "wasmtime/version"
-require_relative "wasmtime/error"
 
 # Tries to require the extension for the given Ruby version first
 begin

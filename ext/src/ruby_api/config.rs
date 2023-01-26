@@ -6,7 +6,7 @@ use magnus::{
     Error, RHash, Symbol, Value,
 };
 use std::convert::{TryFrom, TryInto};
-use wasmtime::{Config, OptLevel, WasmBacktraceDetails};
+use wasmtime::{Config, ProfilingStrategy, OptLevel, WasmBacktraceDetails};
 
 define_rb_intern!(
     DEBUG_INFO => "debug_info",
@@ -18,22 +18,35 @@ define_rb_intern!(
     WASM_THREADS => "wasm_threads",
     WASM_MULTI_MEMORY => "wasm_multi_memory",
     WASM_MEMORY64 => "wasm_memory64",
+    PROFILER => "profiler",
     CRANELIFT_OPT_LEVEL => "cranelift_opt_level",
     PARALLEL_COMPILATION => "parallel_compilation",
-    OPT_LEVEL_NONE => "none",
-    OPT_LEVEL_SPEED => "speed",
-    OPT_LEVEL_SPEED_AND_SIZE => "speed_and_size",
+    NONE => "none",
+    JITDUMP => "jitdump",
+    VTUNE => "vtune",
+    SPEED => "speed",
+    SPEED_AND_SIZE => "speed_and_size",
 );
 
 lazy_static! {
     static ref OPT_LEVEL_MAPPING: SymbolEnum<'static, OptLevel> = {
         let mapping = vec![
-            (*OPT_LEVEL_NONE, OptLevel::None),
-            (*OPT_LEVEL_SPEED, OptLevel::Speed),
-            (*OPT_LEVEL_SPEED_AND_SIZE, OptLevel::SpeedAndSize),
+            (*NONE, OptLevel::None),
+            (*SPEED, OptLevel::Speed),
+            (*SPEED_AND_SIZE, OptLevel::SpeedAndSize),
         ];
 
         SymbolEnum::new(":cranelift_opt_level", mapping)
+    };
+
+    static ref PROFILING_STRATEGY_MAPPING: SymbolEnum<'static, ProfilingStrategy> = {
+        let mapping = vec![
+            (*NONE, ProfilingStrategy::None),
+            (*JITDUMP, ProfilingStrategy::JitDump),
+            (*VTUNE, ProfilingStrategy::VTune),
+        ];
+
+        SymbolEnum::new(":profiler", mapping)
     };
 }
 
@@ -63,6 +76,8 @@ pub fn hash_to_config(hash: RHash) -> Result<Config, Error> {
             config.wasm_memory64(entry.try_into()?);
         } else if *PARALLEL_COMPILATION == id {
             config.parallel_compilation(entry.try_into()?);
+        } else if *PROFILER == id {
+            config.profiler(entry.try_into()?);
         } else if *CRANELIFT_OPT_LEVEL == id {
             config.cranelift_opt_level(entry.try_into()?);
         } else {
@@ -111,6 +126,13 @@ impl TryFrom<ConfigEntry> for WasmBacktraceDetails {
             true => WasmBacktraceDetails::Enable,
             false => WasmBacktraceDetails::Disable,
         })
+    }
+}
+
+impl TryFrom<ConfigEntry> for wasmtime::ProfilingStrategy {
+    type Error = magnus::Error;
+    fn try_from(value: ConfigEntry) -> Result<Self, Error> {
+        PROFILING_STRATEGY_MAPPING.get(value.1)
     }
 }
 

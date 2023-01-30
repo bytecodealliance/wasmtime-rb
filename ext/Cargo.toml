@@ -5,6 +5,7 @@ edition = "2021"
 authors = ["Ian Ker-Seymer <hello@ianks.com>"]
 license = "Apache-2.0"
 publish = false
+build = "build.rs"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -16,8 +17,8 @@ tokio = ["dep:tokio", "dep:async-timer"]
 
 [dependencies]
 lazy_static = "1.4.0"
-magnus = { version = "0.4.3", features = ["rb-sys-interop"] }
-rb-sys = "~0.9.56"
+magnus = { version = "0.4", features = ["rb-sys-interop"] }
+rb-sys = "0.9.58"
 wasmtime = "4.0.0"
 wasmtime-wasi = "4.0.0"
 wasi-common = "4.0.0"
@@ -29,4 +30,4 @@ tokio = { version = "1.24.1", features = ["rt", "rt-multi-thread", "time", "net"
 async-timer = { version = "1.0.0-beta.8", features = ["tokio1"], optional = true }
 
 [build-dependencies]
-rb-sys-env = "0.1.1"
+rb-sys-env = "0.1.2"

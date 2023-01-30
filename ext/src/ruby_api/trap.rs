@@ -50,7 +50,7 @@ impl Trap {
     ///        0:   0x1a - <unknown>!<wasm function 0>
     /// @return [String, nil]
     pub fn wasm_backtrace_message(&self) -> Option<String> {
-        self.wasm_backtrace.as_ref().map(|bt| format!("{}", bt))
+        self.wasm_backtrace.as_ref().map(|bt| format!("{bt}"))
     }
 
     /// @yard

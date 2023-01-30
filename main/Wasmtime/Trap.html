@@ -483,7 +483,7 @@ pub fn message(&amp;self) -&gt; String {
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/trap.rs', line 52</span>
 
 pub fn wasm_backtrace_message(&amp;self) -&gt; Option&lt;String&gt; {
-    self.wasm_backtrace.as_ref().map(|bt| format!(&quot;{}&quot;, bt))
+    self.wasm_backtrace.as_ref().map(|bt| format!(&quot;{bt}&quot;))
 }</pre>
     </td>
   </tr>
@@ -495,7 +495,7 @@ pub fn wasm_backtrace_message(&amp;self) -&gt; Option&lt;String&gt; {
 </div>
 
       <div id="footer">
-  Generated on Mon Jan 23 17:48:43 2023 by
+  Generated on Mon Jan 30 19:40:26 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

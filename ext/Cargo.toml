@@ -8,7 +8,7 @@ publish = false
 build = "build.rs"
 
 [lib]
-crate-type = ["cdylib", "rlib"]
+crate-type = ["cdylib"]
 
 [features]
 default = ["tokio"]

@@ -4,23 +4,23 @@
 #![allow(rustdoc::invalid_rust_codeblocks)]
 use magnus::{define_module, function, memoize, Error, RModule, RString};
 
-pub mod caller;
-pub mod config;
-pub mod convert;
-pub mod engine;
-pub mod errors;
-pub mod externals;
-pub mod func;
-pub mod global;
-pub mod instance;
-pub mod linker;
-pub mod memory;
-pub mod module;
-pub mod params;
-pub mod store;
-pub mod table;
-pub mod trap;
-pub mod wasi_ctx_builder;
+mod caller;
+mod config;
+mod convert;
+mod engine;
+mod errors;
+mod externals;
+mod func;
+mod global;
+mod instance;
+mod linker;
+mod memory;
+mod module;
+mod params;
+mod store;
+mod table;
+mod trap;
+mod wasi_ctx_builder;
 
 pub use caller::Caller;
 pub use engine::Engine;

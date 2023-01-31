@@ -11,6 +11,7 @@ build = "build.rs"
 default = ["tokio"]
 embed = ["magnus/embed"]
 tokio = ["dep:tokio", "dep:async-timer"]
+ruby-api = []
 
 [dependencies]
 lazy_static = "1.4.0"

@@ -59,6 +59,7 @@ impl Wasmtime {
 
 pub fn init() -> Result<(), Error> {
     let wasmtime = root();
+
     wasmtime.define_module_function("wat2wasm", function!(Wasmtime::wat2wasm, 1))?;
 
     errors::init()?;

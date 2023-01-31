@@ -85,6 +85,7 @@ pub fn init() -> Result<(), Error> {
     let _ = base_error();
     let _ = result_error();
     let _ = conversion_error();
+    let _ = wasi_exit_error();
 
     Ok(())
 }

@@ -63,7 +63,7 @@ pub fn wasi_exit_error() -> ExceptionClass {
 
         fn message(rb_self: RObject) -> Result<String, Error> {
             let code: Value = rb_self.ivar_get("@code")?;
-            Ok(format!("WASI exit with code {}", code))
+            Ok(format!("WASI exit with code {code}"))
         }
         err.define_method("message", method!(message, 0)).unwrap();
 

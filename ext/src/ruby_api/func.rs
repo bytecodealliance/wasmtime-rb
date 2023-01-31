@@ -221,7 +221,7 @@ pub fn make_func_closure(
         for (i, param) in params.iter().enumerate() {
             let rparam = param
                 .to_ruby_value(&store_context)
-                .map_err(|e| anyhow::anyhow!(format!("invalid argument at index {}: {}", i, e)))?;
+                .map_err(|e| anyhow::anyhow!(format!("invalid argument at index {i}: {e}")))?;
             rparams.push(rparam).unwrap();
         }
 
@@ -255,7 +255,7 @@ pub fn make_func_closure(
                             *wasm_val = rb_val.to_wasm_val(&ty).map_err(|e| {
                                 Error::new(
                                     result_error(),
-                                    format!("{} (result index {} in {})", e, i, callable),
+                                    format!("{e} (result index {i} in {callable})"),
                                 )
                             })?;
                         }

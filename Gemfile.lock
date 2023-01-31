@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    wasmtime (0.4.1)
+    wasmtime (5.0.0)
       rb_sys (~> 0.9.48)
 
 GEM
@@ -18,13 +18,13 @@ GEM
     parallel (1.22.1)
     parser (3.2.0.0)
       ast (~> 2.4.1)
-    prettier_print (1.1.0)
+    prettier_print (1.2.0)
     rainbow (3.1.1)
     rake (13.0.6)
     rake-compiler (1.2.1)
       rake
     rb_sys (0.9.58)
-    regexp_parser (2.6.1)
+    regexp_parser (2.6.2)
     rexml (3.2.5)
     rspec (3.12.0)
       rspec-core (~> 3.12.0)
@@ -54,18 +54,18 @@ GEM
     rubocop-performance (1.15.2)
       rubocop (>= 1.7.0, < 2.0)
       rubocop-ast (>= 0.4.0)
-    ruby-lsp (0.3.5)
+    ruby-lsp (0.3.8)
       language_server-protocol (~> 3.17.0)
       sorbet-runtime
-      syntax_tree (>= 4.0.2)
+      syntax_tree (>= 5.0.0, < 6)
     ruby-progressbar (1.11.0)
-    sorbet-runtime (0.5.10554)
-    standard (1.22.0)
+    sorbet-runtime (0.5.10626)
+    standard (1.22.1)
       language_server-protocol (~> 3.17.0.2)
       rubocop (= 1.42.0)
       rubocop-performance (= 1.15.2)
-    syntax_tree (5.0.1)
-      prettier_print (>= 1.1.0)
+    syntax_tree (5.2.0)
+      prettier_print (>= 1.2.0)
     unicode-display_width (2.4.2)
     webrick (1.7.0)
     yard (0.9.28)

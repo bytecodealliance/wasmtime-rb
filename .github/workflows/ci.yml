@@ -1,7 +1,10 @@
 ---
 name: CI
 
-on: push
+on:
+  push:
+    branches: ["*"]
+    tags-ignore: ["v*"]  # Skip CI for releases
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

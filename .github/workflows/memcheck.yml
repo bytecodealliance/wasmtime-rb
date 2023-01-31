@@ -15,6 +15,8 @@ on:
           - "3.0"
           - "2.7"
   push:
+    branches: ["*"]
+    tags-ignore: ["v*"]  # Skip Memcheck for releases
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

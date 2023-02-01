@@ -2,6 +2,43 @@ CLOBBER.include("pkg/**/*.gem")
 CLEAN.include("tmp/pkg")
 CLEAN.include("tmp/pkg")
 
+def gem_install_test(dotgem)
+  dotgem = File.expand_path(File.join("..", dotgem), __dir__)
+  tmpdir = File.expand_path("../tmp/pkg-test-#{Time.now.to_i}", __dir__)
+  sh "gem install --verbose --install-dir #{tmpdir} #{dotgem}"
+
+  wrapper = if defined?(Bundler)
+    ->(&blk) { Bundler.with_unbundled_env { blk.call } }
+  else
+    ->(&blk) { blk.call }
+  end
+
+  testrun = ->(cmd) do
+    cmd = cmd.chomp
+
+    wrapper.call do
+      old = ENV["GEM_HOME"]
+      ENV["GEM_HOME"] = tmpdir
+      ruby "-rwasmtime -e '(#{cmd}) || abort'"
+      puts "✅ Passed (#{cmd})"
+    rescue
+      abort "❌ Failed (#{cmd})"
+    ensure
+      ENV["GEM_HOME"] = old
+    end
+  end
+
+  testrun.call <<~RUBY
+    Wasmtime::VERSION == "#{GEMSPEC.version}"
+  RUBY
+
+  testrun.call <<~RUBY
+    Wasmtime::Engine.new.precompile_module("(module)").include?("ELF")
+  RUBY
+
+  FileUtils.rm_rf(tmpdir)
+end
+
 namespace :pkg do
   directory "pkg"
 
@@ -65,39 +102,15 @@ namespace :pkg do
     STATS
   end
 
-  desc "Test source gem installation (#{GEMSPEC.name}-#{GEMSPEC.version}.gem)"
+  desc "Test source gem installation"
   task "ruby:test" => "pkg:ruby" do
-    sh "gem install --verbose --install-dir tmp/source-gem-test pkg/#{GEMSPEC.name}-#{GEMSPEC.version}.gem"
+    gem_install_test("pkg/#{GEMSPEC.name}-#{GEMSPEC.version}.gem")
+  end
 
-    wrapper = if defined?(Bundler)
-      ->(&blk) { Bundler.with_unbundled_env { blk.call } }
-    else
-      ->(&blk) { blk.call }
+  ["x86_64-darwin", "arm64-darwin", "x86_64-linux"].each do |platform|
+    desc "Test #{platform} gem installation"
+    task "#{platform}:test" do
+      gem_install_test("pkg/#{GEMSPEC.name}-#{GEMSPEC.version}-#{platform}.gem")
     end
-
-    testrun = ->(cmd) do
-      cmd = cmd.chomp
-
-      wrapper.call do
-        old = ENV["GEM_HOME"]
-        ENV["GEM_HOME"] = "tmp/source-gem-test"
-        ruby "-rwasmtime -e '(#{cmd}) || abort'"
-        puts "✅ Passed (#{cmd})"
-      rescue
-        abort "❌ Failed (#{cmd})"
-      ensure
-        ENV["GEM_HOME"] = old
-      end
-    end
-
-    testrun.call <<~RUBY
-      Wasmtime::VERSION == "#{GEMSPEC.version}"
-    RUBY
-
-    testrun.call <<~RUBY
-      Wasmtime::Engine.new.precompile_module("(module)").include?("ELF")
-    RUBY
-
-    FileUtils.rm_rf("tmp/source-gem-test")
   end
 end

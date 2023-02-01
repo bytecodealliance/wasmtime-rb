@@ -41,21 +41,22 @@ jobs:
           bundler-cache: false
           cargo-cache: true
           cargo-vendor: true
-          cache-version: v0-${{ matrix.ruby-platform }}
+          cache-version: v1-${{ matrix.ruby-platform }}
+
+      - name: Set vars
+        id: vars
+        run: |
+          echo "rb-sys-version=$(ruby -rrb_sys -e 'puts RbSys::VERSION')" >> $GITHUB_OUTPUT
 
       - uses: oxidize-rb/cross-gem-action@main
         with:
-          version: latest
+          version: ${{ steps.vars.outputs.rb-sys-version }}
           platform: ${{ matrix.ruby-platform }}
           ruby-versions: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ', ') }}
 
       - name: Smoke gem install
         if: matrix.ruby-platform == 'x86_64-linux' # GitHub actions architecture
-        run: |
-          gem install pkg/wasmtime-*.gem --verbose
-          script="puts Wasmtime::Engine.new.precompile_module('(module)')"
-          ruby -rwasmtime -e "$script" | grep wasmtime.info
-          echo "✅ Successfully gem installed"
+        run: bundle exec rake pkg:${{ matrix.ruby-platform }}:test
 
   source:
     name: Build source gem

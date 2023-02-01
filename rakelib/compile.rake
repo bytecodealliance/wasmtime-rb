@@ -8,7 +8,6 @@ Rake::ExtensionTask.new("wasmtime_rb", GEMSPEC) do |ext|
   ext.ext_dir = "ext"
   ext.cross_compile = !CROSS_PLATFORMS.empty?
   ext.cross_platform = CROSS_PLATFORMS
-  ext.config_options << "--crate-type=cdylib"
 
   ext.cross_compiling do |gem_spec|
     # No need for rb_sys to compile

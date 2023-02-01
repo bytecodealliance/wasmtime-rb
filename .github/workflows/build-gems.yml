@@ -4,7 +4,7 @@ name: Build gems
 on:
   workflow_dispatch:
   push:
-    branches: ["main", "cross-gem/*"]
+    branches: ["main", "cross-gem/*", "pkg/*"]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -71,14 +71,9 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
-          cargo-cache: true
+          cargo-cache: false
           cache-version: v1
 
       - name: Smoke test gem install
         shell: bash
-        run: |
-          bundle exec rake build
-          gem install pkg/wasmtime-*.gem --verbose
-          script="puts Wasmtime::Engine.new.precompile_module('(module)')"
-          ruby -rwasmtime -e "$script" | grep wasmtime.info
-          echo "✅ Successfully gem installed"
+        run: bundle exec rake pkg:ruby:test

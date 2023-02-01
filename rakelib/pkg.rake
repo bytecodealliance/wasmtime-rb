@@ -64,4 +64,40 @@ namespace :pkg do
       - Size (unpacked): #{filesize(*dirglob("#{unpacked_dir}/**/*"))} MB
     STATS
   end
+
+  desc "Test source gem installation (#{GEMSPEC.name}-#{GEMSPEC.version}.gem)"
+  task "ruby:test" => "pkg:ruby" do
+    sh "gem install --verbose --install-dir tmp/source-gem-test pkg/#{GEMSPEC.name}-#{GEMSPEC.version}.gem"
+
+    wrapper = if defined?(Bundler)
+      ->(&blk) { Bundler.with_unbundled_env { blk.call } }
+    else
+      ->(&blk) { blk.call }
+    end
+
+    testrun = ->(cmd) do
+      cmd = cmd.chomp
+
+      wrapper.call do
+        old = ENV["GEM_HOME"]
+        ENV["GEM_HOME"] = "tmp/source-gem-test"
+        ruby "-rwasmtime -e '(#{cmd}) || abort'"
+        puts "✅ Passed (#{cmd})"
+      rescue
+        abort "❌ Failed (#{cmd})"
+      ensure
+        ENV["GEM_HOME"] = old
+      end
+    end
+
+    testrun.call <<~RUBY
+      Wasmtime::VERSION == "#{GEMSPEC.version}"
+    RUBY
+
+    testrun.call <<~RUBY
+      Wasmtime::Engine.new.precompile_module("(module)").include?("ELF")
+    RUBY
+
+    FileUtils.rm_rf("tmp/source-gem-test")
+  end
 end

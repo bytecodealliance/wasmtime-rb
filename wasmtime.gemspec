@@ -16,7 +16,7 @@ Gem::Specification.new do |spec|
 
   spec.metadata["homepage_uri"] = "https://github.com/BytecodeAlliance/wasmtime-rb"
   spec.metadata["source_code_uri"] = "https://github.com/BytecodeAlliance/wasmtime-rb"
-  spec.metadata["cargo_crate_name"] = "ext"
+  spec.metadata["cargo_crate_name"] = "wasmtime-rb"
   spec.metadata["changelog_uri"] = "https://github.com/bytecodealliance/wasmtime-rb/blob/main/CHANGELOG.md"
 
   spec.files = Dir["{lib,ext}/**/*", "LICENSE", "README.md", "Cargo.*"]
@@ -30,5 +30,5 @@ Gem::Specification.new do |spec|
   spec.rdoc_options += ["--exclude", "vendor"]
 
   # Can be removed for binary gems and rubygems >= 3.3.24
-  spec.add_dependency "rb_sys", "~> 0.9.48"
+  spec.add_dependency "rb_sys", "~> 0.9.59"
 end

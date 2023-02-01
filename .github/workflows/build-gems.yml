@@ -46,7 +46,7 @@ jobs:
       - name: Set vars
         id: vars
         run: |
-          echo "rb-sys-version=$(ruby -rrb_sys -e 'puts RbSys::VERSION')" >> $GITHUB_OUTPUT
+          echo "rb-sys-version=$(bundle exec ruby -rrb_sys -e 'puts RbSys::VERSION')" >> $GITHUB_OUTPUT
 
       - uses: oxidize-rb/cross-gem-action@main
         with:

@@ -6,7 +6,7 @@ use magnus::{
     Error, RHash, Symbol, Value,
 };
 use std::convert::{TryFrom, TryInto};
-use wasmtime::{Config, ProfilingStrategy, OptLevel, WasmBacktraceDetails};
+use wasmtime::{Config, OptLevel, ProfilingStrategy, WasmBacktraceDetails};
 
 define_rb_intern!(
     DEBUG_INFO => "debug_info",
@@ -38,7 +38,6 @@ lazy_static! {
 
         SymbolEnum::new(":cranelift_opt_level", mapping)
     };
-
     static ref PROFILING_STRATEGY_MAPPING: SymbolEnum<'static, ProfilingStrategy> = {
         let mapping = vec![
             (*NONE, ProfilingStrategy::None),

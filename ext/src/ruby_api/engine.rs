@@ -47,7 +47,8 @@ impl Engine {
     /// @option config [Boolean] :wasm_multi_memory
     /// @option config [Boolean] :wasm_memory64
     /// @option config [Boolean] :parallel_compilation
-    /// @option config [Sumbol] :cranelift_opt_level One of +none+, +speed+, +speed_and_size+.
+    /// @option config [Symbol] :cranelift_opt_level One of +none+, +speed+, +speed_and_size+.
+    /// @option config [Symbol] :profiler One of +none+, +jitdump+, +vtune+.
     ///
     /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Engine.html
     ///     Wasmtime's Rust doc for details of the configuration options.

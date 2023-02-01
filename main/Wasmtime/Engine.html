@@ -450,7 +450,8 @@
 68
 69
 70
-71</pre>
+71
+72</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 54</span>
@@ -470,6 +471,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
 
     Ok(Self {
         inner,
+        #[cfg(feature = &quot;tokio&quot;)]
         timer_task: Default::default(),
     })
 }</pre>
@@ -523,12 +525,12 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-114
-115
-116</pre>
+117
+118
+119</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 114</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 117</span>
 
 <span class='id identifier rubyid_pub'>pub</span> <span class='id identifier rubyid_fn'>fn</span> <span class='id identifier rubyid_increment_epoch'>increment_epoch</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='kw'>self</span><span class='rparen'>)</span> <span class='lbrace'>{</span>
     <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_inner'>inner</span><span class='period'>.</span><span class='id identifier rubyid_increment_epoch'>increment_epoch</span><span class='lparen'>(</span><span class='rparen'>)</span><span class='semicolon'>;</span>
@@ -611,15 +613,15 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-131
-132
-133
 134
 135
-136</pre>
+136
+137
+138
+139</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 131</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 134</span>
 
 pub fn precompile_module(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RString, Error&gt; {
     self.inner
@@ -688,8 +690,6 @@ pub fn precompile_module(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RStrin
       <pre class="lines">
 
 
-81
-82
 83
 84
 85
@@ -703,18 +703,20 @@ pub fn precompile_module(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RStrin
 93
 94
 95
-96</pre>
+96
+97
+98</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 81</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 83</span>
 
 pub fn start_epoch_interval(&amp;self, milliseconds: u64) {
     self.stop_epoch_interval();
     let engine = self.inner.clone();
 
     let handle = TOKIO_RT.spawn(async move {
-        let tick_every = time::Duration::from_millis(milliseconds);
-        let mut interval = Interval::platform_new(tick_every);
+        let tick_every = tokio::time::Duration::from_millis(milliseconds);
+        let mut interval = async_timer::Interval::platform_new(tick_every);
 
         loop {
             interval.wait().await;
@@ -768,14 +770,14 @@ pub fn start_epoch_interval(&amp;self, milliseconds: u64) {
       <pre class="lines">
 
 
-102
-103
-104
 105
-106</pre>
+106
+107
+108
+109</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 102</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 105</span>
 
 pub fn stop_epoch_interval(&amp;self) {
     if let Some(handle) = self.timer_task.take() {
@@ -792,7 +794,7 @@ pub fn stop_epoch_interval(&amp;self) {
 </div>
 
       <div id="footer">
-  Generated on Mon Jan 30 19:40:27 2023 by
+  Generated on Tue Jan 31 23:57:10 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

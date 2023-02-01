@@ -1,14 +1,11 @@
 use super::{config::hash_to_config, root};
 use crate::error;
-use async_timer::Interval;
-use lazy_static::lazy_static;
 use magnus::{function, method, scan_args, Error, Module, Object, RHash, RString, Value};
-use std::cell::RefCell;
-use tokio::{runtime, task::JoinHandle, time};
 use wasmtime::Engine as EngineImpl;
 
-lazy_static! {
-    static ref TOKIO_RT: runtime::Runtime = runtime::Builder::new_multi_thread()
+#[cfg(feature = "tokio")]
+lazy_static::lazy_static! {
+    static ref TOKIO_RT: tokio::runtime::Runtime = tokio::runtime::Builder::new_multi_thread()
         .thread_name("wasmtime-engine-timers")
         .worker_threads(1)
         .enable_io()
@@ -22,9 +19,12 @@ lazy_static! {
 #[magnus::wrap(class = "Wasmtime::Engine", free_immediately)]
 pub struct Engine {
     inner: EngineImpl,
-    timer_task: RefCell<Option<JoinHandle<()>>>,
+
+    #[cfg(feature = "tokio")]
+    timer_task: std::cell::RefCell<Option<tokio::task::JoinHandle<()>>>,
 }
 
+#[cfg(feature = "tokio")]
 impl Drop for Engine {
     fn drop(&mut self) {
         self.stop_epoch_interval()
@@ -67,6 +67,7 @@ impl Engine {
 
         Ok(Self {
             inner,
+            #[cfg(feature = "tokio")]
             timer_task: Default::default(),
         })
     }
@@ -79,13 +80,14 @@ impl Engine {
     /// @def start_epoch_interval(milliseconds)
     /// @param milliseconds [Integer]
     /// @return [nil]
+    #[cfg(feature = "tokio")]
     pub fn start_epoch_interval(&self, milliseconds: u64) {
         self.stop_epoch_interval();
         let engine = self.inner.clone();
 
         let handle = TOKIO_RT.spawn(async move {
-            let tick_every = time::Duration::from_millis(milliseconds);
-            let mut interval = Interval::platform_new(tick_every);
+            let tick_every = tokio::time::Duration::from_millis(milliseconds);
+            let mut interval = async_timer::Interval::platform_new(tick_every);
 
             loop {
                 interval.wait().await;
@@ -100,6 +102,7 @@ impl Engine {
     /// Stops a previously started timer with {#start_epoch_interval}.
     /// Does nothing if there is no running timer.
     /// @return [nil]
+    #[cfg(feature = "tokio")]
     pub fn stop_epoch_interval(&self) {
         if let Some(handle) = self.timer_task.take() {
             handle.abort();
@@ -145,10 +148,14 @@ pub fn init() -> Result<(), Error> {
     let class = root().define_class("Engine", Default::default())?;
 
     class.define_singleton_method("new", function!(Engine::new, -1))?;
+
+    #[cfg(feature = "tokio")]
     class.define_method(
         "start_epoch_interval",
         method!(Engine::start_epoch_interval, 1),
     )?;
+
+    #[cfg(feature = "tokio")]
     class.define_method(
         "stop_epoch_interval",
         method!(Engine::stop_epoch_interval, 0),

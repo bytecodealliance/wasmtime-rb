@@ -134,7 +134,7 @@ impl<'a> Memory<'a> {
     ///
     /// The returned {UnsafeSlice} lazily reads the underlying memory, meaning that
     /// the actual pointer to the string buffer is not materialzed until
-    /// {UnsafeSlice#to_str} or {UnsafeSlice#to_memory_view} is called.
+    /// {UnsafeSlice#to_str} is called.
     ///
     /// SAFETY: Resizing the memory (as with {Wasmtime::Memory#grow}) will
     /// invalidate the {UnsafeSlice}, and future attempts to read the slice will raise

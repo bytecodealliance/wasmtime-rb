@@ -1,21 +1,21 @@
 [package]
 name = "wasmtime-rb"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 authors = ["Ian Ker-Seymer <hello@ianks.com>"]
 license = "Apache-2.0"
 publish = false
-
-[lib]
-crate-type = ["cdylib", "rlib"]
+build = "build.rs"
 
 [features]
-default = []
+default = ["tokio"]
 embed = ["magnus/embed"]
+tokio = ["dep:tokio", "dep:async-timer"]
+ruby-api = []
 
 [dependencies]
 lazy_static = "1.4.0"
-magnus = { version = "0.4.3", features = ["rb-sys-interop"] }
+magnus = { version = "0.4", features = ["rb-sys-interop"] }
 rb-sys = "~0.9.58"
 wasmtime = "5.0.0"
 wasmtime-wasi = "5.0.0"
@@ -24,8 +24,8 @@ wasi-cap-std-sync = "5.0.0"
 cap-std = "1.0.3" # Pinned to wasmtime's version
 anyhow = "*" # Use whatever Wasmtime uses
 wat = "1.0.56"
-tokio = { version = "1.25.0", features = ["rt", "rt-multi-thread", "time", "net"] }
-async-timer = { version = "1.0.0-beta.8", features = ["tokio1"] }
+tokio = { version = "1.25.0", features = ["rt", "rt-multi-thread", "time", "net"], optional = true }
+async-timer = { version = "1.0.0-beta.8", features = ["tokio1"], optional = true }
 
 [build-dependencies]
-rb-sys-env = "0.1.1"
+rb-sys-env = "0.1.2"

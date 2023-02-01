@@ -1,11 +1,43 @@
 use crate::ruby_api::root;
 use magnus::rb_sys::FromRawValue;
-use magnus::{exception::standard_error, memoize, ExceptionClass, Module};
-use magnus::{Error, Value};
+use magnus::{gc, Error, Value};
+use magnus::{memoize, ExceptionClass, Module};
 
 /// Base error class for all Wasmtime errors.
 pub fn base_error() -> ExceptionClass {
-    *memoize!(ExceptionClass: root().define_error("Error", standard_error()).unwrap())
+    *memoize!(ExceptionClass: {
+        let err = root().const_get("Error").unwrap();
+        gc::register_mark_object(err);
+        err
+    })
+}
+
+/// Raised when failing to convert the return value of a Ruby-backed Func to
+/// Wasm types.
+pub fn result_error() -> ExceptionClass {
+    *memoize!(ExceptionClass: {
+        let err = root().const_get("ResultError").unwrap();
+        gc::register_mark_object(err);
+        err
+    })
+}
+
+/// Raised when converting an {Extern} to its concrete type fails.
+pub fn conversion_error() -> ExceptionClass {
+    *memoize!(ExceptionClass: {
+        let err = root().const_get("ConversionError").unwrap();
+        gc::register_mark_object(err);
+        err
+    })
+}
+
+/// Raised when a WASI program terminates early by calling +exit+.
+pub fn wasi_exit_error() -> ExceptionClass {
+    *memoize!(ExceptionClass: {
+        let err = root().const_get("WasiExit").unwrap();
+        gc::register_mark_object(err);
+        err
+    })
 }
 
 /// Ruby's `NotImplementedError` class.
@@ -13,21 +45,6 @@ pub fn not_implemented_error() -> ExceptionClass {
     *memoize!(ExceptionClass: {
         Value::from_raw(rb_sys::rb_eNotImpError).try_convert().unwrap()
     })
-}
-
-/// The `Wasmtime::ResultError` class.
-pub fn result_error() -> ExceptionClass {
-    *memoize!(ExceptionClass: root().define_error("ResultError", base_error()).unwrap())
-}
-
-/// The `Wasmtime::ConversionError` class.
-pub fn conversion_error() -> ExceptionClass {
-    *memoize!(ExceptionClass: root().define_error("ConversionError", base_error()).unwrap())
-}
-
-/// The `Wasmtime::WasiExit` class.
-pub fn wasi_exit_error() -> ExceptionClass {
-    *memoize!(ExceptionClass: root().define_error("WasiExit", base_error()).unwrap())
 }
 
 #[macro_export]
@@ -58,7 +75,13 @@ macro_rules! conversion_err {
     };
 }
 
+mod bundled {
+    include!(concat!(env!("OUT_DIR"), "/bundled/error.rs"));
+}
+
 pub fn init() -> Result<(), Error> {
+    bundled::init()?;
+
     let _ = base_error();
     let _ = result_error();
     let _ = conversion_error();

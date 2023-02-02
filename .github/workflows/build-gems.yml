@@ -4,7 +4,7 @@ name: Build gems
 on:
   workflow_dispatch:
   push:
-    branches: ["main", "cross-gem/*"]
+    branches: ["main", "cross-gem/*", "pkg/*"]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -38,24 +38,25 @@ jobs:
       - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
         with:
           ruby-version: "3.1"
-          bundler-cache: false
+          bundler-cache: true
           cargo-cache: true
           cargo-vendor: true
-          cache-version: v0-${{ matrix.ruby-platform }}
+          cache-version: v1-${{ matrix.ruby-platform }}
+
+      - name: Set vars
+        id: vars
+        run: |
+          echo "rb-sys-version=$(bundle exec ruby -rrb_sys -e 'puts RbSys::VERSION')" >> $GITHUB_OUTPUT
 
       - uses: oxidize-rb/cross-gem-action@main
         with:
-          version: latest
+          version: ${{ steps.vars.outputs.rb-sys-version }}
           platform: ${{ matrix.ruby-platform }}
           ruby-versions: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ', ') }}
 
       - name: Smoke gem install
         if: matrix.ruby-platform == 'x86_64-linux' # GitHub actions architecture
-        run: |
-          gem install pkg/wasmtime-*.gem --verbose
-          script="puts Wasmtime::Engine.new.precompile_module('(module)')"
-          ruby -rwasmtime -e "$script" | grep wasmtime.info
-          echo "✅ Successfully gem installed"
+        run: bundle exec rake pkg:${{ matrix.ruby-platform }}:test
 
   source:
     name: Build source gem
@@ -71,14 +72,9 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
-          cargo-cache: true
+          cargo-cache: false
           cache-version: v1
 
       - name: Smoke test gem install
         shell: bash
-        run: |
-          bundle exec rake build
-          gem install pkg/wasmtime-*.gem --verbose
-          script="puts Wasmtime::Engine.new.precompile_module('(module)')"
-          ruby -rwasmtime -e "$script" | grep wasmtime.info
-          echo "✅ Successfully gem installed"
+        run: bundle exec rake pkg:ruby:test

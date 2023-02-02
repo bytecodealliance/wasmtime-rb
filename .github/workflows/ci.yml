@@ -2,8 +2,10 @@
 name: CI
 
 on:
+  workflow_dispatch:
   push:
-    tags-ignore: ["v*"]  # Skip CI for releases
+    branches: ["**"]
+    tags-ignore: ["v**"]  # Skip CI for releases
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

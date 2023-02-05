@@ -48,11 +48,18 @@ jobs:
       #   run: |
       #     echo "rb-sys-version=$(bundle exec ruby -rrb_sys -e 'puts RbSys::VERSION')" >> $GITHUB_OUTPUT
 
-      - uses: oxidize-rb/cross-gem-action@main
-        with:
-          version: "0.9.60"
-          platform: ${{ matrix.ruby-platform }}
-          ruby-versions: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ', ') }}
+      # - uses: oxidize-rb/cross-gem-action@main
+      #   with:
+      #     version: "0.9.60"
+      #     platform: ${{ matrix.ruby-platform }}
+      #     ruby-versions: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ', ') }}
+
+      - name: Build native gem
+        run: |
+          bundle exec rb-sys-dock \
+            --platform ${{ matrix.ruby-platform }}  \
+            --ruby-versions ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ', ') }} \
+            --build
 
       - name: Smoke gem install
         if: matrix.ruby-platform == 'x86_64-linux' # GitHub actions architecture

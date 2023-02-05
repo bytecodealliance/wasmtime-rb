@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/oxidize-rb/rb-sys.git
-  revision: 798d7acb28718e844ae7bed7d3d8834a19d96505
+  revision: 3d05ca89adfa8be0fb67cf774739bb0738e041c5
   branch: extensiontask
   specs:
     rb_sys (0.9.60)

@@ -41,7 +41,7 @@ jobs:
           bundler-cache: true
           cargo-cache: true
           cargo-vendor: true
-          cache-version: v1-${{ matrix.ruby-platform }}
+          cache-version: v2-${{ matrix.ruby-platform }}
 
       # - name: Set vars
       #   id: vars

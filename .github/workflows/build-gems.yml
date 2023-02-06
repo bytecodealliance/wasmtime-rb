@@ -41,7 +41,7 @@ jobs:
           bundler-cache: true
           cargo-cache: true
           cargo-vendor: true
-          cache-version: v1-${{ matrix.ruby-platform }}
+          cache-version: v2-${{ matrix.ruby-platform }}
 
       - name: Set vars
         id: vars
@@ -73,7 +73,7 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
           cargo-cache: false
-          cache-version: v1
+          cache-version: v2
 
       - name: Smoke test gem install
         shell: bash

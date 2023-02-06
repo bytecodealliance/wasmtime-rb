@@ -43,23 +43,16 @@ jobs:
           cargo-vendor: true
           cache-version: v2-${{ matrix.ruby-platform }}
 
-      # - name: Set vars
-      #   id: vars
-      #   run: |
-      #     echo "rb-sys-version=$(bundle exec ruby -rrb_sys -e 'puts RbSys::VERSION')" >> $GITHUB_OUTPUT
-
-      # - uses: oxidize-rb/cross-gem-action@main
-      #   with:
-      #     version: "0.9.60"
-      #     platform: ${{ matrix.ruby-platform }}
-      #     ruby-versions: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ', ') }}
-
-      - name: Build native gem
+      - name: Set vars
+        id: vars
         run: |
-          bundle exec rb-sys-dock \
-            --platform ${{ matrix.ruby-platform }}  \
-            --ruby-versions 3.0,3.1,3.2 \
-            --build
+          echo "rb-sys-version=$(bundle exec ruby -rrb_sys -e 'puts RbSys::VERSION')" >> $GITHUB_OUTPUT
+
+      - uses: oxidize-rb/cross-gem-action@main
+        with:
+          version: ${{ steps.vars.outputs.rb-sys-version }}
+          platform: ${{ matrix.ruby-platform }}
+          ruby-versions: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ', ') }}
 
       - name: Smoke gem install
         if: matrix.ruby-platform == 'x86_64-linux' # GitHub actions architecture
@@ -80,7 +73,7 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
           cargo-cache: false
-          cache-version: v1
+          cache-version: v2
 
       - name: Smoke test gem install
         shell: bash

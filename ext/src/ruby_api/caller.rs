@@ -1,8 +1,8 @@
 use super::{convert::WrapWasmtimeType, externals::Extern, root, store::StoreData};
-use crate::{define_data_class, error, helpers::WrappedStruct};
+use crate::{define_data_class, error};
 use magnus::{
-    memoize, method, r_typed_data::DataTypeBuilder, DataTypeFunctions, Error, Module as _, RClass,
-    RString, TypedData, Value, QNIL,
+    memoize, method, typed_data::DataTypeBuilder, typed_data::Obj, DataTypeFunctions, Error,
+    Module as _, RClass, RString, TypedData, Value, QNIL,
 };
 use std::cell::UnsafeCell;
 use wasmtime::{AsContext, AsContextMut, Caller as CallerImpl, StoreContext, StoreContextMut};
@@ -67,11 +67,8 @@ impl<'a> Caller<'a> {
     /// @yard
     /// @def export(name)
     /// @see Instance#export
-    pub fn export(
-        rb_self: WrappedStruct<Caller<'a>>,
-        name: RString,
-    ) -> Result<Option<Extern<'a>>, Error> {
-        let caller = rb_self.try_convert::<&Self>()?;
+    pub fn export(rb_self: Obj<Caller<'a>>, name: RString) -> Result<Option<Extern<'a>>, Error> {
+        let caller = rb_self.get();
         let inner = caller.handle.get_mut()?;
 
         if let Some(export) = inner.get_export(unsafe { name.as_str() }?) {

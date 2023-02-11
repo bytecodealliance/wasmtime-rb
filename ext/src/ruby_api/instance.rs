@@ -5,10 +5,10 @@ use super::{
     root,
     store::{Store, StoreContextValue, StoreData},
 };
-use crate::{err, helpers::WrappedStruct};
+use crate::err;
 use magnus::{
-    function, method, scan_args, DataTypeFunctions, Error, Module as _, Object, RArray, RHash,
-    RString, TypedData, Value,
+    function, gc, method, scan_args, typed_data::Obj, DataTypeFunctions, Error, Module as _,
+    Object, RArray, RHash, RString, TypedData, Value,
 };
 use wasmtime::{Extern, Instance as InstanceImpl, StoreContextMut};
 
@@ -19,14 +19,14 @@ use wasmtime::{Extern, Instance as InstanceImpl, StoreContextMut};
 #[magnus(class = "Wasmtime::Instance", mark, free_immediatly)]
 pub struct Instance {
     inner: InstanceImpl,
-    store: WrappedStruct<Store>,
+    store: Obj<Store>,
 }
 
 unsafe impl Send for Instance {}
 
 impl DataTypeFunctions for Instance {
     fn mark(&self) {
-        self.store.mark()
+        gc::mark(self.store)
     }
 }
 
@@ -42,8 +42,8 @@ impl Instance {
         let args =
             scan_args::scan_args::<(Value, &Module), (Option<Value>,), (), (), (), ()>(args)?;
         let (s, module) = args.required;
-        let wrapped_store: WrappedStruct<Store> = s.try_convert()?;
-        let store = wrapped_store.get()?;
+        let wrapped_store: Obj<Store> = s.try_convert()?;
+        let store = wrapped_store.get();
         let mut context = store.context_mut();
         let imports = args
             .optional
@@ -78,7 +78,7 @@ impl Instance {
         self.inner
     }
 
-    pub fn from_inner(store: WrappedStruct<Store>, inner: InstanceImpl) -> Self {
+    pub fn from_inner(store: Obj<Store>, inner: InstanceImpl) -> Self {
         Self { inner, store }
     }
 
@@ -89,12 +89,12 @@ impl Instance {
     /// @def exports
     /// @return [Hash{String => Extern}]
     pub fn exports(&self) -> Result<RHash, Error> {
-        let store = self.store.get()?;
+        let store = self.store.get();
         let mut ctx = store.context_mut();
         let hash = RHash::new();
 
         for export in self.inner.exports(&mut ctx) {
-            let export_name: RString = export.name().into();
+            let export_name = RString::new(export.name());
             let wrapped_store = self.store;
             let wrapped_export = export
                 .into_extern()
@@ -112,7 +112,7 @@ impl Instance {
     /// @param name [String]
     /// @return [Extern, nil] The export if it exists, nil otherwise.
     pub fn export(&self, str: RString) -> Result<Option<super::externals::Extern>, Error> {
-        let store = self.store.get()?;
+        let store = self.store.get();
         let export = self
             .inner
             .get_export(store.context_mut(), unsafe { str.as_str()? });

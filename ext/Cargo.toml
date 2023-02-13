@@ -23,7 +23,7 @@ wasi-common = "5.0.0"
 wasi-cap-std-sync = "5.0.0"
 cap-std = "1.0.5"
 anyhow = "*" # Use whatever Wasmtime uses
-wat = "1.0.57"
+wat = "1.0.58"
 tokio = { version = "1.25.0", features = ["rt", "rt-multi-thread", "time", "net"], optional = true }
 async-timer = { version = "1.0.0-beta.8", features = ["tokio1"], optional = true }
 

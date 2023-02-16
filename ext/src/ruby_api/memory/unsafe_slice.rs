@@ -1,8 +1,8 @@
 use crate::{define_data_class, define_rb_intern, error, Memory};
 #[cfg(ruby_gte_3_0)]
-use magnus::{class::object, gc, require, RModule};
+use magnus::{class::object, require, RModule};
 use magnus::{
-    memoize, method,
+    gc, memoize, method,
     rb_sys::{AsRawId, AsRawValue, FromRawValue},
     typed_data::DataTypeBuilder,
     typed_data::Obj,

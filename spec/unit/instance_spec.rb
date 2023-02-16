@@ -6,8 +6,8 @@ module Wasmtime
       it "raises a TypeError when receiving invalid imports" do
         mod = Wasmtime::Module.new(engine, "(module)")
 
-        expect { Wasmtime::Instance.new(store, mod, "not an array") }
-          .to raise_error(TypeError, "no implicit conversion of String into Array")
+        expect { Wasmtime::Instance.new(store, mod, [:not_extern]) }
+          .to raise_error(TypeError, "unexpected extern: :not_extern")
       end
 
       it "accepts nil for imports" do

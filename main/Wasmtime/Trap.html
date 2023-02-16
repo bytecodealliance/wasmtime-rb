@@ -328,6 +328,7 @@
       <pre class="lines">
 
 
+59
 60
 61
 62
@@ -345,11 +346,10 @@
 74
 75
 76
-77
-78</pre>
+77</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/trap.rs', line 60</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/trap.rs', line 59</span>
 
 pub fn code(&amp;self) -&gt; Result&lt;Option&lt;Symbol&gt;, Error&gt; {
     match self.trap {
@@ -417,12 +417,12 @@ pub fn code(&amp;self) -&gt; Result&lt;Option&lt;Symbol&gt;, Error&gt; {
       <pre class="lines">
 
 
+41
 42
-43
-44</pre>
+43</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/trap.rs', line 42</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/trap.rs', line 41</span>
 
 pub fn message(&amp;self) -&gt; String {
     self.trap.to_string()
@@ -475,12 +475,12 @@ pub fn message(&amp;self) -&gt; String {
       <pre class="lines">
 
 
+51
 52
-53
-54</pre>
+53</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/trap.rs', line 52</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/trap.rs', line 51</span>
 
 pub fn wasm_backtrace_message(&amp;self) -&gt; Option&lt;String&gt; {
     self.wasm_backtrace.as_ref().map(|bt| format!(&quot;{bt}&quot;))
@@ -495,7 +495,7 @@ pub fn wasm_backtrace_message(&amp;self) -&gt; Option&lt;String&gt; {
 </div>
 
       <div id="footer">
-  Generated on Mon Feb 13 19:48:05 2023 by
+  Generated on Thu Feb 16 12:40:51 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

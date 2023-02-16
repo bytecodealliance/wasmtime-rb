@@ -318,16 +318,16 @@
       <pre class="lines">
 
 
+90
+91
+92
 93
 94
 95
-96
-97
-98
-99</pre>
+96</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 93</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 90</span>
 
 pub fn add_fuel(&amp;self, fuel: u64) -&gt; Result&lt;Value, Error&gt; {
     self.handle
@@ -405,14 +405,14 @@ pub fn add_fuel(&amp;self, fuel: u64) -&gt; Result&lt;Value, Error&gt; {
       <pre class="lines">
 
 
+101
+102
+103
 104
-105
-106
-107
-108</pre>
+105</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 104</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 101</span>
 
 pub fn consume_fuel(&amp;self, fuel: u64) -&gt; Result&lt;u64, Error&gt; {
     self.handle
@@ -464,19 +464,13 @@ pub fn consume_fuel(&amp;self, fuel: u64) -&gt; Result&lt;u64, Error&gt; {
 76
 77
 78
-79
-80
-81
-82</pre>
+79</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 70</span>
 
-pub fn export(
-    rb_self: WrappedStruct&lt;Caller&lt;&#39;a&gt;&gt;,
-    name: RString,
-) -&gt; Result&lt;Option&lt;Extern&lt;&#39;a&gt;&gt;, Error&gt; {
-    let caller = rb_self.try_convert::&lt;&amp;Self&gt;()?;
+pub fn export(rb_self: Obj&lt;Caller&lt;&#39;a&gt;&gt;, name: RString) -&gt; Result&lt;Option&lt;Extern&lt;&#39;a&gt;&gt;, Error&gt; {
+    let caller = rb_self.get();
     let inner = caller.handle.get_mut()?;
 
     if let Some(export) = inner.get_export(unsafe { name.as_str() }?) {
@@ -529,12 +523,12 @@ pub fn export(
       <pre class="lines">
 
 
-86
-87
-88</pre>
+83
+84
+85</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 86</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 83</span>
 
 pub fn fuel_consumed(&amp;self) -&gt; Result&lt;Option&lt;u64&gt;, Error&gt; {
     self.handle.get().map(|c| c.fuel_consumed())
@@ -608,7 +602,7 @@ pub fn store_data(&amp;self) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Mon Feb 13 19:48:05 2023 by
+  Generated on Thu Feb 16 12:40:51 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

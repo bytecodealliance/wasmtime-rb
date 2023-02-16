@@ -291,10 +291,10 @@
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/externals.rs', line 55</span>
 
-pub fn to_func(rb_self: WrappedStruct&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
-    match rb_self.get()? {
-        Extern::Func(f) =&gt; Ok(f.to_value()),
-        _ =&gt; conversion_err!(Self::inner_class(rb_self)?, Func::class()),
+pub fn to_func(rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
+    match rb_self.get() {
+        Extern::Func(f) =&gt; Ok(**f),
+        _ =&gt; conversion_err!(Self::inner_class(rb_self), Func::class()),
     }
 }</pre>
     </td>
@@ -356,10 +356,10 @@ pub fn to_func(rb_self: WrappedStruct&lt;Self&gt;) -&gt; Result&lt;Value, Error&
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/externals.rs', line 65</span>
 
-pub fn to_global(rb_self: WrappedStruct&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
-    match rb_self.get()? {
-        Extern::Global(g) =&gt; Ok(g.to_value()),
-        _ =&gt; conversion_err!(Self::inner_class(rb_self)?, Global::class()),
+pub fn to_global(rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
+    match rb_self.get() {
+        Extern::Global(g) =&gt; Ok(**g),
+        _ =&gt; conversion_err!(Self::inner_class(rb_self), Global::class()),
     }
 }</pre>
     </td>
@@ -421,10 +421,10 @@ pub fn to_global(rb_self: WrappedStruct&lt;Self&gt;) -&gt; Result&lt;Value, Erro
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/externals.rs', line 76</span>
 
-pub fn to_memory(rb_self: WrappedStruct&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
-    match rb_self.get()? {
-        Extern::Memory(m) =&gt; Ok(m.to_value()),
-        _ =&gt; conversion_err!(Self::inner_class(rb_self)?, Memory::class()),
+pub fn to_memory(rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
+    match rb_self.get() {
+        Extern::Memory(m) =&gt; Ok(**m),
+        _ =&gt; conversion_err!(Self::inner_class(rb_self), Memory::class()),
     }
 }</pre>
     </td>
@@ -486,10 +486,10 @@ pub fn to_memory(rb_self: WrappedStruct&lt;Self&gt;) -&gt; Result&lt;Value, Erro
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/externals.rs', line 86</span>
 
-pub fn to_table(rb_self: WrappedStruct&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
-    match rb_self.get()? {
-        Extern::Table(t) =&gt; Ok(t.to_value()),
-        _ =&gt; conversion_err!(Self::inner_class(rb_self)?, Table::class()),
+pub fn to_table(rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
+    match rb_self.get() {
+        Extern::Table(t) =&gt; Ok(**t),
+        _ =&gt; conversion_err!(Self::inner_class(rb_self), Table::class()),
     }
 }</pre>
     </td>
@@ -502,7 +502,7 @@ pub fn to_table(rb_self: WrappedStruct&lt;Self&gt;) -&gt; Result&lt;Value, Error
 </div>
 
       <div id="footer">
-  Generated on Mon Feb 13 19:48:05 2023 by
+  Generated on Thu Feb 16 12:40:51 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

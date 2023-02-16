@@ -117,17 +117,7 @@
     
   </ul>
 
-</div><h2>Defined Under Namespace</h2>
-<p class="children">
-  
-    
-  
-    
-      <strong class="classes">Classes:</strong> <span class='object_link'><a href="Memory/UnsafeSlice.html" title="Wasmtime::Memory::UnsafeSlice (class)">UnsafeSlice</a></span>
-    
-  
-</p>
-
+</div>
 
 
 
@@ -472,7 +462,7 @@
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 60</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
-    let args = scan_args::scan_args::&lt;(WrappedStruct&lt;Store&gt;,), (), (), (), _, ()&gt;(args)?;
+    let args = scan_args::scan_args::&lt;(Obj&lt;Store&gt;,), (), (), (), _, ()&gt;(args)?;
     let kw = scan_args::get_kwargs::&lt;_, (u32,), (Option&lt;u32&gt;,), ()&gt;(
         args.keywords,
         &amp;[*MIN_SIZE],
@@ -481,7 +471,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let (s,) = args.required;
     let (min,) = kw.required;
     let (max,) = kw.optional;
-    let store = s.get()?;
+    let store = s.get();
 
     let memtype = wasmtime::MemoryType::new(min, max);
     let inner = MemoryImpl::new(store.context_mut(), memtype).map_err(|e| error!(&quot;{}&quot;, e))?;
@@ -566,14 +556,14 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-184
-185
-186
 187
-188</pre>
+188
+189
+190
+191</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 184</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 187</span>
 
 pub fn grow(&amp;self, delta: u64) -&gt; Result&lt;u64, Error&gt; {
     self.inner
@@ -880,17 +870,23 @@ pub fn read(&amp;self, offset: usize, size: usize) -&gt; Result&lt;RString, Erro
 157
 158
 159
-160</pre>
+160
+161
+162
+163</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 154</span>
 
 pub fn read_unsafe_slice(
-    rb_self: WrappedStruct&lt;Self&gt;,
+    rb_self: Obj&lt;Self&gt;,
     offset: usize,
     size: usize,
-) -&gt; Result&lt;WrappedStruct&lt;UnsafeSlice&lt;&#39;a&gt;&gt;, Error&gt; {
-    Ok(UnsafeSlice::new(rb_self, offset..(offset + size))?.into())
+) -&gt; Result&lt;Obj&lt;UnsafeSlice&lt;&#39;a&gt;&gt;, Error&gt; {
+    Ok(Obj::wrap(UnsafeSlice::new(
+        rb_self,
+        offset..(offset + size),
+    )?))
 }</pre>
     </td>
   </tr>
@@ -1038,12 +1034,12 @@ pub fn read_utf8(&amp;self, offset: usize, size: usize) -&gt; Result&lt;RString,
       <pre class="lines">
 
 
-192
-193
-194</pre>
+195
+196
+197</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 192</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 195</span>
 
 pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
     Ok(self.inner.size(self.store.context()?))
@@ -1105,16 +1101,16 @@ pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
       <pre class="lines">
 
 
-169
-170
-171
 172
 173
 174
-175</pre>
+175
+176
+177
+178</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 169</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 172</span>
 
 pub fn write(&amp;self, offset: usize, value: RString) -&gt; Result&lt;(), Error&gt; {
     let slice = unsafe { value.as_slice() };
@@ -1133,7 +1129,7 @@ pub fn write(&amp;self, offset: usize, value: RString) -&gt; Result&lt;(), Error
 </div>
 
       <div id="footer">
-  Generated on Mon Feb 13 19:48:05 2023 by
+  Generated on Thu Feb 16 12:40:51 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

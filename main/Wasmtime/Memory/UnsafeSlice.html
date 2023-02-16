@@ -228,7 +228,6 @@
       <pre class="lines">
 
 
-77
 78
 79
 80
@@ -236,12 +235,13 @@
 82
 83
 84
-85</pre>
+85
+86</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory/unsafe_slice.rs', line 77</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory/unsafe_slice.rs', line 78</span>
 
-pub fn to_memory_view(rb_self: WrappedStruct&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
+pub fn to_memory_view(rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
     let klass = *memoize!(RClass: {
         let c = fiddle_memory_view_class().unwrap();
         gc::register_mark_object(c);
@@ -299,7 +299,6 @@ pub fn to_memory_view(rb_self: WrappedStruct&lt;Self&gt;) -&gt; Result&lt;Value,
       <pre class="lines">
 
 
-92
 93
 94
 95
@@ -309,14 +308,15 @@ pub fn to_memory_view(rb_self: WrappedStruct&lt;Self&gt;) -&gt; Result&lt;Value,
 99
 100
 101
-102</pre>
+102
+103</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory/unsafe_slice.rs', line 92</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory/unsafe_slice.rs', line 93</span>
 
-pub fn to_str(rb_self: WrappedStruct&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
-    let raw_slice = rb_self.get()?.get_raw_slice()?;
-    let id: Id = (*IVAR_NAME).into();
+pub fn to_str(rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
+    let raw_slice = rb_self.get().get_raw_slice()?;
+    let id = IVAR_NAME.into_id();
     let rstring = unsafe {
         let val = rb_str_new_static(raw_slice.as_ptr() as _, raw_slice.len() as _);
         rb_ivar_set(val, id.as_raw(), rb_self.as_raw());
@@ -335,7 +335,7 @@ pub fn to_str(rb_self: WrappedStruct&lt;Self&gt;) -&gt; Result&lt;Value, Error&g
 </div>
 
       <div id="footer">
-  Generated on Mon Feb 13 19:48:05 2023 by
+  Generated on Thu Feb 16 12:40:51 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

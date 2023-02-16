@@ -480,8 +480,8 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let (s, params, results) = args.required;
     let callable = args.block;
 
-    let wrapped_store: WrappedStruct&lt;Store&gt; = s.try_convert()?;
-    let store = wrapped_store.get()?;
+    let wrapped_store: Obj&lt;Store&gt; = s.try_convert()?;
+    let store = wrapped_store.get();
 
     store.retain(callable.into());
     let context = store.context_mut();
@@ -660,7 +660,7 @@ pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 150</span>
 
-pub fn params(&amp;self) -&gt; Result&lt;Vec&lt;Symbol&gt;, Error&gt; {
+pub fn params(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
     let params = self
         .inner
         .ty(self.store.context()?)
@@ -731,7 +731,7 @@ pub fn params(&amp;self) -&gt; Result&lt;Vec&lt;Symbol&gt;, Error&gt; {
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 162</span>
 
-pub fn results(&amp;self) -&gt; Result&lt;Vec&lt;Symbol&gt;, Error&gt; {
+pub fn results(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
     let results = self
         .inner
         .ty(self.store.context()?)
@@ -750,7 +750,7 @@ pub fn results(&amp;self) -&gt; Result&lt;Vec&lt;Symbol&gt;, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Mon Feb 13 19:48:05 2023 by
+  Generated on Thu Feb 16 12:40:51 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

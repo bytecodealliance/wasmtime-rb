@@ -505,10 +505,10 @@ pub fn new() -&gt; Self {
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_ctx_builder.rs', line 155</span>
 
-pub fn inherit_stderr(rb_self: RbSelf) -&gt; Result&lt;RbSelf, Error&gt; {
-    let mut inner = rb_self.get()?.inner.borrow_mut();
+pub fn inherit_stderr(rb_self: RbSelf) -&gt; RbSelf {
+    let mut inner = rb_self.get().inner.borrow_mut();
     inner.stderr = Some(WriteStream::Inherit);
-    Ok(rb_self)
+    rb_self
 }</pre>
     </td>
   </tr>
@@ -568,10 +568,10 @@ pub fn inherit_stderr(rb_self: RbSelf) -&gt; Result&lt;RbSelf, Error&gt; {
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_ctx_builder.rs', line 103</span>
 
-pub fn inherit_stdin(rb_self: RbSelf) -&gt; Result&lt;RbSelf, Error&gt; {
-    let mut inner = rb_self.get()?.inner.borrow_mut();
+pub fn inherit_stdin(rb_self: RbSelf) -&gt; RbSelf {
+    let mut inner = rb_self.get().inner.borrow_mut();
     inner.stdin = Some(ReadStream::Inherit);
-    Ok(rb_self)
+    rb_self
 }</pre>
     </td>
   </tr>
@@ -631,10 +631,10 @@ pub fn inherit_stdin(rb_self: RbSelf) -&gt; Result&lt;RbSelf, Error&gt; {
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_ctx_builder.rs', line 134</span>
 
-pub fn inherit_stdout(rb_self: RbSelf) -&gt; Result&lt;RbSelf, Error&gt; {
-    let mut inner = rb_self.get()?.inner.borrow_mut();
+pub fn inherit_stdout(rb_self: RbSelf) -&gt; RbSelf {
+    let mut inner = rb_self.get().inner.borrow_mut();
     inner.stdout = Some(WriteStream::Inherit);
-    Ok(rb_self)
+    rb_self
 }</pre>
     </td>
   </tr>
@@ -709,10 +709,10 @@ pub fn inherit_stdout(rb_self: RbSelf) -&gt; Result&lt;RbSelf, Error&gt; {
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_ctx_builder.rs', line 189</span>
 
-pub fn set_argv(rb_self: RbSelf, argv: RArray) -&gt; Result&lt;RbSelf, Error&gt; {
-    let mut inner = rb_self.get()?.inner.borrow_mut();
+pub fn set_argv(rb_self: RbSelf, argv: RArray) -&gt; RbSelf {
+    let mut inner = rb_self.get().inner.borrow_mut();
     inner.args = Some(argv);
-    Ok(rb_self)
+    rb_self
 }</pre>
     </td>
   </tr>
@@ -787,10 +787,10 @@ pub fn set_argv(rb_self: RbSelf, argv: RArray) -&gt; Result&lt;RbSelf, Error&gt;
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_ctx_builder.rs', line 178</span>
 
-pub fn set_env(rb_self: RbSelf, env: RHash) -&gt; Result&lt;RbSelf, Error&gt; {
-    let mut inner = rb_self.get()?.inner.borrow_mut();
+pub fn set_env(rb_self: RbSelf, env: RHash) -&gt; RbSelf {
+    let mut inner = rb_self.get().inner.borrow_mut();
     inner.env = Some(env);
-    Ok(rb_self)
+    rb_self
 }</pre>
     </td>
   </tr>
@@ -870,10 +870,10 @@ pub fn set_env(rb_self: RbSelf, env: RHash) -&gt; Result&lt;RbSelf, Error&gt; {
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_ctx_builder.rs', line 167</span>
 
-pub fn set_stderr_file(rb_self: RbSelf, path: RString) -&gt; Result&lt;RbSelf, Error&gt; {
-    let mut inner = rb_self.get()?.inner.borrow_mut();
+pub fn set_stderr_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
+    let mut inner = rb_self.get().inner.borrow_mut();
     inner.stderr = Some(WriteStream::Path(path));
-    Ok(rb_self)
+    rb_self
 }</pre>
     </td>
   </tr>
@@ -953,10 +953,10 @@ pub fn set_stderr_file(rb_self: RbSelf, path: RString) -&gt; Result&lt;RbSelf, E
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_ctx_builder.rs', line 114</span>
 
-pub fn set_stdin_file(rb_self: RbSelf, path: RString) -&gt; Result&lt;RbSelf, Error&gt; {
-    let mut inner = rb_self.get()?.inner.borrow_mut();
+pub fn set_stdin_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
+    let mut inner = rb_self.get().inner.borrow_mut();
     inner.stdin = Some(ReadStream::Path(path));
-    Ok(rb_self)
+    rb_self
 }</pre>
     </td>
   </tr>
@@ -1031,10 +1031,10 @@ pub fn set_stdin_file(rb_self: RbSelf, path: RString) -&gt; Result&lt;RbSelf, Er
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_ctx_builder.rs', line 125</span>
 
-pub fn set_stdin_string(rb_self: RbSelf, content: RString) -&gt; Result&lt;RbSelf, Error&gt; {
-    let mut inner = rb_self.get()?.inner.borrow_mut();
+pub fn set_stdin_string(rb_self: RbSelf, content: RString) -&gt; RbSelf {
+    let mut inner = rb_self.get().inner.borrow_mut();
     inner.stdin = Some(ReadStream::String(content));
-    Ok(rb_self)
+    rb_self
 }</pre>
     </td>
   </tr>
@@ -1114,10 +1114,10 @@ pub fn set_stdin_string(rb_self: RbSelf, content: RString) -&gt; Result&lt;RbSel
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_ctx_builder.rs', line 146</span>
 
-pub fn set_stdout_file(rb_self: RbSelf, path: RString) -&gt; Result&lt;RbSelf, Error&gt; {
-    let mut inner = rb_self.get()?.inner.borrow_mut();
+pub fn set_stdout_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
+    let mut inner = rb_self.get().inner.borrow_mut();
     inner.stdout = Some(WriteStream::Path(path));
-    Ok(rb_self)
+    rb_self
 }</pre>
     </td>
   </tr>
@@ -1129,7 +1129,7 @@ pub fn set_stdout_file(rb_self: RbSelf, path: RString) -&gt; Result&lt;RbSelf, E
 </div>
 
       <div id="footer">
-  Generated on Mon Feb 13 19:48:05 2023 by
+  Generated on Thu Feb 16 12:40:51 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

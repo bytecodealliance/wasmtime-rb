@@ -378,8 +378,8 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let args =
         scan_args::scan_args::&lt;(Value, &amp;Module), (Option&lt;Value&gt;,), (), (), (), ()&gt;(args)?;
     let (s, module) = args.required;
-    let wrapped_store: WrappedStruct&lt;Store&gt; = s.try_convert()?;
-    let store = wrapped_store.get()?;
+    let wrapped_store: Obj&lt;Store&gt; = s.try_convert()?;
+    let store = wrapped_store.get();
     let mut context = store.context_mut();
     let imports = args
         .optional
@@ -494,7 +494,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 114</span>
 
 pub fn export(&amp;self, str: RString) -&gt; Result&lt;Option&lt;super::externals::Extern&gt;, Error&gt; {
-    let store = self.store.get()?;
+    let store = self.store.get();
     let export = self
         .inner
         .get_export(store.context_mut(), unsafe { str.as_str()? });
@@ -568,12 +568,12 @@ pub fn export(&amp;self, str: RString) -&gt; Result&lt;Option&lt;super::external
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 91</span>
 
 pub fn exports(&amp;self) -&gt; Result&lt;RHash, Error&gt; {
-    let store = self.store.get()?;
+    let store = self.store.get();
     let mut ctx = store.context_mut();
     let hash = RHash::new();
 
     for export in self.inner.exports(&amp;mut ctx) {
-        let export_name: RString = export.name().into();
+        let export_name = RString::new(export.name());
         let wrapped_store = self.store;
         let wrapped_export = export
             .into_extern()
@@ -726,7 +726,7 @@ pub fn invoke(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Mon Feb 13 19:48:05 2023 by
+  Generated on Thu Feb 16 12:40:52 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

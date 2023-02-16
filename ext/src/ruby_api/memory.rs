@@ -6,10 +6,10 @@ use super::{
     root,
     store::{Store, StoreContextValue},
 };
-use crate::{define_data_class, define_rb_intern, error, helpers::WrappedStruct};
+use crate::{define_data_class, define_rb_intern, error};
 use magnus::{
-    function, memoize, method, r_string::RString, r_typed_data::DataTypeBuilder, scan_args,
-    DataTypeFunctions, Error, Module as _, Object, RClass, TypedData, Value,
+    function, memoize, method, r_string::RString, scan_args, typed_data::DataTypeBuilder,
+    typed_data::Obj, DataTypeFunctions, Error, Module as _, Object, RClass, TypedData, Value,
 };
 
 use wasmtime::{Extern, Memory as MemoryImpl};
@@ -58,7 +58,7 @@ impl<'a> Memory<'a> {
     /// @param min_size [Integer] The minimum memory pages.
     /// @param max_size [Integer, nil] The maximum memory pages.
     pub fn new(args: &[Value]) -> Result<Self, Error> {
-        let args = scan_args::scan_args::<(WrappedStruct<Store>,), (), (), (), _, ()>(args)?;
+        let args = scan_args::scan_args::<(Obj<Store>,), (), (), (), _, ()>(args)?;
         let kw = scan_args::get_kwargs::<_, (u32,), (Option<u32>,), ()>(
             args.keywords,
             &[*MIN_SIZE],
@@ -67,7 +67,7 @@ impl<'a> Memory<'a> {
         let (s,) = args.required;
         let (min,) = kw.required;
         let (max,) = kw.optional;
-        let store = s.get()?;
+        let store = s.get();
 
         let memtype = wasmtime::MemoryType::new(min, max);
         let inner = MemoryImpl::new(store.context_mut(), memtype).map_err(|e| error!("{}", e))?;
@@ -152,11 +152,14 @@ impl<'a> Memory<'a> {
     /// @param size [Integer]
     /// @return [Wasmtime::Memory::UnsafeSlice] Slice of the memory.
     pub fn read_unsafe_slice(
-        rb_self: WrappedStruct<Self>,
+        rb_self: Obj<Self>,
         offset: usize,
         size: usize,
-    ) -> Result<WrappedStruct<UnsafeSlice<'a>>, Error> {
-        Ok(UnsafeSlice::new(rb_self, offset..(offset + size))?.into())
+    ) -> Result<Obj<UnsafeSlice<'a>>, Error> {
+        Ok(Obj::wrap(UnsafeSlice::new(
+            rb_self,
+            offset..(offset + size),
+        )?))
     }
 
     /// @yard

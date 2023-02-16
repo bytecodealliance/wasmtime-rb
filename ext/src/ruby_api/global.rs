@@ -3,10 +3,10 @@ use super::{
     root,
     store::{Store, StoreContextValue},
 };
-use crate::{define_data_class, error, helpers::WrappedStruct};
+use crate::{define_data_class, error};
 use magnus::{
-    function, memoize, method, r_typed_data::DataTypeBuilder, DataTypeFunctions, Error,
-    Module as _, Object, RClass, Symbol, TypedData, Value,
+    function, memoize, method, typed_data::DataTypeBuilder, typed_data::Obj, DataTypeFunctions,
+    Error, Module as _, Object, RClass, Symbol, TypedData, Value,
 };
 use wasmtime::{Extern, Global as GlobalImpl, GlobalType, Mutability};
 
@@ -48,11 +48,7 @@ impl<'a> Global<'a> {
     /// @param type [Symbol] The WebAssembly type of the value held by this global.
     /// @param default [Object] The default value of this global.
     /// @return [Global] A constant global.
-    pub fn const_(
-        store: WrappedStruct<Store>,
-        value_type: Symbol,
-        default: Value,
-    ) -> Result<Self, Error> {
+    pub fn const_(store: Obj<Store>, value_type: Symbol, default: Value) -> Result<Self, Error> {
         Self::new(store, value_type, default, Mutability::Const)
     }
 
@@ -62,23 +58,19 @@ impl<'a> Global<'a> {
     /// @param type [Symbol] The WebAssembly type of the value held by this global.
     /// @param default [Object] The default value of this global.
     /// @return [Global] A variable global.
-    pub fn var(
-        store: WrappedStruct<Store>,
-        value_type: Symbol,
-        default: Value,
-    ) -> Result<Self, Error> {
+    pub fn var(store: Obj<Store>, value_type: Symbol, default: Value) -> Result<Self, Error> {
         Self::new(store, value_type, default, Mutability::Var)
     }
 
     fn new(
-        s: WrappedStruct<Store>,
+        s: Obj<Store>,
         value_type: Symbol,
         default: Value,
         mutability: Mutability,
     ) -> Result<Self, Error> {
         let wasm_type = value_type.to_val_type()?;
         let wasm_default = default.to_wasm_val(&wasm_type)?;
-        let store = s.get()?;
+        let store = s.get();
         let inner = GlobalImpl::new(
             store.context_mut(),
             GlobalType::new(wasm_type, mutability),

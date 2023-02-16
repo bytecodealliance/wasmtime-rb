@@ -3,10 +3,10 @@ use super::{
     root,
     store::{Store, StoreContextValue},
 };
-use crate::{define_data_class, define_rb_intern, error, helpers::WrappedStruct};
+use crate::{define_data_class, define_rb_intern, error};
 use magnus::{
-    function, memoize, method, r_typed_data::DataTypeBuilder, scan_args, DataTypeFunctions, Error,
-    Module as _, Object, RClass, Symbol, TypedData, Value, QNIL,
+    function, memoize, method, scan_args, typed_data::DataTypeBuilder, typed_data::Obj,
+    DataTypeFunctions, Error, Module as _, Object, RClass, Symbol, TypedData, Value, QNIL,
 };
 use wasmtime::{Extern, Table as TableImpl, TableType};
 
@@ -55,8 +55,7 @@ impl<'a> Table<'a> {
     /// @param min_size [Integer] The minimum number of elements in the table.
     /// @param max_size [Integer, nil] The maximum number of elements in the table.
     pub fn new(args: &[Value]) -> Result<Self, Error> {
-        let args =
-            scan_args::scan_args::<(WrappedStruct<Store>, Symbol, Value), (), (), (), _, ()>(args)?;
+        let args = scan_args::scan_args::<(Obj<Store>, Symbol, Value), (), (), (), _, ()>(args)?;
         let kw = scan_args::get_kwargs::<_, (u32,), (Option<u32>,), ()>(
             args.keywords,
             &[*MIN_SIZE],
@@ -65,7 +64,7 @@ impl<'a> Table<'a> {
         let (s, value_type, default) = args.required;
         let (min,) = kw.required;
         let (max,) = kw.optional;
-        let store = s.get()?;
+        let store = s.get();
         let wasm_type = value_type.to_val_type()?;
         let wasm_default = default.to_wasm_val(&wasm_type)?;
 

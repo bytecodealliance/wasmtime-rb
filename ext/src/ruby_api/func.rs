@@ -5,10 +5,10 @@ use super::{
     root,
     store::{Store, StoreContextValue, StoreData},
 };
-use crate::{define_data_class, helpers::WrappedStruct, Caller};
+use crate::{define_data_class, Caller};
 use magnus::{
-    block::Proc, function, memoize, method, r_typed_data::DataTypeBuilder, scan_args::scan_args,
-    DataTypeFunctions, Error, Module as _, Object, RArray, RClass, Symbol, TryConvert, TypedData,
+    block::Proc, function, memoize, method, scan_args::scan_args, typed_data::DataTypeBuilder,
+    typed_data::Obj, DataTypeFunctions, Error, Module as _, Object, RArray, RClass, TypedData,
     Value, QNIL,
 };
 use wasmtime::{Caller as CallerImpl, Func as FuncImpl, Val};
@@ -95,8 +95,8 @@ impl<'a> Func<'a> {
         let (s, params, results) = args.required;
         let callable = args.block;
 
-        let wrapped_store: WrappedStruct<Store> = s.try_convert()?;
-        let store = wrapped_store.get()?;
+        let wrapped_store: Obj<Store> = s.try_convert()?;
+        let store = wrapped_store.get();
 
         store.retain(callable.into());
         let context = store.context_mut();
@@ -147,7 +147,7 @@ impl<'a> Func<'a> {
 
     /// @yard
     /// @return [Array<Symbol>] The function's parameter types.
-    pub fn params(&self) -> Result<Vec<Symbol>, Error> {
+    pub fn params(&self) -> Result<RArray, Error> {
         let params = self
             .inner
             .ty(self.store.context()?)
@@ -159,7 +159,7 @@ impl<'a> Func<'a> {
 
     /// @yard
     /// @return [Array<Symbol>] The function's result types.
-    pub fn results(&self) -> Result<Vec<Symbol>, Error> {
+    pub fn results(&self) -> Result<RArray, Error> {
         let results = self
             .inner
             .ty(self.store.context()?)
@@ -211,8 +211,8 @@ pub fn make_func_closure(
     let callable = ShareableProc(callable);
 
     move |caller_impl: CallerImpl<'_, StoreData>, params: &[Val], results: &mut [Val]| {
-        let wrapped_caller: WrappedStruct<Caller> = Caller::new(caller_impl).into();
-        let caller = wrapped_caller.get().unwrap();
+        let wrapped_caller = Obj::wrap(Caller::new(caller_impl));
+        let caller = wrapped_caller.get();
         let store_context = StoreContextValue::from(wrapped_caller);
 
         let rparams = RArray::with_capacity(params.len() + 1);
@@ -234,7 +234,7 @@ pub fn make_func_closure(
                     0 => Ok(()), // Ignore return value
                     n => {
                         // For len=1, accept both `val` and `[val]`
-                        let proc_result = RArray::try_convert(proc_result)?;
+                        let proc_result = RArray::to_ary(proc_result)?;
                         if proc_result.len() != n {
                             return Err(Error::new(
                                 result_error(),

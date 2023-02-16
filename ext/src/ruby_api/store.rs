@@ -1,10 +1,10 @@
 use super::errors::wasi_exit_error;
 use super::{caller::Caller, engine::Engine, root, trap::Trap, wasi_ctx_builder::WasiCtxBuilder};
-use crate::{define_rb_intern, error, helpers::WrappedStruct};
+use crate::{define_rb_intern, error};
 use magnus::Class;
 use magnus::{
-    function, gc, method, scan_args, DataTypeFunctions, Error, Module, Object, TypedData, Value,
-    QNIL,
+    function, gc, method, scan_args, typed_data::Obj, DataTypeFunctions, Error, Module, Object,
+    TypedData, Value, QNIL,
 };
 use std::cell::UnsafeCell;
 use std::convert::TryFrom;
@@ -198,18 +198,18 @@ impl Store {
 /// Used in places where both Store or Caller can be used.
 #[derive(Debug, Clone, Copy)]
 pub enum StoreContextValue<'a> {
-    Store(WrappedStruct<Store>),
-    Caller(WrappedStruct<Caller<'a>>),
+    Store(Obj<Store>),
+    Caller(Obj<Caller<'a>>),
 }
 
-impl<'a> From<WrappedStruct<Store>> for StoreContextValue<'a> {
-    fn from(store: WrappedStruct<Store>) -> Self {
+impl<'a> From<Obj<Store>> for StoreContextValue<'a> {
+    fn from(store: Obj<Store>) -> Self {
         StoreContextValue::Store(store)
     }
 }
 
-impl<'a> From<WrappedStruct<Caller<'a>>> for StoreContextValue<'a> {
-    fn from(caller: WrappedStruct<Caller<'a>>) -> Self {
+impl<'a> From<Obj<Caller<'a>>> for StoreContextValue<'a> {
+    fn from(caller: Obj<Caller<'a>>) -> Self {
         StoreContextValue::Caller(caller)
     }
 }
@@ -217,7 +217,7 @@ impl<'a> From<WrappedStruct<Caller<'a>>> for StoreContextValue<'a> {
 impl<'a> StoreContextValue<'a> {
     pub fn mark(&self) {
         match self {
-            Self::Store(store) => store.mark(),
+            Self::Store(store) => gc::mark(*store),
             Self::Caller(_) => {
                 // The Caller is on the stack while it's "live". Right before the end of a host call,
                 // we remove the Caller form the Ruby object, thus there is no need to mark.
@@ -227,15 +227,15 @@ impl<'a> StoreContextValue<'a> {
 
     pub fn context(&self) -> Result<StoreContext<StoreData>, Error> {
         match self {
-            Self::Store(store) => Ok(store.get()?.context()),
-            Self::Caller(caller) => caller.get()?.context(),
+            Self::Store(store) => Ok(store.get().context()),
+            Self::Caller(caller) => caller.get().context(),
         }
     }
 
     pub fn context_mut(&self) -> Result<StoreContextMut<StoreData>, Error> {
         match self {
-            Self::Store(store) => Ok(store.get()?.context_mut()),
-            Self::Caller(caller) => caller.get()?.context_mut(),
+            Self::Store(store) => Ok(store.get().context_mut()),
+            Self::Caller(caller) => caller.get().context_mut(),
         }
     }
 

@@ -93,17 +93,29 @@ impl Linker {
 
     /// @yard
     /// Define an item in this linker.
-    /// @def define(mod, name, item)
+    /// @def define(store, mod, name, item)
+    /// @param store [Store]
     /// @param mod [String] Module name
     /// @param name [String] Import name
     /// @param item [Func, Memory] The item to define.
     /// @return [void]
-    pub fn define(&self, module: RString, name: RString, item: Value) -> Result<(), Error> {
+    pub fn define(
+        &self,
+        store: &Store,
+        module: RString,
+        name: RString,
+        item: Value,
+    ) -> Result<(), Error> {
         let item = item.to_extern()?;
 
         self.inner
             .borrow_mut()
-            .define(unsafe { module.as_str()? }, unsafe { name.as_str()? }, item)
+            .define(
+                store.context(),
+                unsafe { module.as_str()? },
+                unsafe { name.as_str()? },
+                item,
+            )
             .map(|_| ())
             .map_err(|e| error!("{}", e))
     }
@@ -312,7 +324,7 @@ pub fn init() -> Result<(), Error> {
         "define_unknown_imports_as_traps",
         method!(Linker::define_unknown_imports_as_traps, 1),
     )?;
-    class.define_method("define", method!(Linker::define, 3))?;
+    class.define_method("define", method!(Linker::define, 4))?;
     class.define_method("func_new", method!(Linker::func_new, -1))?;
     class.define_method("get", method!(Linker::get, 3))?;
     class.define_method("instance", method!(Linker::instance, 3))?;

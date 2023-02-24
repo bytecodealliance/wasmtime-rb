@@ -6,6 +6,7 @@ on:
   push:
     branches: ["**"]
     tags-ignore: ["v**"]  # Skip CI for releases
+  pull_request:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

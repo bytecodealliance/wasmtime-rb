@@ -236,7 +236,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#define-instance_method" title="#define (instance method)">#<strong>define</strong>(mod, name, item)  &#x21d2; void </a>
+      <a href="#define-instance_method" title="#define (instance method)">#<strong>define</strong>(store, mod, name, item)  &#x21d2; void </a>
     
 
     
@@ -615,27 +615,27 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-223
-224
-225
-226
-227
-228
-229
-230
-231
-232
-233
-234
 235
 236
 237
 238
 239
-240</pre>
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 223</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 235</span>
 
 pub fn alias(
     &amp;self,
@@ -775,7 +775,7 @@ pub fn set_allow_unknown_exports(&amp;self, val: bool) {
       <div class="method_details ">
   <h3 class="signature " id="define-instance_method">
   
-    #<strong>define</strong>(mod, name, item)  &#x21d2; <tt>void</tt> 
+    #<strong>define</strong>(store, mod, name, item)  &#x21d2; <tt>void</tt> 
   
 
   
@@ -792,6 +792,17 @@ pub fn set_allow_unknown_exports(&amp;self, val: bool) {
 <div class="tags">
   <p class="tag_title">Parameters:</p>
 <ul class="param">
+  
+    <li>
+      
+        <span class='name'>store</span>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span></tt>)</span>
+      
+      
+      
+    </li>
   
     <li>
       
@@ -850,7 +861,6 @@ pub fn set_allow_unknown_exports(&amp;self, val: bool) {
       <pre class="lines">
 
 
-101
 102
 103
 104
@@ -858,17 +868,40 @@ pub fn set_allow_unknown_exports(&amp;self, val: bool) {
 106
 107
 108
-109</pre>
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 101</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 102</span>
 
-pub fn define(&amp;self, module: RString, name: RString, item: Value) -&gt; Result&lt;(), Error&gt; {
+pub fn define(
+    &amp;self,
+    store: &amp;Store,
+    module: RString,
+    name: RString,
+    item: Value,
+) -&gt; Result&lt;(), Error&gt; {
     let item = item.to_extern()?;
 
     self.inner
         .borrow_mut()
-        .define(unsafe { module.as_str()? }, unsafe { name.as_str()? }, item)
+        .define(
+            store.context(),
+            unsafe { module.as_str()? },
+            unsafe { name.as_str()? },
+            item,
+        )
         .map(|_| ())
         .map_err(|e| error!(&quot;{}&quot;, e))
 }</pre>
@@ -1058,18 +1091,6 @@ pub fn define_unknown_imports_as_traps(&amp;self, module: &amp;Module) -&gt; Res
       <pre class="lines">
 
 
-124
-125
-126
-127
-128
-129
-130
-131
-132
-133
-134
-135
 136
 137
 138
@@ -1077,10 +1098,22 @@ pub fn define_unknown_imports_as_traps(&amp;self, module: &amp;Module) -&gt; Res
 140
 141
 142
-143</pre>
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 124</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 136</span>
 
 pub fn func_new(&amp;self, args: &amp;[Value]) -&gt; Result&lt;(), Error&gt; {
     let args = scan_args::&lt;(RString, RString, RArray, RArray), (), (), (), RHash, Proc&gt;(args)?;
@@ -1198,28 +1231,28 @@ pub fn func_new(&amp;self, args: &amp;[Value]) -&gt; Result&lt;(), Error&gt; {
       <pre class="lines">
 
 
-153
-154
-155
-156
-157
-158
-159
-160
-161
-162
-163
-164
 165
 166
 167
 168
 169
 170
-171</pre>
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 153</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 165</span>
 
 pub fn get(
     &amp;self,
@@ -1315,19 +1348,19 @@ pub fn get(
       <pre class="lines">
 
 
-292
-293
-294
-295
-296
-297
-298
-299
-300
-301</pre>
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 292</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 304</span>
 
 pub fn get_default(&amp;self, s: Obj&lt;Store&gt;, module: RString) -&gt; Result&lt;Func, Error&gt; {
         let store = s.get();
@@ -1412,25 +1445,25 @@ pub fn get_default(&amp;self, s: Obj&lt;Store&gt;, module: RString) -&gt; Result
       <pre class="lines">
 
 
-181
-182
-183
-184
-185
-186
-187
-188
-189
-190
-191
-192
 193
 194
 195
-196</pre>
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 181</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 193</span>
 
 pub fn instance(
     &amp;self,
@@ -1518,18 +1551,6 @@ pub fn instance(
       <pre class="lines">
 
 
-263
-264
-265
-266
-267
-268
-269
-270
-271
-272
-273
-274
 275
 276
 277
@@ -1539,10 +1560,22 @@ pub fn instance(
 281
 282
 283
-284</pre>
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 263</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 275</span>
 
 pub fn instantiate(&amp;self, s: Obj&lt;Store&gt;, module: &amp;Module) -&gt; Result&lt;Instance, Error&gt; {
     let store = s.get();
@@ -1639,16 +1672,16 @@ pub fn instantiate(&amp;self, s: Obj&lt;Store&gt;, module: &amp;Module) -&gt; Re
       <pre class="lines">
 
 
-206
-207
-208
-209
-210
-211
-212</pre>
+218
+219
+220
+221
+222
+223
+224</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 206</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 218</span>
 
 pub fn module(&amp;self, store: &amp;Store, name: RString, module: &amp;Module) -&gt; Result&lt;(), Error&gt; {
     self.inner
@@ -1667,7 +1700,7 @@ pub fn module(&amp;self, store: &amp;Store, name: RString, module: &amp;Module) 
 </div>
 
       <div id="footer">
-  Generated on Mon Feb 20 11:28:35 2023 by
+  Generated on Fri Feb 24 04:57:18 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

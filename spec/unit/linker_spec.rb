@@ -44,7 +44,7 @@ module Wasmtime
         linker = new_linker
         store = Store.new(engine)
         memory = Memory.new(store, min_size: 1)
-        linker.define("mod", "mem", memory)
+        linker.define(store, "mod", "mem", memory)
         expect(linker.get(store, "mod", "mem").to_memory).to be_instance_of(Memory)
       end
 
@@ -52,14 +52,14 @@ module Wasmtime
         linker = new_linker
         store = Store.new(engine)
         func = Func.new(store, [], []) {}
-        linker.define("mod", "fn", func)
+        linker.define(store, "mod", "fn", func)
         expect(linker.get(store, "mod", "fn").to_func).to be_instance_of(Func)
       end
 
       it "accepts table" do
         linker = new_linker
         table = Table.new(store, :funcref, nil, min_size: 1)
-        linker.define("mod", "table", table)
+        linker.define(store, "mod", "table", table)
         expect(linker.get(store, "mod", "table").to_table).to be_instance_of(Table)
       end
 
@@ -67,7 +67,7 @@ module Wasmtime
         linker = new_linker
         store = Store.new(engine)
         global = Global.var(store, :i32, 1)
-        linker.define("mod", "glob", global)
+        linker.define(store, "mod", "glob", global)
         expect(linker.get(store, "mod", "glob").to_global).to be_instance_of(Global)
       end
     end

@@ -21,6 +21,7 @@ Gem::Specification.new do |spec|
 
   spec.files = Dir["{lib,ext}/**/*", "LICENSE", "README.md", "Cargo.*"]
   spec.files.reject! { |f| File.directory?(f) }
+  spec.files.reject! { |f| f =~ /\.(dll|so|dylib|lib|bundle)\Z/ }
   spec.bindir = "exe"
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]

@@ -1,5 +1,16 @@
 # Changelog
 
+## [v6.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v6.0.0) (2023-03-06)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v5.0.0...v6.0.0)
+
+**Merged pull requests:**
+
+- Update Wasmtime to 6.0 [\#152](https://github.com/bytecodealliance/wasmtime-rb/pull/152) ([jbourassa](https://github.com/jbourassa))
+- Tweak codegen flags for optimized, profile-able builds [\#131](https://github.com/bytecodealliance/wasmtime-rb/pull/131) ([ianks](https://github.com/ianks))
+- Document profiling configuration from \#125 [\#127](https://github.com/bytecodealliance/wasmtime-rb/pull/127) ([jbourassa](https://github.com/jbourassa))
+- Add support for profiling configuration [\#125](https://github.com/bytecodealliance/wasmtime-rb/pull/125) ([dylanahsmith](https://github.com/dylanahsmith))
+
 ## [v5.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v5.0.0) (2023-01-23)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v0.4.1...v5.0.0)

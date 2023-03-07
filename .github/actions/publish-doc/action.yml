@@ -12,6 +12,7 @@ runs:
         name: doc
         path: doc
         workflow: ci.yml
+        run_id: ${{ github.run_id }}
 
     - name: Current doc dir
       id: doc-dir

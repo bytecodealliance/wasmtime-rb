@@ -7,12 +7,10 @@ runs:
         ref: gh-pages
 
     - name: Download docs
-      uses: dawidd6/action-download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: doc
         path: doc
-        workflow: ci.yml
-        run_id: ${{ github.run_id }}
 
     - name: Current doc dir
       id: doc-dir

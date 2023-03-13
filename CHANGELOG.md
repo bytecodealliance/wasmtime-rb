@@ -1,5 +1,15 @@
 # Changelog
 
+## [v6.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v6.0.1) (2023-03-13)
+
+This release includes 2 security fixes from Wasmtime, see the [Wasmtime 6.0.1 release notes](https://github.com/bytecodealliance/wasmtime/blob/v6.0.1/RELEASES.md#601).
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v6.0.0...v6.0.1)
+
+**Merged pull requests:**
+
+- Bump Wasmtime to 6.0.1 [\#155](https://github.com/bytecodealliance/wasmtime-rb/pull/155) ([jbourassa](https://github.com/jbourassa))
+
 ## [v6.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v6.0.0) (2023-03-06)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v5.0.0...v6.0.0)

@@ -68,4 +68,4 @@ RSpec.configure do |config|
   end
 end
 
-at_exit { GC.start(full_mark: true) }
+at_exit { GC.start(full_mark: true) } if ENV["GC_AT_EXIT"] == "1"

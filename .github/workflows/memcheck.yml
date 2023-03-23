@@ -16,7 +16,7 @@ on:
           - "2.7"
   push:
     branches: ["*"]
-    tags-ignore: ["v*"]  # Skip Memcheck for releases
+    tags-ignore: ["v*"] # Skip Memcheck for releases
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -48,6 +48,7 @@ jobs:
         env:
           RSPEC_FORMATTER: "progress"
           RSPEC_FAILURE_EXIT_CODE: "0"
+          GC_AT_EXIT: "1"
         run: |
           if ! bundle exec rake mem:check; then
             echo "::error::Valgrind memory check failed, for more info please see ./suppressions/readme.md"

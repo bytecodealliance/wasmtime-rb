@@ -51,6 +51,11 @@ module Wasmtime
             .to raise_error(ArgumentError, /invalid :#{option}.*:nope/)
         end
       end
+
+      it "supports target options" do
+        expect { Engine.new(target: "x86_64-unknown-linux-gnu") }.not_to raise_error
+        expect { Engine.new(target: "nope") }.to raise_error(ArgumentError, /Unrecognized architecture/)
+      end
     end
 
     describe ".precompile_module" do

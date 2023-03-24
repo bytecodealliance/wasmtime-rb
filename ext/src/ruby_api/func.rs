@@ -252,7 +252,7 @@ pub fn make_func_closure(
                             .zip(ty.results())
                             .enumerate()
                         {
-                            *wasm_val = rb_val.to_wasm_val(&ty).map_err(|e| {
+                            *wasm_val = rb_val.to_wasm_val(ty).map_err(|e| {
                                 Error::new(
                                     result_error(),
                                     format!("{e} (result index {i} in {callable})"),

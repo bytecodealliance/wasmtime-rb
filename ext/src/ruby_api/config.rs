@@ -26,6 +26,7 @@ define_rb_intern!(
     VTUNE => "vtune",
     SPEED => "speed",
     SPEED_AND_SIZE => "speed_and_size",
+    TARGET => "target",
 );
 
 lazy_static! {
@@ -79,6 +80,11 @@ pub fn hash_to_config(hash: RHash) -> Result<Config, Error> {
             config.profiler(entry.try_into()?);
         } else if *CRANELIFT_OPT_LEVEL == id {
             config.cranelift_opt_level(entry.try_into()?);
+        } else if *TARGET == id {
+            let target: String = entry.try_into()?;
+            config.target(&target).map_err(|e| {
+                Error::new(arg_error(), format!("Invalid target: {}: {}", target, e))
+            })?;
         } else {
             return Err(Error::new(
                 arg_error(),
@@ -111,6 +117,13 @@ impl TryFrom<ConfigEntry> for bool {
 }
 
 impl TryFrom<ConfigEntry> for usize {
+    type Error = magnus::Error;
+    fn try_from(value: ConfigEntry) -> Result<Self, Self::Error> {
+        value.1.try_convert().map_err(|_| value.invalid_type())
+    }
+}
+
+impl TryFrom<ConfigEntry> for String {
     type Error = magnus::Error;
     fn try_from(value: ConfigEntry) -> Result<Self, Self::Error> {
         value.1.try_convert().map_err(|_| value.invalid_type())

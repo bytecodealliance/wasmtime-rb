@@ -49,6 +49,7 @@ impl Engine {
     /// @option config [Boolean] :parallel_compilation
     /// @option config [Symbol] :cranelift_opt_level One of +none+, +speed+, +speed_and_size+.
     /// @option config [Symbol] :profiler One of +none+, +jitdump+, +vtune+.
+    /// @option config [String] :target
     ///
     /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Engine.html
     ///     Wasmtime's Rust doc for details of the configuration options.

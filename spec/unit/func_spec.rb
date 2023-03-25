@@ -72,7 +72,7 @@ module Wasmtime
         func = build_func([], [:i32, :i32]) { [1, nil] }
         expect { func.call }.to raise_error(Wasmtime::ResultError) do |error|
           expect(error.message).to match(/no implicit conversion of nil into Integer/)
-          expect(error.message).to match(/result index 1/)
+          expect(error.message).to match(/result at index 1/)
           expect(error.message).to match(/func_spec.rb:\d+/)
         end
       end

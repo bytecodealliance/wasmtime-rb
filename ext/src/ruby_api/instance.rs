@@ -65,8 +65,13 @@ impl Instance {
         };
 
         let module = module.get();
-        let inner = InstanceImpl::new(context, module, &imports)
-            .map_err(|e| StoreContextValue::from(wrapped_store).handle_wasm_error(e))?;
+        let inner = InstanceImpl::new(context, module, &imports).map_err(|e| {
+            if let Some(err) = store.take_last_error() {
+                err
+            } else {
+                StoreContextValue::from(wrapped_store).handle_wasm_error(e)
+            }
+        })?;
 
         Ok(Self {
             inner,

@@ -2,37 +2,29 @@ use super::{
     convert::WrapWasmtimeType, func::Func, global::Global, memory::Memory, root,
     store::StoreContextValue, table::Table,
 };
-use crate::{conversion_err, define_data_class, not_implemented};
+use crate::{conversion_err, not_implemented};
 use magnus::{
-    gc, memoize, method, rb_sys::AsRawValue, typed_data::DataTypeBuilder, typed_data::Obj,
-    DataTypeFunctions, Error, Module, RClass, TypedData, Value,
+    gc, method, rb_sys::AsRawValue, typed_data::Obj, DataTypeFunctions, Error, Module, RClass,
+    TypedData, Value,
 };
 
 /// @yard
 /// @rename Wasmtime::Extern
 /// An external item to a WebAssembly module, or a list of what can possibly be exported from a Wasm module.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/enum.Extern.html Wasmtime's Rust doc
+#[derive(TypedData)]
+#[magnus(
+    class = "Wasmtime::Extern",
+    size,
+    mark,
+    free_immediately,
+    unsafe_generics
+)]
 pub enum Extern<'a> {
     Func(Obj<Func<'a>>),
     Global(Obj<Global<'a>>),
     Memory(Obj<Memory<'a>>),
     Table(Obj<Table<'a>>),
-}
-
-unsafe impl TypedData for Extern<'_> {
-    fn class() -> magnus::RClass {
-        *memoize!(RClass: define_data_class!(root(), "Extern"))
-    }
-
-    fn data_type() -> &'static magnus::DataType {
-        memoize!(magnus::DataType: {
-            let mut builder = DataTypeBuilder::<Extern<'_>>::new("Wasmtime::Extern");
-            builder.size();
-            builder.mark();
-            builder.free_immediately();
-            builder.build()
-        })
-    }
 }
 
 impl DataTypeFunctions for Extern<'_> {

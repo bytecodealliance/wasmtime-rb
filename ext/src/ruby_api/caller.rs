@@ -1,9 +1,6 @@
 use super::{convert::WrapWasmtimeType, externals::Extern, root, store::StoreData};
-use crate::{define_data_class, error};
-use magnus::{
-    memoize, method, typed_data::DataTypeBuilder, typed_data::Obj, DataTypeFunctions, Error,
-    Module as _, RClass, RString, TypedData, Value, QNIL,
-};
+use crate::error;
+use magnus::{method, typed_data::Obj, Error, Module as _, RString, Value, QNIL};
 use std::cell::UnsafeCell;
 use wasmtime::{AsContext, AsContextMut, Caller as CallerImpl, StoreContext, StoreContextMut};
 
@@ -46,6 +43,7 @@ impl<'a> CallerHandle<'a> {
 /// block argument in {Func.new}).
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Caller.html Wasmtime's Rust doc
 #[derive(Debug)]
+#[magnus::wrap(class = "Wasmtime::Caller", free_immediately, unsafe_generics)]
 pub struct Caller<'a> {
     handle: CallerHandle<'a>,
 }
@@ -116,22 +114,6 @@ impl<'a> Caller<'a> {
         self.handle.expire();
     }
 }
-
-unsafe impl<'a> TypedData for Caller<'a> {
-    fn class() -> magnus::RClass {
-        *memoize!(RClass: define_data_class!(root(), "Caller"))
-    }
-
-    fn data_type() -> &'static magnus::DataType {
-        memoize!(magnus::DataType: {
-            let mut builder = DataTypeBuilder::<Caller<'_>>::new("Wasmtime::Caller");
-            builder.free_immediately();
-            builder.build()
-        })
-    }
-}
-
-impl DataTypeFunctions for Caller<'_> {}
 
 unsafe impl Send for Caller<'_> {}
 

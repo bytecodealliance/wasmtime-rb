@@ -5,11 +5,10 @@ use super::{
     root,
     store::{Store, StoreContextValue, StoreData},
 };
-use crate::{define_data_class, Caller};
+use crate::Caller;
 use magnus::{
-    block::Proc, function, memoize, method, scan_args::scan_args, typed_data::DataTypeBuilder,
-    typed_data::Obj, DataTypeFunctions, Error, Module as _, Object, RArray, RClass, TypedData,
-    Value, QNIL,
+    block::Proc, function, method, scan_args::scan_args, typed_data::Obj, DataTypeFunctions, Error,
+    Module as _, Object, RArray, TypedData, Value, QNIL,
 };
 use wasmtime::{Caller as CallerImpl, Func as FuncImpl, Val};
 
@@ -17,26 +16,17 @@ use wasmtime::{Caller as CallerImpl, Func as FuncImpl, Val};
 /// @rename Wasmtime::Func
 /// Represents a WebAssembly Function
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Func.html Wasmtime's Rust doc
-#[derive(Debug)]
+#[derive(Debug, TypedData)]
+#[magnus(
+    class = "Wasmtime::Func",
+    size,
+    mark,
+    free_immediately,
+    unsafe_generics
+)]
 pub struct Func<'a> {
     store: StoreContextValue<'a>,
     inner: FuncImpl,
-}
-
-unsafe impl<'a> TypedData for Func<'a> {
-    fn class() -> magnus::RClass {
-        *memoize!(RClass: define_data_class!(root(), "Func"))
-    }
-
-    fn data_type() -> &'static magnus::DataType {
-        memoize!(magnus::DataType: {
-            let mut builder = DataTypeBuilder::<Func<'_>>::new("Wasmtime::Func");
-            builder.size();
-            builder.mark();
-            builder.free_immediately();
-            builder.build()
-        })
-    }
 }
 
 impl DataTypeFunctions for Func<'_> {

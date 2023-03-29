@@ -11,6 +11,8 @@ pub(crate) use ruby_api::*;
 #[magnus::init]
 pub fn init() -> Result<(), Error> {
     #[cfg(ruby_gte_3_0)]
-    unsafe { rb_sys::rb_ext_ractor_safe(true); }
+    unsafe {
+        rb_sys::rb_ext_ractor_safe(true);
+    }
     ruby_api::init()
 }

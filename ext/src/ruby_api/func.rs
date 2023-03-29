@@ -181,13 +181,7 @@ impl<'a> Func<'a> {
 
         match func.call(context, &params, &mut results) {
             Ok(()) => Ok(()),
-            Err(e) => {
-                if let Ok(Some(err)) = store.take_last_error() {
-                    Err(err)
-                } else {
-                    Err(store.handle_wasm_error(e))
-                }
-            }
+            Err(e) => Err(store.handle_wasm_error(e)),
         }?;
 
         match results.as_slice() {

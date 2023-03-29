@@ -277,13 +277,6 @@ impl<'a> StoreContextValue<'a> {
         }
     }
 
-    pub fn take_last_error(&self) -> Result<Option<Error>, Error> {
-        match self {
-            Self::Store(store) => Ok(store.get().take_last_error()),
-            Self::Caller(caller) => Ok(caller.get().context_mut()?.data_mut().take_error()),
-        }
-    }
-
     pub fn set_last_error(&self, error: Error) {
         match self {
             Self::Store(store) => store.get().context_mut().data_mut().set_error(error),
@@ -296,7 +289,9 @@ impl<'a> StoreContextValue<'a> {
     }
 
     pub fn handle_wasm_error(&self, error: anyhow::Error) -> Error {
-        if let Some(exit) = error.downcast_ref::<I32Exit>() {
+        if let Ok(Some(error)) = self.take_last_error() {
+            error
+        } else if let Some(exit) = error.downcast_ref::<I32Exit>() {
             wasi_exit_error().new_instance((exit.0,)).unwrap().into()
         } else {
             Trap::try_from(error)
@@ -311,6 +306,13 @@ impl<'a> StoreContextValue<'a> {
     pub fn retain(&self, value: Value) -> Result<(), Error> {
         self.context_mut()?.data_mut().retain(value);
         Ok(())
+    }
+
+    fn take_last_error(&self) -> Result<Option<Error>, Error> {
+        match self {
+            Self::Store(store) => Ok(store.get().take_last_error()),
+            Self::Caller(caller) => Ok(caller.get().context_mut()?.data_mut().take_error()),
+        }
     }
 }
 

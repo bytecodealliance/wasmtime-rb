@@ -288,13 +288,7 @@ impl Linker {
         self.inner
             .borrow_mut()
             .instantiate(store.context_mut(), module.get())
-            .map_err(|e| {
-                if let Some(err) = store.take_last_error() {
-                    err
-                } else {
-                    StoreContextValue::from(s).handle_wasm_error(e)
-                }
-            })
+            .map_err(|e| StoreContextValue::from(s).handle_wasm_error(e))
             .map(|instance| {
                 self.refs.borrow().iter().for_each(|val| store.retain(*val));
                 Instance::from_inner(s, instance)

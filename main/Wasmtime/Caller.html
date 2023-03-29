@@ -318,16 +318,16 @@
       <pre class="lines">
 
 
+88
+89
 90
 91
 92
 93
-94
-95
-96</pre>
+94</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 90</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 88</span>
 
 pub fn add_fuel(&amp;self, fuel: u64) -&gt; Result&lt;Value, Error&gt; {
     self.handle
@@ -405,14 +405,14 @@ pub fn add_fuel(&amp;self, fuel: u64) -&gt; Result&lt;Value, Error&gt; {
       <pre class="lines">
 
 
+99
+100
 101
 102
-103
-104
-105</pre>
+103</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 101</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 99</span>
 
 pub fn consume_fuel(&amp;self, fuel: u64) -&gt; Result&lt;u64, Error&gt; {
     self.handle
@@ -455,6 +455,8 @@ pub fn consume_fuel(&amp;self, fuel: u64) -&gt; Result&lt;u64, Error&gt; {
       <pre class="lines">
 
 
+68
+69
 70
 71
 72
@@ -462,12 +464,10 @@ pub fn consume_fuel(&amp;self, fuel: u64) -&gt; Result&lt;u64, Error&gt; {
 74
 75
 76
-77
-78
-79</pre>
+77</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 70</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 68</span>
 
 pub fn export(rb_self: Obj&lt;Caller&lt;&#39;a&gt;&gt;, name: RString) -&gt; Result&lt;Option&lt;Extern&lt;&#39;a&gt;&gt;, Error&gt; {
     let caller = rb_self.get();
@@ -523,12 +523,12 @@ pub fn export(rb_self: Obj&lt;Caller&lt;&#39;a&gt;&gt;, name: RString) -&gt; Res
       <pre class="lines">
 
 
-83
-84
-85</pre>
+81
+82
+83</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 83</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 81</span>
 
 pub fn fuel_consumed(&amp;self) -&gt; Result&lt;Option&lt;u64&gt;, Error&gt; {
     self.handle.get().map(|c| c.fuel_consumed())
@@ -582,12 +582,12 @@ pub fn fuel_consumed(&amp;self) -&gt; Result&lt;Option&lt;u64&gt;, Error&gt; {
       <pre class="lines">
 
 
-63
-64
-65</pre>
+61
+62
+63</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 63</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 61</span>
 
 pub fn store_data(&amp;self) -&gt; Result&lt;Value, Error&gt; {
     self.context().map(|ctx| ctx.data().user_data())
@@ -602,7 +602,7 @@ pub fn store_data(&amp;self) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Wed Mar 29 20:57:54 2023 by
+  Generated on Wed Mar 29 21:19:04 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.1.3).
 </div>

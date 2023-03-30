@@ -16,7 +16,7 @@ lazy_static::lazy_static! {
 /// @yard
 /// Represents a Wasmtime execution engine.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Engine.html Wasmtime's Rust doc
-#[magnus::wrap(class = "Wasmtime::Engine", free_immediately)]
+#[magnus::wrap(class = "Wasmtime::Engine", free_immediately, frozen_shareable)]
 pub struct Engine {
     inner: EngineImpl,
 

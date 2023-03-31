@@ -1,7 +1,7 @@
-use std::sync::Mutex;
 use super::{config::hash_to_config, root};
 use crate::error;
 use magnus::{function, method, scan_args, Error, Module, Object, RHash, RString, Value};
+use std::sync::Mutex;
 use wasmtime::Engine as EngineImpl;
 
 #[cfg(feature = "tokio")]

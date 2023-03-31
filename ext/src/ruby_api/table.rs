@@ -3,10 +3,10 @@ use super::{
     root,
     store::{Store, StoreContextValue},
 };
-use crate::{define_data_class, define_rb_intern, error};
+use crate::{define_rb_intern, error};
 use magnus::{
-    function, memoize, method, scan_args, typed_data::DataTypeBuilder, typed_data::Obj,
-    DataTypeFunctions, Error, Module as _, Object, RClass, Symbol, TypedData, Value, QNIL,
+    function, method, scan_args, typed_data::Obj, DataTypeFunctions, Error, Module as _, Object,
+    Symbol, TypedData, Value, QNIL,
 };
 use wasmtime::{Extern, Table as TableImpl, TableType};
 
@@ -19,25 +19,11 @@ define_rb_intern!(
 /// @rename Wasmtime::Table
 /// Represents a WebAssembly table.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Table.html Wasmtime's Rust doc
-#[derive(Debug)]
+#[derive(Debug, TypedData)]
+#[magnus(class = "Wasmtime::Table", free_immediately, mark, unsafe_generics)]
 pub struct Table<'a> {
     store: StoreContextValue<'a>,
     inner: TableImpl,
-}
-
-unsafe impl TypedData for Table<'_> {
-    fn class() -> magnus::RClass {
-        *memoize!(RClass: define_data_class!(root(), "Table"))
-    }
-
-    fn data_type() -> &'static magnus::DataType {
-        memoize!(magnus::DataType: {
-            let mut builder = DataTypeBuilder::<Table<'_>>::new("Wasmtime::Table");
-            builder.free_immediately();
-            builder.mark();
-            builder.build()
-        })
-    }
 }
 
 impl DataTypeFunctions for Table<'_> {

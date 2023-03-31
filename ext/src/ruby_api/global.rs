@@ -3,10 +3,10 @@ use super::{
     root,
     store::{Store, StoreContextValue},
 };
-use crate::{define_data_class, error};
+use crate::error;
 use magnus::{
-    function, memoize, method, typed_data::DataTypeBuilder, typed_data::Obj, DataTypeFunctions,
-    Error, Module as _, Object, RClass, Symbol, TypedData, Value,
+    function, method, typed_data::Obj, DataTypeFunctions, Error, Module as _, Object, Symbol,
+    TypedData, Value,
 };
 use wasmtime::{Extern, Global as GlobalImpl, GlobalType, Mutability};
 
@@ -14,25 +14,11 @@ use wasmtime::{Extern, Global as GlobalImpl, GlobalType, Mutability};
 /// @rename Wasmtime::Global
 /// Represents a WebAssembly global.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Global.html Wasmtime's Rust doc
-#[derive(Debug)]
+#[derive(Debug, TypedData)]
+#[magnus(class = "Wasmtime::Global", free_immediately, mark, unsafe_generics)]
 pub struct Global<'a> {
     store: StoreContextValue<'a>,
     inner: GlobalImpl,
-}
-
-unsafe impl TypedData for Global<'_> {
-    fn class() -> magnus::RClass {
-        *memoize!(RClass: define_data_class!(root(), "Global"))
-    }
-
-    fn data_type() -> &'static magnus::DataType {
-        memoize!(magnus::DataType: {
-            let mut builder = DataTypeBuilder::<Global<'_>>::new("Wasmtime::Global");
-            builder.free_immediately();
-            builder.mark();
-            builder.build()
-        })
-    }
 }
 
 impl DataTypeFunctions for Global<'_> {

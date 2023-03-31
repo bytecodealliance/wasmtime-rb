@@ -6,10 +6,10 @@ use super::{
     root,
     store::{Store, StoreContextValue},
 };
-use crate::{define_data_class, define_rb_intern, error};
+use crate::{define_rb_intern, error};
 use magnus::{
-    function, memoize, method, r_string::RString, scan_args, typed_data::DataTypeBuilder,
-    typed_data::Obj, DataTypeFunctions, Error, Module as _, Object, RClass, TypedData, Value,
+    function, method, r_string::RString, scan_args, typed_data::Obj, DataTypeFunctions, Error,
+    Module as _, Object, TypedData, Value,
 };
 
 use wasmtime::{Extern, Memory as MemoryImpl};
@@ -23,25 +23,11 @@ define_rb_intern!(
 /// @rename Wasmtime::Memory
 /// Represents a WebAssembly memory.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Memory.html Wasmtime's Rust doc
-#[derive(Debug)]
+#[derive(Debug, TypedData)]
+#[magnus(class = "Wasmtime::Memory", free_immediately, mark, unsafe_generics)]
 pub struct Memory<'a> {
     store: StoreContextValue<'a>,
     inner: MemoryImpl,
-}
-
-unsafe impl TypedData for Memory<'_> {
-    fn class() -> magnus::RClass {
-        *memoize!(RClass: define_data_class!(root(), "Memory"))
-    }
-
-    fn data_type() -> &'static magnus::DataType {
-        memoize!(magnus::DataType: {
-            let mut builder = DataTypeBuilder::<Memory<'_>>::new("Wasmtime::Memory");
-            builder.free_immediately();
-            builder.mark();
-            builder.build()
-        })
-    }
 }
 
 impl DataTypeFunctions for Memory<'_> {
@@ -212,7 +198,7 @@ impl From<&Memory<'_>> for Extern {
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = Memory::class();
+    let class = root().define_class("Memory", Default::default())?;
     class.define_singleton_method("new", function!(Memory::new, -1))?;
     class.define_method("min_size", method!(Memory::min_size, 0))?;
     class.define_method("max_size", method!(Memory::max_size, 0))?;

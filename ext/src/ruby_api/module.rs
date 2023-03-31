@@ -7,7 +7,7 @@ use wasmtime::Module as ModuleImpl;
 /// Represents a WebAssembly module.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Module.html Wasmtime's Rust doc
 #[derive(Clone)]
-#[magnus::wrap(class = "Wasmtime::Module", size, free_immediatly)]
+#[magnus::wrap(class = "Wasmtime::Module", size, free_immediatly, frozen_shareable)]
 pub struct Module {
     inner: ModuleImpl,
 }

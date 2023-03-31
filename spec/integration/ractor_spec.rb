@@ -33,14 +33,18 @@ if RUBY_VERSION.start_with?("3.")
       Ractor.make_shareable(engine)
       Ractor.make_shareable(mod)
 
-      r = Ractor.new(engine, mod) do |engine, mod|
-        store_data = Object.new
-        store = Wasmtime::Store.new(engine, store_data)
-        Wasmtime::Instance.new(store, mod).invoke("hello")
+      ractors = []
+      3.times do
+        ractors << Ractor.new(engine, mod) do |engine, mod|
+          store_data = Object.new
+          store = Wasmtime::Store.new(engine, store_data)
+          Wasmtime::Instance.new(store, mod).invoke("hello")
+        end
       end
 
-      result = r.take
-      expect(result).to eq([1, 2, 3.0, 4.0])
+      ractors.each do |ractor|
+        expect(ractor.take).to eq([1, 2, 3.0, 4.0])
+      end
     end
   end
 end

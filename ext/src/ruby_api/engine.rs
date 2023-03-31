@@ -1,3 +1,4 @@
+use std::sync::Mutex;
 use super::{config::hash_to_config, root};
 use crate::error;
 use magnus::{function, method, scan_args, Error, Module, Object, RHash, RString, Value};
@@ -21,7 +22,7 @@ pub struct Engine {
     inner: EngineImpl,
 
     #[cfg(feature = "tokio")]
-    timer_task: std::cell::RefCell<Option<tokio::task::JoinHandle<()>>>,
+    timer_task: Mutex<Option<tokio::task::JoinHandle<()>>>,
 }
 
 #[cfg(feature = "tokio")]
@@ -96,7 +97,7 @@ impl Engine {
             }
         });
 
-        *self.timer_task.borrow_mut() = Some(handle);
+        *self.timer_task.lock().unwrap() = Some(handle);
     }
 
     /// @yard
@@ -105,7 +106,9 @@ impl Engine {
     /// @return [nil]
     #[cfg(feature = "tokio")]
     pub fn stop_epoch_interval(&self) {
-        if let Some(handle) = self.timer_task.take() {
+        let maybe_handle = self.timer_task.lock().unwrap().take();
+
+        if let Some(handle) = maybe_handle {
             handle.abort();
         }
     }

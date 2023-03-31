@@ -1,5 +1,22 @@
 # Changelog
 
+## [v7.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v7.0.0) (2023-03-31)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v6.0.1...v7.0.0)
+
+**Closed issues:**
+
+- Segfault on macOS in Func error handling [\#156](https://github.com/bytecodealliance/wasmtime-rb/issues/156)
+
+**Merged pull requests:**
+
+- Wasmtime 7.0 [\#163](https://github.com/bytecodealliance/wasmtime-rb/pull/163) ([jbourassa](https://github.com/jbourassa))
+- Fix potential GC bug when expiring the caller [\#162](https://github.com/bytecodealliance/wasmtime-rb/pull/162) ([jbourassa](https://github.com/jbourassa))
+- Allowing making Module and Engine Ractor shareable [\#161](https://github.com/bytecodealliance/wasmtime-rb/pull/161) ([macournoyer](https://github.com/macournoyer))
+- Mark the Gem as Ractor safe [\#160](https://github.com/bytecodealliance/wasmtime-rb/pull/160) ([macournoyer](https://github.com/macournoyer))
+- Use Magnus macros to implement TypedData trait [\#159](https://github.com/bytecodealliance/wasmtime-rb/pull/159) ([matsadler](https://github.com/matsadler))
+- Add support for configuring the engine's `target` [\#157](https://github.com/bytecodealliance/wasmtime-rb/pull/157) ([ianks](https://github.com/ianks))
+
 ## [v6.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v6.0.1) (2023-03-13)
 
 This release includes 2 security fixes from Wasmtime, see the [Wasmtime 6.0.1 release notes](https://github.com/bytecodealliance/wasmtime/blob/v6.0.1/RELEASES.md#601).

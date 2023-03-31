@@ -455,7 +455,6 @@
       <pre class="lines">
 
 
-56
 57
 58
 59
@@ -473,10 +472,11 @@
 71
 72
 73
-74</pre>
+74
+75</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 56</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 57</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let args = scan_args::scan_args::&lt;(), (Option&lt;Value&gt;,), (), (), (), ()&gt;(args)?;
@@ -547,12 +547,12 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-119
-120
-121</pre>
+122
+123
+124</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 119</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 122</span>
 
 <span class='id identifier rubyid_pub'>pub</span> <span class='id identifier rubyid_fn'>fn</span> <span class='id identifier rubyid_increment_epoch'>increment_epoch</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='kw'>self</span><span class='rparen'>)</span> <span class='lbrace'>{</span>
     <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_inner'>inner</span><span class='period'>.</span><span class='id identifier rubyid_increment_epoch'>increment_epoch</span><span class='lparen'>(</span><span class='rparen'>)</span><span class='semicolon'>;</span>
@@ -635,15 +635,15 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-136
-137
-138
 139
 140
-141</pre>
+141
+142
+143
+144</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 136</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 139</span>
 
 pub fn precompile_module(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RString, Error&gt; {
     self.inner
@@ -712,7 +712,6 @@ pub fn precompile_module(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RStrin
       <pre class="lines">
 
 
-85
 86
 87
 88
@@ -727,10 +726,11 @@ pub fn precompile_module(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RStrin
 97
 98
 99
-100</pre>
+100
+101</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 85</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 86</span>
 
 pub fn start_epoch_interval(&amp;self, milliseconds: u64) {
     self.stop_epoch_interval();
@@ -746,7 +746,7 @@ pub fn start_epoch_interval(&amp;self, milliseconds: u64) {
         }
     });
 
-    *self.timer_task.borrow_mut() = Some(handle);
+    *self.timer_task.lock().unwrap() = Some(handle);
 }</pre>
     </td>
   </tr>
@@ -792,17 +792,21 @@ pub fn start_epoch_interval(&amp;self, milliseconds: u64) {
       <pre class="lines">
 
 
-107
 108
 109
 110
-111</pre>
+111
+112
+113
+114</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 107</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 108</span>
 
 pub fn stop_epoch_interval(&amp;self) {
-    if let Some(handle) = self.timer_task.take() {
+    let maybe_handle = self.timer_task.lock().unwrap().take();
+
+    if let Some(handle) = maybe_handle {
         handle.abort();
     }
 }</pre>
@@ -816,9 +820,9 @@ pub fn stop_epoch_interval(&amp;self) {
 </div>
 
       <div id="footer">
-  Generated on Wed Mar 29 21:19:04 2023 by
+  Generated on Fri Mar 31 15:44:23 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.28 (ruby-3.1.3).
+  0.9.28 (ruby-3.1.4).
 </div>
 
     </div>

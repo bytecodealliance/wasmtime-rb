@@ -202,7 +202,6 @@ pub fn make_func_closure(
 
     move |caller_impl: CallerImpl<'_, StoreData>, params: &[Val], results: &mut [Val]| {
         let wrapped_caller = Obj::wrap(Caller::new(caller_impl));
-        let caller = wrapped_caller.get();
         let store_context = StoreContextValue::from(wrapped_caller);
 
         let rparams = RArray::with_capacity(params.len() + 1);
@@ -257,7 +256,7 @@ pub fn make_func_closure(
 
         // Drop the wasmtime::Caller so it does not outlive the Func call, if e.g. the user
         // assigned the Ruby Wasmtime::Caller instance to a global.
-        caller.expire();
+        wrapped_caller.get().expire();
 
         result
     }

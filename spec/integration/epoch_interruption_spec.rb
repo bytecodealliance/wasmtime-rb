@@ -62,7 +62,7 @@ module Wasmtime
         engine.stop_epoch_interval
         store.set_epoch_deadline(1)
 
-        sleep_ms(2)
+        sleep_ms(5)
 
         expect { Instance.new(store, autostart_mod) }.not_to raise_error
       end

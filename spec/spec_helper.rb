@@ -2,8 +2,19 @@
 
 require "wasmtime"
 
+DEBUG = ENV["DEBUG"] || \
+  ENV["RB_SYS_CARGO_PROFILE"] == "dev" || \
+  ENV["ACTIONS_STEP_DEBUG"] == "true" || \
+  ENV["ACTIONS_RUNNER_DEBUG"] == "true"
+
+GLOBAL_ENGINE = if DEBUG
+  Wasmtime::Engine.new(debug_info: true, wasm_backtrace_details: true)
+else
+  Wasmtime::Engine.new
+end
+
 RSpec.shared_context("default lets") do
-  let(:engine) { Wasmtime::Engine.new }
+  let(:engine) { GLOBAL_ENGINE }
   let(:store_data) { Object.new }
   let(:store) { Wasmtime::Store.new(engine, store_data) }
   let(:wat) { "(module)" }
@@ -29,7 +40,17 @@ module WasmFixtures
   extend self
 
   def wasi_debug
-    @wasi_debug_module ||= Module.from_file(Engine.new, "spec/fixtures/wasi-debug.wasm")
+    @wasi_debug_module ||= Module.from_file(engine, "spec/fixtures/wasi-debug.wasm")
+  end
+end
+
+module GcHelpers
+  def without_gc_stress
+    old_value = GC.stress
+    GC.stress = false
+    yield
+  ensure
+    GC.stress = old_value
   end
 end
 
@@ -41,10 +62,12 @@ RSpec.configure do |config|
   end
 
   config.include_context("default lets")
+  config.include GcHelpers
 
   # So memcheck steps can still pass if RSpec fails
   config.failure_exit_code = ENV.fetch("RSPEC_FAILURE_EXIT_CODE", 1).to_i
   config.default_formatter = ENV.fetch("RSPEC_FORMATTER") do
+    next "doc" if DEBUG
     config.files_to_run.one? ? "doc" : "progress"
   end
 

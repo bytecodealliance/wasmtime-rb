@@ -103,7 +103,6 @@ module Wasmtime
 
     describe "Caller" do
       it "exposes memory and func for the duration of the call only" do
-        engine = Engine.new
         mod = Module.new(engine, <<~WAT)
           (module
             (import "" "" (func))

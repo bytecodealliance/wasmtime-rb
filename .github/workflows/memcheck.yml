@@ -14,6 +14,11 @@ on:
           - "3.1"
           - "3.0"
           - "2.7"
+      debug:
+        description: "Enable debug mode"
+        required: false
+        default: "false"
+        type: boolean
   push:
     branches: ["*"]
     tags-ignore: ["v*"] # Skip Memcheck for releases
@@ -31,7 +36,7 @@ jobs:
 
       - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
         with:
-          ruby-version: ${{ inputs.ruby-version || '3.1' }}
+          ruby-version: ${{ inputs.ruby-version || '3.2' }}
           bundler-cache: true
           cargo-cache: true
           cache-version: v2
@@ -49,6 +54,7 @@ jobs:
           RSPEC_FORMATTER: "progress"
           RSPEC_FAILURE_EXIT_CODE: "0"
           GC_AT_EXIT: "1"
+          DEBUG: ${{ inputs.debug || 'false' }}
         run: |
           if ! bundle exec rake mem:check; then
             echo "::error::Valgrind memory check failed, for more info please see ./suppressions/readme.md"

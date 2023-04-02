@@ -2,10 +2,7 @@
 
 require "wasmtime"
 
-DEBUG = ENV["DEBUG"] || \
-  ENV["RB_SYS_CARGO_PROFILE"] == "dev" || \
-  ENV["ACTIONS_STEP_DEBUG"] == "true" || \
-  ENV["ACTIONS_RUNNER_DEBUG"] == "true"
+DEBUG = ENV["DEBUG"] == "true" || ENV["DEBUG"] == "1" || ENV["RB_SYS_CARGO_PROFILE"] == "dev"
 
 GLOBAL_ENGINE = if DEBUG
   Wasmtime::Engine.new(debug_info: true, wasm_backtrace_details: true)

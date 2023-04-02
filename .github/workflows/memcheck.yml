@@ -7,10 +7,11 @@ on:
       ruby-version:
         description: "Ruby version to memcheck"
         required: true
-        default: "3.1"
+        default: "3.2"
         type: choice
         options:
           - "head"
+          - "3.2"
           - "3.1"
           - "3.0"
           - "2.7"
@@ -55,6 +56,7 @@ jobs:
           RSPEC_FAILURE_EXIT_CODE: "0"
           GC_AT_EXIT: "1"
           DEBUG: ${{ inputs.debug || 'false' }}
+          RB_SYS_CARGO_PROFILE: ${{ inputs.debug == 'true' && 'dev' || 'release' }}
         run: |
           if ! bundle exec rake mem:check; then
             echo "::error::Valgrind memory check failed, for more info please see ./suppressions/readme.md"

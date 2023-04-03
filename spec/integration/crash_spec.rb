@@ -32,18 +32,18 @@ module Wasmtime
       expect(call_times).to eq(n_times)
     end
 
-    # it "ensures values are never GC'd" do
-    #   n_times = n_times(max: 100)
-    #   store = Store.new(engine, Object.new)
-    #   big_array = without_gc_stress { Array.new(256) { :i32 } }
-    #   expected_result = without_gc_stress { Array.new(256) { |i| i.to_s.to_i } }
+    it "ensures values are never GC'd" do
+      n_times = n_times(max: 100)
+      store = Store.new(engine, Object.new)
+      big_array = without_gc_stress { Array.new(256) { :i32 } }
+      expected_result = without_gc_stress { Array.new(256) { |i| i.to_s.to_i } }
 
-    #   func = Func.new(store, [], big_array) { Array.new(256) { |i| i } }
+      func = Func.new(store, [], big_array) { Array.new(256) { |i| i } }
 
-    #   n_times.times do
-    #     expect(func.call).to eq(expected_result)
-    #   end
-    # end
+      n_times.times do
+        expect(func.call).to eq(expected_result)
+      end
+    end
 
     # it "ensures params are never GC'd" do
     #   n_times = n_times(max: 100)

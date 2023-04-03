@@ -78,8 +78,8 @@ namespace :pkg do
       vendor_files = dirglob("./#{vendor_dir}/**/*").reject { |f| File.directory?(f) }
       # Ensure that all vendor files have the right read permissions,
       # which are needed to build the gem.
-      # The permissions that we want are `.rw-r--r--`
-      vendor_files.each { |f| File.chmod(0o644, f) }
+      # The permissions that we want _at least_ is readable by all for example `.rw-r--r--`
+      vendor_files.each { |f| FileUtils.chmod("a+r", f) }
       final_gemspec.files += vendor_files
       final_gemspec.files += dirglob("**/.cargo/**/*").reject { |f| File.directory?(f) }
 

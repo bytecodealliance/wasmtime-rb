@@ -25,12 +25,12 @@ module Wasmtime
         raise Class.new(StandardError).new((+"hello") + SecureRandom.hex(6))
       end
 
-    #   n_times.times do |i|
-    #     expect { func.call }.to raise_error(StandardError, /^hello\h{12}$/)
-    #   end
+      n_times.times do |i|
+        expect { func.call }.to raise_error(StandardError, /^hello\h{12}$/)
+      end
 
-    #   expect(call_times).to eq(n_times)
-    # end
+      expect(call_times).to eq(n_times)
+    end
 
     # it "ensures values are never GC'd" do
     #   n_times = n_times(max: 100)

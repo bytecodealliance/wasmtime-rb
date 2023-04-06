@@ -2,7 +2,7 @@ use super::root;
 use crate::error;
 use magnus::{
     class, function, gc, method, typed_data::Obj, DataTypeFunctions, Error, Module, Object, RArray,
-    RHash, RString, TypedData,
+    RHash, RString, TryConvert, TypedData,
 };
 use std::cell::RefCell;
 use std::{fs::File, path::PathBuf};
@@ -225,7 +225,7 @@ impl WasiCtxBuilder {
         if let Some(args) = inner.args.as_ref() {
             // SAFETY: no gc can happen nor do we write to `args`.
             for item in unsafe { args.as_slice() } {
-                let arg = item.try_convert::<RString>()?;
+                let arg = RString::try_convert(*item)?;
                 // SAFETY: &str copied before calling in to Ruby, no GC can happen before.
                 let arg = unsafe { arg.as_str() }?;
                 builder = builder.arg(arg).map_err(|e| error!("{}", e))?

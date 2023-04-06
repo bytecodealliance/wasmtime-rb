@@ -1,6 +1,8 @@
 use super::{config::hash_to_config, root};
 use crate::error;
-use magnus::{class, function, method, scan_args, Error, Module, Object, RHash, RString, Value};
+use magnus::{
+    class, function, method, scan_args, Error, Module, Object, RHash, RString, TryConvert, Value,
+};
 use std::sync::Mutex;
 use wasmtime::Engine as EngineImpl;
 
@@ -60,7 +62,7 @@ impl Engine {
         let config = config.and_then(|v| if v.is_nil() { None } else { Some(v) });
         let inner = match config {
             Some(config) => {
-                let config = config.try_convert::<RHash>().and_then(hash_to_config)?;
+                let config = RHash::try_convert(config).and_then(hash_to_config)?;
 
                 EngineImpl::new(&config).map_err(|e| error!("{}", e))?
             }

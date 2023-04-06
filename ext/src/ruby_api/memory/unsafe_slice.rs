@@ -4,7 +4,7 @@ use magnus::{
     rb_sys::{AsRawId, AsRawValue, FromRawValue},
     typed_data::Obj,
     value::IntoId,
-    DataTypeFunctions, Error, Module as _, TypedData, Value,
+    DataTypeFunctions, Error, Module as _, TryConvert, TypedData, Value,
 };
 #[cfg(ruby_gte_3_0)]
 use magnus::{class::object, memoize, require, RClass, RModule};
@@ -124,7 +124,7 @@ impl<'a> UnsafeSlice<'a> {
         _flags: i32,
     ) -> bool {
         let obj = unsafe { Value::from_raw(value) };
-        let Ok(memory) = obj.try_convert::<Obj<UnsafeSlice>>() else { return false };
+        let Ok(memory) = <Obj<UnsafeSlice>>::try_convert(obj) else { return false };
         let memory = memory.get();
         let Ok(raw_slice) = memory.get_raw_slice() else { return false; };
         let (ptr, size) = (raw_slice.as_ptr(), raw_slice.len());
@@ -135,7 +135,7 @@ impl<'a> UnsafeSlice<'a> {
     #[cfg(ruby_gte_3_0)]
     extern "C" fn is_memory_view_available(value: VALUE) -> bool {
         let obj = unsafe { Value::from_raw(value) };
-        let Ok(memory) = obj.try_convert::<Obj<UnsafeSlice>>() else { return false };
+        let Ok(memory) = <Obj<UnsafeSlice>>::try_convert(obj) else { return false };
         let memory = memory.get();
 
         memory.get_raw_slice().is_ok()

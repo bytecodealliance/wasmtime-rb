@@ -86,8 +86,8 @@ impl<'a> Func<'a> {
     ///     [arg1.succ, arg2.succ]
     ///   end
     pub fn new(args: &[Value]) -> Result<Self, Error> {
-        let args = scan_args::<(Value, RArray, RArray), (), (), (), (), Proc>(args)?;
-        let (s, params, results) = args.required;
+        let args = scan_args::<(Obj<Store>, RArray, RArray), (), (), (), (), Proc>(args)?;
+        let (wrapped_store, params, results) = args.required;
 
         if results.len() > Self::MAX_RESULTS {
             return Err(Error::new(
@@ -102,7 +102,6 @@ impl<'a> Func<'a> {
 
         let callable = args.block;
 
-        let wrapped_store: Obj<Store> = s.try_convert()?;
         let store = wrapped_store.get();
 
         store.retain(callable.as_value());

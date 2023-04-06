@@ -1,6 +1,6 @@
 use super::{convert::WrapWasmtimeType, externals::Extern, root, store::StoreData};
 use crate::error;
-use magnus::{class, method, typed_data::Obj, Error, Module as _, RString, Value, QNIL};
+use magnus::{class, method, typed_data::Obj, Error, Module as _, RString, Value};
 use std::cell::UnsafeCell;
 use wasmtime::{AsContext, AsContextMut, Caller as CallerImpl, StoreContext, StoreContextMut};
 
@@ -85,12 +85,12 @@ impl<'a> Caller<'a> {
     /// @yard
     /// (see Store#add_fuel)
     /// @def add_fuel(fuel)
-    pub fn add_fuel(&self, fuel: u64) -> Result<Value, Error> {
+    pub fn add_fuel(&self, fuel: u64) -> Result<(), Error> {
         self.handle
             .get_mut()
             .and_then(|c| c.add_fuel(fuel).map_err(|e| error!("{}", e)))?;
 
-        Ok(*QNIL)
+        Ok(())
     }
 
     /// @yard

@@ -3,8 +3,8 @@ use super::{caller::Caller, engine::Engine, root, trap::Trap, wasi_ctx_builder::
 use crate::{define_rb_intern, error};
 use magnus::Class;
 use magnus::{
-    class, function, gc, method, scan_args, typed_data::Obj, DataTypeFunctions, Error, Module,
-    Object, TypedData, Value, QNIL,
+    class, function, gc, method, scan_args, typed_data::Obj, DataTypeFunctions, Error, IntoValue,
+    Module, Object, TypedData, Value,
 };
 use std::cell::UnsafeCell;
 use std::convert::TryFrom;
@@ -103,7 +103,7 @@ impl Store {
         )?;
         let (engine,) = args.required;
         let (user_data,) = args.optional;
-        let user_data = user_data.unwrap_or_else(|| QNIL.into());
+        let user_data = user_data.unwrap_or_else(|| ().into_value());
         let wasi = match kw.optional.0 {
             None => None,
             Some(wasi_ctx_builder) => Some(wasi_ctx_builder.build_context()?),
@@ -141,12 +141,12 @@ impl Store {
     /// @param fuel [Integer] The fuel to add.
     /// @def add_fuel(fuel)
     /// @return [Nil]
-    pub fn add_fuel(&self, fuel: u64) -> Result<Value, Error> {
+    pub fn add_fuel(&self, fuel: u64) -> Result<(), Error> {
         unsafe { &mut *self.inner.get() }
             .add_fuel(fuel)
             .map_err(|e| error!("{}", e))?;
 
-        Ok(*QNIL)
+        Ok(())
     }
 
     /// @yard

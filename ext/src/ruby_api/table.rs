@@ -5,8 +5,8 @@ use super::{
 };
 use crate::{define_rb_intern, error};
 use magnus::{
-    class, function, method, scan_args, typed_data::Obj, DataTypeFunctions, Error, Module as _,
-    Object, Symbol, TypedData, Value, QNIL,
+    class, function, method, scan_args, typed_data::Obj, DataTypeFunctions, Error, IntoValue,
+    Module as _, Object, Symbol, TypedData, Value,
 };
 use wasmtime::{Extern, Table as TableImpl, TableType};
 
@@ -103,7 +103,7 @@ impl<'a> Table<'a> {
     pub fn get(&self, index: u32) -> Result<Value, Error> {
         match self.inner.get(self.store.context_mut()?, index) {
             Some(wasm_val) => wasm_val.to_ruby_value(&self.store),
-            None => Ok(*QNIL),
+            None => Ok(().into_value()),
         }
     }
 

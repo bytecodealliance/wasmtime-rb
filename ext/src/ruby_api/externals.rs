@@ -46,7 +46,7 @@ impl Extern<'_> {
     /// @return [Func] The exported function.
     pub fn to_func(rb_self: Obj<Self>) -> Result<Value, Error> {
         match rb_self.get() {
-            Extern::Func(f) => Ok(**f),
+            Extern::Func(f) => Ok(f.as_value()),
             _ => conversion_err!(Self::inner_class(rb_self), Func::class()),
         }
     }
@@ -56,7 +56,7 @@ impl Extern<'_> {
     /// @return [Global] The exported global.
     pub fn to_global(rb_self: Obj<Self>) -> Result<Value, Error> {
         match rb_self.get() {
-            Extern::Global(g) => Ok(**g),
+            Extern::Global(g) => Ok(g.as_value()),
             _ => conversion_err!(Self::inner_class(rb_self), Global::class()),
         }
     }
@@ -67,7 +67,7 @@ impl Extern<'_> {
     /// @return [Memory] The exported memory.
     pub fn to_memory(rb_self: Obj<Self>) -> Result<Value, Error> {
         match rb_self.get() {
-            Extern::Memory(m) => Ok(**m),
+            Extern::Memory(m) => Ok(m.as_value()),
             _ => conversion_err!(Self::inner_class(rb_self), Memory::class()),
         }
     }
@@ -77,7 +77,7 @@ impl Extern<'_> {
     /// @return [Table] The exported table.
     pub fn to_table(rb_self: Obj<Self>) -> Result<Value, Error> {
         match rb_self.get() {
-            Extern::Table(t) => Ok(**t),
+            Extern::Table(t) => Ok(t.as_value()),
             _ => conversion_err!(Self::inner_class(rb_self), Table::class()),
         }
     }

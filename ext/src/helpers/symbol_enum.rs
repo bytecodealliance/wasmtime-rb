@@ -29,7 +29,7 @@ impl<'a, T: Clone> SymbolEnum<'a, T> {
             .iter()
             .find(|(haystack, _)| *haystack == id)
             .map(|found| found.1.clone())
-            .ok_or_else(|| self.error(*needle))
+            .ok_or_else(|| self.error(needle.as_value()))
     }
 
     pub fn error(&self, value: Value) -> Error {

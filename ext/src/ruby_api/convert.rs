@@ -1,6 +1,6 @@
 use crate::{define_rb_intern, err, error, helpers::SymbolEnum};
 use lazy_static::lazy_static;
-use magnus::{Error, RArray, Symbol, TypedData, Value};
+use magnus::{Error, IntoValue, RArray, Symbol, TypedData, Value};
 use wasmtime::{ExternRef, Val, ValType};
 
 use super::{func::Func, global::Global, memory::Memory, store::StoreContextValue, table::Table};
@@ -38,12 +38,12 @@ pub trait ToRubyValue {
 impl ToRubyValue for Val {
     fn to_ruby_value(&self, store: &StoreContextValue) -> Result<Value, Error> {
         match self {
-            Val::I32(i) => Ok(Value::from(*i)),
-            Val::I64(i) => Ok(Value::from(*i)),
-            Val::F32(f) => Ok(Value::from(f32::from_bits(*f))),
-            Val::F64(f) => Ok(Value::from(f64::from_bits(*f))),
+            Val::I32(i) => Ok(i.into_value()),
+            Val::I64(i) => Ok(i.into_value()),
+            Val::F32(f) => Ok(f32::from_bits(*f).into_value()),
+            Val::F64(f) => Ok(f64::from_bits(*f).into_value()),
             Val::ExternRef(eref) => match eref {
-                None => Ok(magnus::QNIL.into()),
+                None => Ok(().into_value()),
                 Some(eref) => eref
                     .data()
                     .downcast_ref::<ExternRefValue>()
@@ -51,8 +51,8 @@ impl ToRubyValue for Val {
                     .ok_or_else(|| error!("failed to extract externref")),
             },
             Val::FuncRef(funcref) => match funcref {
-                None => Ok(magnus::QNIL.into()),
-                Some(funcref) => Ok(Func::from_inner(*store, *funcref).into()),
+                None => Ok(().into_value()),
+                Some(funcref) => Ok(Func::from_inner(*store, *funcref).into_value()),
             },
             Val::V128(_) => err!("converting from v128 to Ruby unsupported"),
         }

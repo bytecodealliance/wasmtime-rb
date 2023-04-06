@@ -4,8 +4,8 @@ use super::{
 };
 use crate::{conversion_err, not_implemented};
 use magnus::{
-    gc, method, rb_sys::AsRawValue, typed_data::Obj, DataTypeFunctions, Error, Module, RClass,
-    TypedData, Value,
+    class, gc, method, rb_sys::AsRawValue, typed_data::Obj, DataTypeFunctions, Error, Module,
+    RClass, TypedData, Value,
 };
 
 /// @yard
@@ -130,7 +130,7 @@ impl<'a> WrapWasmtimeType<'a, Extern<'a>> for wasmtime::Extern {
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Extern", Default::default())?;
+    let class = root().define_class("Extern", class::object())?;
 
     class.define_method("to_func", method!(Extern::to_func, 0))?;
     class.define_method("to_global", method!(Extern::to_global, 0))?;

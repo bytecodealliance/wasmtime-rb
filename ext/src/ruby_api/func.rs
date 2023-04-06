@@ -7,8 +7,8 @@ use super::{
 };
 use crate::Caller;
 use magnus::{
-    block::Proc, function, method, scan_args::scan_args, typed_data::Obj, DataTypeFunctions, Error,
-    Module as _, Object, RArray, TypedData, Value, QNIL,
+    block::Proc, class, function, method, scan_args::scan_args, typed_data::Obj, DataTypeFunctions,
+    Error, Module as _, Object, RArray, TypedData, Value, QNIL,
 };
 use wasmtime::{Caller as CallerImpl, Func as FuncImpl, Val};
 
@@ -280,7 +280,7 @@ pub fn make_func_closure(
 }
 
 pub fn init() -> Result<(), Error> {
-    let func = root().define_class("Func", Default::default())?;
+    let func = root().define_class("Func", class::object())?;
     func.define_singleton_method("new", function!(Func::new, -1))?;
     func.define_method("call", method!(Func::call, -1))?;
     func.define_method("params", method!(Func::params, 0))?;

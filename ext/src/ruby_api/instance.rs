@@ -7,7 +7,7 @@ use super::{
 };
 use crate::err;
 use magnus::{
-    function, gc, method, scan_args, typed_data::Obj, DataTypeFunctions, Error, Module as _,
+    class, function, gc, method, scan_args, typed_data::Obj, DataTypeFunctions, Error, Module as _,
     Object, RArray, RHash, RString, TypedData, Value,
 };
 use wasmtime::{Extern, Instance as InstanceImpl, StoreContextMut};
@@ -163,7 +163,7 @@ impl Instance {
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Instance", Default::default())?;
+    let class = root().define_class("Instance", class::object())?;
 
     class.define_singleton_method("new", function!(Instance::new, -1))?;
     class.define_method("invoke", method!(Instance::invoke, -1))?;

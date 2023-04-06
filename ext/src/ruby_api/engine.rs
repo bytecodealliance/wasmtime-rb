@@ -1,6 +1,6 @@
 use super::{config::hash_to_config, root};
 use crate::error;
-use magnus::{function, method, scan_args, Error, Module, Object, RHash, RString, Value};
+use magnus::{class, function, method, scan_args, Error, Module, Object, RHash, RString, Value};
 use std::sync::Mutex;
 use wasmtime::Engine as EngineImpl;
 
@@ -149,7 +149,7 @@ impl Engine {
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Engine", Default::default())?;
+    let class = root().define_class("Engine", class::object())?;
 
     class.define_singleton_method("new", function!(Engine::new, -1))?;
 

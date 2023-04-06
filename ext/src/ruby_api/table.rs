@@ -5,8 +5,8 @@ use super::{
 };
 use crate::{define_rb_intern, error};
 use magnus::{
-    function, method, scan_args, typed_data::Obj, DataTypeFunctions, Error, Module as _, Object,
-    Symbol, TypedData, Value, QNIL,
+    class, function, method, scan_args, typed_data::Obj, DataTypeFunctions, Error, Module as _,
+    Object, Symbol, TypedData, Value, QNIL,
 };
 use wasmtime::{Extern, Table as TableImpl, TableType};
 
@@ -183,7 +183,7 @@ impl From<&Table<'_>> for Extern {
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Table", Default::default())?;
+    let class = root().define_class("Table", class::object())?;
     class.define_singleton_method("new", function!(Table::new, -1))?;
 
     class.define_method("type", method!(Table::type_, 0))?;

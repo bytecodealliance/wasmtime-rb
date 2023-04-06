@@ -1,6 +1,6 @@
 use super::{engine::Engine, root};
 use crate::error;
-use magnus::{function, method, Error, Module as _, Object, RString};
+use magnus::{class, function, method, Error, Module as _, Object, RString};
 use wasmtime::Module as ModuleImpl;
 
 /// @yard
@@ -90,7 +90,7 @@ impl Module {
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Module", Default::default())?;
+    let class = root().define_class("Module", class::object())?;
 
     class.define_singleton_method("new", function!(Module::new, 2))?;
     class.define_singleton_method("from_file", function!(Module::from_file, 2))?;

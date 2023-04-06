@@ -5,8 +5,8 @@ use super::{
 };
 use crate::error;
 use magnus::{
-    function, method, typed_data::Obj, DataTypeFunctions, Error, Module as _, Object, Symbol,
-    TypedData, Value,
+    class, function, method, typed_data::Obj, DataTypeFunctions, Error, Module as _, Object,
+    Symbol, TypedData, Value,
 };
 use wasmtime::{Extern, Global as GlobalImpl, GlobalType, Mutability};
 
@@ -152,7 +152,7 @@ impl From<&Global<'_>> for Extern {
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Global", Default::default())?;
+    let class = root().define_class("Global", class::object())?;
     class.define_singleton_method("var", function!(Global::var, 3))?;
     class.define_singleton_method("const", function!(Global::const_, 3))?;
 

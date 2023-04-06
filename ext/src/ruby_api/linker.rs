@@ -11,7 +11,7 @@ use super::{
 };
 use crate::{define_rb_intern, err, error};
 use magnus::{
-    block::Proc, function, gc, method, scan_args, scan_args::scan_args, typed_data::Obj,
+    block::Proc, class, function, gc, method, scan_args, scan_args::scan_args, typed_data::Obj,
     DataTypeFunctions, Error, Module as _, Object, RArray, RHash, RString, TypedData, Value,
 };
 use std::cell::RefCell;
@@ -313,7 +313,7 @@ impl Linker {
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Linker", Default::default())?;
+    let class = root().define_class("Linker", class::object())?;
     class.define_singleton_method("new", function!(Linker::new, -1))?;
     class.define_method("allow_shadowing=", method!(Linker::set_allow_shadowing, 1))?;
     class.define_method(

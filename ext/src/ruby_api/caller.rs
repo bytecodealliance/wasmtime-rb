@@ -1,6 +1,6 @@
 use super::{convert::WrapWasmtimeType, externals::Extern, root, store::StoreData};
 use crate::error;
-use magnus::{method, typed_data::Obj, Error, Module as _, RString, Value, QNIL};
+use magnus::{class, method, typed_data::Obj, Error, Module as _, RString, Value, QNIL};
 use std::cell::UnsafeCell;
 use wasmtime::{AsContext, AsContextMut, Caller as CallerImpl, StoreContext, StoreContextMut};
 
@@ -118,7 +118,7 @@ impl<'a> Caller<'a> {
 unsafe impl Send for Caller<'_> {}
 
 pub fn init() -> Result<(), Error> {
-    let klass = root().define_class("Caller", Default::default())?;
+    let klass = root().define_class("Caller", class::object())?;
     klass.define_method("store_data", method!(Caller::store_data, 0))?;
     klass.define_method("export", method!(Caller::export, 1))?;
     klass.define_method("fuel_consumed", method!(Caller::fuel_consumed, 0))?;

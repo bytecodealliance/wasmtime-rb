@@ -1,8 +1,8 @@
 use super::root;
 use crate::error;
 use magnus::{
-    function, gc, method, typed_data::Obj, DataTypeFunctions, Error, Module, Object, RArray, RHash,
-    RString, TypedData,
+    class, function, gc, method, typed_data::Obj, DataTypeFunctions, Error, Module, Object, RArray,
+    RHash, RString, TypedData,
 };
 use std::cell::RefCell;
 use std::{fs::File, path::PathBuf};
@@ -260,7 +260,7 @@ fn wasi_file(file: File) -> Box<wasi_cap_std_sync::file::File> {
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("WasiCtxBuilder", Default::default())?;
+    let class = root().define_class("WasiCtxBuilder", class::object())?;
     class.define_singleton_method("new", function!(WasiCtxBuilder::new, 0))?;
 
     class.define_method("inherit_stdin", method!(WasiCtxBuilder::inherit_stdin, 0))?;

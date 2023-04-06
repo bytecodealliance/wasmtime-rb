@@ -24,7 +24,7 @@ define_rb_intern!(
 /// @yard
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Linker.html Wasmtime's Rust doc
 #[derive(TypedData)]
-#[magnus(class = "Wasmtime::Linker", size, mark, free_immediatly)]
+#[magnus(class = "Wasmtime::Linker", size, mark, free_immediately)]
 pub struct Linker {
     inner: RefCell<LinkerImpl<StoreData>>,
     refs: RefCell<Vec<Value>>,

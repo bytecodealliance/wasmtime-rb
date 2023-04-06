@@ -59,7 +59,7 @@ impl StoreData {
 /// Represents a WebAssembly store.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Store.html Wasmtime's Rust doc
 #[derive(Debug, TypedData)]
-#[magnus(class = "Wasmtime::Store", size, mark, compact, free_immediatly)]
+#[magnus(class = "Wasmtime::Store", size, mark, compact, free_immediately)]
 pub struct Store {
     inner: UnsafeCell<StoreImpl<StoreData>>,
 }

@@ -18,7 +18,7 @@ macro_rules! trap_const {
 }
 
 #[derive(TypedData, Debug)]
-#[magnus(class = "Wasmtime::Trap", size, free_immediatly)]
+#[magnus(class = "Wasmtime::Trap", size, free_immediately)]
 /// @yard
 pub struct Trap {
     trap: wasmtime::Trap,

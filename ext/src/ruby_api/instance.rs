@@ -16,7 +16,7 @@ use wasmtime::{Extern, Instance as InstanceImpl, StoreContextMut};
 /// Represents a WebAssembly instance.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Instance.html Wasmtime's Rust doc
 #[derive(Clone, Debug, TypedData)]
-#[magnus(class = "Wasmtime::Instance", mark, free_immediatly)]
+#[magnus(class = "Wasmtime::Instance", mark, free_immediately)]
 pub struct Instance {
     inner: InstanceImpl,
     store: Obj<Store>,

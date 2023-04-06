@@ -75,7 +75,7 @@ impl WasiCtxBuilderInner {
 ///   Wasmtime's Rust doc
 // #[derive(Debug)]
 #[derive(Default, TypedData)]
-#[magnus(class = "Wasmtime::WasiCtxBuilder", size, mark, free_immediatly)]
+#[magnus(class = "Wasmtime::WasiCtxBuilder", size, mark, free_immediately)]
 pub struct WasiCtxBuilder {
     inner: RefCell<WasiCtxBuilderInner>,
 }

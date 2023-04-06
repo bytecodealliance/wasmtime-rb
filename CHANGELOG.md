@@ -1,6 +1,6 @@
 # Changelog
 
-## [v7.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v7.0.0) (2023-03-31)
+## [v7.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v7.0.0) (2023-04-06)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v6.0.1...v7.0.0)
 
@@ -10,6 +10,7 @@
 
 **Merged pull requests:**
 
+- Drop support for Ruby 2.7 [\#170](https://github.com/bytecodealliance/wasmtime-rb/pull/170) ([jbourassa](https://github.com/jbourassa))
 - Wasmtime 7.0 [\#163](https://github.com/bytecodealliance/wasmtime-rb/pull/163) ([jbourassa](https://github.com/jbourassa))
 - Fix potential GC bug when expiring the caller [\#162](https://github.com/bytecodealliance/wasmtime-rb/pull/162) ([jbourassa](https://github.com/jbourassa))
 - Allowing making Module and Engine Ractor shareable [\#161](https://github.com/bytecodealliance/wasmtime-rb/pull/161) ([macournoyer](https://github.com/macournoyer))

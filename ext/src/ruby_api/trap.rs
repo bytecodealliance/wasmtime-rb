@@ -89,8 +89,7 @@ impl Trap {
 
 impl From<Trap> for Error {
     fn from(trap: Trap) -> Self {
-        magnus::Value::from(trap)
-            .try_convert::<magnus::Exception>()
+        magnus::Exception::from_value(Obj::wrap(trap).as_value())
             .unwrap() // Can't fail: Wasmtime::Trap is an Exception
             .into()
     }

@@ -3,8 +3,8 @@ use std::convert::TryFrom;
 use crate::ruby_api::{errors::base_error, root};
 use magnus::Error;
 use magnus::{
-    memoize, method, rb_sys::AsRawValue, typed_data::Obj, DataTypeFunctions, ExceptionClass,
-    IntoValue, Module as _, Symbol, TypedData,
+    memoize, method, prelude::*, rb_sys::AsRawValue, typed_data::Obj, DataTypeFunctions,
+    ExceptionClass, IntoValue, Symbol, TypedData,
 };
 
 pub fn trap_error() -> ExceptionClass {

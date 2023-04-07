@@ -5,8 +5,8 @@ use super::{
 };
 use crate::error;
 use magnus::{
-    class, function, method, typed_data::Obj, DataTypeFunctions, Error, Module as _, Object,
-    Symbol, TypedData, Value,
+    class, function, method, prelude::*, typed_data::Obj, DataTypeFunctions, Error, Object, Symbol,
+    TypedData, Value,
 };
 use wasmtime::{Extern, Global as GlobalImpl, GlobalType, Mutability};
 

@@ -11,8 +11,8 @@ use super::{
 };
 use crate::{define_rb_intern, err, error};
 use magnus::{
-    block::Proc, class, function, gc, method, scan_args, scan_args::scan_args, typed_data::Obj,
-    DataTypeFunctions, Error, Module as _, Object, RArray, RHash, RString, TypedData, Value,
+    block::Proc, class, function, gc, method, prelude::*, scan_args, scan_args::scan_args,
+    typed_data::Obj, DataTypeFunctions, Error, Object, RArray, RHash, RString, TypedData, Value,
 };
 use std::cell::RefCell;
 use wasmtime::Linker as LinkerImpl;

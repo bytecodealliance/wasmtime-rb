@@ -5,8 +5,8 @@ use super::{
 };
 use crate::{define_rb_intern, error};
 use magnus::{
-    class, function, method, scan_args, typed_data::Obj, DataTypeFunctions, Error, IntoValue,
-    Module as _, Object, Symbol, TypedData, Value,
+    class, function, method, prelude::*, scan_args, typed_data::Obj, DataTypeFunctions, Error,
+    IntoValue, Object, Symbol, TypedData, Value,
 };
 use wasmtime::{Extern, Table as TableImpl, TableType};
 

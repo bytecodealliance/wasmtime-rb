@@ -7,7 +7,7 @@ use super::{
 };
 use crate::err;
 use magnus::{
-    class, function, gc, method, scan_args, typed_data::Obj, DataTypeFunctions, Error, Module as _,
+    class, function, gc, method, prelude::*, scan_args, typed_data::Obj, DataTypeFunctions, Error,
     Object, RArray, RHash, RString, TryConvert, TypedData, Value,
 };
 use wasmtime::{Extern, Instance as InstanceImpl, StoreContextMut};

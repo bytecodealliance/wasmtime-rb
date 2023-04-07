@@ -148,6 +148,12 @@ impl ToValType for Value {
     }
 }
 
+impl ToValType for Symbol {
+    fn to_val_type(&self) -> Result<ValType, Error> {
+        self.as_value().to_val_type()
+    }
+}
+
 pub trait ToValTypeVec {
     fn to_val_type_vec(&self) -> Result<Vec<ValType>, Error>;
 }

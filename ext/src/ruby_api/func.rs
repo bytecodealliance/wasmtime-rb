@@ -5,7 +5,7 @@ use super::{
     root,
     store::{Store, StoreContextValue, StoreData},
 };
-use crate::Caller;
+use crate::{error, Caller};
 use magnus::{
     block::Proc, function, method, scan_args::scan_args, typed_data::Obj, DataTypeFunctions, Error,
     Module as _, Object, RArray, TypedData, Value, QNIL,
@@ -46,6 +46,11 @@ unsafe impl Sync for ShareableProc {}
 unsafe impl Send for Func<'_> {}
 
 impl<'a> Func<'a> {
+    // For some strange reason TDB, Valgrind detects an invalid memory write
+    // when the result length > 174. Until we figure out why, we'll just play it
+    // safe and limit the result length to 174.
+    const MAX_RESULTS: usize = 174;
+
     /// @yard
     ///
     /// Creates a WebAssembly function from a Ruby block. WebAssembly functions
@@ -83,6 +88,18 @@ impl<'a> Func<'a> {
     pub fn new(args: &[Value]) -> Result<Self, Error> {
         let args = scan_args::<(Value, RArray, RArray), (), (), (), (), Proc>(args)?;
         let (s, params, results) = args.required;
+
+        if results.len() > Self::MAX_RESULTS {
+            return Err(Error::new(
+                magnus::exception::arg_error(),
+                format!(
+                    "too many results (max is {}, got {})",
+                    Self::MAX_RESULTS,
+                    results.len()
+                ),
+            ));
+        }
+
         let callable = args.block;
 
         let wrapped_store: Obj<Store> = s.try_convert()?;
@@ -268,6 +285,7 @@ pub fn init() -> Result<(), Error> {
     func.define_method("call", method!(Func::call, -1))?;
     func.define_method("params", method!(Func::params, 0))?;
     func.define_method("results", method!(Func::results, 0))?;
+    func.const_set("MAX_RESULTS", Func::MAX_RESULTS)?;
 
     Ok(())
 }

@@ -452,11 +452,6 @@
       <pre class="lines">
 
 
-83
-84
-85
-86
-87
 88
 89
 90
@@ -470,14 +465,43 @@
 98
 99
 100
-101</pre>
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 83</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 88</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let args = scan_args::&lt;(Value, RArray, RArray), (), (), (), (), Proc&gt;(args)?;
     let (s, params, results) = args.required;
+
+    if results.len() &gt; Self::MAX_RESULTS {
+        return Err(Error::new(
+            magnus::exception::arg_error(),
+            format!(
+                &quot;too many results (max is {}, got {})&quot;,
+                Self::MAX_RESULTS,
+                results.len()
+            ),
+        ));
+    }
+
     let callable = args.block;
 
     let wrapped_store: Obj&lt;Store&gt; = s.try_convert()?;
@@ -588,12 +612,12 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-130
-131
-132</pre>
+147
+148
+149</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 130</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 147</span>
 
 pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
     Self::invoke(&amp;self.store, &amp;self.inner, args)
@@ -647,18 +671,18 @@ pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
       <pre class="lines">
 
 
-140
-141
-142
-143
-144
-145
-146
-147
-148</pre>
+157
+158
+159
+160
+161
+162
+163
+164
+165</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 140</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 157</span>
 
 pub fn params(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
     let params = self
@@ -718,18 +742,18 @@ pub fn params(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
       <pre class="lines">
 
 
-152
-153
-154
-155
-156
-157
-158
-159
-160</pre>
+169
+170
+171
+172
+173
+174
+175
+176
+177</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 152</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 169</span>
 
 pub fn results(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
     let results = self
@@ -750,7 +774,7 @@ pub fn results(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Thu Apr  6 23:39:09 2023 by
+  Generated on Fri Apr  7 14:19:58 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.2.2).
 </div>

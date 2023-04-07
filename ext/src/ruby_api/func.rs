@@ -5,7 +5,7 @@ use super::{
     root,
     store::{Store, StoreContextValue, StoreData},
 };
-use crate::{error, Caller};
+use crate::Caller;
 use magnus::{
     block::Proc, function, method, scan_args::scan_args, typed_data::Obj, DataTypeFunctions, Error,
     Module as _, Object, RArray, TypedData, Value, QNIL,

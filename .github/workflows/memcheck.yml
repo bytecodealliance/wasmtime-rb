@@ -49,6 +49,7 @@ jobs:
           RSPEC_FORMATTER: "progress"
           RSPEC_FAILURE_EXIT_CODE: "0"
           GC_AT_EXIT: "1"
+          WASMTIME_TARGET: "x86_64-unknown-linux-gnu" # use generic target for memcheck
         run: |
           if ! bundle exec rake mem:check; then
             echo "::error::Valgrind memory check failed, for more info please see ./suppressions/readme.md"

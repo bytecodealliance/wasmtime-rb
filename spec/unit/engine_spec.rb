@@ -2,8 +2,6 @@ require "spec_helper"
 
 module Wasmtime
   RSpec.describe Engine do
-    let(:engine) { Engine.new }
-
     describe ".new" do
       it("accepts a config Hash") { Engine.new(consume_fuel: true) }
       it("accepts no config") { Engine.new }

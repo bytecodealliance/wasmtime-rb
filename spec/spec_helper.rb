@@ -2,8 +2,16 @@
 
 require "wasmtime"
 
+DEBUG = ENV["DEBUG"] == "true" || ENV["DEBUG"] == "1" || ENV["RB_SYS_CARGO_PROFILE"] == "dev"
+
+GLOBAL_ENGINE = Wasmtime::Engine.new(
+  debug_info: false, # see https://github.com/bytecodealliance/wasmtime/issues/3999
+  wasm_backtrace_details: DEBUG,
+  target: ENV["WASMTIME_TARGET"]
+)
+
 RSpec.shared_context("default lets") do
-  let(:engine) { Wasmtime::Engine.new }
+  let(:engine) { GLOBAL_ENGINE }
   let(:store_data) { Object.new }
   let(:store) { Wasmtime::Store.new(engine, store_data) }
   let(:wat) { "(module)" }

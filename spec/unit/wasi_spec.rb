@@ -7,7 +7,7 @@ module Wasmtime
 
     before(:all) do
       # Compile module only once for speed
-      @compiled_wasi_module = Engine.new.precompile_module(IO.binread("spec/fixtures/wasi-debug.wasm"))
+      @compiled_wasi_module = GLOBAL_ENGINE.precompile_module(IO.binread("spec/fixtures/wasi-debug.wasm"))
     end
 
     describe "Linker.new" do

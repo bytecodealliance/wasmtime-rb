@@ -1,20 +1,4 @@
 {
-  Rust probes for statx(buf)
-  Memcheck:Param
-  statx(buf)
-  ...
-  fun:*try_statx*
-  ...
-}
-{
-  Rust probes for statx(file_name)
-  Memcheck:Param
-  statx(file_name)
-  ...
-  fun:*try_statx*
-  ...
-}
-{
   Valgrind is detecting a "Invalid read of size 8" during this process, not sure why
   Memcheck:Addr8
   fun:each_location.constprop.1

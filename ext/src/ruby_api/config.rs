@@ -81,10 +81,13 @@ pub fn hash_to_config(hash: RHash) -> Result<Config, Error> {
         } else if *CRANELIFT_OPT_LEVEL == id {
             config.cranelift_opt_level(entry.try_into()?);
         } else if *TARGET == id {
-            let target: String = entry.try_into()?;
-            config.target(&target).map_err(|e| {
-                Error::new(arg_error(), format!("Invalid target: {}: {}", target, e))
-            })?;
+            let target: Option<String> = entry.try_into()?;
+
+            if let Some(target) = target {
+                config.target(&target).map_err(|e| {
+                    Error::new(arg_error(), format!("Invalid target: {}: {}", target, e))
+                })?;
+            }
         } else {
             return Err(Error::new(
                 arg_error(),
@@ -127,6 +130,14 @@ impl TryFrom<ConfigEntry> for String {
     type Error = magnus::Error;
     fn try_from(value: ConfigEntry) -> Result<Self, Self::Error> {
         value.1.try_convert().map_err(|_| value.invalid_type())
+    }
+}
+
+impl TryFrom<ConfigEntry> for Option<String> {
+    type Error = magnus::Error;
+    fn try_from(value: ConfigEntry) -> Result<Self, Self::Error> {
+        let val: Option<String> = value.1.try_convert().map_err(|_| value.invalid_type())?;
+        Ok(val)
     }
 }
 

@@ -33,6 +33,24 @@ module WasmFixtures
   end
 end
 
+module GcHelpers
+  def without_gc_stress
+    old = GC.stress
+    GC.stress = false
+    yield
+  ensure
+    GC.stress = old
+  end
+
+  def with_gc_stress
+    old = GC.stress
+    GC.stress = true
+    yield
+  ensure
+    GC.stress = old
+  end
+end
+
 RSpec.configure do |config|
   config.filter_run focus: true
   config.run_all_when_everything_filtered = true
@@ -41,6 +59,7 @@ RSpec.configure do |config|
   end
 
   config.include_context("default lets")
+  config.include(GcHelpers)
 
   # So memcheck steps can still pass if RSpec fails
   config.failure_exit_code = ENV.fetch("RSPEC_FAILURE_EXIT_CODE", 1).to_i
@@ -60,10 +79,7 @@ RSpec.configure do |config|
 
   if ENV["GC_STRESS"]
     config.around :each do |ex|
-      GC.stress = true
-      ex.run
-    ensure
-      GC.stress = false
+      with_gc_stress { ex.run }
     end
   end
 end

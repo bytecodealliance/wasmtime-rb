@@ -329,12 +329,12 @@
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 88</span>
 
-pub fn add_fuel(&amp;self, fuel: u64) -&gt; Result&lt;Value, Error&gt; {
+pub fn add_fuel(&amp;self, fuel: u64) -&gt; Result&lt;(), Error&gt; {
     self.handle
         .get_mut()
         .and_then(|c| c.add_fuel(fuel).map_err(|e| error!(&quot;{}&quot;, e)))?;
 
-    Ok(*QNIL)
+    Ok(())
 }</pre>
     </td>
   </tr>
@@ -602,7 +602,7 @@ pub fn store_data(&amp;self) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Fri Apr  7 14:19:58 2023 by
+  Generated on Sat Apr  8 20:37:40 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.2.2).
 </div>

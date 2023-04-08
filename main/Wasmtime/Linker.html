@@ -1122,7 +1122,7 @@ pub fn func_new(&amp;self, args: &amp;[Value]) -&gt; Result&lt;(), Error&gt; {
     let ty = wasmtime::FuncType::new(params.to_val_type_vec()?, results.to_val_type_vec()?);
     let func_closure = func::make_func_closure(&amp;ty, callable);
 
-    self.refs.borrow_mut().push(callable.into());
+    self.refs.borrow_mut().push(callable.as_value());
 
     self.inner
         .borrow_mut()
@@ -1700,7 +1700,7 @@ pub fn module(&amp;self, store: &amp;Store, name: RString, module: &amp;Module) 
 </div>
 
       <div id="footer">
-  Generated on Fri Apr  7 14:19:59 2023 by
+  Generated on Sat Apr  8 20:37:40 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.2.2).
 </div>

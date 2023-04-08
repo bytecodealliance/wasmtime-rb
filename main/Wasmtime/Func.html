@@ -481,15 +481,14 @@
 114
 115
 116
-117
-118</pre>
+117</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 88</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
-    let args = scan_args::&lt;(Value, RArray, RArray), (), (), (), (), Proc&gt;(args)?;
-    let (s, params, results) = args.required;
+    let args = scan_args::&lt;(Obj&lt;Store&gt;, RArray, RArray), (), (), (), (), Proc&gt;(args)?;
+    let (wrapped_store, params, results) = args.required;
 
     if results.len() &gt; Self::MAX_RESULTS {
         return Err(Error::new(
@@ -504,10 +503,9 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
 
     let callable = args.block;
 
-    let wrapped_store: Obj&lt;Store&gt; = s.try_convert()?;
     let store = wrapped_store.get();
 
-    store.retain(callable.into());
+    store.retain(callable.as_value());
     let context = store.context_mut();
     let ty = wasmtime::FuncType::new(params.to_val_type_vec()?, results.to_val_type_vec()?);
     let func_closure = make_func_closure(&amp;ty, callable);
@@ -612,12 +610,12 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
+146
 147
-148
-149</pre>
+148</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 147</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 146</span>
 
 pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
     Self::invoke(&amp;self.store, &amp;self.inner, args)
@@ -671,6 +669,7 @@ pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
       <pre class="lines">
 
 
+156
 157
 158
 159
@@ -678,11 +677,10 @@ pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
 161
 162
 163
-164
-165</pre>
+164</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 157</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 156</span>
 
 pub fn params(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
     let params = self
@@ -742,6 +740,7 @@ pub fn params(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
       <pre class="lines">
 
 
+168
 169
 170
 171
@@ -749,11 +748,10 @@ pub fn params(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
 173
 174
 175
-176
-177</pre>
+176</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 169</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 168</span>
 
 pub fn results(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
     let results = self
@@ -774,7 +772,7 @@ pub fn results(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Fri Apr  7 14:19:58 2023 by
+  Generated on Sat Apr  8 20:37:40 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.2.2).
 </div>

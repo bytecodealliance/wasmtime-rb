@@ -587,7 +587,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
 pub fn get(&amp;self, index: u32) -&gt; Result&lt;Value, Error&gt; {
     match self.inner.get(self.store.context_mut()?, index) {
         Some(wasm_val) =&gt; wasm_val.to_ruby_value(&amp;self.store),
-        None =&gt; Ok(*QNIL),
+        None =&gt; Ok(().into_value()),
     }
 }</pre>
     </td>
@@ -1020,7 +1020,7 @@ pub fn type_(&amp;self) -&gt; Result&lt;Symbol, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Fri Apr  7 14:19:59 2023 by
+  Generated on Sat Apr  8 20:37:40 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.2.2).
 </div>

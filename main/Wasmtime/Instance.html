@@ -368,17 +368,15 @@
 71
 72
 73
-74
-75</pre>
+74</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 41</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let args =
-        scan_args::scan_args::&lt;(Value, &amp;Module), (Option&lt;Value&gt;,), (), (), (), ()&gt;(args)?;
-    let (s, module) = args.required;
-    let wrapped_store: Obj&lt;Store&gt; = s.try_convert()?;
+        scan_args::scan_args::&lt;(Obj&lt;Store&gt;, &amp;Module), (Option&lt;Value&gt;,), (), (), (), ()&gt;(args)?;
+    let (wrapped_store, module) = args.required;
     let store = wrapped_store.get();
     let mut context = store.context_mut();
     let imports = args
@@ -388,7 +386,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
 
     let imports: Vec&lt;Extern&gt; = match imports {
         Some(arr) =&gt; {
-            let arr: RArray = arr.try_convert()?;
+            let arr = RArray::try_convert(arr)?;
             let mut imports = Vec::with_capacity(arr.len());
             // SAFETY: arr won&#39;t get gc&#39;d (it&#39;s on the stack) and we don&#39;t mutate it.
             for import in unsafe { arr.as_slice() } {
@@ -479,6 +477,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
+113
 114
 115
 116
@@ -487,11 +486,10 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
 119
 120
 121
-122
-123</pre>
+122</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 114</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 113</span>
 
 pub fn export(&amp;self, str: RString) -&gt; Result&lt;Option&lt;super::externals::Extern&gt;, Error&gt; {
     let store = self.store.get();
@@ -547,6 +545,7 @@ pub fn export(&amp;self, str: RString) -&gt; Result&lt;Option&lt;super::external
       <pre class="lines">
 
 
+90
 91
 92
 93
@@ -561,11 +560,10 @@ pub fn export(&amp;self, str: RString) -&gt; Result&lt;Option&lt;super::external
 102
 103
 104
-105
-106</pre>
+105</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 91</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 90</span>
 
 pub fn exports(&amp;self) -&gt; Result&lt;RHash, Error&gt; {
     let store = self.store.get();
@@ -682,6 +680,7 @@ pub fn exports(&amp;self) -&gt; Result&lt;RHash, Error&gt; {
       <pre class="lines">
 
 
+133
 134
 135
 136
@@ -692,27 +691,20 @@ pub fn exports(&amp;self) -&gt; Result&lt;RHash, Error&gt; {
 141
 142
 143
-144
-145
-146
-147
-148</pre>
+144</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 134</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 133</span>
 
 pub fn invoke(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
-    let name: RString = args
-        .get(0)
-        .ok_or_else(|| {
-            Error::new(
-                magnus::exception::type_error(),
-                &quot;wrong number of arguments (given 0, expected 1+)&quot;,
-            )
-        })?
-        .try_convert()?;
+    let name = RString::try_convert(*args.get(0).ok_or_else(|| {
+        Error::new(
+            magnus::exception::type_error(),
+            &quot;wrong number of arguments (given 0, expected 1+)&quot;,
+        )
+    })?)?;
 
-    let store: &amp;Store = self.store.try_convert()?;
+    let store = self.store.get();
     let func = self.get_func(store.context_mut(), unsafe { name.as_str()? })?;
     Func::invoke(&amp;self.store.into(), &amp;func, &amp;args[1..])
 }</pre>
@@ -726,7 +718,7 @@ pub fn invoke(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Fri Apr  7 14:19:59 2023 by
+  Generated on Sat Apr  8 20:37:40 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.2.2).
 </div>

@@ -293,7 +293,7 @@
 
 pub fn to_func(rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
     match rb_self.get() {
-        Extern::Func(f) =&gt; Ok(**f),
+        Extern::Func(f) =&gt; Ok(f.as_value()),
         _ =&gt; conversion_err!(Self::inner_class(rb_self), Func::class()),
     }
 }</pre>
@@ -358,7 +358,7 @@ pub fn to_func(rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
 
 pub fn to_global(rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
     match rb_self.get() {
-        Extern::Global(g) =&gt; Ok(**g),
+        Extern::Global(g) =&gt; Ok(g.as_value()),
         _ =&gt; conversion_err!(Self::inner_class(rb_self), Global::class()),
     }
 }</pre>
@@ -423,7 +423,7 @@ pub fn to_global(rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
 
 pub fn to_memory(rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
     match rb_self.get() {
-        Extern::Memory(m) =&gt; Ok(**m),
+        Extern::Memory(m) =&gt; Ok(m.as_value()),
         _ =&gt; conversion_err!(Self::inner_class(rb_self), Memory::class()),
     }
 }</pre>
@@ -488,7 +488,7 @@ pub fn to_memory(rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
 
 pub fn to_table(rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
     match rb_self.get() {
-        Extern::Table(t) =&gt; Ok(**t),
+        Extern::Table(t) =&gt; Ok(t.as_value()),
         _ =&gt; conversion_err!(Self::inner_class(rb_self), Table::class()),
     }
 }</pre>
@@ -502,7 +502,7 @@ pub fn to_table(rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Fri Apr  7 14:19:58 2023 by
+  Generated on Sat Apr  8 20:37:40 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.2.2).
 </div>

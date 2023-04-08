@@ -436,7 +436,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     )?;
     let (engine,) = args.required;
     let (user_data,) = args.optional;
-    let user_data = user_data.unwrap_or_else(|| QNIL.into());
+    let user_data = user_data.unwrap_or_else(|| ().into_value());
     let wasi = match kw.optional.0 {
         None =&gt; None,
         Some(wasi_ctx_builder) =&gt; Some(wasi_ctx_builder.build_context()?),
@@ -535,12 +535,12 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 144</span>
 
-pub fn add_fuel(&amp;self, fuel: u64) -&gt; Result&lt;Value, Error&gt; {
+pub fn add_fuel(&amp;self, fuel: u64) -&gt; Result&lt;(), Error&gt; {
     unsafe { &amp;mut *self.inner.get() }
         .add_fuel(fuel)
         .map_err(|e| error!(&quot;{}&quot;, e))?;
 
-    Ok(*QNIL)
+    Ok(())
 }</pre>
     </td>
   </tr>
@@ -831,7 +831,7 @@ pub fn set_epoch_deadline(&amp;self, ticks_beyond_current: u64) {
 </div>
 
       <div id="footer">
-  Generated on Fri Apr  7 14:19:59 2023 by
+  Generated on Sat Apr  8 20:37:40 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.28 (ruby-3.2.2).
 </div>

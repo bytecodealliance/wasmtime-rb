@@ -1,8 +1,8 @@
 use super::root;
 use crate::error;
 use magnus::{
-    function, gc, method, typed_data::Obj, DataTypeFunctions, Error, Module, Object, RArray, RHash,
-    RString, TypedData,
+    class, function, gc, method, typed_data::Obj, DataTypeFunctions, Error, Module, Object, RArray,
+    RHash, RString, TryConvert, TypedData,
 };
 use std::cell::RefCell;
 use std::{fs::File, path::PathBuf};
@@ -75,7 +75,7 @@ impl WasiCtxBuilderInner {
 ///   Wasmtime's Rust doc
 // #[derive(Debug)]
 #[derive(Default, TypedData)]
-#[magnus(class = "Wasmtime::WasiCtxBuilder", size, mark, free_immediatly)]
+#[magnus(class = "Wasmtime::WasiCtxBuilder", size, mark, free_immediately)]
 pub struct WasiCtxBuilder {
     inner: RefCell<WasiCtxBuilderInner>,
 }
@@ -225,7 +225,7 @@ impl WasiCtxBuilder {
         if let Some(args) = inner.args.as_ref() {
             // SAFETY: no gc can happen nor do we write to `args`.
             for item in unsafe { args.as_slice() } {
-                let arg = item.try_convert::<RString>()?;
+                let arg = RString::try_convert(*item)?;
                 // SAFETY: &str copied before calling in to Ruby, no GC can happen before.
                 let arg = unsafe { arg.as_str() }?;
                 builder = builder.arg(arg).map_err(|e| error!("{}", e))?
@@ -260,7 +260,7 @@ fn wasi_file(file: File) -> Box<wasi_cap_std_sync::file::File> {
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("WasiCtxBuilder", Default::default())?;
+    let class = root().define_class("WasiCtxBuilder", class::object())?;
     class.define_singleton_method("new", function!(WasiCtxBuilder::new, 0))?;
 
     class.define_method("inherit_stdin", method!(WasiCtxBuilder::inherit_stdin, 0))?;

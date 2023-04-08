@@ -7,8 +7,8 @@ use super::{
 };
 use crate::err;
 use magnus::{
-    function, gc, method, scan_args, typed_data::Obj, DataTypeFunctions, Error, Module as _,
-    Object, RArray, RHash, RString, TypedData, Value,
+    class, function, gc, method, prelude::*, scan_args, typed_data::Obj, DataTypeFunctions, Error,
+    Object, RArray, RHash, RString, TryConvert, TypedData, Value,
 };
 use wasmtime::{Extern, Instance as InstanceImpl, StoreContextMut};
 
@@ -16,7 +16,7 @@ use wasmtime::{Extern, Instance as InstanceImpl, StoreContextMut};
 /// Represents a WebAssembly instance.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Instance.html Wasmtime's Rust doc
 #[derive(Clone, Debug, TypedData)]
-#[magnus(class = "Wasmtime::Instance", mark, free_immediatly)]
+#[magnus(class = "Wasmtime::Instance", mark, free_immediately)]
 pub struct Instance {
     inner: InstanceImpl,
     store: Obj<Store>,
@@ -40,9 +40,8 @@ impl Instance {
     /// @return [Instance]
     pub fn new(args: &[Value]) -> Result<Self, Error> {
         let args =
-            scan_args::scan_args::<(Value, &Module), (Option<Value>,), (), (), (), ()>(args)?;
-        let (s, module) = args.required;
-        let wrapped_store: Obj<Store> = s.try_convert()?;
+            scan_args::scan_args::<(Obj<Store>, &Module), (Option<Value>,), (), (), (), ()>(args)?;
+        let (wrapped_store, module) = args.required;
         let store = wrapped_store.get();
         let mut context = store.context_mut();
         let imports = args
@@ -52,7 +51,7 @@ impl Instance {
 
         let imports: Vec<Extern> = match imports {
             Some(arr) => {
-                let arr: RArray = arr.try_convert()?;
+                let arr = RArray::try_convert(arr)?;
                 let mut imports = Vec::with_capacity(arr.len());
                 // SAFETY: arr won't get gc'd (it's on the stack) and we don't mutate it.
                 for import in unsafe { arr.as_slice() } {
@@ -132,17 +131,14 @@ impl Instance {
     /// @return (see Func#call)
     /// @see Func#call
     pub fn invoke(&self, args: &[Value]) -> Result<Value, Error> {
-        let name: RString = args
-            .get(0)
-            .ok_or_else(|| {
-                Error::new(
-                    magnus::exception::type_error(),
-                    "wrong number of arguments (given 0, expected 1+)",
-                )
-            })?
-            .try_convert()?;
+        let name = RString::try_convert(*args.get(0).ok_or_else(|| {
+            Error::new(
+                magnus::exception::type_error(),
+                "wrong number of arguments (given 0, expected 1+)",
+            )
+        })?)?;
 
-        let store: &Store = self.store.try_convert()?;
+        let store = self.store.get();
         let func = self.get_func(store.context_mut(), unsafe { name.as_str()? })?;
         Func::invoke(&self.store.into(), &func, &args[1..])
     }
@@ -163,7 +159,7 @@ impl Instance {
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Instance", Default::default())?;
+    let class = root().define_class("Instance", class::object())?;
 
     class.define_singleton_method("new", function!(Instance::new, -1))?;
     class.define_method("invoke", method!(Instance::invoke, -1))?;

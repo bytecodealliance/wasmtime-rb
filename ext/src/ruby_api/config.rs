@@ -3,7 +3,7 @@ use lazy_static::lazy_static;
 use magnus::{
     exception::{arg_error, type_error},
     r_hash::ForEach,
-    Error, RHash, Symbol, Value,
+    Error, RHash, Symbol, TryConvert, Value,
 };
 use std::convert::{TryFrom, TryInto};
 use wasmtime::{Config, OptLevel, ProfilingStrategy, WasmBacktraceDetails};
@@ -115,21 +115,21 @@ impl ConfigEntry {
 impl TryFrom<ConfigEntry> for bool {
     type Error = magnus::Error;
     fn try_from(value: ConfigEntry) -> Result<Self, Self::Error> {
-        value.1.try_convert().map_err(|_| value.invalid_type())
+        Self::try_convert(value.1).map_err(|_| value.invalid_type())
     }
 }
 
 impl TryFrom<ConfigEntry> for usize {
     type Error = magnus::Error;
     fn try_from(value: ConfigEntry) -> Result<Self, Self::Error> {
-        value.1.try_convert().map_err(|_| value.invalid_type())
+        Self::try_convert(value.1).map_err(|_| value.invalid_type())
     }
 }
 
 impl TryFrom<ConfigEntry> for String {
     type Error = magnus::Error;
     fn try_from(value: ConfigEntry) -> Result<Self, Self::Error> {
-        value.1.try_convert().map_err(|_| value.invalid_type())
+        Self::try_convert(value.1).map_err(|_| value.invalid_type())
     }
 }
 
@@ -144,8 +144,7 @@ impl TryFrom<ConfigEntry> for Option<String> {
 impl TryFrom<ConfigEntry> for WasmBacktraceDetails {
     type Error = magnus::Error;
     fn try_from(value: ConfigEntry) -> Result<WasmBacktraceDetails, Error> {
-        let val: bool = value.1.try_convert().map_err(|_| value.invalid_type())?;
-        Ok(match val {
+        Ok(match value.1.to_bool() {
             true => WasmBacktraceDetails::Enable,
             false => WasmBacktraceDetails::Disable,
         })

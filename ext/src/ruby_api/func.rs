@@ -7,8 +7,8 @@ use super::{
 };
 use crate::Caller;
 use magnus::{
-    block::Proc, function, method, scan_args::scan_args, typed_data::Obj, DataTypeFunctions, Error,
-    Module as _, Object, RArray, TypedData, Value, QNIL,
+    block::Proc, class, function, method, prelude::*, scan_args::scan_args, typed_data::Obj,
+    DataTypeFunctions, Error, IntoValue, Object, RArray, TypedData, Value,
 };
 use wasmtime::{Caller as CallerImpl, Func as FuncImpl, Val};
 
@@ -86,8 +86,8 @@ impl<'a> Func<'a> {
     ///     [arg1.succ, arg2.succ]
     ///   end
     pub fn new(args: &[Value]) -> Result<Self, Error> {
-        let args = scan_args::<(Value, RArray, RArray), (), (), (), (), Proc>(args)?;
-        let (s, params, results) = args.required;
+        let args = scan_args::<(Obj<Store>, RArray, RArray), (), (), (), (), Proc>(args)?;
+        let (wrapped_store, params, results) = args.required;
 
         if results.len() > Self::MAX_RESULTS {
             return Err(Error::new(
@@ -102,10 +102,9 @@ impl<'a> Func<'a> {
 
         let callable = args.block;
 
-        let wrapped_store: Obj<Store> = s.try_convert()?;
         let store = wrapped_store.get();
 
-        store.retain(callable.into());
+        store.retain(callable.as_value());
         let context = store.context_mut();
         let ty = wasmtime::FuncType::new(params.to_val_type_vec()?, results.to_val_type_vec()?);
         let func_closure = make_func_closure(&ty, callable);
@@ -190,14 +189,14 @@ impl<'a> Func<'a> {
             .map_err(|e| store.handle_wasm_error(e))?;
 
         match results.as_slice() {
-            [] => Ok(QNIL.into()),
+            [] => Ok(().into_value()),
             [result] => result.to_ruby_value(store),
             _ => {
                 let array = RArray::with_capacity(results.len());
                 for result in results {
                     array.push(result.to_ruby_value(store)?)?;
                 }
-                Ok(array.into())
+                Ok(array.as_value())
             }
         }
     }
@@ -222,7 +221,7 @@ pub fn make_func_closure(
         let store_context = StoreContextValue::from(wrapped_caller);
 
         let rparams = RArray::with_capacity(params.len() + 1);
-        rparams.push(Value::from(wrapped_caller)).unwrap();
+        rparams.push(wrapped_caller.as_value()).unwrap();
 
         for (i, param) in params.iter().enumerate() {
             let rparam = param
@@ -280,7 +279,7 @@ pub fn make_func_closure(
 }
 
 pub fn init() -> Result<(), Error> {
-    let func = root().define_class("Func", Default::default())?;
+    let func = root().define_class("Func", class::object())?;
     func.define_singleton_method("new", function!(Func::new, -1))?;
     func.define_method("call", method!(Func::call, -1))?;
     func.define_method("params", method!(Func::params, 0))?;

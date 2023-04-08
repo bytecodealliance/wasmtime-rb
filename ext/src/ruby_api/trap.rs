@@ -3,8 +3,8 @@ use std::convert::TryFrom;
 use crate::ruby_api::{errors::base_error, root};
 use magnus::Error;
 use magnus::{
-    memoize, method, rb_sys::AsRawValue, typed_data::Obj, DataTypeFunctions, ExceptionClass,
-    IntoValue, Module as _, Symbol, TypedData,
+    memoize, method, prelude::*, rb_sys::AsRawValue, typed_data::Obj, DataTypeFunctions,
+    ExceptionClass, IntoValue, Symbol, TypedData,
 };
 
 pub fn trap_error() -> ExceptionClass {
@@ -18,7 +18,7 @@ macro_rules! trap_const {
 }
 
 #[derive(TypedData, Debug)]
-#[magnus(class = "Wasmtime::Trap", size, free_immediatly)]
+#[magnus(class = "Wasmtime::Trap", size, free_immediately)]
 /// @yard
 pub struct Trap {
     trap: wasmtime::Trap,
@@ -89,8 +89,7 @@ impl Trap {
 
 impl From<Trap> for Error {
     fn from(trap: Trap) -> Self {
-        magnus::Value::from(trap)
-            .try_convert::<magnus::Exception>()
+        magnus::Exception::from_value(Obj::wrap(trap).as_value())
             .unwrap() // Can't fail: Wasmtime::Trap is an Exception
             .into()
     }

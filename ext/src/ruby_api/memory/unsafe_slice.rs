@@ -1,13 +1,13 @@
 use crate::{define_rb_intern, error, root, Memory};
-#[cfg(ruby_gte_3_0)]
-use magnus::{class::object, memoize, require, RClass, RModule};
 use magnus::{
-    gc, method,
+    class, gc, method,
     rb_sys::{AsRawId, AsRawValue, FromRawValue},
     typed_data::Obj,
     value::IntoId,
-    DataTypeFunctions, Error, Module as _, TypedData, Value,
+    DataTypeFunctions, Error, Module as _, TryConvert, TypedData, Value,
 };
+#[cfg(ruby_gte_3_0)]
+use magnus::{class::object, memoize, require, RClass, RModule};
 use rb_sys::{rb_ivar_set, rb_obj_freeze, rb_str_new_static};
 #[cfg(ruby_gte_3_0)]
 use rb_sys::{
@@ -124,7 +124,7 @@ impl<'a> UnsafeSlice<'a> {
         _flags: i32,
     ) -> bool {
         let obj = unsafe { Value::from_raw(value) };
-        let Ok(memory) = obj.try_convert::<Obj<UnsafeSlice>>() else { return false };
+        let Ok(memory) = <Obj<UnsafeSlice>>::try_convert(obj) else { return false };
         let memory = memory.get();
         let Ok(raw_slice) = memory.get_raw_slice() else { return false; };
         let (ptr, size) = (raw_slice.as_ptr(), raw_slice.len());
@@ -135,7 +135,7 @@ impl<'a> UnsafeSlice<'a> {
     #[cfg(ruby_gte_3_0)]
     extern "C" fn is_memory_view_available(value: VALUE) -> bool {
         let obj = unsafe { Value::from_raw(value) };
-        let Ok(memory) = obj.try_convert::<Obj<UnsafeSlice>>() else { return false };
+        let Ok(memory) = <Obj<UnsafeSlice>>::try_convert(obj) else { return false };
         let memory = memory.get();
 
         memory.get_raw_slice().is_ok()
@@ -175,9 +175,9 @@ impl<'a> MemoryGuard<'a> {
 }
 
 pub fn init() -> Result<(), Error> {
-    let parent = root().define_class("Memory", Default::default())?;
+    let parent = root().define_class("Memory", class::object())?;
 
-    let class = parent.define_class("UnsafeSlice", Default::default())?;
+    let class = parent.define_class("UnsafeSlice", class::object())?;
     class.define_method("to_str", method!(UnsafeSlice::to_str, 0))?;
 
     #[cfg(ruby_gte_3_0)]

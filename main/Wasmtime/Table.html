@@ -6,7 +6,7 @@
 <title>
   Class: Wasmtime::Table
   
-    &mdash; Documentation by YARD 0.9.28
+    &mdash; Documentation by YARD 0.9.32
   
 </title>
 
@@ -491,7 +491,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let (max,) = kw.optional;
     let store = s.get();
     let wasm_type = value_type.to_val_type()?;
-    let wasm_default = default.to_wasm_val(&amp;wasm_type)?;
+    let wasm_default = default.to_wasm_val(wasm_type.clone())?;
 
     let inner = TableImpl::new(
         store.context_mut(),
@@ -679,7 +679,7 @@ pub fn grow(&amp;self, delta: u32, initial: Value) -&gt; Result&lt;u32, Error&gt
         .grow(
             self.store.context_mut()?,
             delta,
-            initial.to_wasm_val(&amp;self.value_type()?)?,
+            initial.to_wasm_val(self.value_type()?)?,
         )
         .map_err(|e| error!(&quot;{}&quot;, e))
         .and_then(|result| {
@@ -884,7 +884,7 @@ pub fn set(&amp;self, index: u32, value: Value) -&gt; Result&lt;(), Error&gt; {
         .set(
             self.store.context_mut()?,
             index,
-            value.to_wasm_val(&amp;self.value_type()?)?,
+            value.to_wasm_val(self.value_type()?)?,
         )
         .map_err(|e| error!(&quot;{}&quot;, e))
         .and_then(|result| {
@@ -1020,9 +1020,9 @@ pub fn type_(&amp;self) -&gt; Result&lt;Symbol, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Sat Apr  8 20:37:40 2023 by
+  Generated on Tue Apr 11 17:23:06 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.28 (ruby-3.2.2).
+  0.9.32 (ruby-3.2.2).
 </div>
 
     </div>

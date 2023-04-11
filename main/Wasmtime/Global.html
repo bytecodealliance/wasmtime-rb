@@ -6,7 +6,7 @@
 <title>
   Class: Wasmtime::Global
   
-    &mdash; Documentation by YARD 0.9.28
+    &mdash; Documentation by YARD 0.9.32
   
 </title>
 
@@ -726,7 +726,7 @@ pub fn set(&amp;self, value: Value) -&gt; Result&lt;(), Error&gt; {
     self.inner
         .set(
             self.store.context_mut()?,
-            value.to_wasm_val(&amp;self.value_type()?)?,
+            value.to_wasm_val(self.value_type()?)?,
         )
         .map_err(|e| error!(&quot;{}&quot;, e))
         .and_then(|result| {
@@ -855,9 +855,9 @@ pub fn is_var(&amp;self) -&gt; Result&lt;bool, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Sat Apr  8 20:37:40 2023 by
+  Generated on Tue Apr 11 17:23:06 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.28 (ruby-3.2.2).
+  0.9.32 (ruby-3.2.2).
 </div>
 
     </div>

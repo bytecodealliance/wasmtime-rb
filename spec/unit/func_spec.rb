@@ -60,7 +60,7 @@ module Wasmtime
 
       it "rejects mismatching argument type" do
         func = build_func([:i32], []) {}
-        expect { func.call("foo") }.to raise_error(TypeError, /\(param index 0\)/)
+        expect { func.call("foo") }.to raise_error(TypeError, /\(param at index 0\)/)
       end
 
       it "rejects mismatching results size" do

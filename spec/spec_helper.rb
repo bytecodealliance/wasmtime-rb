@@ -43,16 +43,6 @@ end
 
 module GcHelpers
   def without_gc_stress
-    old_value = GC.stress
-    GC.stress = false
-    yield
-  ensure
-    GC.stress = old_value
-  end
-end
-
-module GcHelpers
-  def without_gc_stress
     old = GC.stress
     GC.stress = false
     yield

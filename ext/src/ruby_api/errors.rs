@@ -1,6 +1,5 @@
 use crate::ruby_api::root;
-use magnus::rb_sys::FromRawValue;
-use magnus::{gc, Error, Value};
+use magnus::{gc, Error};
 use magnus::{memoize, ExceptionClass, Module};
 
 /// Base error class for all Wasmtime errors.
@@ -40,13 +39,6 @@ pub fn wasi_exit_error() -> ExceptionClass {
     })
 }
 
-/// Ruby's `NotImplementedError` class.
-pub fn not_implemented_error() -> ExceptionClass {
-    *memoize!(ExceptionClass: {
-        Value::from_raw(rb_sys::rb_eNotImpError).try_convert().unwrap()
-    })
-}
-
 #[macro_export]
 macro_rules! err {
     ($($arg:expr),*) => {
@@ -64,7 +56,7 @@ macro_rules! error {
 #[macro_export]
 macro_rules! not_implemented {
     ($($arg:expr),*) => {
-        Err(Error::new($crate::ruby_api::errors::not_implemented_error(), format!($($arg),*)))
+        Err(Error::new(magnus::exception::not_imp_error(), format!($($arg),*)))
     };
 }
 

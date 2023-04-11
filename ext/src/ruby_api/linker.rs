@@ -11,8 +11,8 @@ use super::{
 };
 use crate::{define_rb_intern, err, error};
 use magnus::{
-    block::Proc, function, gc, method, scan_args, scan_args::scan_args, typed_data::Obj,
-    DataTypeFunctions, Error, Module as _, Object, RArray, RHash, RString, TypedData, Value,
+    block::Proc, class, function, gc, method, prelude::*, scan_args, scan_args::scan_args,
+    typed_data::Obj, DataTypeFunctions, Error, Object, RArray, RHash, RString, TypedData, Value,
 };
 use std::cell::RefCell;
 use wasmtime::Linker as LinkerImpl;
@@ -24,7 +24,7 @@ define_rb_intern!(
 /// @yard
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Linker.html Wasmtime's Rust doc
 #[derive(TypedData)]
-#[magnus(class = "Wasmtime::Linker", size, mark, free_immediatly)]
+#[magnus(class = "Wasmtime::Linker", size, mark, free_immediately)]
 pub struct Linker {
     inner: RefCell<LinkerImpl<StoreData>>,
     refs: RefCell<Vec<Value>>,
@@ -140,7 +140,7 @@ impl Linker {
         let ty = wasmtime::FuncType::new(params.to_val_type_vec()?, results.to_val_type_vec()?);
         let func_closure = func::make_func_closure(&ty, callable);
 
-        self.refs.borrow_mut().push(callable.into());
+        self.refs.borrow_mut().push(callable.as_value());
 
         self.inner
             .borrow_mut()
@@ -313,7 +313,7 @@ impl Linker {
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Linker", Default::default())?;
+    let class = root().define_class("Linker", class::object())?;
     class.define_singleton_method("new", function!(Linker::new, -1))?;
     class.define_method("allow_shadowing=", method!(Linker::set_allow_shadowing, 1))?;
     class.define_method(

@@ -44,8 +44,8 @@ jobs:
       - name: Install deps
         run: |
           bundle config unset deployment
-          bundle add ruby_memcheck & # avoid usage in Gemfile bc it pulls in nokogiri
-          sudo apt install -y valgrind &
+          bundle add ruby_memcheck --version '~> 1.3.1' & # avoid usage in Gemfile bc it pulls in nokogiri
+          sudo apt-get install -y valgrind &
           wait
           bundle config set deployment true
 
@@ -56,6 +56,7 @@ jobs:
           GC_AT_EXIT: "1"
           DEBUG: ${{ inputs.debug || 'false' }}
           RB_SYS_CARGO_PROFILE: ${{ inputs.debug == 'true' && 'dev' || 'release' }}
+          WASMTIME_TARGET: "x86_64-unknown-linux-gnu" # use generic target for memcheck
         run: |
           if ! bundle exec rake mem:check; then
             echo "::error::Valgrind memory check failed, for more info please see ./suppressions/readme.md"

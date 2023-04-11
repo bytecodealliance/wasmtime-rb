@@ -1,5 +1,5 @@
 use super::static_id::StaticId;
-use magnus::{exception::arg_error, Error, Symbol, Value};
+use magnus::{exception::arg_error, Error, Symbol, TryConvert, Value};
 use std::fmt::Display;
 
 /// Represents an enum as a set of Symbols (using `StaticId`).
@@ -21,7 +21,7 @@ impl<'a, T: Clone> SymbolEnum<'a, T> {
     /// Returns an `ArgumentError` with a message enumerating all valid symbols
     /// when `needle` isn't a valid symbol.
     pub fn get(&self, needle: Value) -> Result<T, magnus::Error> {
-        let needle: Symbol = needle.try_convert().map_err(|_| self.error(needle))?;
+        let needle = Symbol::try_convert(needle).map_err(|_| self.error(needle))?;
         let id = magnus::value::Id::from(needle);
 
         self.mapping
@@ -29,7 +29,7 @@ impl<'a, T: Clone> SymbolEnum<'a, T> {
             .iter()
             .find(|(haystack, _)| *haystack == id)
             .map(|found| found.1.clone())
-            .ok_or_else(|| self.error(*needle))
+            .ok_or_else(|| self.error(needle.as_value()))
     }
 
     pub fn error(&self, value: Value) -> Error {

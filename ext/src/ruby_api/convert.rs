@@ -1,6 +1,6 @@
 use crate::{define_rb_intern, err, error, helpers::SymbolEnum};
 use lazy_static::lazy_static;
-use magnus::{Error, RArray, Symbol, TypedData, Value};
+use magnus::{Error, IntoValue, RArray, Symbol, TryConvert, TypedData, Value};
 use wasmtime::{ExternRef, Val, ValType};
 
 use super::{func::Func, global::Global, memory::Memory, store::StoreContextValue, table::Table};
@@ -38,12 +38,12 @@ pub trait ToRubyValue {
 impl ToRubyValue for Val {
     fn to_ruby_value(&self, store: &StoreContextValue) -> Result<Value, Error> {
         match self {
-            Val::I32(i) => Ok(Value::from(*i)),
-            Val::I64(i) => Ok(Value::from(*i)),
-            Val::F32(f) => Ok(Value::from(f32::from_bits(*f))),
-            Val::F64(f) => Ok(Value::from(f64::from_bits(*f))),
+            Val::I32(i) => Ok(i.into_value()),
+            Val::I64(i) => Ok(i.into_value()),
+            Val::F32(f) => Ok(f32::from_bits(*f).into_value()),
+            Val::F64(f) => Ok(f64::from_bits(*f).into_value()),
             Val::ExternRef(eref) => match eref {
-                None => Ok(magnus::QNIL.into()),
+                None => Ok(().into_value()),
                 Some(eref) => eref
                     .data()
                     .downcast_ref::<ExternRefValue>()
@@ -51,8 +51,8 @@ impl ToRubyValue for Val {
                     .ok_or_else(|| error!("failed to extract externref")),
             },
             Val::FuncRef(funcref) => match funcref {
-                None => Ok(magnus::QNIL.into()),
-                Some(funcref) => Ok(Func::from_inner(*store, *funcref).into()),
+                None => Ok(().into_value()),
+                Some(funcref) => Ok(Func::from_inner(*store, *funcref).into_value()),
             },
             Val::V128(_) => err!("converting from v128 to Ruby unsupported"),
         }
@@ -65,10 +65,10 @@ pub trait ToWasmVal {
 impl ToWasmVal for Value {
     fn to_wasm_val(&self, ty: ValType) -> Result<Val, Error> {
         match ty {
-            ValType::I32 => Ok(self.try_convert::<i32>()?.into()),
-            ValType::I64 => Ok(self.try_convert::<i64>()?.into()),
-            ValType::F32 => Ok(self.try_convert::<f32>()?.into()),
-            ValType::F64 => Ok(self.try_convert::<f64>()?.into()),
+            ValType::I32 => Ok(i32::try_convert(*self)?.into()),
+            ValType::I64 => Ok(i64::try_convert(*self)?.into()),
+            ValType::F32 => Ok(f32::try_convert(*self)?.into()),
+            ValType::F64 => Ok(f64::try_convert(*self)?.into()),
             ValType::ExternRef => {
                 let extern_ref_value = match self.is_nil() {
                     true => None,
@@ -80,7 +80,7 @@ impl ToWasmVal for Value {
             ValType::FuncRef => {
                 let func_ref_value = match self.is_nil() {
                     true => None,
-                    false => Some(*self.try_convert::<&Func>()?.inner()),
+                    false => Some(*<&Func>::try_convert(*self)?.inner()),
                 };
                 Ok(Val::FuncRef(func_ref_value))
             }
@@ -105,13 +105,13 @@ pub trait ToExtern {
 impl ToExtern for Value {
     fn to_extern(&self) -> Result<wasmtime::Extern, Error> {
         if self.is_kind_of(Func::class()) {
-            Ok(self.try_convert::<&Func>()?.into())
+            Ok(<&Func>::try_convert(*self)?.into())
         } else if self.is_kind_of(Memory::class()) {
-            Ok(self.try_convert::<&Memory>()?.into())
+            Ok(<&Memory>::try_convert(*self)?.into())
         } else if self.is_kind_of(Table::class()) {
-            Ok(self.try_convert::<&Table>()?.into())
+            Ok(<&Table>::try_convert(*self)?.into())
         } else if self.is_kind_of(Global::class()) {
-            Ok(self.try_convert::<&Global>()?.into())
+            Ok(<&Global>::try_convert(*self)?.into())
         } else {
             Err(Error::new(
                 magnus::exception::type_error(),
@@ -145,6 +145,12 @@ pub trait ToValType {
 impl ToValType for Value {
     fn to_val_type(&self) -> Result<ValType, Error> {
         VALTYPE_MAPPING.get(*self)
+    }
+}
+
+impl ToValType for Symbol {
+    fn to_val_type(&self) -> Result<ValType, Error> {
+        self.as_value().to_val_type()
     }
 }
 

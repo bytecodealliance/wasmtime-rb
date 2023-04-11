@@ -7,7 +7,7 @@ module Wasmtime
 
     before(:all) do
       # Debug engine opts on the engine currently fails assertion: range_start < range_end
-      @engine = Engine.new
+      @engine = GLOBAL_ENGINE
 
       # Compile module only once for speed
       @compiled_wasi_module = @engine.precompile_module(IO.binread("spec/fixtures/wasi-debug.wasm"))

@@ -8,8 +8,8 @@ use super::{
 };
 use crate::{define_rb_intern, error};
 use magnus::{
-    function, method, r_string::RString, scan_args, typed_data::Obj, DataTypeFunctions, Error,
-    Module as _, Object, TypedData, Value,
+    class, function, method, r_string::RString, scan_args, typed_data::Obj, DataTypeFunctions,
+    Error, Module as _, Object, TypedData, Value,
 };
 
 use wasmtime::{Extern, Memory as MemoryImpl};
@@ -198,7 +198,7 @@ impl From<&Memory<'_>> for Extern {
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Memory", Default::default())?;
+    let class = root().define_class("Memory", class::object())?;
     class.define_singleton_method("new", function!(Memory::new, -1))?;
     class.define_method("min_size", method!(Memory::min_size, 0))?;
     class.define_method("max_size", method!(Memory::max_size, 0))?;

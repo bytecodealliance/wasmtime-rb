@@ -28,11 +28,11 @@ impl Param {
             .to_wasm_val(self.ty.into())
             .map_err(|error| match error {
                 Error::Error(class, msg) => {
-                    Error::new(class, format!("{} (param index {}) ", msg, self.index))
+                    Error::new(class, format!("{} (param at index {})", msg, self.index))
                 }
                 Error::Exception(exception) => Error::new(
                     ExceptionClass::from_value(exception.class().into()).unwrap_or_else(arg_error),
-                    format!("{} (param at index {}) ", exception, self.index),
+                    format!("{} (param at index {})", exception, self.index),
                 ),
                 _ => error,
             })

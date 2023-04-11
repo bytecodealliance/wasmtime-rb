@@ -185,10 +185,8 @@ impl<'a> Func<'a> {
         let params = Params::new(&func_ty, args)?.to_vec()?;
         let mut results = vec![Val::null(); func_ty.results().len()];
 
-        match func.call(context, &params, &mut results) {
-            Ok(()) => Ok(()),
-            Err(e) => Err(store.handle_wasm_error(e)),
-        }?;
+        func.call(context, &params, &mut results)
+            .map_err(|e| store.handle_wasm_error(e))?;
 
         match results.as_slice() {
             [] => Ok(().into_value()),
@@ -255,12 +253,12 @@ pub fn make_func_closure(
         let callable = callable.0;
 
         match (callable.call(unsafe { rparams.as_slice() }), results.len()) {
-            // For len=1, accept both `val` and `[val]`
             (Ok(_proc_result), 0) => {
                 wrapped_caller.get().expire();
                 Ok(())
             }
             (Ok(proc_result), n) => {
+                // For len=1, accept both `val` and `[val]`
                 let Ok(proc_result) = RArray::to_ary(proc_result) else {
                     return result_error!(
                         store_context,

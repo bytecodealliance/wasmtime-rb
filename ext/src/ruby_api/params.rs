@@ -32,7 +32,7 @@ impl Param {
                 }
                 Error::Exception(exception) => Error::new(
                     ExceptionClass::from_value(exception.class().into()).unwrap_or_else(arg_error),
-                    format!("{} (param index {}) ", exception, self.index),
+                    format!("{} (param at index {}) ", exception, self.index),
                 ),
                 _ => error,
             })

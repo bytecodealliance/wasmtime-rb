@@ -1851,6 +1851,7 @@ dependencies = [
  "magnus",
  "rb-sys",
  "rb-sys-env",
+ "static_assertions",
  "tokio",
  "wasi-cap-std-sync",
  "wasi-common",

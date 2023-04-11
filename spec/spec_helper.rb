@@ -37,7 +37,7 @@ module WasmFixtures
   extend self
 
   def wasi_debug
-    @wasi_debug_module ||= Module.from_file(Engine.new, "spec/fixtures/wasi-debug.wasm")
+    @wasi_debug_module ||= Module.from_file(engine, "spec/fixtures/wasi-debug.wasm")
   end
 end
 
@@ -67,11 +67,12 @@ RSpec.configure do |config|
   end
 
   config.include_context("default lets")
-  config.include(GcHelpers)
+  config.include GcHelpers
 
   # So memcheck steps can still pass if RSpec fails
   config.failure_exit_code = ENV.fetch("RSPEC_FAILURE_EXIT_CODE", 1).to_i
   config.default_formatter = ENV.fetch("RSPEC_FORMATTER") do
+    next "doc" if DEBUG
     config.files_to_run.one? ? "doc" : "progress"
   end
 

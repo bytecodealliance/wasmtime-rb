@@ -59,11 +59,11 @@ impl ToRubyValue for Val {
     }
 }
 pub trait ToWasmVal {
-    fn to_wasm_val(&self, ty: &ValType) -> Result<Val, Error>;
+    fn to_wasm_val(&self, ty: ValType) -> Result<Val, Error>;
 }
 
 impl ToWasmVal for Value {
-    fn to_wasm_val(&self, ty: &ValType) -> Result<Val, Error> {
+    fn to_wasm_val(&self, ty: ValType) -> Result<Val, Error> {
         match ty {
             ValType::I32 => Ok(i32::try_convert(*self)?.into()),
             ValType::I64 => Ok(i64::try_convert(*self)?.into()),

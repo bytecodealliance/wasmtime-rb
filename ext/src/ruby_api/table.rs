@@ -52,7 +52,7 @@ impl<'a> Table<'a> {
         let (max,) = kw.optional;
         let store = s.get();
         let wasm_type = value_type.to_val_type()?;
-        let wasm_default = default.to_wasm_val(&wasm_type)?;
+        let wasm_default = default.to_wasm_val(wasm_type.clone())?;
 
         let inner = TableImpl::new(
             store.context_mut(),
@@ -119,7 +119,7 @@ impl<'a> Table<'a> {
             .set(
                 self.store.context_mut()?,
                 index,
-                value.to_wasm_val(&self.value_type()?)?,
+                value.to_wasm_val(self.value_type()?)?,
             )
             .map_err(|e| error!("{}", e))
             .and_then(|result| {
@@ -141,7 +141,7 @@ impl<'a> Table<'a> {
             .grow(
                 self.store.context_mut()?,
                 delta,
-                initial.to_wasm_val(&self.value_type()?)?,
+                initial.to_wasm_val(self.value_type()?)?,
             )
             .map_err(|e| error!("{}", e))
             .and_then(|result| {

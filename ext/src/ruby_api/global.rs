@@ -55,7 +55,7 @@ impl<'a> Global<'a> {
         mutability: Mutability,
     ) -> Result<Self, Error> {
         let wasm_type = value_type.to_val_type()?;
-        let wasm_default = default.to_wasm_val(&wasm_type)?;
+        let wasm_default = default.to_wasm_val(wasm_type.clone())?;
         let store = s.get();
         let inner = GlobalImpl::new(
             store.context_mut(),
@@ -116,7 +116,7 @@ impl<'a> Global<'a> {
         self.inner
             .set(
                 self.store.context_mut()?,
-                value.to_wasm_val(&self.value_type()?)?,
+                value.to_wasm_val(self.value_type()?)?,
             )
             .map_err(|e| error!("{}", e))
             .and_then(|result| {

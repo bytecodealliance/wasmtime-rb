@@ -19,6 +19,7 @@ pub struct StoreData {
     user_data: Value,
     wasi: Option<WasiCtx>,
     refs: Vec<Value>,
+    last_error: Option<Error>,
 }
 
 impl StoreData {
@@ -38,8 +39,28 @@ impl StoreData {
         self.refs.push(value);
     }
 
+    pub fn set_error(&mut self, error: Error) {
+        self.last_error = Some(error);
+    }
+
+    pub fn take_error(&mut self) -> Option<Error> {
+        self.last_error.take()
+    }
+
     pub fn mark(&self) {
         gc::mark_movable(&self.user_data);
+
+        if let Some(ref error) = self.last_error {
+            match error {
+                Error::Error(klass, _msg) => {
+                    gc::mark_movable(*klass);
+                }
+                Error::Exception(obj) => {
+                    gc::mark_movable(*obj);
+                }
+                Error::Jump(_) => {}
+            }
+        }
 
         for value in self.refs.iter() {
             gc::mark_movable(value);
@@ -51,6 +72,18 @@ impl StoreData {
 
         for value in self.refs.iter_mut() {
             *value = gc::location(*value);
+        }
+
+        if let Some(ref mut error) = self.last_error {
+            match error {
+                Error::Error(klass, _msg) => {
+                    *klass = gc::location(*klass);
+                }
+                Error::Exception(obj) => {
+                    *obj = gc::location(*obj);
+                }
+                Error::Jump(_) => {}
+            }
         }
     }
 }
@@ -114,6 +147,7 @@ impl Store {
             user_data,
             wasi,
             refs: Default::default(),
+            last_error: Default::default(),
         };
         let store = Self {
             inner: UnsafeCell::new(StoreImpl::new(eng, store_data)),
@@ -189,6 +223,10 @@ impl Store {
         self.context_mut().data_mut().retain(value);
     }
 
+    pub fn take_last_error(&self) -> Option<Error> {
+        self.context_mut().data_mut().take_error()
+    }
+
     fn inner_ref(&self) -> &StoreImpl<StoreData> {
         unsafe { &*self.inner.get() }
     }
@@ -239,8 +277,21 @@ impl<'a> StoreContextValue<'a> {
         }
     }
 
+    pub fn set_last_error(&self, error: Error) {
+        match self {
+            Self::Store(store) => store.get().context_mut().data_mut().set_error(error),
+            Self::Caller(caller) => {
+                if let Ok(mut context) = caller.get().context_mut() {
+                    context.data_mut().set_error(error);
+                }
+            }
+        };
+    }
+
     pub fn handle_wasm_error(&self, error: anyhow::Error) -> Error {
-        if let Some(exit) = error.downcast_ref::<I32Exit>() {
+        if let Ok(Some(error)) = self.take_last_error() {
+            error
+        } else if let Some(exit) = error.downcast_ref::<I32Exit>() {
             wasi_exit_error().new_instance((exit.0,)).unwrap().into()
         } else {
             Trap::try_from(error)
@@ -255,6 +306,13 @@ impl<'a> StoreContextValue<'a> {
     pub fn retain(&self, value: Value) -> Result<(), Error> {
         self.context_mut()?.data_mut().retain(value);
         Ok(())
+    }
+
+    fn take_last_error(&self) -> Result<Option<Error>, Error> {
+        match self {
+            Self::Store(store) => Ok(store.get().take_last_error()),
+            Self::Caller(caller) => Ok(caller.get().context_mut()?.data_mut().take_error()),
+        }
     }
 }
 

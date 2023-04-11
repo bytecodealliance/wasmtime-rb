@@ -71,6 +71,8 @@ impl<'a> Params<'a> {
 }
 
 /// A [`wasmtime::ValType`] that is [`Copy`], so it can be stays on the stack
+///
+/// Note: this can be removed in Wasmtime 8.0 (see https://github.com/bytecodealliance/wasmtime/pull/6138)
 #[derive(Debug, Clone, Copy)]
 pub enum ValTypeCopy {
     I32,

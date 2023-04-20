@@ -6,7 +6,7 @@
 <title>
   Class: Wasmtime::Table
   
-    &mdash; Documentation by YARD 0.9.32
+    &mdash; Documentation by YARD 0.9.34
   
 </title>
 
@@ -491,7 +491,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let (max,) = kw.optional;
     let store = s.get();
     let wasm_type = value_type.to_val_type()?;
-    let wasm_default = default.to_wasm_val(wasm_type.clone())?;
+    let wasm_default = default.to_wasm_val(wasm_type)?;
 
     let inner = TableImpl::new(
         store.context_mut(),
@@ -1020,9 +1020,9 @@ pub fn type_(&amp;self) -&gt; Result&lt;Symbol, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Apr 11 17:23:06 2023 by
+  Generated on Thu Apr 20 21:58:48 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.32 (ruby-3.2.2).
+  0.9.34 (ruby-3.2.2).
 </div>
 
     </div>

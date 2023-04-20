@@ -6,7 +6,7 @@
 <title>
   Class: Wasmtime::Global
   
-    &mdash; Documentation by YARD 0.9.32
+    &mdash; Documentation by YARD 0.9.34
   
 </title>
 
@@ -791,7 +791,7 @@ pub fn set(&amp;self, value: Value) -&gt; Result&lt;(), Error&gt; {
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 98</span>
 
 pub fn type_(&amp;self) -&gt; Result&lt;Symbol, Error&gt; {
-    self.ty().map(|ty| ty.content().clone().to_sym())
+    self.ty().map(|ty| ty.content().to_sym())
 }</pre>
     </td>
   </tr>
@@ -855,9 +855,9 @@ pub fn is_var(&amp;self) -&gt; Result&lt;bool, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Apr 11 17:23:06 2023 by
+  Generated on Thu Apr 20 21:58:48 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.32 (ruby-3.2.2).
+  0.9.34 (ruby-3.2.2).
 </div>
 
     </div>

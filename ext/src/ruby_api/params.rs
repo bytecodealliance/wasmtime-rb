@@ -8,7 +8,7 @@ use wasmtime::{FuncType, ValType};
 struct Param {
     val: Value,
     index: u32,
-    ty: ValTypeCopy,
+    ty: ValType,
 }
 // Keep `Param` small so copying it to the stack is cheap, typically anything
 // less than 3usize is good
@@ -16,26 +16,20 @@ assert_eq_size!(Param, [u64; 2]);
 
 impl Param {
     pub fn new(index: u32, ty: ValType, val: Value) -> Self {
-        Self {
-            index,
-            ty: ty.into(),
-            val,
-        }
+        Self { index, ty, val }
     }
 
     fn to_wasmtime_val(self) -> Result<wasmtime::Val, Error> {
-        self.val
-            .to_wasm_val(self.ty.into())
-            .map_err(|error| match error {
-                Error::Error(class, msg) => {
-                    Error::new(class, format!("{} (param at index {})", msg, self.index))
-                }
-                Error::Exception(exception) => Error::new(
-                    ExceptionClass::from_value(exception.class().into()).unwrap_or_else(arg_error),
-                    format!("{} (param at index {})", exception, self.index),
-                ),
-                _ => error,
-            })
+        self.val.to_wasm_val(self.ty).map_err(|error| match error {
+            Error::Error(class, msg) => {
+                Error::new(class, format!("{} (param at index {})", msg, self.index))
+            }
+            Error::Exception(exception) => Error::new(
+                ExceptionClass::from_value(exception.class().into()).unwrap_or_else(arg_error),
+                format!("{} (param at index {})", exception, self.index),
+            ),
+            _ => error,
+        })
     }
 }
 
@@ -62,52 +56,10 @@ impl<'a> Params<'a> {
             let i: u32 = i
                 .try_into()
                 .map_err(|_| Error::new(arg_error(), "too many params"))?;
-            let param = Param::new(i, param.clone(), *value);
+            let param = Param::new(i, param, *value);
             vals.push(param.to_wasmtime_val()?);
         }
 
         Ok(vals)
-    }
-}
-
-/// A [`wasmtime::ValType`] that is [`Copy`], so it can be stays on the stack
-///
-/// Note: this can be removed in Wasmtime 8.0 (see https://github.com/bytecodealliance/wasmtime/pull/6138)
-#[derive(Debug, Clone, Copy)]
-pub enum ValTypeCopy {
-    I32,
-    I64,
-    F32,
-    F64,
-    V128,
-    FuncRef,
-    ExternRef,
-}
-
-impl From<ValType> for ValTypeCopy {
-    fn from(ty: ValType) -> Self {
-        match ty {
-            ValType::I32 => Self::I32,
-            ValType::I64 => Self::I64,
-            ValType::F32 => Self::F32,
-            ValType::F64 => Self::F64,
-            ValType::V128 => Self::V128,
-            ValType::FuncRef => Self::FuncRef,
-            ValType::ExternRef => Self::ExternRef,
-        }
-    }
-}
-
-impl From<ValTypeCopy> for ValType {
-    fn from(ty: ValTypeCopy) -> Self {
-        match ty {
-            ValTypeCopy::I32 => Self::I32,
-            ValTypeCopy::I64 => Self::I64,
-            ValTypeCopy::F32 => Self::F32,
-            ValTypeCopy::F64 => Self::F64,
-            ValTypeCopy::V128 => Self::V128,
-            ValTypeCopy::FuncRef => Self::FuncRef,
-            ValTypeCopy::ExternRef => Self::ExternRef,
-        }
     }
 }

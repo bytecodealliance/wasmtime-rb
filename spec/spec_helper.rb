@@ -91,6 +91,14 @@ RSpec.configure do |config|
       with_gc_stress { ex.run }
     end
   end
+
+  config.around(:each, :ractor) do |example|
+    was = Warning[:experimental]
+    Warning[:experimental] = false
+    example.run
+  ensure
+    Warning[:experimental] = was
+  end
 end
 
 at_exit { GC.start(full_mark: true) } if ENV["GC_AT_EXIT"] == "1"

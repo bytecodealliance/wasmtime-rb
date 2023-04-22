@@ -192,11 +192,12 @@ impl<'a> Func<'a> {
             [] => Ok(().into_value()),
             [result] => result.to_ruby_value(store),
             _ => {
-                let array = RArray::with_capacity(results.len());
+                let mut ruby_values : Vec<Value> = Vec::with_capacity(results.len());
                 for result in results {
-                    array.push(result.to_ruby_value(store)?)?;
+                    // Q: can this trigger GC?
+                    ruby_values.push(result.to_ruby_value(store)?);
                 }
-                Ok(array.as_value())
+                Ok(*RArray::from_slice(&ruby_values))
             }
         }
     }

@@ -1,16 +1,16 @@
 use super::{
     convert::{ToRubyValue, ToSym, ToValTypeVec, ToWasmVal},
     errors::result_error,
-    params::Params,
     root,
     store::{Store, StoreContextValue, StoreData},
 };
 use crate::Caller;
 use magnus::{
-    block::Proc, class, function, method, prelude::*, scan_args::scan_args, typed_data::Obj,
-    DataTypeFunctions, Error, IntoValue, Object, RArray, TypedData, Value,
+    block::Proc, class, exception::arg_error, function, method, prelude::*, scan_args::scan_args,
+    typed_data::Obj, DataTypeFunctions, Error, ExceptionClass, IntoValue, Object, RArray,
+    TypedData, Value,
 };
-use wasmtime::{Caller as CallerImpl, Func as FuncImpl, Val};
+use wasmtime::{AsContextMut, Caller as CallerImpl, Func as FuncImpl, Val, ValRaw, ValType};
 
 /// @yard
 /// @rename Wasmtime::Func
@@ -91,7 +91,7 @@ impl<'a> Func<'a> {
 
         if results.len() > Self::MAX_RESULTS {
             return Err(Error::new(
-                magnus::exception::arg_error(),
+                arg_error(),
                 format!(
                     "too many results (max is {}, got {})",
                     Self::MAX_RESULTS,
@@ -182,20 +182,44 @@ impl<'a> Func<'a> {
     ) -> Result<Value, Error> {
         let mut context = store.context_mut()?;
         let func_ty = func.ty(&mut context);
-        let params = Params::new(&func_ty, args)?.to_vec()?;
-        let mut results = vec![Val::null(); func_ty.results().len()];
+        let params_len = func_ty.params().len();
+        let results_len = func_ty.results().len();
+        let mut params_and_results = vec![ValRaw::i32(0); params_len.max(results_len)];
 
-        func.call(context, &params, &mut results)
+        fill_params(
+            &mut context,
+            func_ty.params(),
+            args,
+            &mut params_and_results,
+        )?;
+
+        // SAFETY:
+        // - the array ptr has enough space (max of params & results len),
+        // - we converted the Ruby args to the Wasm types: they're valid
+        // - ❌ we can send funcref belonging to another store, unsure about externrefs
+        unsafe { func.call_unchecked(&mut context, params_and_results.as_mut_ptr()) }
             .map_err(|e| store.handle_wasm_error(e))?;
 
-        match results.as_slice() {
+        match &params_and_results[0..results_len] {
             [] => Ok(().into_value()),
-            [result] => result.to_ruby_value(store),
-            _ => {
+            [result] => {
+                // SAFETY:
+                // - ❌ funcref could belong to another store (see their from_raw notes)
+                // - externref are probably fine: we only return Ruby objects, not
+                //   arbitrary externrefs
+                // - the value has the specified type (we converted it from Ruby)
+                let val = unsafe {
+                    Val::from_raw(&mut context, *result, func_ty.results().next().unwrap())
+                };
+                val.to_ruby_value(store)
+            }
+            results => {
                 let array = RArray::with_capacity(results.len());
-                for result in results {
-                    array.push(result.to_ruby_value(store)?)?;
+                for (val_raw, ty) in results.iter().zip(func_ty.results()) {
+                    let val = unsafe { Val::from_raw(&mut context, *val_raw, ty) };
+                    array.push(val.to_ruby_value(store)?)?;
                 }
+
                 Ok(array.as_value())
             }
         }
@@ -306,6 +330,53 @@ pub fn make_func_closure(
             }
         }
     }
+}
+
+fn fill_params<I>(
+    mut context: impl AsContextMut,
+    params: I,
+    args: &[Value],
+    buf: &mut [wasmtime::ValRaw],
+) -> Result<(), Error>
+where
+    I: ExactSizeIterator<Item = ValType>,
+{
+    if params.len() != args.len() {
+        return Err(Error::new(
+            magnus::exception::arg_error(),
+            format!(
+                "wrong number of arguments (given {}, expected {})",
+                args.len(),
+                params.len()
+            ),
+        ));
+    }
+
+    for ((i, param), arg) in params.enumerate().zip(args) {
+        let val = arg.to_wasm_val(param).map_err(|error| match error {
+            Error::Error(class, msg) => {
+                Error::new(class, format!("{} (param at index {})", msg, i))
+            }
+            Error::Exception(exception) => Error::new(
+                ExceptionClass::from_value(exception.class().into()).unwrap_or_else(arg_error),
+                format!("{} (param at index {})", exception, i),
+            ),
+            _ => error,
+        })?;
+
+        // SAFETY: externref or funcref's to_raw are unsafe
+        // - externref: only safe to pass in a store if there's no Wasmtime GC between
+        //   now and the time the value is passed to a store.
+        //   We immediately call into Wasm, so this is fine.
+        // -  funcref:
+        //   > The returned value is only valid for as long as the store is alive and this function
+        //   > is properly rooted within it.
+        //   OK: We know the store is alive because it's on the Ruby stack.
+        //   ❌: we don't know that the Func is in the store
+        buf[i] = unsafe { val.to_raw(&mut context) };
+    }
+
+    Ok(())
 }
 
 pub fn init() -> Result<(), Error> {

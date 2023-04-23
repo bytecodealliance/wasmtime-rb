@@ -192,15 +192,36 @@ impl<'a> Func<'a> {
             [] => Ok(().into_value()),
             [result] => result.to_ruby_value(store),
             _ => {
-                let mut ruby_values : Vec<Value> = Vec::with_capacity(results.len());
-                for result in results {
-                    // Q: can this trigger GC?
-                    ruby_values.push(result.to_ruby_value(store)?);
+                let fake_values = unsafe { std::mem::transmute(results.as_slice()) };
+                let array = RArray::from_slice::<Value>(fake_values);
+                let array_slice = unsafe { rarray_as_mut_slice(array, results.len()) };
+                let results_iter = results.iter().enumerate();
+                assert!(array_slice.len() == results_iter.len());
+
+                for (i, result) in results.iter().enumerate() {
+                    array_slice[i] = result.to_ruby_value(store).map_err(|e| {
+                        // If we fail along the way, zero out the array just to be safe
+                        let _ = array.clear();
+                        e
+                    })?;
                 }
-                Ok(*RArray::from_slice(&ruby_values))
+
+                Ok(array.into())
             }
         }
     }
+}
+
+/// Converts an `RArray` into a mutable slice.
+///
+/// # Safety
+/// The capacity of the array must be known in advance for this to be safe, since we provide mutable access to the array's contents.
+unsafe fn rarray_as_mut_slice<'a>(array: RArray, capacity: usize) -> &'a mut [Value] {
+    let array_slice = unsafe { array.as_slice() };
+    let ptr = array_slice.as_ptr();
+    let array_slice = unsafe { std::slice::from_raw_parts_mut(ptr as *mut Value, capacity) };
+
+    array_slice
 }
 
 impl From<&Func<'_>> for wasmtime::Extern {

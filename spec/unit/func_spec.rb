@@ -107,6 +107,26 @@ module Wasmtime
         func.call(1)
         expect(called).to be true
       end
+
+      describe "GC sanity checks" do
+        it "returns multiple funcrefs" do
+          funcref = Func.new(store, [], []) {}
+          func = Func.new(store, [], [:funcref] * 20) { [funcref] * 20 }
+          5.times { func.call }
+        end
+
+        it "returns multiple externrefs" do
+          func = Func.new(store, [], [:externref] * 20) { [BasicObject.new] * 20 }
+          5.times { func.call }
+        end
+
+        it "returns a couple values and an error" do
+          func = Func.new(store, [], [:i32, :i32, :i32]) { [1, 2, BasicObject.new] }
+          5.times do
+            expect { func.call }.to raise_error(Wasmtime::ResultError)
+          end
+        end
+      end
     end
 
     describe "Caller" do

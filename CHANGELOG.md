@@ -1,5 +1,13 @@
 # Changelog
 
+## [v8.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v8.0.0) (2023-04-25)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v7.0.0...v8.0.0)
+
+**Merged pull requests:**
+
+- Wasmtime 8.0 [\#173](https://github.com/bytecodealliance/wasmtime-rb/pull/173) ([jbourassa](https://github.com/jbourassa))
+
 ## [v7.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v7.0.0) (2023-04-06)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v6.0.1...v7.0.0)

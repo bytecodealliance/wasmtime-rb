@@ -49,6 +49,33 @@ end
 namespace :doc do
   task default: [:rustdoc, :yard]
 
+  desc "Run YARD and Rust documentation servers"
+  task serve: [:rustdoc, :yard] do
+    yarddoc_port = 4999
+    pids = []
+
+    pids << fork do
+      mtimes = {}
+      loop do
+        sleep 1
+        new_mtimes = mtimes_for(/\.rs$/)
+        next if new_mtimes == mtimes
+        mtimes.replace(new_mtimes)
+        system "rake doc:rustdoc > /dev/null" || warn("Failed to regenerate Rust documentation")
+      end
+    rescue Interrupt
+      exit 0
+    end
+
+    pids << Process.spawn("yard server --reload --port #{yarddoc_port}")
+
+    sleep
+  rescue Interrupt
+    puts "Shutting down..."
+    pids.each { |pid| Process.kill("INT", pid) }
+    pids.each { |pid| Process.wait(pid) }
+  end
+
   desc "Run YARD"
   task yard: "yard"
 

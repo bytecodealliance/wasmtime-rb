@@ -18,6 +18,25 @@ lazy_static::lazy_static! {
 
 /// @yard
 /// Represents a Wasmtime execution engine.
+///
+/// @example Disabling parallel compilation
+///    # Many Ruby servers use a pre-forking mechanism to allow parallel request
+///    # processing. Unfortunately, this can causes processes to deadlock if you
+///    # use parallel compilation to compile Wasm prior to calling
+///    # `Process::fork`. To avoid this issue, any compilations that need to be
+///    # done before forking need to disable the `parallel_compilation` option.
+///
+///    prefork_engine = Wasmtime::Engine.new(parallel_compilation: false)
+///    wasm_module = Wasmtime::Module.new(prefork_engine, "(module)")
+///
+///    fork do
+///      # We can enable parallel compilation now that we've forked.
+///      engine = Wasmtime::Engine.new(parallel_compilation: true)
+///      store = Wasmtime::Store.new(engine)
+///      instance = Wasmtime::Instance.new(store, wasm_module)
+///      # ...
+///    end
+///
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Engine.html Wasmtime's Rust doc
 #[magnus::wrap(class = "Wasmtime::Engine", free_immediately, frozen_shareable)]
 pub struct Engine {
@@ -49,7 +68,7 @@ impl Engine {
     /// @option config [Boolean] :wasm_threads
     /// @option config [Boolean] :wasm_multi_memory
     /// @option config [Boolean] :wasm_memory64
-    /// @option config [Boolean] :parallel_compilation
+    /// @option config [Boolean] :parallel_compilation (true) Whether compile WASM using multiple threads
     /// @option config [Symbol] :cranelift_opt_level One of +none+, +speed+, +speed_and_size+.
     /// @option config [Symbol] :profiler One of +none+, +jitdump+, +vtune+.
     /// @option config [String] :target

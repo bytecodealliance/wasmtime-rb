@@ -8,7 +8,7 @@ gemspec
 group :development do
   gem "rake", "~> 13.0"
   gem "rake-compiler"
-  gem "rb_sys", "~> 0.9.65"
+  gem "rb_sys", "~> 0.9.75"
   gem "standard", "~> 1.24"
   gem "get_process_mem"
   gem "ruby-lsp", require: false

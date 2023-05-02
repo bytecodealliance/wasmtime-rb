@@ -17,6 +17,15 @@ module Wasmtime
         mod = Module.from_file(engine, "spec/fixtures/empty.wat")
         expect(mod).to be_instance_of(Module)
       end
+
+      it "tracks memory usage" do
+        before = GC.stat(:malloc_increase_bytes)
+        Module.from_file(engine, "spec/fixtures/empty.wat")
+        after = GC.stat(:malloc_increase_bytes)
+
+        # This is a rough estimate of the memory usage of the module, subject to compiler changes
+        expect(2500..2700).to include(after - before)
+      end
     end
 
     describe ".deserialize_file" do
@@ -47,6 +56,15 @@ module Wasmtime
         expect(mod_two.serialize).to eq(expected)
       end
 
+      it "tracks memory usage" do
+        tmpfile = create_tmpfile(Module.new(engine, "(module)").serialize)
+        before = GC.stat(:malloc_increase_bytes)
+        Module.deserialize_file(engine, tmpfile)
+        after = GC.stat(:malloc_increase_bytes)
+
+        expect(after - before).to equal(File.size(tmpfile))
+      end
+
       def create_tmpfile(content)
         uuid = SecureRandom.uuid
         path = File.join(tmpdir, "deserialize-file-test-#{uuid}.so")
@@ -59,6 +77,15 @@ module Wasmtime
       it "raises on invalid module" do
         expect { Module.deserialize(engine, "foo") }
           .to raise_error(Wasmtime::Error)
+      end
+
+      it "tracks memory usage" do
+        serialized = Module.new(engine, wat).serialize
+        before = GC.stat(:malloc_increase_bytes)
+        Module.deserialize(engine, serialized)
+        after = GC.stat(:malloc_increase_bytes)
+
+        expect(after - before).to equal(serialized.bytesize)
       end
     end
   end

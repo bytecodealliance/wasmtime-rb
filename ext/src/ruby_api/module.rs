@@ -1,6 +1,7 @@
 use super::{engine::Engine, root};
 use crate::error;
 use magnus::{class, function, method, Error, Module as _, Object, RString};
+use rb_sys::tracking_allocator::ManuallyTracked;
 use wasmtime::Module as ModuleImpl;
 
 /// @yard
@@ -10,7 +11,11 @@ use wasmtime::Module as ModuleImpl;
 #[magnus::wrap(class = "Wasmtime::Module", size, free_immediately, frozen_shareable)]
 pub struct Module {
     inner: ModuleImpl,
+    _track_memory_usage: ManuallyTracked<()>,
 }
+
+// Needed for ManuallyTracked
+unsafe impl Send for Module {}
 
 impl Module {
     /// @yard
@@ -24,7 +29,7 @@ impl Module {
         let module = ModuleImpl::new(eng, unsafe { wat_or_wasm.as_slice() })
             .map_err(|e| error!("Could not build module: {}", e))?;
 
-        Ok(Self { inner: module })
+        Ok(module.into())
     }
 
     /// @yard
@@ -38,7 +43,7 @@ impl Module {
         let module = ModuleImpl::from_file(eng, unsafe { path.as_str()? })
             .map_err(|e| error!("Could not build module from file: {}", e))?;
 
-        Ok(Self { inner: module })
+        Ok(module.into())
     }
 
     /// @yard
@@ -55,7 +60,7 @@ impl Module {
     pub fn deserialize(engine: &Engine, compiled: RString) -> Result<Self, Error> {
         // SAFETY: this string is immediately copied and never moved off the stack
         unsafe { ModuleImpl::deserialize(engine.get(), compiled.as_slice()) }
-            .map(|module| Self { inner: module })
+            .map(Into::into)
             .map_err(|e| error!("Could not deserialize module: {}", e))
     }
 
@@ -69,7 +74,7 @@ impl Module {
     /// @see .deserialize
     pub fn deserialize_file(engine: &Engine, path: RString) -> Result<Self, Error> {
         unsafe { ModuleImpl::deserialize_file(engine.get(), path.as_str()?) }
-            .map(|module| Self { inner: module })
+            .map(Into::into)
             .map_err(|e| error!("Could not deserialize module from file: {}", e))
     }
 
@@ -86,6 +91,17 @@ impl Module {
 
     pub fn get(&self) -> &ModuleImpl {
         &self.inner
+    }
+}
+
+impl From<ModuleImpl> for Module {
+    fn from(inner: ModuleImpl) -> Self {
+        let size = inner.image_range().len();
+
+        Self {
+            inner,
+            _track_memory_usage: ManuallyTracked::new(size),
+        }
     }
 }
 

@@ -9,4 +9,4 @@ debug = 2 # make perfomance engineers happy
 lto = "thin" # cross-crate inlining
 
 [patch.crates-io]
-rb-sys = { path = "./../../oxidize-rb/rb-sys/crates/rb-sys" }
+rb-sys = { git = "https://github.com/oxidize-rb/rb-sys", branch = "allocator-check-vm" }

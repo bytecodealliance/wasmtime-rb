@@ -1098,6 +1098,7 @@ dependencies = [
 [[package]]
 name = "rb-sys"
 version = "0.9.75"
+source = "git+https://github.com/oxidize-rb/rb-sys?branch=allocator-check-vm#d12999e0200209f24297d9662484f3b33935c4ae"
 dependencies = [
  "rb-sys-build",
 ]
@@ -1105,6 +1106,7 @@ dependencies = [
 [[package]]
 name = "rb-sys-build"
 version = "0.9.75"
+source = "git+https://github.com/oxidize-rb/rb-sys?branch=allocator-check-vm#d12999e0200209f24297d9662484f3b33935c4ae"
 dependencies = [
  "bindgen",
  "lazy_static",

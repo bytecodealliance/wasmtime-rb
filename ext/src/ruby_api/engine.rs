@@ -1,4 +1,7 @@
-use super::{config::hash_to_config, root};
+use super::{
+    config::{default_config, hash_to_config},
+    root,
+};
 use crate::error;
 use magnus::{
     class, function, method, scan_args, Error, Module, Object, RHash, RString, TryConvert, Value,
@@ -85,7 +88,7 @@ impl Engine {
 
                 EngineImpl::new(&config).map_err(|e| error!("{}", e))?
             }
-            None => EngineImpl::default(),
+            None => EngineImpl::new(&default_config()).map_err(|e| error!("{}", e))?,
         };
 
         Ok(Self {

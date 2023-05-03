@@ -8,10 +8,11 @@ publish = false
 build = "build.rs"
 
 [features]
-default = ["tokio", "all-arch"]
+default = ["tokio", "all-arch", "global-tracking-allocator"]
 embed = ["magnus/embed"]
 tokio = ["dep:tokio", "dep:async-timer"]
 all-arch = ["wasmtime/all-arch"]
+global-tracking-allocator = []
 ruby-api = []
 
 [dependencies]
@@ -28,6 +29,8 @@ wat = "1.0.62"
 tokio = { version = "1.25.0", features = ["rt", "rt-multi-thread", "time", "net"], optional = true }
 async-timer = { version = "1.0.0-beta.8", features = ["tokio1"], optional = true }
 static_assertions = "1.1.0"
+wasmtime-runtime = "8.0.0"
+wasmtime-environ = "8.0.0"
 
 [build-dependencies]
 rb-sys-env = "0.1.2"

@@ -62,7 +62,6 @@ unsafe impl MemoryCreator for TrackedMemoryCreator {
         _reserved_size_in_bytes: Option<usize>,
         _guard_size_in_bytes: usize,
     ) -> anyhow::Result<Box<dyn wasmtime::LinearMemory>, String> {
-        dbg!("TrackedMemoryCreator::new_memory", &ty, minimum, maximum);
         let default_memory_creator = DefaultMemoryCreator {};
         let memory = Memory {
             minimum: ty.minimum(),

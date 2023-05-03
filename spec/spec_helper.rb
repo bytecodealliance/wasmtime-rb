@@ -59,11 +59,13 @@ module GcHelpers
   end
 
   def measure_gc_stat(name)
-    10.times { GC.start(full_mark: true, immediate_sweep: true) }
-    before = GC.stat(name)
-    ret = yield
-    after = GC.stat(name)
-    [ret, after - before]
+    without_gc_stress do
+      10.times { GC.start(full_mark: true, immediate_sweep: true) }
+      before = GC.stat(name)
+      ret = yield
+      after = GC.stat(name)
+      [ret, after - before]
+    end
   end
 end
 

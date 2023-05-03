@@ -119,7 +119,7 @@ impl<'a> WrapWasmtimeType<'a, Extern<'a>> for wasmtime::Extern {
                 store, *global,
             )))),
             wasmtime::Extern::Memory(mem) => {
-                Ok(Extern::Memory(Obj::wrap(Memory::from_inner(store, *mem))))
+                Ok(Extern::Memory(Obj::wrap(Memory::from_inner(store, *mem)?)))
             }
             wasmtime::Extern::Table(table) => {
                 Ok(Extern::Table(Obj::wrap(Table::from_inner(store, *table))))

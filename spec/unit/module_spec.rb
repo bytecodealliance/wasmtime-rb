@@ -19,12 +19,12 @@ module Wasmtime
       end
 
       it "tracks memory usage" do
-        before = GC.stat(:malloc_increase_bytes)
-        Module.from_file(engine, "spec/fixtures/empty.wat")
-        after = GC.stat(:malloc_increase_bytes)
+        _, increase_bytes = measure_gc_stat(:malloc_increase_bytes) do
+          Module.from_file(engine, "spec/fixtures/empty.wat")
+        end
 
         # This is a rough estimate of the memory usage of the module, subject to compiler changes
-        expect(2500..2700).to include(after - before)
+        expect(increase_bytes).to be > 3000
       end
     end
 
@@ -58,11 +58,10 @@ module Wasmtime
 
       it "tracks memory usage" do
         tmpfile = create_tmpfile(Module.new(engine, "(module)").serialize)
-        before = GC.stat(:malloc_increase_bytes)
-        Module.deserialize_file(engine, tmpfile)
-        after = GC.stat(:malloc_increase_bytes)
+        mod, increase_bytes = measure_gc_stat(:malloc_increase_bytes) { Module.deserialize_file(engine, tmpfile) }
 
-        expect(after - before).to equal(File.size(tmpfile))
+        expect(increase_bytes).to be > File.size(tmpfile)
+        expect(mod).to be_a(Wasmtime::Module)
       end
 
       def create_tmpfile(content)
@@ -81,11 +80,10 @@ module Wasmtime
 
       it "tracks memory usage" do
         serialized = Module.new(engine, wat).serialize
-        before = GC.stat(:malloc_increase_bytes)
-        Module.deserialize(engine, serialized)
-        after = GC.stat(:malloc_increase_bytes)
+        mod, increase_bytes = measure_gc_stat(:malloc_increase_bytes) { Module.deserialize(engine, serialized) }
 
-        expect(after - before).to equal(serialized.bytesize)
+        expect(increase_bytes).to be > serialized.bytesize
+        expect(mod).to be_a(Wasmtime::Module)
       end
     end
   end

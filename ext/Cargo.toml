@@ -8,17 +8,16 @@ publish = false
 build = "build.rs"
 
 [features]
-default = ["tokio", "all-arch", "global-tracking-allocator"]
+default = ["tokio", "all-arch"]
 embed = ["magnus/embed"]
 tokio = ["dep:tokio", "dep:async-timer"]
 all-arch = ["wasmtime/all-arch"]
-global-tracking-allocator = []
 ruby-api = []
 
 [dependencies]
 lazy_static = "1.4.0"
 magnus = { version = "0.5.3", features = ["rb-sys-interop"] }
-rb-sys = "~0.9.65"
+rb-sys = "~0.9.76"
 wasmtime = { version = "8.0.0" }
 wasmtime-wasi = "8.0.0"
 wasi-common = "8.0.0"

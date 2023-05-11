@@ -8,7 +8,7 @@ pub use ruby_api::*;
 #[cfg(not(feature = "ruby-api"))]
 pub(crate) use ruby_api::*;
 
-#[cfg(all(feature = "global-tracking-allocator", not(feature = "ruby-api")))]
+#[cfg(all(not(feature = "ruby-api")))] // Let the upstream crate handle this
 rb_sys::set_global_tracking_allocator!();
 
 #[magnus::init]

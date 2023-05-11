@@ -7,6 +7,3 @@ exclude = ["examples/rust-crate"]
 codegen-units = 1 # more llvm optimizations
 debug = 2 # make perfomance engineers happy
 lto = "thin" # cross-crate inlining
-
-[patch.crates-io]
-rb-sys = { git = "https://github.com/oxidize-rb/rb-sys", branch = "allocator-check-vm" }

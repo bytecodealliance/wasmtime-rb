@@ -31,5 +31,5 @@ Gem::Specification.new do |spec|
   spec.rdoc_options += ["--exclude", "vendor"]
 
   # Can be removed for binary gems and rubygems >= 3.3.24
-  spec.add_dependency "rb_sys", "~> 0.9.76"
+  spec.add_dependency "rb_sys", "~> 0.9.77"
 end

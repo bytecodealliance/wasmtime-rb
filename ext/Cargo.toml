@@ -18,7 +18,7 @@ ruby-api = []
 lazy_static = "1.4.0"
 magnus = { version = "0.5.3", features = ["rb-sys-interop"] }
 rb-sys = "~0.9.77"
-wasmtime = { version = "8.0.0" }
+wasmtime = { version = "8.0.1" }
 wasmtime-wasi = "8.0.0"
 wasi-common = "8.0.0"
 wasi-cap-std-sync = "8.0.0"

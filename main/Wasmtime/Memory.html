@@ -117,7 +117,17 @@
     
   </ul>
 
-</div>
+</div><h2>Defined Under Namespace</h2>
+<p class="children">
+  
+    
+  
+    
+      <strong class="classes">Classes:</strong> <span class='object_link'><a href="Memory/UnsafeSlice.html" title="Wasmtime::Memory::UnsafeSlice (class)">UnsafeSlice</a></span>
+    
+  
+</p>
+
 
 
 
@@ -162,6 +172,30 @@
     </h2>
 
     <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#data_size-instance_method" title="#data_size (instance method)">#<strong>data_size</strong>  &#x21d2; Integer </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>The number of bytes of the memory.</p>
+</div></span>
+  
+</li>
+
       
         <li class="public ">
   <span class="summary_signature">
@@ -437,7 +471,6 @@
       <pre class="lines">
 
 
-46
 47
 48
 49
@@ -456,10 +489,13 @@
 62
 63
 64
-65</pre>
+65
+66
+67
+68</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 46</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 47</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let args = scan_args::scan_args::&lt;(Obj&lt;Store&gt;,), (), (), (), _, ()&gt;(args)?;
@@ -474,11 +510,13 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let store = s.get();
 
     let memtype = wasmtime::MemoryType::new(min, max);
+
     let inner = MemoryImpl::new(store.context_mut(), memtype).map_err(|e| error!(&quot;{}&quot;, e))?;
+    let memsize = inner.data_size(store.context_mut());
 
     Ok(Self {
         store: s.into(),
-        inner,
+        inner: ManuallyTracked::wrap(inner, memsize),
     })
 }</pre>
     </td>
@@ -493,7 +531,66 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
 
     
       <div class="method_details first">
-  <h3 class="signature first" id="grow-instance_method">
+  <h3 class="signature first" id="data_size-instance_method">
+  
+    #<strong>data_size</strong>  &#x21d2; <tt>Integer</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns The number of bytes of the memory.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The number of bytes of the memory.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+207
+208
+209</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 207</span>
+
+pub fn data_size(&amp;self) -&gt; Result&lt;usize, Error&gt; {
+    Ok(self.get_wasmtime_memory().data_size(self.store.context()?))
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="grow-instance_method">
   
     #<strong>grow</strong>(delta)  &#x21d2; <tt>Integer</tt> 
   
@@ -556,19 +653,31 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-173
-174
-175
-176
-177</pre>
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 173</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 187</span>
 
-pub fn grow(&amp;self, delta: u64) -&gt; Result&lt;u64, Error&gt; {
+pub fn grow(&amp;self, delta: usize) -&gt; Result&lt;u64, Error&gt; {
+    let ret = self
+        .get_wasmtime_memory()
+        .grow(self.store.context_mut()?, delta as _)
+        .map_err(|e| error!(&quot;{}&quot;, e));
+
     self.inner
-        .grow(self.store.context_mut()?, delta)
-        .map_err(|e| error!(&quot;{}&quot;, e))
+        .increase_memory_usage(delta * (WASM_PAGE_SIZE as usize));
+
+    ret
 }</pre>
     </td>
   </tr>
@@ -619,15 +728,21 @@ pub fn grow(&amp;self, delta: u64) -&gt; Result&lt;u64, Error&gt; {
       <pre class="lines">
 
 
-79
-80
-81</pre>
+90
+91
+92
+93
+94
+95</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 79</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 90</span>
 
 pub fn max_size(&amp;self) -&gt; Result&lt;Option&lt;u64&gt;, Error&gt; {
-    Ok(self.inner.ty(self.store.context()?).maximum())
+    Ok(self
+        .get_wasmtime_memory()
+        .ty(self.store.context()?)
+        .maximum())
 }</pre>
     </td>
   </tr>
@@ -678,15 +793,21 @@ pub fn max_size(&amp;self) -&gt; Result&lt;Option&lt;u64&gt;, Error&gt; {
       <pre class="lines">
 
 
-73
-74
-75</pre>
+81
+82
+83
+84
+85
+86</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 73</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 81</span>
 
 pub fn min_size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
-    Ok(self.inner.ty(self.store.context()?).minimum())
+    Ok(self
+        .get_wasmtime_memory()
+        .ty(self.store.context()?)
+        .minimum())
 }</pre>
     </td>
   </tr>
@@ -763,20 +884,20 @@ pub fn min_size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
       <pre class="lines">
 
 
-90
-91
-92
-93
-94
-95
-96
-97</pre>
+104
+105
+106
+107
+108
+109
+110
+111</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 90</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 104</span>
 
 pub fn read(&amp;self, offset: usize, size: usize) -&gt; Result&lt;RString, Error&gt; {
-    self.inner
+    self.get_wasmtime_memory()
         .data(self.store.context()?)
         .get(offset..)
         .and_then(|s| s.get(..size))
@@ -864,19 +985,19 @@ pub fn read(&amp;self, offset: usize, size: usize) -&gt; Result&lt;RString, Erro
       <pre class="lines">
 
 
-140
-141
-142
-143
-144
-145
-146
-147
-148
-149</pre>
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 140</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 154</span>
 
 pub fn read_unsafe_slice(
     rb_self: Obj&lt;Self&gt;,
@@ -963,21 +1084,21 @@ pub fn read_unsafe_slice(
       <pre class="lines">
 
 
-106
-107
-108
-109
-110
-111
-112
-113
-114</pre>
+120
+121
+122
+123
+124
+125
+126
+127
+128</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 106</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 120</span>
 
 pub fn read_utf8(&amp;self, offset: usize, size: usize) -&gt; Result&lt;RString, Error&gt; {
-    self.inner
+    self.get_wasmtime_memory()
         .data(self.store.context()?)
         .get(offset..)
         .and_then(|s| s.get(..size))
@@ -1034,15 +1155,15 @@ pub fn read_utf8(&amp;self, offset: usize, size: usize) -&gt; Result&lt;RString,
       <pre class="lines">
 
 
-181
-182
-183</pre>
+201
+202
+203</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 181</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 201</span>
 
 pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
-    Ok(self.inner.size(self.store.context()?))
+    Ok(self.get_wasmtime_memory().size(self.store.context()?))
 }</pre>
     </td>
   </tr>
@@ -1101,21 +1222,21 @@ pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
       <pre class="lines">
 
 
-158
-159
-160
-161
-162
-163
-164</pre>
+172
+173
+174
+175
+176
+177
+178</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 158</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 172</span>
 
 pub fn write(&amp;self, offset: usize, value: RString) -&gt; Result&lt;(), Error&gt; {
     let slice = unsafe { value.as_slice() };
 
-    self.inner
+    self.get_wasmtime_memory()
         .write(self.store.context_mut()?, offset, slice)
         .map_err(|e| error!(&quot;{}&quot;, e))
 }</pre>
@@ -1129,7 +1250,7 @@ pub fn write(&amp;self, offset: usize, value: RString) -&gt; Result&lt;(), Error
 </div>
 
       <div id="footer">
-  Generated on Tue May 16 13:46:08 2023 by
+  Generated on Wed May 17 12:53:41 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.34 (ruby-3.2.2).
 </div>

@@ -343,20 +343,20 @@
       <pre class="lines">
 
 
-55
-56
-57
-58
-59
-60</pre>
+60
+61
+62
+63
+64
+65</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 55</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 60</span>
 
 pub fn deserialize(engine: &amp;Engine, compiled: RString) -&gt; Result&lt;Self, Error&gt; {
     // SAFETY: this string is immediately copied and never moved off the stack
     unsafe { ModuleImpl::deserialize(engine.get(), compiled.as_slice()) }
-        .map(|module| Self { inner: module })
+        .map(Into::into)
         .map_err(|e| error!(&quot;Could not deserialize module: {}&quot;, e))
 }</pre>
     </td>
@@ -436,18 +436,18 @@ pub fn deserialize(engine: &amp;Engine, compiled: RString) -&gt; Result&lt;Self,
       <pre class="lines">
 
 
-70
-71
-72
-73
-74</pre>
+75
+76
+77
+78
+79</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 70</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 75</span>
 
 pub fn deserialize_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error&gt; {
     unsafe { ModuleImpl::deserialize_file(engine.get(), path.as_str()?) }
-        .map(|module| Self { inner: module })
+        .map(Into::into)
         .map_err(|e| error!(&quot;Could not deserialize module from file: {}&quot;, e))
 }</pre>
     </td>
@@ -518,17 +518,17 @@ pub fn deserialize_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self
       <pre class="lines">
 
 
-35
-36
-37
-38
-39
 40
 41
-42</pre>
+42
+43
+44
+45
+46
+47</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 35</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 40</span>
 
 pub fn from_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error&gt; {
     let eng = engine.get();
@@ -536,7 +536,7 @@ pub fn from_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error
     let module = ModuleImpl::from_file(eng, unsafe { path.as_str()? })
         .map_err(|e| error!(&quot;Could not build module from file: {}&quot;, e))?;
 
-    Ok(Self { inner: module })
+    Ok(module.into())
 }</pre>
     </td>
   </tr>
@@ -611,17 +611,17 @@ pub fn from_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error
       <pre class="lines">
 
 
-21
-22
-23
-24
-25
 26
 27
-28</pre>
+28
+29
+30
+31
+32
+33</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 21</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 26</span>
 
 pub fn new(engine: &amp;Engine, wat_or_wasm: RString) -&gt; Result&lt;Self, Error&gt; {
     let eng = engine.get();
@@ -629,7 +629,7 @@ pub fn new(engine: &amp;Engine, wat_or_wasm: RString) -&gt; Result&lt;Self, Erro
     let module = ModuleImpl::new(eng, unsafe { wat_or_wasm.as_slice() })
         .map_err(|e| error!(&quot;Could not build module: {}&quot;, e))?;
 
-    Ok(Self { inner: module })
+    Ok(module.into())
 }</pre>
     </td>
   </tr>
@@ -688,15 +688,15 @@ pub fn new(engine: &amp;Engine, wat_or_wasm: RString) -&gt; Result&lt;Self, Erro
       <pre class="lines">
 
 
-80
-81
-82
-83
-84
-85</pre>
+85
+86
+87
+88
+89
+90</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 80</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 85</span>
 
 pub fn serialize(&amp;self) -&gt; Result&lt;RString, Error&gt; {
     self.get()
@@ -714,7 +714,7 @@ pub fn serialize(&amp;self) -&gt; Result&lt;RString, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue May 16 13:46:08 2023 by
+  Generated on Wed May 17 12:53:41 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.34 (ruby-3.2.2).
 </div>

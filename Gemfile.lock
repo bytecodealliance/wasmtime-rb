@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     wasmtime (8.0.0)
-      rb_sys (~> 0.9.60)
+      rb_sys (~> 0.9.77)
 
 GEM
   remote: https://rubygems.org/
@@ -33,9 +33,9 @@ GEM
       rspec-core (~> 3.12.0)
       rspec-expectations (~> 3.12.0)
       rspec-mocks (~> 3.12.0)
-    rspec-core (3.12.1)
+    rspec-core (3.12.2)
       rspec-support (~> 3.12.0)
-    rspec-expectations (3.12.2)
+    rspec-expectations (3.12.3)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.12.0)
     rspec-mocks (3.12.5)
@@ -52,7 +52,7 @@ GEM
       rubocop-ast (>= 1.28.0, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 2.4.0, < 3.0)
-    rubocop-ast (1.28.0)
+    rubocop-ast (1.28.1)
       parser (>= 3.2.1.0)
     rubocop-performance (1.16.0)
       rubocop (>= 1.7.0, < 2.0)
@@ -62,8 +62,8 @@ GEM
       sorbet-runtime
       syntax_tree (>= 5.0.0, < 6)
     ruby-progressbar (1.13.0)
-    sorbet-runtime (0.5.10741)
-    standard (1.28.0)
+    sorbet-runtime (0.5.10813)
+    standard (1.28.2)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.0)
       rubocop (~> 1.50.2)

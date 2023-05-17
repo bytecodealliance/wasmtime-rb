@@ -1,3 +1,5 @@
+mod tracked_memory_creator;
+pub(crate) use self::tracked_memory_creator::TrackedMemoryCreator;
 use crate::{define_rb_intern, helpers::SymbolEnum};
 use lazy_static::lazy_static;
 use magnus::{
@@ -5,7 +7,10 @@ use magnus::{
     r_hash::ForEach,
     Error, RHash, Symbol, TryConvert, Value,
 };
-use std::convert::{TryFrom, TryInto};
+use std::{
+    convert::{TryFrom, TryInto},
+    sync::Arc,
+};
 use wasmtime::{Config, OptLevel, ProfilingStrategy, WasmBacktraceDetails};
 
 define_rb_intern!(
@@ -50,8 +55,17 @@ lazy_static! {
     };
 }
 
-pub fn hash_to_config(hash: RHash) -> Result<Config, Error> {
+/// Default for [`wasmtime::Config`], which includes a [`TrackedMemoryCreator`]
+/// to report memory usage to Ruby.
+pub fn default_config() -> Config {
     let mut config = Config::new();
+    let host_memory = TrackedMemoryCreator::new();
+    config.with_host_memory(Arc::new(host_memory));
+    config
+}
+
+pub fn hash_to_config(hash: RHash) -> Result<Config, Error> {
+    let mut config = default_config();
     hash.foreach(|name: Symbol, value: Value| {
         let id = magnus::value::Id::from(name);
         let entry = ConfigEntry(name, value);

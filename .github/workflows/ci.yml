@@ -46,7 +46,7 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
           cargo-cache: true
-          cache-version: v4
+          cache-version: v5
 
       - name: Compile rust ext
         run: bundle exec rake compile:release

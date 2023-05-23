@@ -217,6 +217,30 @@
         <li class="public ">
   <span class="summary_signature">
     
+      <a href="#precompile_compatibility_key-instance_method" title="#precompile_compatibility_key (instance method)">#<strong>precompile_compatibility_key</strong>  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>If two engines have a matching <span class='object_link'><a href="#precompile_compatibility_key-instance_method" title="Wasmtime::Engine#precompile_compatibility_key (method)">#precompile_compatibility_key</a></span>, then serialized modules from one engine can be deserialized by the other.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
       <a href="#precompile_module-instance_method" title="#precompile_module (instance method)">#<strong>precompile_module</strong>(wat_or_wasm)  &#x21d2; String </a>
     
 
@@ -489,11 +513,6 @@
       <pre class="lines">
 
 
-81
-82
-83
-84
-85
 86
 87
 88
@@ -507,10 +526,15 @@
 96
 97
 98
-99</pre>
+99
+100
+101
+102
+103
+104</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 81</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 86</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let args = scan_args::scan_args::&lt;(), (Option&lt;Value&gt;,), (), (), (), ()&gt;(args)?;
@@ -581,16 +605,105 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-146
-147
-148</pre>
+151
+152
+153</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 146</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 151</span>
 
 <span class='id identifier rubyid_pub'>pub</span> <span class='id identifier rubyid_fn'>fn</span> <span class='id identifier rubyid_increment_epoch'>increment_epoch</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='kw'>self</span><span class='rparen'>)</span> <span class='lbrace'>{</span>
     <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_inner'>inner</span><span class='period'>.</span><span class='id identifier rubyid_increment_epoch'>increment_epoch</span><span class='lparen'>(</span><span class='rparen'>)</span><span class='semicolon'>;</span>
 <span class='rbrace'>}</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="precompile_compatibility_key-instance_method">
+  
+    #<strong>precompile_compatibility_key</strong>  &#x21d2; <tt>String</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>If two engines have a matching <span class='object_link'><a href="#precompile_compatibility_key-instance_method" title="Wasmtime::Engine#precompile_compatibility_key (method)">#precompile_compatibility_key</a></span>, then serialized modules from one engine can be deserialized by the other.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The hex formatted string that can be used to check precompiled module compatibility.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 180</span>
+
+pub fn precompile_compatibility_key(rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RString, Error&gt; {
+    let ivar_id = *memoize!(Id: Id::new(&quot;precompile_compatibility_key&quot;));
+
+    if let Ok(cached) = rb_self.ivar_get::&lt;_, RString&gt;(ivar_id) {
+        return Ok(cached);
+    }
+
+    let mut hasher = DefaultHasher::new();
+    let engine = rb_self.get().inner.clone();
+    engine.precompile_compatibility_hash().hash(&amp;mut hasher);
+    let hex_encoded = format!(&quot;{:x}&quot;, hasher.finish());
+    let key = RString::new(&amp;hex_encoded);
+    key.freeze();
+
+    rb_self.ivar_set(ivar_id, key)?;
+
+    Ok(key)
+}</pre>
     </td>
   </tr>
 </table>
@@ -669,15 +782,15 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-163
-164
-165
-166
-167
-168</pre>
+168
+169
+170
+171
+172
+173</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 163</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 168</span>
 
 pub fn precompile_module(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RString, Error&gt; {
     self.inner
@@ -746,11 +859,6 @@ pub fn precompile_module(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RStrin
       <pre class="lines">
 
 
-110
-111
-112
-113
-114
 115
 116
 117
@@ -761,10 +869,15 @@ pub fn precompile_module(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RStrin
 122
 123
 124
-125</pre>
+125
+126
+127
+128
+129
+130</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 110</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 115</span>
 
 pub fn start_epoch_interval(&amp;self, milliseconds: u64) {
     self.stop_epoch_interval();
@@ -826,16 +939,16 @@ pub fn start_epoch_interval(&amp;self, milliseconds: u64) {
       <pre class="lines">
 
 
-132
-133
-134
-135
-136
 137
-138</pre>
+138
+139
+140
+141
+142
+143</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 132</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 137</span>
 
 pub fn stop_epoch_interval(&amp;self) {
     let maybe_handle = self.timer_task.lock().unwrap().take();
@@ -854,7 +967,7 @@ pub fn stop_epoch_interval(&amp;self) {
 </div>
 
       <div id="footer">
-  Generated on Wed May 17 15:38:55 2023 by
+  Generated on Tue May 23 20:32:35 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.34 (ruby-3.2.2).
 </div>

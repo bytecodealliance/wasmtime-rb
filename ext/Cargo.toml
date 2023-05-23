@@ -1,6 +1,6 @@
 [package]
 name = "wasmtime-rb"
-version = "0.1.0"
+version = "9.0.1"
 edition = "2021"
 authors = ["The Wasmtime Project Developers"]
 license = "Apache-2.0"
@@ -18,18 +18,18 @@ ruby-api = []
 lazy_static = "1.4.0"
 magnus = { version = "0.5.3", features = ["rb-sys-interop"] }
 rb-sys = "~0.9.77"
-wasmtime = { version = "9.0.0" }
-wasmtime-wasi = "9.0.0"
-wasi-common = "9.0.0"
-wasi-cap-std-sync = "9.0.0"
+wasmtime = { version = "= 9.0.1" }
+wasmtime-wasi = "= 9.0.1"
+wasi-common = "= 9.0.1"
+wasi-cap-std-sync = "= 9.0.1"
 cap-std = "1.0.5"
 anyhow = "*" # Use whatever Wasmtime uses
 wat = "1.0.63"
 tokio = { version = "1.28.1", features = ["rt", "rt-multi-thread", "time", "net"], optional = true }
 async-timer = { version = "1.0.0-beta.8", features = ["tokio1"], optional = true }
 static_assertions = "1.1.0"
-wasmtime-runtime = "9.0.0"
-wasmtime-environ = "9.0.0"
+wasmtime-runtime = "= 9.0.1"
+wasmtime-environ = "= 9.0.1"
 
 [build-dependencies]
 rb-sys-env = "0.1.2"

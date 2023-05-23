@@ -4,9 +4,14 @@ use super::{
 };
 use crate::error;
 use magnus::{
-    class, function, method, scan_args, Error, Module, Object, RHash, RString, TryConvert, Value,
+    class, function, memoize, method, scan_args, typed_data::Obj, value::Id, Error, Module, Object,
+    RHash, RString, TryConvert, Value,
 };
-use std::sync::Mutex;
+use std::{
+    collections::hash_map::DefaultHasher,
+    hash::{Hash, Hasher},
+    sync::Mutex,
+};
 use wasmtime::Engine as EngineImpl;
 
 #[cfg(feature = "tokio")]
@@ -167,6 +172,30 @@ impl Engine {
             .map_err(|e| error!("{}", e.to_string()))
     }
 
+    /// @yard
+    /// If two engines have a matching {Engine.precompile_compatibility_key},
+    /// then serialized modules from one engine can be deserialized by the
+    /// other.
+    /// @return [String] The hex formatted string that can be used to check precompiled module compatibility.
+    pub fn precompile_compatibility_key(rb_self: Obj<Self>) -> Result<RString, Error> {
+        let ivar_id = *memoize!(Id: Id::new("precompile_compatibility_key"));
+
+        if let Ok(cached) = rb_self.ivar_get::<_, RString>(ivar_id) {
+            return Ok(cached);
+        }
+
+        let mut hasher = DefaultHasher::new();
+        let engine = rb_self.get().inner.clone();
+        engine.precompile_compatibility_hash().hash(&mut hasher);
+        let hex_encoded = format!("{:x}", hasher.finish());
+        let key = RString::new(&hex_encoded);
+        key.freeze();
+
+        rb_self.ivar_set(ivar_id, key)?;
+
+        Ok(key)
+    }
+
     pub fn get(&self) -> &EngineImpl {
         &self.inner
     }
@@ -191,6 +220,10 @@ pub fn init() -> Result<(), Error> {
     class.define_method("increment_epoch", method!(Engine::increment_epoch, 0))?;
     class.define_method("==", method!(Engine::is_equal, 1))?;
     class.define_method("precompile_module", method!(Engine::precompile_module, 1))?;
+    class.define_method(
+        "precompile_compatibility_key",
+        method!(Engine::precompile_compatibility_key, 0),
+    )?;
 
     Ok(())
 }

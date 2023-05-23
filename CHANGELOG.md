@@ -1,5 +1,15 @@
 # Changelog
 
+## [v9.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v9.0.1) (2023-05-23)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v8.0.0...v9.0.1)
+
+**Merged pull requests:**
+
+- Add docs for fork safety [\#177](https://github.com/bytecodealliance/wasmtime-rb/pull/177) ([ianks](https://github.com/ianks))
+- Test that funcrefs aren't used across stores [\#178](https://github.com/bytecodealliance/wasmtime-rb/pull/178) ([jbourassa](https://github.com/jbourassa))
+- Report memory usage to the Ruby GC [\#187](https://github.com/bytecodealliance/wasmtime-rb/pull/187) ([ianks](https://github.com/ianks))
+
 ## [v8.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v8.0.0) (2023-04-25)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v7.0.0...v8.0.0)

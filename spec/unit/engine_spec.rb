@@ -68,5 +68,28 @@ module Wasmtime
         expect(mod).to be_instance_of(Wasmtime::Module)
       end
     end
+
+    describe "#precompile_compatibility_key" do
+      it "is the same amongst similar engines" do
+        engine_one = Engine.new(target: "x86_64-unknown-linux-gnu", parallel_compilation: true)
+        engine_two = Engine.new(target: "x86_64-unknown-linux-gnu", parallel_compilation: false)
+
+        expect(engine_one.precompile_compatibility_key).to eq(engine_two.precompile_compatibility_key)
+      end
+
+      it "is different amongst different engines" do
+        engine_one = Engine.new(target: "x86_64-unknown-linux-gnu")
+        engine_two = Engine.new(target: "arm64-apple-darwin")
+
+        expect(engine_one.precompile_compatibility_key).not_to eq(engine_two.precompile_compatibility_key)
+      end
+
+      it "freezes and caches the result to avoid repeated allocation" do
+        engine = Engine.new(target: "x86_64-unknown-linux-gnu")
+
+        expect(engine.precompile_compatibility_key).to be_frozen
+        expect(engine.precompile_compatibility_key.object_id).to eq(engine.precompile_compatibility_key.object_id)
+      end
+    end
   end
 end

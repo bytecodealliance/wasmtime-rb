@@ -46,11 +46,6 @@ unsafe impl Sync for ShareableProc {}
 unsafe impl Send for Func<'_> {}
 
 impl<'a> Func<'a> {
-    // For some strange reason TDB, Valgrind detects an invalid memory write
-    // when the result length > 174. Until we figure out why, we'll just play it
-    // safe and limit the result length to 174.
-    const MAX_RESULTS: usize = 174;
-
     /// @yard
     ///
     /// Creates a WebAssembly function from a Ruby block. WebAssembly functions
@@ -88,23 +83,11 @@ impl<'a> Func<'a> {
     pub fn new(args: &[Value]) -> Result<Self, Error> {
         let args = scan_args::<(Obj<Store>, RArray, RArray), (), (), (), (), Proc>(args)?;
         let (wrapped_store, params, results) = args.required;
-
-        if results.len() > Self::MAX_RESULTS {
-            return Err(Error::new(
-                magnus::exception::arg_error(),
-                format!(
-                    "too many results (max is {}, got {})",
-                    Self::MAX_RESULTS,
-                    results.len()
-                ),
-            ));
-        }
-
         let callable = args.block;
-
         let store = wrapped_store.get();
 
         store.retain(callable.as_value());
+
         let context = store.context_mut();
         let ty = wasmtime::FuncType::new(params.to_val_type_vec()?, results.to_val_type_vec()?);
         let func_closure = make_func_closure(&ty, callable);
@@ -314,7 +297,6 @@ pub fn init() -> Result<(), Error> {
     func.define_method("call", method!(Func::call, -1))?;
     func.define_method("params", method!(Func::params, 0))?;
     func.define_method("results", method!(Func::results, 0))?;
-    func.const_set("MAX_RESULTS", Func::MAX_RESULTS)?;
 
     Ok(())
 }

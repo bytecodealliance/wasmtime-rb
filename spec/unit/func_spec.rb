@@ -68,14 +68,6 @@ module Wasmtime
         expect { func.call }.to raise_error(Wasmtime::ResultError, /wrong number of results \(given 2, expected 1\)/)
       end
 
-      it "rejects unsafe result length vectors" do
-        results = Array.new(Func::MAX_RESULTS + 1) { :i32 }
-
-        expect do
-          build_func([], results) { nil }
-        end.to raise_error(ArgumentError, "too many results (max is 174, got 175)")
-      end
-
       it "rejects mismatching result type" do
         func = build_func([], [:i32, :i32]) { [1, nil] }
         expect { func.call }.to raise_error(Wasmtime::ResultError) do |error|

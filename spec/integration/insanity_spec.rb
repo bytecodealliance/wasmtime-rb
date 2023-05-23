@@ -35,10 +35,11 @@ module Wasmtime
     it "ensures results are never GC'd" do
       n_times = n_times(max: 100)
       store = Store.new(engine, Object.new)
-      big_array = without_gc_stress { Array.new(Func::MAX_RESULTS) { :i32 } }
-      expected_result = without_gc_stress { Array.new(Func::MAX_RESULTS) { |i| i.to_s.to_i } }
+      results_length = 512
+      big_array = without_gc_stress { Array.new(results_length) { :i32 } }
+      expected_result = without_gc_stress { Array.new(results_length) { |i| i.to_s.to_i } }
 
-      func = Func.new(store, [], big_array) { Array.new(Func::MAX_RESULTS) { |i| i } }
+      func = Func.new(store, [], big_array) { Array.new(results_length) { |i| i } }
 
       n_times.times do
         expect(func.call).to eq(expected_result)

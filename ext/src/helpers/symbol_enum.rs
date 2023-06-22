@@ -1,5 +1,5 @@
 use super::static_id::StaticId;
-use magnus::{exception::arg_error, Error, Symbol, TryConvert, Value};
+use magnus::{exception::arg_error, prelude::*, Error, Symbol, TryConvert, Value};
 use std::fmt::Display;
 
 /// Represents an enum as a set of Symbols (using `StaticId`).

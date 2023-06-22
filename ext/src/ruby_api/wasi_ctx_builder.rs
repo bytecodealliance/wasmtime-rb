@@ -1,8 +1,8 @@
 use super::root;
 use crate::error;
 use magnus::{
-    class, function, gc, method, typed_data::Obj, DataTypeFunctions, Error, Module, Object, RArray,
-    RHash, RString, TryConvert, TypedData,
+    class, function, gc::Marker, method, typed_data::Obj, DataTypeFunctions, Error, Module, Object,
+    RArray, RHash, RString, TryConvert, TypedData,
 };
 use std::cell::RefCell;
 use std::{fs::File, path::PathBuf};
@@ -15,11 +15,11 @@ enum ReadStream {
 }
 
 impl ReadStream {
-    pub fn mark(&self) {
+    pub fn mark(&self, marker: &Marker) {
         match self {
             Self::Inherit => (),
-            Self::Path(s) => gc::mark(*s),
-            Self::String(s) => gc::mark(*s),
+            Self::Path(s) => marker.mark(*s),
+            Self::String(s) => marker.mark(*s),
         }
     }
 }
@@ -29,10 +29,10 @@ enum WriteStream {
     Path(RString),
 }
 impl WriteStream {
-    pub fn mark(&self) {
+    pub fn mark(&self, marker: &Marker) {
         match self {
             Self::Inherit => (),
-            Self::Path(v) => gc::mark(*v),
+            Self::Path(v) => marker.mark(*v),
         }
     }
 }
@@ -47,21 +47,21 @@ struct WasiCtxBuilderInner {
 }
 
 impl WasiCtxBuilderInner {
-    pub fn mark(&self) {
+    pub fn mark(&self, marker: &Marker) {
         if let Some(v) = self.stdin.as_ref() {
-            v.mark();
+            v.mark(marker);
         }
         if let Some(v) = self.stdout.as_ref() {
-            v.mark();
+            v.mark(marker);
         }
         if let Some(v) = self.stderr.as_ref() {
-            v.mark();
+            v.mark(marker);
         }
         if let Some(v) = self.env.as_ref() {
-            gc::mark(*v);
+            marker.mark(*v);
         }
         if let Some(v) = self.args.as_ref() {
-            gc::mark(*v);
+            marker.mark(*v);
         }
     }
 }
@@ -81,8 +81,8 @@ pub struct WasiCtxBuilder {
 }
 
 impl DataTypeFunctions for WasiCtxBuilder {
-    fn mark(&self) {
-        self.inner.borrow().mark();
+    fn mark(&self, marker: &Marker) {
+        self.inner.borrow().mark(marker);
     }
 }
 

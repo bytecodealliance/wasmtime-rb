@@ -1,10 +1,12 @@
 use crate::{define_rb_intern, error, root, Memory};
 use magnus::{
-    class, gc, method,
+    class,
+    gc::{self, Marker},
+    method,
     rb_sys::{AsRawId, AsRawValue, FromRawValue},
     typed_data::Obj,
     value::IntoId,
-    DataTypeFunctions, Error, Module as _, TryConvert, TypedData, Value,
+    Class, DataTypeFunctions, Error, Module as _, Ruby, TryConvert, TypedData, Value,
 };
 #[cfg(ruby_gte_3_0)]
 use magnus::{class::object, memoize, require, RClass, RModule};
@@ -39,8 +41,8 @@ pub struct UnsafeSlice<'a> {
 define_rb_intern!(IVAR_NAME => "__slice__",);
 
 impl DataTypeFunctions for UnsafeSlice<'_> {
-    fn mark(&self) {
-        self.memory.mark()
+    fn mark(&self, marker: &Marker) {
+        self.memory.mark(marker)
     }
 }
 
@@ -101,8 +103,8 @@ impl<'a> UnsafeSlice<'a> {
     }
 
     #[cfg(ruby_gte_3_0)]
-    fn register_memory_view() -> Result<(), Error> {
-        let class = Self::class();
+    fn register_memory_view(ruby: &Ruby) -> Result<(), Error> {
+        let class = Self::class(ruby);
 
         static ENTRY: rb_memory_view_entry_t = rb_memory_view_entry_t {
             get_func: Some(UnsafeSlice::initialize_memory_view),
@@ -175,12 +177,12 @@ impl<'a> MemoryGuard<'a> {
         }
     }
 
-    pub fn mark(&self) {
-        gc::mark(self.memory)
+    pub fn mark(&self, marker: &Marker) {
+        marker.mark(self.memory)
     }
 }
 
-pub fn init() -> Result<(), Error> {
+pub fn init(ruby: &Ruby) -> Result<(), Error> {
     let parent = root().define_class("Memory", class::object())?;
 
     let class = parent.define_class("UnsafeSlice", class::object())?;
@@ -188,7 +190,7 @@ pub fn init() -> Result<(), Error> {
 
     #[cfg(ruby_gte_3_0)]
     if require("fiddle").is_ok() && fiddle_memory_view_class().is_some() {
-        UnsafeSlice::register_memory_view()?;
+        UnsafeSlice::register_memory_view(ruby)?;
         class.define_method("to_memory_view", method!(UnsafeSlice::to_memory_view, 0))?;
     }
 

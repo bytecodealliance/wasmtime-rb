@@ -3,8 +3,11 @@ use super::{caller::Caller, engine::Engine, root, trap::Trap, wasi_ctx_builder::
 use crate::{define_rb_intern, error};
 use magnus::Class;
 use magnus::{
-    class, function, gc, method, scan_args, typed_data::Obj, DataTypeFunctions, Error, IntoValue,
-    Module, Object, TypedData, Value,
+    class, function,
+    gc::{Compactor, Marker},
+    method, scan_args,
+    typed_data::Obj,
+    DataTypeFunctions, Error, IntoValue, Module, Object, TypedData, Value,
 };
 use std::cell::UnsafeCell;
 use std::convert::TryFrom;
@@ -47,43 +50,25 @@ impl StoreData {
         self.last_error.take()
     }
 
-    pub fn mark(&self) {
-        gc::mark_movable(&self.user_data);
+    pub fn mark(&self, marker: &Marker) {
+        marker.mark_movable(self.user_data);
 
         if let Some(ref error) = self.last_error {
-            match error {
-                Error::Error(klass, _msg) => {
-                    gc::mark_movable(*klass);
-                }
-                Error::Exception(obj) => {
-                    gc::mark_movable(*obj);
-                }
-                Error::Jump(_) => {}
+            if let Some(val) = error.value() {
+                marker.mark(val);
             }
         }
 
         for value in self.refs.iter() {
-            gc::mark_movable(value);
+            marker.mark_movable(*value);
         }
     }
 
-    pub fn compact(&mut self) {
-        self.user_data = gc::location(self.user_data);
+    pub fn compact(&mut self, compactor: &Compactor) {
+        self.user_data = compactor.location(self.user_data);
 
         for value in self.refs.iter_mut() {
-            *value = gc::location(*value);
-        }
-
-        if let Some(ref mut error) = self.last_error {
-            match error {
-                Error::Error(klass, _msg) => {
-                    *klass = gc::location(*klass);
-                }
-                Error::Exception(obj) => {
-                    *obj = gc::location(*obj);
-                }
-                Error::Jump(_) => {}
-            }
+            *value = compactor.location(*value);
         }
     }
 }
@@ -98,12 +83,12 @@ pub struct Store {
 }
 
 impl DataTypeFunctions for Store {
-    fn mark(&self) {
-        self.context().data().mark();
+    fn mark(&self, marker: &Marker) {
+        self.context().data().mark(marker);
     }
 
-    fn compact(&self) {
-        self.context_mut().data_mut().compact();
+    fn compact(&self, compactor: &Compactor) {
+        self.context_mut().data_mut().compact(compactor);
     }
 }
 
@@ -240,9 +225,9 @@ impl<'a> From<Obj<Caller<'a>>> for StoreContextValue<'a> {
 }
 
 impl<'a> StoreContextValue<'a> {
-    pub fn mark(&self) {
+    pub fn mark(&self, marker: &Marker) {
         match self {
-            Self::Store(store) => gc::mark(*store),
+            Self::Store(store) => marker.mark(*store),
             Self::Caller(_) => {
                 // The Caller is on the stack while it's "live". Right before the end of a host call,
                 // we remove the Caller form the Ruby object, thus there is no need to mark.

@@ -4,8 +4,8 @@ use super::{
 };
 use crate::error;
 use magnus::{
-    class, function, memoize, method, scan_args, typed_data::Obj, value::Id, Error, Module, Object,
-    RHash, RString, TryConvert, Value,
+    class, function, memoize, method, prelude::*, scan_args, typed_data::Obj, value::Id, Error,
+    Module, Object, RHash, RString, TryConvert, Value,
 };
 use std::{
     collections::hash_map::DefaultHasher,

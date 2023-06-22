@@ -7,8 +7,8 @@ use super::{
 };
 use crate::Caller;
 use magnus::{
-    block::Proc, class, function, method, prelude::*, scan_args::scan_args, typed_data::Obj,
-    DataTypeFunctions, Error, IntoValue, Object, RArray, TypedData, Value,
+    block::Proc, class, function, gc::Marker, method, prelude::*, scan_args::scan_args,
+    typed_data::Obj, DataTypeFunctions, Error, IntoValue, Object, RArray, TypedData, Value,
 };
 use wasmtime::{Caller as CallerImpl, Func as FuncImpl, Val};
 
@@ -30,8 +30,8 @@ pub struct Func<'a> {
 }
 
 impl DataTypeFunctions for Func<'_> {
-    fn mark(&self) {
-        self.store.mark()
+    fn mark(&self, marker: &Marker) {
+        self.store.mark(marker)
     }
 }
 

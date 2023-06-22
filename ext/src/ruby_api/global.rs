@@ -5,8 +5,8 @@ use super::{
 };
 use crate::error;
 use magnus::{
-    class, function, method, prelude::*, typed_data::Obj, DataTypeFunctions, Error, Object, Symbol,
-    TypedData, Value,
+    class, function, gc::Marker, method, prelude::*, typed_data::Obj, DataTypeFunctions, Error,
+    Object, Symbol, TypedData, Value,
 };
 use wasmtime::{Extern, Global as GlobalImpl, GlobalType, Mutability};
 
@@ -22,8 +22,8 @@ pub struct Global<'a> {
 }
 
 impl DataTypeFunctions for Global<'_> {
-    fn mark(&self) {
-        self.store.mark()
+    fn mark(&self, marker: &Marker) {
+        self.store.mark(marker)
     }
 }
 

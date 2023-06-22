@@ -4,6 +4,7 @@ use crate::{define_rb_intern, helpers::SymbolEnum};
 use lazy_static::lazy_static;
 use magnus::{
     exception::{arg_error, type_error},
+    prelude::*,
     r_hash::ForEach,
     Error, RHash, Symbol, TryConvert, Value,
 };

@@ -2,7 +2,7 @@
 #![allow(rustdoc::invalid_html_tags)]
 #![allow(rustdoc::bare_urls)]
 #![allow(rustdoc::invalid_rust_codeblocks)]
-use magnus::{define_module, function, memoize, Error, RModule, RString};
+use magnus::{define_module, function, memoize, Error, RModule, RString, Ruby};
 
 mod caller;
 mod config;
@@ -57,7 +57,7 @@ impl Wasmtime {
     }
 }
 
-pub fn init() -> Result<(), Error> {
+pub fn init(ruby: &Ruby) -> Result<(), Error> {
     let wasmtime = root();
 
     wasmtime.define_module_function("wat2wasm", function!(Wasmtime::wat2wasm, 1))?;
@@ -70,7 +70,7 @@ pub fn init() -> Result<(), Error> {
     instance::init()?;
     func::init()?;
     caller::init()?;
-    memory::init()?;
+    memory::init(ruby)?;
     linker::init()?;
     externals::init()?;
     wasi_ctx_builder::init()?;

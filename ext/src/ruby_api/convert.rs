@@ -1,6 +1,6 @@
 use crate::{define_rb_intern, err, error, helpers::SymbolEnum};
 use lazy_static::lazy_static;
-use magnus::{Error, IntoValue, RArray, Symbol, TryConvert, TypedData, Value};
+use magnus::{prelude::*, Error, IntoValue, RArray, Ruby, Symbol, TryConvert, TypedData, Value};
 use wasmtime::{ExternRef, Val, ValType};
 
 use super::{func::Func, global::Global, memory::Memory, store::StoreContextValue, table::Table};
@@ -99,18 +99,18 @@ unsafe impl Send for ExternRefValue {}
 unsafe impl Sync for ExternRefValue {}
 
 pub trait ToExtern {
-    fn to_extern(&self) -> Result<wasmtime::Extern, Error>;
+    fn to_extern(&self, ruby: &Ruby) -> Result<wasmtime::Extern, Error>;
 }
 
 impl ToExtern for Value {
-    fn to_extern(&self) -> Result<wasmtime::Extern, Error> {
-        if self.is_kind_of(Func::class()) {
+    fn to_extern(&self, ruby: &Ruby) -> Result<wasmtime::Extern, Error> {
+        if self.is_kind_of(Func::class(ruby)) {
             Ok(<&Func>::try_convert(*self)?.into())
-        } else if self.is_kind_of(Memory::class()) {
+        } else if self.is_kind_of(Memory::class(ruby)) {
             Ok(<&Memory>::try_convert(*self)?.into())
-        } else if self.is_kind_of(Table::class()) {
+        } else if self.is_kind_of(Table::class(ruby)) {
             Ok(<&Table>::try_convert(*self)?.into())
-        } else if self.is_kind_of(Global::class()) {
+        } else if self.is_kind_of(Global::class(ruby)) {
             Ok(<&Global>::try_convert(*self)?.into())
         } else {
             Err(Error::new(

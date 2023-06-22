@@ -5,8 +5,8 @@ use super::{
 };
 use crate::{define_rb_intern, error};
 use magnus::{
-    class, function, method, prelude::*, scan_args, typed_data::Obj, DataTypeFunctions, Error,
-    IntoValue, Object, Symbol, TypedData, Value,
+    class, function, gc::Marker, method, prelude::*, scan_args, typed_data::Obj, DataTypeFunctions,
+    Error, IntoValue, Object, Symbol, TypedData, Value,
 };
 use wasmtime::{Extern, Table as TableImpl, TableType};
 
@@ -27,8 +27,8 @@ pub struct Table<'a> {
 }
 
 impl DataTypeFunctions for Table<'_> {
-    fn mark(&self) {
-        self.store.mark()
+    fn mark(&self, marker: &Marker) {
+        self.store.mark(marker)
     }
 }
 

@@ -7,8 +7,8 @@ use super::{
 };
 use crate::err;
 use magnus::{
-    class, function, gc, method, prelude::*, scan_args, typed_data::Obj, DataTypeFunctions, Error,
-    Object, RArray, RHash, RString, TryConvert, TypedData, Value,
+    class, function, gc::Marker, method, prelude::*, scan_args, typed_data::Obj, DataTypeFunctions,
+    Error, Object, RArray, RHash, RString, Ruby, TryConvert, TypedData, Value,
 };
 use wasmtime::{Extern, Instance as InstanceImpl, StoreContextMut};
 
@@ -25,8 +25,8 @@ pub struct Instance {
 unsafe impl Send for Instance {}
 
 impl DataTypeFunctions for Instance {
-    fn mark(&self) {
-        gc::mark(self.store)
+    fn mark(&self, marker: &Marker) {
+        marker.mark(self.store)
     }
 }
 
@@ -38,7 +38,7 @@ impl Instance {
     /// @param imports [Array<Func, Memory>]
     ///   The module's import, in orders that that they show up in the module.
     /// @return [Instance]
-    pub fn new(args: &[Value]) -> Result<Self, Error> {
+    pub fn new(ruby: &Ruby, args: &[Value]) -> Result<Self, Error> {
         let args =
             scan_args::scan_args::<(Obj<Store>, &Module), (Option<Value>,), (), (), (), ()>(args)?;
         let (wrapped_store, module) = args.required;
@@ -56,7 +56,7 @@ impl Instance {
                 // SAFETY: arr won't get gc'd (it's on the stack) and we don't mutate it.
                 for import in unsafe { arr.as_slice() } {
                     context.data_mut().retain(*import);
-                    imports.push(import.to_extern()?);
+                    imports.push(import.to_extern(ruby)?);
                 }
                 imports
             }

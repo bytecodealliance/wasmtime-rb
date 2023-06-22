@@ -11,8 +11,9 @@ use super::{
 };
 use crate::{define_rb_intern, err, error};
 use magnus::{
-    block::Proc, class, function, gc, method, prelude::*, scan_args, scan_args::scan_args,
-    typed_data::Obj, DataTypeFunctions, Error, Object, RArray, RHash, RString, TypedData, Value,
+    block::Proc, class, function, gc::Marker, method, prelude::*, scan_args, scan_args::scan_args,
+    typed_data::Obj, DataTypeFunctions, Error, Object, RArray, RHash, RString, Ruby, TypedData,
+    Value,
 };
 use std::cell::RefCell;
 use wasmtime::Linker as LinkerImpl;
@@ -34,8 +35,8 @@ pub struct Linker {
 unsafe impl Send for Linker {}
 
 impl DataTypeFunctions for Linker {
-    fn mark(&self) {
-        gc::mark_slice(self.refs.borrow().as_slice());
+    fn mark(&self, marker: &Marker) {
+        marker.mark_slice(self.refs.borrow().as_slice());
     }
 }
 
@@ -100,15 +101,17 @@ impl Linker {
     /// @param item [Func, Memory] The item to define.
     /// @return [void]
     pub fn define(
-        &self,
+        ruby: &Ruby,
+        rb_self: &Self,
         store: &Store,
         module: RString,
         name: RString,
         item: Value,
     ) -> Result<(), Error> {
-        let item = item.to_extern()?;
+        let item = item.to_extern(ruby)?;
 
-        self.inner
+        rb_self
+            .inner
             .borrow_mut()
             .define(
                 store.context(),

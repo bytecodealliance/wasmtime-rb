@@ -1,8 +1,8 @@
 use super::root;
 use crate::error;
 use magnus::{
-    class, function, gc::Marker, method, typed_data::Obj, DataTypeFunctions, Error, Module, Object,
-    RArray, RHash, RString, TryConvert, TypedData,
+    class, function, gc::Marker, method, typed_data::Obj, value::Opaque, DataTypeFunctions, Error,
+    Module, Object, RArray, RHash, RString, Ruby, TryConvert, TypedData,
 };
 use std::cell::RefCell;
 use std::{fs::File, path::PathBuf};
@@ -10,8 +10,8 @@ use wasi_common::pipe::ReadPipe;
 
 enum ReadStream {
     Inherit,
-    Path(RString),
-    String(RString),
+    Path(Opaque<RString>),
+    String(Opaque<RString>),
 }
 
 impl ReadStream {
@@ -26,7 +26,7 @@ impl ReadStream {
 
 enum WriteStream {
     Inherit,
-    Path(RString),
+    Path(Opaque<RString>),
 }
 impl WriteStream {
     pub fn mark(&self, marker: &Marker) {
@@ -42,8 +42,8 @@ struct WasiCtxBuilderInner {
     stdin: Option<ReadStream>,
     stdout: Option<WriteStream>,
     stderr: Option<WriteStream>,
-    env: Option<RHash>,
-    args: Option<RArray>,
+    env: Option<Opaque<RHash>>,
+    args: Option<Opaque<RArray>>,
 }
 
 impl WasiCtxBuilderInner {
@@ -113,7 +113,7 @@ impl WasiCtxBuilder {
     /// @return [WasiCtxBuilder] +self+
     pub fn set_stdin_file(rb_self: RbSelf, path: RString) -> RbSelf {
         let mut inner = rb_self.get().inner.borrow_mut();
-        inner.stdin = Some(ReadStream::Path(path));
+        inner.stdin = Some(ReadStream::Path(path.into()));
         rb_self
     }
 
@@ -124,7 +124,7 @@ impl WasiCtxBuilder {
     /// @return [WasiCtxBuilder] +self+
     pub fn set_stdin_string(rb_self: RbSelf, content: RString) -> RbSelf {
         let mut inner = rb_self.get().inner.borrow_mut();
-        inner.stdin = Some(ReadStream::String(content));
+        inner.stdin = Some(ReadStream::String(content.into()));
         rb_self
     }
 
@@ -145,7 +145,7 @@ impl WasiCtxBuilder {
     /// @return [WasiCtxBuilder] +self+
     pub fn set_stdout_file(rb_self: RbSelf, path: RString) -> RbSelf {
         let mut inner = rb_self.get().inner.borrow_mut();
-        inner.stdout = Some(WriteStream::Path(path));
+        inner.stdout = Some(WriteStream::Path(path.into()));
         rb_self
     }
 
@@ -166,7 +166,7 @@ impl WasiCtxBuilder {
     /// @return [WasiCtxBuilder] +self+
     pub fn set_stderr_file(rb_self: RbSelf, path: RString) -> RbSelf {
         let mut inner = rb_self.get().inner.borrow_mut();
-        inner.stderr = Some(WriteStream::Path(path));
+        inner.stderr = Some(WriteStream::Path(path.into()));
         rb_self
     }
 
@@ -177,7 +177,7 @@ impl WasiCtxBuilder {
     /// @return [WasiCtxBuilder] +self+
     pub fn set_env(rb_self: RbSelf, env: RHash) -> RbSelf {
         let mut inner = rb_self.get().inner.borrow_mut();
-        inner.env = Some(env);
+        inner.env = Some(env.into());
         rb_self
     }
 
@@ -188,21 +188,23 @@ impl WasiCtxBuilder {
     /// @return [WasiCtxBuilder] +self+
     pub fn set_argv(rb_self: RbSelf, argv: RArray) -> RbSelf {
         let mut inner = rb_self.get().inner.borrow_mut();
-        inner.args = Some(argv);
+        inner.args = Some(argv.into());
         rb_self
     }
 
-    pub fn build_context(&self) -> Result<wasmtime_wasi::WasiCtx, Error> {
+    pub fn build_context(&self, ruby: &Ruby) -> Result<wasmtime_wasi::WasiCtx, Error> {
         let mut builder = wasmtime_wasi::WasiCtxBuilder::new();
         let inner = self.inner.borrow();
 
         if let Some(stdin) = inner.stdin.as_ref() {
             match stdin {
                 ReadStream::Inherit => builder.inherit_stdin(),
-                ReadStream::Path(path) => builder.stdin(file_r(*path).map(wasi_file)?),
+                ReadStream::Path(path) => {
+                    builder.stdin(file_r(ruby.get_inner(*path)).map(wasi_file)?)
+                }
                 ReadStream::String(input) => {
                     // SAFETY: &[u8] copied before calling in to Ruby, no GC can happen before.
-                    let pipe = ReadPipe::from(unsafe { input.as_slice() });
+                    let pipe = ReadPipe::from(unsafe { ruby.get_inner(*input).as_slice() });
                     builder.stdin(Box::new(pipe))
                 }
             };
@@ -211,20 +213,24 @@ impl WasiCtxBuilder {
         if let Some(stdout) = inner.stdout.as_ref() {
             match stdout {
                 WriteStream::Inherit => builder.inherit_stdout(),
-                WriteStream::Path(path) => builder.stdout(file_w(*path).map(wasi_file)?),
+                WriteStream::Path(path) => {
+                    builder.stdout(file_w(ruby.get_inner(*path)).map(wasi_file)?)
+                }
             };
         }
 
         if let Some(stderr) = inner.stderr.as_ref() {
             match stderr {
                 WriteStream::Inherit => builder.inherit_stderr(),
-                WriteStream::Path(path) => builder.stderr(file_w(*path).map(wasi_file)?),
+                WriteStream::Path(path) => {
+                    builder.stderr(file_w(ruby.get_inner(*path)).map(wasi_file)?)
+                }
             };
         }
 
         if let Some(args) = inner.args.as_ref() {
             // SAFETY: no gc can happen nor do we write to `args`.
-            for item in unsafe { args.as_slice() } {
+            for item in unsafe { ruby.get_inner(*args).as_slice() } {
                 let arg = RString::try_convert(*item)?;
                 // SAFETY: &str copied before calling in to Ruby, no GC can happen before.
                 let arg = unsafe { arg.as_str() }?;
@@ -233,7 +239,7 @@ impl WasiCtxBuilder {
         }
 
         if let Some(env_hash) = inner.env.as_ref() {
-            let env_vec: Vec<(String, String)> = env_hash.to_vec()?;
+            let env_vec: Vec<(String, String)> = ruby.get_inner(*env_hash).to_vec()?;
             builder.envs(&env_vec).map_err(|e| error!("{}", e))?;
         }
 

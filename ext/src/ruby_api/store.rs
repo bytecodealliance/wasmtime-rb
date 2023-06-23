@@ -8,7 +8,8 @@ use magnus::{
     gc::{Compactor, Marker},
     method, scan_args,
     typed_data::Obj,
-    DataTypeFunctions, Error, IntoValue, Module, Object, TypedData, Value,
+    value::Opaque,
+    DataTypeFunctions, Error, IntoValue, Module, Object, Ruby, TypedData, Value,
 };
 use std::cell::UnsafeCell;
 use std::convert::TryFrom;
@@ -114,7 +115,7 @@ impl Store {
     ///
     /// @example
     ///   store = Wasmtime::Store.new(Wasmtime::Engine.new, {})
-    pub fn new(args: &[Value]) -> Result<Self, Error> {
+    pub fn new(ruby: &Ruby, args: &[Value]) -> Result<Self, Error> {
         let args = scan_args::scan_args::<(&Engine,), (Option<Value>,), (), (), _, ()>(args)?;
         let kw = scan_args::get_kwargs::<_, (), (Option<&WasiCtxBuilder>, Option<&WasiDeterministicCtxBuilder>), ()>(
             args.keywords,
@@ -129,8 +130,8 @@ impl Store {
         let (ctx, det) = kw.optional;
         let wasi = match (ctx, det) {
             (Some(_), Some(_)) => None,
-            (Some(ctx), None) => Some(ctx.build_context()?),
-            (None, Some(det)) => Some(det.build_context()?),
+            (Some(ctx), None) => Some(ctx.build_context(ruby)?),
+            (None, Some(det)) => Some(det.build_context(ruby)?),
             (None, None) => None,
         };
 
@@ -218,21 +219,21 @@ impl Store {
 
 /// A wrapper around a Ruby Value that has a store context.
 /// Used in places where both Store or Caller can be used.
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub enum StoreContextValue<'a> {
-    Store(Obj<Store>),
-    Caller(Obj<Caller<'a>>),
+    Store(Opaque<Obj<Store>>),
+    Caller(Opaque<Obj<Caller<'a>>>),
 }
 
 impl<'a> From<Obj<Store>> for StoreContextValue<'a> {
     fn from(store: Obj<Store>) -> Self {
-        StoreContextValue::Store(store)
+        StoreContextValue::Store(store.into())
     }
 }
 
 impl<'a> From<Obj<Caller<'a>>> for StoreContextValue<'a> {
     fn from(caller: Obj<Caller<'a>>) -> Self {
-        StoreContextValue::Caller(caller)
+        StoreContextValue::Caller(caller.into())
     }
 }
 
@@ -248,24 +249,32 @@ impl<'a> StoreContextValue<'a> {
     }
 
     pub fn context(&self) -> Result<StoreContext<StoreData>, Error> {
+        let ruby = Ruby::get().unwrap();
         match self {
-            Self::Store(store) => Ok(store.get().context()),
-            Self::Caller(caller) => caller.get().context(),
+            Self::Store(store) => Ok(ruby.get_inner_ref(store).get().context()),
+            Self::Caller(caller) => ruby.get_inner_ref(caller).get().context(),
         }
     }
 
     pub fn context_mut(&self) -> Result<StoreContextMut<StoreData>, Error> {
+        let ruby = Ruby::get().unwrap();
         match self {
-            Self::Store(store) => Ok(store.get().context_mut()),
-            Self::Caller(caller) => caller.get().context_mut(),
+            Self::Store(store) => Ok(ruby.get_inner_ref(store).get().context_mut()),
+            Self::Caller(caller) => ruby.get_inner_ref(caller).get().context_mut(),
         }
     }
 
     pub fn set_last_error(&self, error: Error) {
+        let ruby = Ruby::get().unwrap();
         match self {
-            Self::Store(store) => store.get().context_mut().data_mut().set_error(error),
+            Self::Store(store) => ruby
+                .get_inner(*store)
+                .get()
+                .context_mut()
+                .data_mut()
+                .set_error(error),
             Self::Caller(caller) => {
-                if let Ok(mut context) = caller.get().context_mut() {
+                if let Ok(mut context) = ruby.get_inner(*caller).get().context_mut() {
                     context.data_mut().set_error(error);
                 }
             }
@@ -280,10 +289,7 @@ impl<'a> StoreContextValue<'a> {
         } else {
             Trap::try_from(error)
                 .map(|trap| trap.into())
-                .unwrap_or_else(|error| match error.downcast::<magnus::Error>() {
-                    Ok(e) => e,
-                    Err(e) => error!("{}", e),
-                })
+                .unwrap_or_else(|e| error!("{}", e))
         }
     }
 
@@ -293,9 +299,15 @@ impl<'a> StoreContextValue<'a> {
     }
 
     fn take_last_error(&self) -> Result<Option<Error>, Error> {
+        let ruby = Ruby::get().unwrap();
         match self {
-            Self::Store(store) => Ok(store.get().take_last_error()),
-            Self::Caller(caller) => Ok(caller.get().context_mut()?.data_mut().take_error()),
+            Self::Store(store) => Ok(ruby.get_inner(*store).get().take_last_error()),
+            Self::Caller(caller) => Ok(ruby
+                .get_inner(*caller)
+                .get()
+                .context_mut()?
+                .data_mut()
+                .take_error()),
         }
     }
 }

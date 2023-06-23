@@ -17,7 +17,7 @@ winch = ["wasmtime/winch"]
 
 [dependencies]
 lazy_static = "1.4.0"
-magnus = { version = "0.6", features = ["rb-sys", "deprecated-send-sync-value"] }
+magnus = { version = "0.6", features = ["rb-sys"] }
 rb-sys = { version = "*", default-features = false, features = [
   "stable-api-compiled-fallback",
 ] }

@@ -167,11 +167,10 @@ impl Linker {
     /// @return [Extern, nil] The item if it exists, nil otherwise.
     pub fn get(
         &self,
-        s: Obj<Store>,
+        store: Obj<Store>,
         module: RString,
         name: RString,
     ) -> Result<Option<Extern>, Error> {
-        let store = s.get();
         let ext =
             self.inner
                 .borrow()
@@ -181,7 +180,7 @@ impl Linker {
 
         match ext {
             None => Ok(None),
-            Some(ext) => ext.wrap_wasmtime_type(s.into()).map(Some),
+            Some(ext) => ext.wrap_wasmtime_type(store.into()).map(Some),
         }
     }
 
@@ -275,9 +274,7 @@ impl Linker {
     /// @param store [Store]
     /// @param mod [Module]
     /// @return [Instance]
-    pub fn instantiate(&self, s: Obj<Store>, module: &Module) -> Result<Instance, Error> {
-        let store = s.get();
-
+    pub fn instantiate(&self, store: Obj<Store>, module: &Module) -> Result<Instance, Error> {
         if self.has_wasi && !store.context().data().has_wasi_ctx() {
             return err!(
                 "Store is missing WASI configuration.\n\n\
@@ -291,10 +288,10 @@ impl Linker {
         self.inner
             .borrow_mut()
             .instantiate(store.context_mut(), module.get())
-            .map_err(|e| StoreContextValue::from(s).handle_wasm_error(e))
+            .map_err(|e| StoreContextValue::from(store).handle_wasm_error(e))
             .map(|instance| {
                 self.refs.borrow().iter().for_each(|val| store.retain(*val));
-                Instance::from_inner(s, instance)
+                Instance::from_inner(store, instance)
             })
     }
 
@@ -304,13 +301,11 @@ impl Linker {
     /// @param store [Store]
     /// @param mod [String] Module name
     /// @return [Func]
-    pub fn get_default(&self, s: Obj<Store>, module: RString) -> Result<Func, Error> {
-        let store = s.get();
-
+    pub fn get_default(&self, store: Obj<Store>, module: RString) -> Result<Func, Error> {
         self.inner
             .borrow()
             .get_default(store.context_mut(), unsafe { module.as_str() }?)
-            .map(|func| Func::from_inner(s.into(), func))
+            .map(|func| Func::from_inner(store.into(), func))
             .map_err(|e| error!("{}", e))
     }
 }

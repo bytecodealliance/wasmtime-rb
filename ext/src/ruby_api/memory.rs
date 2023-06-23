@@ -51,10 +51,9 @@ impl<'a> Memory<'a> {
             &[*MIN_SIZE],
             &[*MAX_SIZE],
         )?;
-        let (s,) = args.required;
+        let (store,) = args.required;
         let (min,) = kw.required;
         let (max,) = kw.optional;
-        let store = s.get();
 
         let memtype = wasmtime::MemoryType::new(min, max);
 
@@ -62,7 +61,7 @@ impl<'a> Memory<'a> {
         let memsize = inner.data_size(store.context_mut());
 
         Ok(Self {
-            store: s.into(),
+            store: store.into(),
             inner: ManuallyTracked::wrap(inner, memsize),
         })
     }

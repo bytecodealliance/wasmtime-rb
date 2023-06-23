@@ -49,14 +49,13 @@ impl<'a> Global<'a> {
     }
 
     fn new(
-        s: Obj<Store>,
+        store: Obj<Store>,
         value_type: Symbol,
         default: Value,
         mutability: Mutability,
     ) -> Result<Self, Error> {
         let wasm_type = value_type.to_val_type()?;
         let wasm_default = default.to_wasm_val(wasm_type.clone())?;
-        let store = s.get();
         let inner = GlobalImpl::new(
             store.context_mut(),
             GlobalType::new(wasm_type, mutability),
@@ -65,7 +64,7 @@ impl<'a> Global<'a> {
         .map_err(|e| error!("{}", e))?;
 
         let global = Self {
-            store: s.into(),
+            store: store.into(),
             inner,
         };
 

@@ -3,12 +3,15 @@ use std::convert::TryFrom;
 use crate::ruby_api::{errors::base_error, root};
 use magnus::Error;
 use magnus::{
-    memoize, method, prelude::*, rb_sys::AsRawValue, typed_data::Obj, DataTypeFunctions,
-    ExceptionClass, IntoValue, Symbol, TypedData,
+    method, prelude::*, rb_sys::AsRawValue, typed_data::Obj, value::Lazy, DataTypeFunctions,
+    ExceptionClass, IntoValue, Ruby, Symbol, TypedData,
 };
 
 pub fn trap_error() -> ExceptionClass {
-    *memoize!(ExceptionClass: root().define_error("Trap", base_error()).unwrap())
+    static ERR: Lazy<ExceptionClass> =
+        Lazy::new(|_| root().define_error("Trap", base_error()).unwrap());
+    let ruby = Ruby::get().unwrap();
+    ruby.get_inner(&ERR)
 }
 
 macro_rules! trap_const {

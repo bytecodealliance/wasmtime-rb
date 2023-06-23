@@ -1,42 +1,33 @@
 use crate::ruby_api::root;
-use magnus::{gc, Error};
-use magnus::{memoize, ExceptionClass, Module};
+use magnus::{value::Lazy, Error, ExceptionClass, Module, Ruby};
 
 /// Base error class for all Wasmtime errors.
 pub fn base_error() -> ExceptionClass {
-    *memoize!(ExceptionClass: {
-        let err = root().const_get("Error").unwrap();
-        gc::register_mark_object(err);
-        err
-    })
+    static ERR: Lazy<ExceptionClass> = Lazy::new(|_| root().const_get("Error").unwrap());
+    let ruby = Ruby::get().unwrap();
+    ruby.get_inner(&ERR)
 }
 
 /// Raised when failing to convert the return value of a Ruby-backed Func to
 /// Wasm types.
 pub fn result_error() -> ExceptionClass {
-    *memoize!(ExceptionClass: {
-        let err = root().const_get("ResultError").unwrap();
-        gc::register_mark_object(err);
-        err
-    })
+    static ERR: Lazy<ExceptionClass> = Lazy::new(|_| root().const_get("ResultError").unwrap());
+    let ruby = Ruby::get().unwrap();
+    ruby.get_inner(&ERR)
 }
 
 /// Raised when converting an {Extern} to its concrete type fails.
 pub fn conversion_error() -> ExceptionClass {
-    *memoize!(ExceptionClass: {
-        let err = root().const_get("ConversionError").unwrap();
-        gc::register_mark_object(err);
-        err
-    })
+    static ERR: Lazy<ExceptionClass> = Lazy::new(|_| root().const_get("ConversionError").unwrap());
+    let ruby = Ruby::get().unwrap();
+    ruby.get_inner(&ERR)
 }
 
 /// Raised when a WASI program terminates early by calling +exit+.
 pub fn wasi_exit_error() -> ExceptionClass {
-    *memoize!(ExceptionClass: {
-        let err = root().const_get("WasiExit").unwrap();
-        gc::register_mark_object(err);
-        err
-    })
+    static ERR: Lazy<ExceptionClass> = Lazy::new(|_| root().const_get("WasiExit").unwrap());
+    let ruby = Ruby::get().unwrap();
+    ruby.get_inner(&ERR)
 }
 
 #[macro_export]

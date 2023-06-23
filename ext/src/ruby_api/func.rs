@@ -75,11 +75,10 @@ impl<'a> Func<'a> {
         let args = scan_args::<(Obj<Store>, RArray, RArray), (), (), (), (), Proc>(args)?;
         let (wrapped_store, params, results) = args.required;
         let callable = args.block;
-        let store = wrapped_store.get();
 
-        store.retain(callable.as_value());
+        wrapped_store.retain(callable.as_value());
 
-        let context = store.context_mut();
+        let context = wrapped_store.context_mut();
         let ty = wasmtime::FuncType::new(params.to_val_type_vec()?, results.to_val_type_vec()?);
         let func_closure = make_func_closure(&ty, callable.into());
         let inner = wasmtime::Func::new(context, ty, func_closure);
@@ -228,7 +227,7 @@ pub fn make_func_closure(
 
         match (callable.call(unsafe { rparams.as_slice() }), results.len()) {
             (Ok(_proc_result), 0) => {
-                wrapped_caller.get().expire();
+                wrapped_caller.expire();
                 Ok(())
             }
             (Ok(proc_result), n) => {
@@ -236,7 +235,7 @@ pub fn make_func_closure(
                 let Ok(proc_result) = RArray::to_ary(proc_result) else {
                     return result_error!(
                         store_context,
-                        wrapped_caller.get(),
+                        wrapped_caller,
                         format!("could not convert {} to results array", callable)
                     );
                 };
@@ -244,7 +243,7 @@ pub fn make_func_closure(
                 if proc_result.len() != results.len() {
                     return result_error!(
                         store_context,
-                        wrapped_caller.get(),
+                        wrapped_caller,
                         format!(
                             "wrong number of results (given {}, expected {}) in {}",
                             proc_result.len(),
@@ -265,18 +264,18 @@ pub fn make_func_closure(
                         Err(e) => {
                             return result_error!(
                                 store_context,
-                                wrapped_caller.get(),
+                                wrapped_caller,
                                 format!("invalid result at index {i}: {e} in {callable}")
                             );
                         }
                     }
                 }
 
-                wrapped_caller.get().expire();
+                wrapped_caller.expire();
                 Ok(())
             }
             (Err(e), _) => {
-                caller_error!(store_context, wrapped_caller.get(), e)
+                caller_error!(store_context, wrapped_caller, e)
             }
         }
     }

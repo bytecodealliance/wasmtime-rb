@@ -42,8 +42,7 @@ impl Instance {
         let args =
             scan_args::scan_args::<(Obj<Store>, &Module), (Option<Value>,), (), (), (), ()>(args)?;
         let (wrapped_store, module) = args.required;
-        let store = wrapped_store.get();
-        let mut context = store.context_mut();
+        let mut context = wrapped_store.context_mut();
         let imports = args
             .optional
             .0
@@ -88,8 +87,7 @@ impl Instance {
     /// @def exports
     /// @return [Hash{String => Extern}]
     pub fn exports(&self) -> Result<RHash, Error> {
-        let store = self.store.get();
-        let mut ctx = store.context_mut();
+        let mut ctx = self.store.context_mut();
         let hash = RHash::new();
 
         for export in self.inner.exports(&mut ctx) {
@@ -111,10 +109,9 @@ impl Instance {
     /// @param name [String]
     /// @return [Extern, nil] The export if it exists, nil otherwise.
     pub fn export(&self, str: RString) -> Result<Option<super::externals::Extern>, Error> {
-        let store = self.store.get();
         let export = self
             .inner
-            .get_export(store.context_mut(), unsafe { str.as_str()? });
+            .get_export(self.store.context_mut(), unsafe { str.as_str()? });
         match export {
             Some(export) => export.wrap_wasmtime_type(self.store.into()).map(Some),
             None => Ok(None),
@@ -138,8 +135,7 @@ impl Instance {
             )
         })?)?;
 
-        let store = self.store.get();
-        let func = self.get_func(store.context_mut(), unsafe { name.as_str()? })?;
+        let func = self.get_func(self.store.context_mut(), unsafe { name.as_str()? })?;
         Func::invoke(&self.store.into(), &func, &args[1..])
     }
 

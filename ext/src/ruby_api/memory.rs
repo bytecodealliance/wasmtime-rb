@@ -54,12 +54,11 @@ impl<'a> Memory<'a> {
         let (s,) = args.required;
         let (min,) = kw.required;
         let (max,) = kw.optional;
-        let store = s.get();
 
         let memtype = wasmtime::MemoryType::new(min, max);
 
-        let inner = MemoryImpl::new(store.context_mut(), memtype).map_err(|e| error!("{}", e))?;
-        let memsize = inner.data_size(store.context_mut());
+        let inner = MemoryImpl::new(s.context_mut(), memtype).map_err(|e| error!("{}", e))?;
+        let memsize = inner.data_size(s.context_mut());
 
         Ok(Self {
             store: s.into(),

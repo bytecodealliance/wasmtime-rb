@@ -171,13 +171,12 @@ impl Linker {
         module: RString,
         name: RString,
     ) -> Result<Option<Extern>, Error> {
-        let store = s.get();
-        let ext =
-            self.inner
-                .borrow()
-                .get(store.context_mut(), unsafe { module.as_str() }?, unsafe {
-                    name.as_str()?
-                });
+        let ext = self
+            .inner
+            .borrow()
+            .get(s.context_mut(), unsafe { module.as_str() }?, unsafe {
+                name.as_str()?
+            });
 
         match ext {
             None => Ok(None),
@@ -276,9 +275,7 @@ impl Linker {
     /// @param mod [Module]
     /// @return [Instance]
     pub fn instantiate(&self, s: Obj<Store>, module: &Module) -> Result<Instance, Error> {
-        let store = s.get();
-
-        if self.has_wasi && !store.context().data().has_wasi_ctx() {
+        if self.has_wasi && !s.context().data().has_wasi_ctx() {
             return err!(
                 "Store is missing WASI configuration.\n\n\
                 When using `wasi: true`, the Store given to\n\
@@ -290,10 +287,10 @@ impl Linker {
 
         self.inner
             .borrow_mut()
-            .instantiate(store.context_mut(), module.get())
+            .instantiate(s.context_mut(), module.get())
             .map_err(|e| StoreContextValue::from(s).handle_wasm_error(e))
             .map(|instance| {
-                self.refs.borrow().iter().for_each(|val| store.retain(*val));
+                self.refs.borrow().iter().for_each(|val| s.retain(*val));
                 Instance::from_inner(s, instance)
             })
     }
@@ -305,11 +302,9 @@ impl Linker {
     /// @param mod [String] Module name
     /// @return [Func]
     pub fn get_default(&self, s: Obj<Store>, module: RString) -> Result<Func, Error> {
-        let store = s.get();
-
         self.inner
             .borrow()
-            .get_default(store.context_mut(), unsafe { module.as_str() }?)
+            .get_default(s.context_mut(), unsafe { module.as_str() }?)
             .map(|func| Func::from_inner(s.into(), func))
             .map_err(|e| error!("{}", e))
     }

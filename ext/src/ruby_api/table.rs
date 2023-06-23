@@ -50,12 +50,11 @@ impl<'a> Table<'a> {
         let (s, value_type, default) = args.required;
         let (min,) = kw.required;
         let (max,) = kw.optional;
-        let store = s.get();
         let wasm_type = value_type.to_val_type()?;
         let wasm_default = default.to_wasm_val(wasm_type.clone())?;
 
         let inner = TableImpl::new(
-            store.context_mut(),
+            s.context_mut(),
             TableType::new(wasm_type, min, max),
             wasm_default,
         )

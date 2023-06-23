@@ -186,7 +186,7 @@ impl Engine {
         }
 
         let mut hasher = DefaultHasher::new();
-        let engine = rb_self.get().inner.clone();
+        let engine = rb_self.inner.clone();
         engine.precompile_compatibility_hash().hash(&mut hasher);
         let hex_encoded = format!("{:x}", hasher.finish());
         let key = RString::new(&hex_encoded);

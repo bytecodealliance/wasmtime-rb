@@ -83,7 +83,7 @@ impl<'a> UnsafeSlice<'a> {
     /// @def to_str
     /// @return [String] Binary +String+ of the memory.
     pub fn to_str(rb_self: Obj<Self>) -> Result<Value, Error> {
-        let raw_slice = rb_self.get().get_raw_slice()?;
+        let raw_slice = rb_self.get_raw_slice()?;
         let id = IVAR_NAME.into_id();
         let rstring = unsafe {
             let val = rb_str_new_static(raw_slice.as_ptr() as _, raw_slice.len() as _);
@@ -158,7 +158,7 @@ pub struct MemoryGuard<'a> {
 
 impl<'a> MemoryGuard<'a> {
     pub fn new(memory: Obj<Memory<'a>>) -> Result<Self, Error> {
-        let original_size = memory.get().size()?;
+        let original_size = memory.size()?;
 
         Ok(Self {
             memory: memory.into(),
@@ -168,7 +168,7 @@ impl<'a> MemoryGuard<'a> {
 
     pub fn get(&self) -> Result<&Memory<'a>, Error> {
         let ruby = Ruby::get().unwrap();
-        let mem = ruby.get_inner_ref(&self.memory).get();
+        let mem = ruby.get_inner_ref(&self.memory);
 
         if mem.size()? != self.original_size {
             Err(error!("memory slice was invalidated by resize"))

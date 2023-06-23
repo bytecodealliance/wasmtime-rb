@@ -24,7 +24,7 @@ define_rb_intern!(
 /// @rename Wasmtime::Memory
 /// Represents a WebAssembly memory.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Memory.html Wasmtime's Rust doc
-#[derive(Debug, TypedData)]
+#[derive(TypedData)]
 #[magnus(class = "Wasmtime::Memory", free_immediately, mark, unsafe_generics)]
 pub struct Memory<'a> {
     store: StoreContextValue<'a>,

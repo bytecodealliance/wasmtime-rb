@@ -141,7 +141,7 @@ impl Linker {
         let (module, name, params, results) = args.required;
         let callable = args.block;
         let ty = wasmtime::FuncType::new(params.to_val_type_vec()?, results.to_val_type_vec()?);
-        let func_closure = func::make_func_closure(&ty, callable);
+        let func_closure = func::make_func_closure(&ty, callable.into());
 
         self.refs.borrow_mut().push(callable.as_value());
 

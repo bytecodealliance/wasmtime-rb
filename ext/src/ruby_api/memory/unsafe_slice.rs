@@ -5,7 +5,7 @@ use magnus::{
     method,
     rb_sys::{AsRawId, AsRawValue, FromRawValue},
     typed_data::Obj,
-    value::IntoId,
+    value::{IntoId, Opaque},
     Class, DataTypeFunctions, Error, Module as _, Ruby, TryConvert, TypedData, Value,
 };
 #[cfg(ruby_gte_3_0)]
@@ -26,7 +26,7 @@ use std::ops::Range;
 /// The returned {UnsafeSlice} lazily reads the underlying memory, meaning that
 /// the actual pointer to the string buffer is not materialzed until
 /// {UnsafeSlice#to_str} is called.
-#[derive(Debug, TypedData)]
+#[derive(TypedData)]
 #[magnus(
     class = "Wasmtime::Memory::UnsafeSlice",
     free_immediately,
@@ -151,9 +151,8 @@ impl<'a> UnsafeSlice<'a> {
 }
 
 /// A guard that ensures that a memory slice is not invalidated by resizing
-#[derive(Debug)]
 pub struct MemoryGuard<'a> {
-    memory: Obj<Memory<'a>>,
+    memory: Opaque<Obj<Memory<'a>>>,
     original_size: u64,
 }
 
@@ -162,13 +161,14 @@ impl<'a> MemoryGuard<'a> {
         let original_size = memory.get().size()?;
 
         Ok(Self {
-            memory,
+            memory: memory.into(),
             original_size,
         })
     }
 
     pub fn get(&self) -> Result<&Memory<'a>, Error> {
-        let mem = self.memory.get();
+        let ruby = Ruby::get().unwrap();
+        let mem = ruby.get_inner_ref(&self.memory).get();
 
         if mem.size()? != self.original_size {
             Err(error!("memory slice was invalidated by resize"))

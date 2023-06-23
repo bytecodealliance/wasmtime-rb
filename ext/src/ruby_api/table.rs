@@ -19,7 +19,7 @@ define_rb_intern!(
 /// @rename Wasmtime::Table
 /// Represents a WebAssembly table.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Table.html Wasmtime's Rust doc
-#[derive(Debug, TypedData)]
+#[derive(TypedData)]
 #[magnus(class = "Wasmtime::Table", free_immediately, mark, unsafe_generics)]
 pub struct Table<'a> {
     store: StoreContextValue<'a>,

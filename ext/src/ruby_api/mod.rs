@@ -2,7 +2,7 @@
 #![allow(rustdoc::invalid_html_tags)]
 #![allow(rustdoc::bare_urls)]
 #![allow(rustdoc::invalid_rust_codeblocks)]
-use magnus::{define_module, function, memoize, Error, RModule, RString, Ruby};
+use magnus::{function, value::Lazy, Error, RModule, RString, Ruby};
 
 mod caller;
 mod config;
@@ -36,7 +36,9 @@ pub use wasi_ctx_builder::WasiCtxBuilder;
 
 /// The "Wasmtime" Ruby module.
 pub fn root() -> RModule {
-    *memoize!(RModule: define_module("Wasmtime").unwrap())
+    static ROOT: Lazy<RModule> = Lazy::new(|ruby| ruby.define_module("Wasmtime").unwrap());
+    let ruby = Ruby::get().unwrap();
+    ruby.get_inner(&ROOT)
 }
 
 // This Struct is a placeholder for documentation, so that we can hang methods

@@ -4,8 +4,8 @@ use super::{
 };
 use crate::error;
 use magnus::{
-    class, function, memoize, method, prelude::*, scan_args, typed_data::Obj, value::Id, Error,
-    Module, Object, RHash, RString, TryConvert, Value,
+    class, function, method, prelude::*, scan_args, typed_data::Obj, value::LazyId, Error, Module,
+    Object, RHash, RString, Ruby, TryConvert, Value,
 };
 use std::{
     collections::hash_map::DefaultHasher,
@@ -178,8 +178,9 @@ impl Engine {
     /// then serialized modules from one engine can be deserialized by the
     /// other.
     /// @return [String] The hex formatted string that can be used to check precompiled module compatibility.
-    pub fn precompile_compatibility_key(rb_self: Obj<Self>) -> Result<RString, Error> {
-        let ivar_id = *memoize!(Id: Id::new("precompile_compatibility_key"));
+    pub fn precompile_compatibility_key(ruby: &Ruby, rb_self: Obj<Self>) -> Result<RString, Error> {
+        static ID: LazyId = LazyId::new("precompile_compatibility_key");
+        let ivar_id = LazyId::get_inner_with(&ID, ruby);
 
         if let Ok(cached) = rb_self.ivar_get::<_, RString>(ivar_id) {
             return Ok(cached);

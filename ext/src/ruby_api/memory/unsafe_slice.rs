@@ -1,15 +1,15 @@
 use crate::{define_rb_intern, error, root, Memory};
 use magnus::{
     class,
-    gc::{self, Marker},
+    gc::Marker,
     method,
     rb_sys::{AsRawId, AsRawValue, FromRawValue},
     typed_data::Obj,
-    value::{IntoId, Opaque},
+    value::{IntoId, Lazy, Opaque},
     Class, DataTypeFunctions, Error, Module as _, Ruby, TryConvert, TypedData, Value,
 };
 #[cfg(ruby_gte_3_0)]
-use magnus::{class::object, memoize, require, RClass, RModule};
+use magnus::{class::object, require, RClass, RModule};
 use rb_sys::{rb_ivar_set, rb_obj_freeze, rb_str_new_static};
 #[cfg(ruby_gte_3_0)]
 use rb_sys::{
@@ -68,13 +68,9 @@ impl<'a> UnsafeSlice<'a> {
     /// @return [Fiddle::MemoryView] Memory view of the slice.
     #[cfg(ruby_gte_3_0)]
     pub fn to_memory_view(rb_self: Obj<Self>) -> Result<Value, Error> {
-        let klass = *memoize!(RClass: {
-            let c = fiddle_memory_view_class().unwrap();
-            gc::register_mark_object(c);
-            c
-        });
-
-        klass.new_instance((rb_self,))
+        static CLASS: Lazy<RClass> = Lazy::new(|_| fiddle_memory_view_class().unwrap());
+        let ruby = Ruby::get().unwrap();
+        ruby.get_inner(&CLASS).new_instance((rb_self,))
     }
 
     /// @yard

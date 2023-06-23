@@ -77,12 +77,10 @@ impl Trap {
     }
 
     pub fn inspect(rb_self: Obj<Self>) -> Result<String, Error> {
-        let rs_self = rb_self.get();
-
         Ok(format!(
             "#<Wasmtime::Trap:0x{:016x} @trap_code={}>",
             rb_self.as_raw(),
-            rs_self.code()?.into_value().inspect()
+            rb_self.code()?.into_value().inspect()
         ))
     }
 }

@@ -47,10 +47,9 @@ impl<'a> Table<'a> {
             &[*MIN_SIZE],
             &[*MAX_SIZE],
         )?;
-        let (s, value_type, default) = args.required;
+        let (store, value_type, default) = args.required;
         let (min,) = kw.required;
         let (max,) = kw.optional;
-        let store = s.get();
         let wasm_type = value_type.to_val_type()?;
         let wasm_default = default.to_wasm_val(wasm_type.clone())?;
 
@@ -62,7 +61,7 @@ impl<'a> Table<'a> {
         .map_err(|e| error!("{}", e))?;
 
         let table = Self {
-            store: s.into(),
+            store: store.into(),
             inner,
         };
 

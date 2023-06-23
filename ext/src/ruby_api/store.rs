@@ -251,16 +251,16 @@ impl<'a> StoreContextValue<'a> {
     pub fn context(&self) -> Result<StoreContext<StoreData>, Error> {
         let ruby = Ruby::get().unwrap();
         match self {
-            Self::Store(store) => Ok(ruby.get_inner_ref(store).get().context()),
-            Self::Caller(caller) => ruby.get_inner_ref(caller).get().context(),
+            Self::Store(store) => Ok(ruby.get_inner_ref(store).context()),
+            Self::Caller(caller) => ruby.get_inner_ref(caller).context(),
         }
     }
 
     pub fn context_mut(&self) -> Result<StoreContextMut<StoreData>, Error> {
         let ruby = Ruby::get().unwrap();
         match self {
-            Self::Store(store) => Ok(ruby.get_inner_ref(store).get().context_mut()),
-            Self::Caller(caller) => ruby.get_inner_ref(caller).get().context_mut(),
+            Self::Store(store) => Ok(ruby.get_inner_ref(store).context_mut()),
+            Self::Caller(caller) => ruby.get_inner_ref(caller).context_mut(),
         }
     }
 
@@ -269,12 +269,11 @@ impl<'a> StoreContextValue<'a> {
         match self {
             Self::Store(store) => ruby
                 .get_inner(*store)
-                .get()
                 .context_mut()
                 .data_mut()
                 .set_error(error),
             Self::Caller(caller) => {
-                if let Ok(mut context) = ruby.get_inner(*caller).get().context_mut() {
+                if let Ok(mut context) = ruby.get_inner(*caller).context_mut() {
                     context.data_mut().set_error(error);
                 }
             }
@@ -301,10 +300,9 @@ impl<'a> StoreContextValue<'a> {
     fn take_last_error(&self) -> Result<Option<Error>, Error> {
         let ruby = Ruby::get().unwrap();
         match self {
-            Self::Store(store) => Ok(ruby.get_inner(*store).get().take_last_error()),
+            Self::Store(store) => Ok(ruby.get_inner(*store).take_last_error()),
             Self::Caller(caller) => Ok(ruby
                 .get_inner(*caller)
-                .get()
                 .context_mut()?
                 .data_mut()
                 .take_error()),

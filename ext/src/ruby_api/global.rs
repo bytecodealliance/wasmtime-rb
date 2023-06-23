@@ -14,7 +14,7 @@ use wasmtime::{Extern, Global as GlobalImpl, GlobalType, Mutability};
 /// @rename Wasmtime::Global
 /// Represents a WebAssembly global.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Global.html Wasmtime's Rust doc
-#[derive(Debug, TypedData)]
+#[derive(TypedData)]
 #[magnus(class = "Wasmtime::Global", free_immediately, mark, unsafe_generics)]
 pub struct Global<'a> {
     store: StoreContextValue<'a>,

@@ -8,7 +8,8 @@ use super::{
 use crate::Caller;
 use magnus::{
     block::Proc, class, function, gc::Marker, method, prelude::*, scan_args::scan_args,
-    typed_data::Obj, DataTypeFunctions, Error, IntoValue, Object, RArray, TypedData, Value,
+    typed_data::Obj, value::Opaque, DataTypeFunctions, Error, IntoValue, Object, RArray, Ruby,
+    TypedData, Value,
 };
 use wasmtime::{Caller as CallerImpl, Func as FuncImpl, Val};
 
@@ -16,7 +17,7 @@ use wasmtime::{Caller as CallerImpl, Func as FuncImpl, Val};
 /// @rename Wasmtime::Func
 /// Represents a WebAssembly Function
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Func.html Wasmtime's Rust doc
-#[derive(Debug, TypedData)]
+#[derive(TypedData)]
 #[magnus(
     class = "Wasmtime::Func",
     size,
@@ -34,16 +35,6 @@ impl DataTypeFunctions for Func<'_> {
         self.store.mark(marker)
     }
 }
-
-// Wraps a Proc to satisfy wasmtime::Func's Send+Sync requirements. This is safe
-// to do as long as (1) we hold the GVL when whe execute the proc and (2) we do
-// not have multiple threads running at once (e.g. with Wasm thread proposal).
-#[repr(transparent)]
-struct ShareableProc(Proc);
-unsafe impl Send for ShareableProc {}
-unsafe impl Sync for ShareableProc {}
-
-unsafe impl Send for Func<'_> {}
 
 impl<'a> Func<'a> {
     /// @yard
@@ -90,7 +81,7 @@ impl<'a> Func<'a> {
 
         let context = store.context_mut();
         let ty = wasmtime::FuncType::new(params.to_val_type_vec()?, results.to_val_type_vec()?);
-        let func_closure = make_func_closure(&ty, callable);
+        let func_closure = make_func_closure(&ty, callable.into());
         let inner = wasmtime::Func::new(context, ty, func_closure);
 
         Ok(Self {
@@ -208,11 +199,10 @@ macro_rules! result_error {
 
 pub fn make_func_closure(
     ty: &wasmtime::FuncType,
-    callable: Proc,
+    callable: Opaque<Proc>,
 ) -> impl Fn(CallerImpl<'_, StoreData>, &[Val], &mut [Val]) -> anyhow::Result<()> + Send + Sync + 'static
 {
     let ty = ty.to_owned();
-    let callable = ShareableProc(callable);
 
     // The error handling here is a bit tricky. We want to return a Ruby exception,
     // but doing so directly can easily cause an early Ruby GC and segfault. So to
@@ -233,7 +223,8 @@ pub fn make_func_closure(
             rparams.push(rparam).unwrap();
         }
 
-        let callable = callable.0;
+        let ruby = Ruby::get().unwrap();
+        let callable = ruby.get_inner(callable);
 
         match (callable.call(unsafe { rparams.as_slice() }), results.len()) {
             (Ok(_proc_result), 0) => {

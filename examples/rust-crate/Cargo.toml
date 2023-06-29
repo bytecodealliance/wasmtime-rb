@@ -10,5 +10,5 @@ doctest = false
 wasmtime-rb = { path = "../../ext", features = ["ruby-api"] }
 
 [dev-dependencies]
-magnus = { version = "0.4.4", features = ["embed"] } # Only need embed feature for tests
+magnus = { version = "0.5.3", features = ["embed"] } # Only need embed feature for tests
 wasmtime-rb = { path = "../../ext", features = ["embed"] } # Only need embed feature for tests

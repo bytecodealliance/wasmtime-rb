@@ -82,7 +82,8 @@ jobs:
       - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
         with:
           ruby-version: "3.2"
-          rustup-toolchain: "nightly"
+          # To ensure that we have reliable builds.
+          rustup-toolchain: "nightly-2023-04-23"
           bundler-cache: true
           cargo-cache: true
           cache-version: v1

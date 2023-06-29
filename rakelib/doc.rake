@@ -82,7 +82,7 @@ namespace :doc do
   desc "Generate Rust documentation as JSON"
   task :rustdoc do
     sh <<~CMD
-      cargo +nightly rustdoc \
+      cargo +nightly-2023-04-23 rustdoc \
         --target-dir tmp/doc/target \
         -p wasmtime-rb \
         -- -Zunstable-options --output-format json \

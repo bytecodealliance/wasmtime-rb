@@ -17,7 +17,7 @@ ruby-api = []
 [dependencies]
 lazy_static = "1.4.0"
 magnus = { version = "0.5.3", features = ["rb-sys-interop"] }
-rb-sys = "~0.9.77"
+rb-sys = "~0.9.79"
 wasmtime = { version = "= 9.0.1" }
 wasmtime-wasi = "= 9.0.1"
 wasi-common = "= 9.0.1"

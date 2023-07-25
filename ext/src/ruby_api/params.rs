@@ -3,7 +3,7 @@ use magnus::{exception::arg_error, Error, ExceptionClass, Value};
 use static_assertions::assert_eq_size;
 use wasmtime::{FuncType, ValType};
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 #[repr(C)]
 struct Param {
     val: Value,

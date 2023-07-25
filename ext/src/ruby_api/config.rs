@@ -32,6 +32,7 @@ define_rb_intern!(
     SPEED => "speed",
     SPEED_AND_SIZE => "speed_and_size",
     TARGET => "target",
+    PERFMAP => "perfmap",
 );
 
 lazy_static! {
@@ -49,6 +50,7 @@ lazy_static! {
             (*NONE, ProfilingStrategy::None),
             (*JITDUMP, ProfilingStrategy::JitDump),
             (*VTUNE, ProfilingStrategy::VTune),
+            (*PERFMAP, ProfilingStrategy::PerfMap),
         ];
 
         SymbolEnum::new(":profiler", mapping)

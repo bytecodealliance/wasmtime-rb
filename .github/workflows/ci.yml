@@ -79,10 +79,15 @@ jobs:
       - name: Remove Gemfile.lock
         run: rm Gemfile.lock
 
+      - name: Figure out nightly version
+        run: |
+            version="$(grep -oE 'NIGHTLY_VERSION = "[^"]+' rakelib/doc.rake | cut -d'"' -f2)"
+            echo "NIGHTLY_VERSION=$version" >> $GITHUB_ENV
+
       - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
         with:
           ruby-version: "3.2"
-          rustup-toolchain: "nightly"
+          rustup-toolchain: "${{ env.NIGHTLY_VERSION }}"
           bundler-cache: true
           cargo-cache: true
           cache-version: v1

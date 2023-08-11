@@ -4,6 +4,8 @@ CLOBBER.include("doc")
 CLEAN.include(".yardoc")
 CLEAN.include("tmp/doc")
 
+NIGHTLY_VERSION = "nightly-2023-05-22"
+
 YARD::Rake::YardocTask.new do |t|
   t.options += ["--fail-on-warn"]
 
@@ -82,7 +84,7 @@ namespace :doc do
   desc "Generate Rust documentation as JSON"
   task :rustdoc do
     sh <<~CMD
-      cargo +nightly rustdoc \
+      cargo +#{NIGHTLY_VERSION} rustdoc \
         --target-dir tmp/doc/target \
         -p wasmtime-rb \
         -- -Zunstable-options --output-format json \

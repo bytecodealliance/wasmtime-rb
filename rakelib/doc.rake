@@ -81,8 +81,9 @@ namespace :doc do
 
   desc "Generate Rust documentation as JSON"
   task :rustdoc do
+    nightly = File.readlines("NIGHTLY_VERSION").first
     sh <<~CMD
-      cargo +nightly-2023-04-23 rustdoc \
+      cargo +#{nightly} rustdoc \
         --target-dir tmp/doc/target \
         -p wasmtime-rb \
         -- -Zunstable-options --output-format json \

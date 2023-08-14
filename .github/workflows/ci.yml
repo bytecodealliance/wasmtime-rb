@@ -76,14 +76,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Derive nightly version
+        run: |
+          version="$(cat ./NIGHTLY_VERSION)"
+          echo "NIGHTLY_VERSION=$version" >> $GITHUB_ENV
+
       - name: Remove Gemfile.lock
         run: rm Gemfile.lock
 
       - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
         with:
           ruby-version: "3.2"
-          # To ensure that we have reliable builds.
-          rustup-toolchain: "nightly-2023-04-23"
+          rustup-toolchain: "${{ env.NIGHTLY_VERSION }}"
           bundler-cache: true
           cargo-cache: true
           cache-version: v1

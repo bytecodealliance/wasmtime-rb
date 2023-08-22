@@ -18,8 +18,10 @@ ruby-api = []
 lazy_static = "1.4.0"
 # For ruby-head support, we have to lock to 0.5.4 until
 # rb-sys/stable-api-compiled-fallback feature is used in Magnus.
-magnus = { version = "= 0.5.4", features = ["rb-sys-interop"] }
-rb-sys = { version = "0.9.81", features = ["stable-api-compiled-fallback"] }
+magnus = { version = "= 0.5.5", features = ["rb-sys-interop"] }
+rb-sys = { version = "*", default-features = false, features = [
+  "stable-api-compiled-fallback",
+] }
 wasmtime = { version = "= 9.0.4" }
 wasmtime-wasi = "= 9.0.4"
 wasi-common = "= 9.0.4"

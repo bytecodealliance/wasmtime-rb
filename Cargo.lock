@@ -1972,7 +1972,7 @@ dependencies = [
 
 [[package]]
 name = "wasmtime-rb"
-version = "9.0.1"
+version = "9.0.4"
 dependencies = [
  "anyhow",
  "async-timer",

@@ -1,8 +1,8 @@
 PATH
   remote: .
   specs:
-    wasmtime (9.0.1)
-      rb_sys (~> 0.9.78)
+    wasmtime (9.0.4)
+      rb_sys (~> 0.9.81)
 
 GEM
   remote: https://rubygems.org/

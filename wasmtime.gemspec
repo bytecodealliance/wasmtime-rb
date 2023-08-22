@@ -26,10 +26,9 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.extensions = ["ext/extconf.rb"] # Future: ["ext/Cargo.toml"] with rubygems >= 3.3.24
+  spec.extensions = ["ext/extconf.rb"]
 
   spec.rdoc_options += ["--exclude", "vendor"]
 
-  # Can be removed for binary gems and rubygems >= 3.3.24
-  spec.add_dependency "rb_sys", "~> 0.9.78"
+  spec.add_dependency "rb_sys", "~> 0.9.81"
 end

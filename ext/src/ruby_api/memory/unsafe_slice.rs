@@ -124,9 +124,13 @@ impl<'a> UnsafeSlice<'a> {
         _flags: i32,
     ) -> bool {
         let obj = unsafe { Value::from_raw(value) };
-        let Ok(memory) = <Obj<UnsafeSlice>>::try_convert(obj) else { return false };
+        let Ok(memory) = <Obj<UnsafeSlice>>::try_convert(obj) else {
+            return false;
+        };
         let memory = memory.get();
-        let Ok(raw_slice) = memory.get_raw_slice() else { return false; };
+        let Ok(raw_slice) = memory.get_raw_slice() else {
+            return false;
+        };
         let (ptr, size) = (raw_slice.as_ptr(), raw_slice.len());
 
         unsafe { rb_memory_view_init_as_byte_array(view, value, ptr as _, size as _, true) }
@@ -135,7 +139,9 @@ impl<'a> UnsafeSlice<'a> {
     #[cfg(ruby_gte_3_0)]
     extern "C" fn is_memory_view_available(value: VALUE) -> bool {
         let obj = unsafe { Value::from_raw(value) };
-        let Ok(memory) = <Obj<UnsafeSlice>>::try_convert(obj) else { return false };
+        let Ok(memory) = <Obj<UnsafeSlice>>::try_convert(obj) else {
+            return false;
+        };
         let memory = memory.get();
 
         memory.get_raw_slice().is_ok()

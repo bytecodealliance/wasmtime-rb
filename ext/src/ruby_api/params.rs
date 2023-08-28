@@ -3,7 +3,7 @@ use magnus::{exception::arg_error, Error, ExceptionClass, Value};
 use static_assertions::assert_eq_size;
 use wasmtime::{FuncType, ValType};
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 #[repr(C)]
 struct Param {
     val: Value,
@@ -19,17 +19,19 @@ impl Param {
         Self { index, ty, val }
     }
 
-    fn to_wasmtime_val(self) -> Result<wasmtime::Val, Error> {
-        self.val.to_wasm_val(self.ty).map_err(|error| match error {
-            Error::Error(class, msg) => {
-                Error::new(class, format!("{} (param at index {})", msg, self.index))
-            }
-            Error::Exception(exception) => Error::new(
-                ExceptionClass::from_value(exception.class().into()).unwrap_or_else(arg_error),
-                format!("{} (param at index {})", exception, self.index),
-            ),
-            _ => error,
-        })
+    fn to_wasmtime_val(&self) -> Result<wasmtime::Val, Error> {
+        self.val
+            .to_wasm_val(self.ty.clone())
+            .map_err(|error| match error {
+                Error::Error(class, msg) => {
+                    Error::new(class, format!("{} (param at index {})", msg, self.index))
+                }
+                Error::Exception(exception) => Error::new(
+                    ExceptionClass::from_value(exception.class().into()).unwrap_or_else(arg_error),
+                    format!("{} (param at index {})", exception, self.index),
+                ),
+                _ => error,
+            })
     }
 }
 

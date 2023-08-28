@@ -1,5 +1,13 @@
 # Changelog
 
+## [v10.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v10.0.0) (2023-08-28)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v9.0.4...v10.0.0)
+
+**Merged pull requests:**
+
+- chore: Update to wasmtime@10 [\#218](https://github.com/bytecodealliance/wasmtime-rb/pull/218) ([saulecabrera](https://github.com/saulecabrera))
+
 ## [v9.0.4](https://github.com/bytecodealliance/wasmtime-rb/tree/v9.0.4) (2023-08-22)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v9.0.1...v9.0.4)

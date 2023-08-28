@@ -491,7 +491,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let (max,) = kw.optional;
     let store = s.get();
     let wasm_type = value_type.to_val_type()?;
-    let wasm_default = default.to_wasm_val(wasm_type)?;
+    let wasm_default = default.to_wasm_val(wasm_type.clone())?;
 
     let inner = TableImpl::new(
         store.context_mut(),
@@ -1020,7 +1020,7 @@ pub fn type_(&amp;self) -&gt; Result&lt;Symbol, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Aug 22 15:41:45 2023 by
+  Generated on Mon Aug 28 20:36:36 2023 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.34 (ruby-3.2.2).
 </div>

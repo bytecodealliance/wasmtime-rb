@@ -1,8 +1,17 @@
 # Changelog
 
-## [v11.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v11.0.0) (2023-08-31)
+## [v12.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v12.0.1) (2023-09-07)
 
-[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v11.0.0...v11.0.0)
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v12.0.0...v12.0.1)
+
+**Merged pull requests:**
+
+- chore: Wasmtime v12.0.1 [\#224](https://github.com/bytecodealliance/wasmtime-rb/pull/224) ([saulecabrera](https://github.com/saulecabrera))
+- Bump standard from 1.30.1 to 1.31.0 [\#222](https://github.com/bytecodealliance/wasmtime-rb/pull/222) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+## [v12.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v12.0.0) (2023-08-31)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v11.0.0...v12.0.0)
 
 **Merged pull requests:**
 

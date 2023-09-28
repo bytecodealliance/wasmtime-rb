@@ -56,7 +56,6 @@ impl<'a> Global<'a> {
     ) -> Result<Self, Error> {
         let wasm_type = value_type.to_val_type()?;
         let wasm_default = default.to_wasm_val(wasm_type.clone())?;
-        let store = s.get();
         let inner = GlobalImpl::new(
             s.context_mut(),
             GlobalType::new(wasm_type, mutability),

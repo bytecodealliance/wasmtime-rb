@@ -125,7 +125,6 @@ impl<'a> UnsafeSlice<'a> {
         let Ok(memory) = <Obj<UnsafeSlice>>::try_convert(obj) else {
             return false;
         };
-        let memory = memory.get();
         let Ok(raw_slice) = memory.get_raw_slice() else {
             return false;
         };
@@ -140,8 +139,6 @@ impl<'a> UnsafeSlice<'a> {
         let Ok(memory) = <Obj<UnsafeSlice>>::try_convert(obj) else {
             return false;
         };
-        let memory = memory.get();
-
         memory.get_raw_slice().is_ok()
     }
 }

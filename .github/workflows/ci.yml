@@ -36,7 +36,7 @@ jobs:
           - os: windows-latest
             ruby: mswin
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Remove Gemfile.lock
         run: rm Gemfile.lock
@@ -74,7 +74,7 @@ jobs:
   build_doc:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Derive nightly version
         run: |

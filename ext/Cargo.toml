@@ -20,7 +20,7 @@ magnus = { version = "0.5.5", features = ["rb-sys-interop"] }
 rb-sys = { version = "*", default-features = false, features = [
   "stable-api-compiled-fallback",
 ] }
-wasmtime = { version = "= 12.0.1" }
+wasmtime = { version = "= 13.0.0" }
 wasmtime-wasi = "= 12.0.1"
 wasi-common = "= 12.0.1"
 wasi-cap-std-sync = "= 12.0.1"

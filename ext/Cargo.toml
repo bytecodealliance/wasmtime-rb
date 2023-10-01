@@ -38,7 +38,7 @@ async-timer = { version = "1.0.0-beta.8", features = [
 ], optional = true }
 static_assertions = "1.1.0"
 wasmtime-runtime = "= 12.0.1"
-wasmtime-environ = "= 12.0.1"
+wasmtime-environ = "= 13.0.0"
 
 [build-dependencies]
 rb-sys-env = "0.1.2"

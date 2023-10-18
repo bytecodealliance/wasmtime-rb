@@ -21,7 +21,7 @@ impl Param {
 
     fn to_wasmtime_val(&self) -> Result<wasmtime::Val, Error> {
         self.val
-            .to_wasm_val(self.ty.clone())
+            .to_wasm_val(self.ty)
             .map_err(|error| match error.error_type() {
                 ErrorType::Error(class, msg) => {
                     Error::new(*class, format!("{} (param at index {})", msg, self.index))

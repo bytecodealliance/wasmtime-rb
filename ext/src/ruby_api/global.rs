@@ -55,7 +55,7 @@ impl<'a> Global<'a> {
         mutability: Mutability,
     ) -> Result<Self, Error> {
         let wasm_type = value_type.to_val_type()?;
-        let wasm_default = default.to_wasm_val(wasm_type.clone())?;
+        let wasm_default = default.to_wasm_val(wasm_type)?;
         let inner = GlobalImpl::new(
             s.context_mut(),
             GlobalType::new(wasm_type, mutability),
@@ -95,7 +95,7 @@ impl<'a> Global<'a> {
     /// @def type
     /// @return [Symbol] The Wasm type of the global‘s content.
     pub fn type_(&self) -> Result<Symbol, Error> {
-        self.ty().map(|ty| ty.content().clone().to_sym())
+        self.ty().map(|ty| (*ty.content()).to_sym())
     }
 
     /// @yard
@@ -129,7 +129,7 @@ impl<'a> Global<'a> {
     }
 
     fn value_type(&self) -> Result<wasmtime::ValType, Error> {
-        self.ty().map(|ty| ty.content().clone())
+        self.ty().map(|ty| *ty.content())
     }
 
     fn retain_non_nil_extern_ref(&self, value: Value) -> Result<(), Error> {

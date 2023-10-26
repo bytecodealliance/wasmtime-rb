@@ -1,5 +1,18 @@
 # Changelog
 
+## [v14.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v14.0.0) (2023-10-26)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v13.0.0...v14.0.0)
+
+**Merged pull requests:**
+
+- chore: Update to wasmtime 14 [\#236](https://github.com/bytecodealliance/wasmtime-rb/pull/236) ([saulecabrera](https://github.com/saulecabrera))
+- chore: Update wat [\#235](https://github.com/bytecodealliance/wasmtime-rb/pull/235) ([saulecabrera](https://github.com/saulecabrera))
+- Bump actions/checkout from 3 to 4 [\#234](https://github.com/bytecodealliance/wasmtime-rb/pull/234) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump rb-sys from 0.9.81 to 0.9.82 [\#230](https://github.com/bytecodealliance/wasmtime-rb/pull/230) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump rb\_sys from 0.9.81 to 0.9.82 [\#228](https://github.com/bytecodealliance/wasmtime-rb/pull/228) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump standard from 1.31.0 to 1.31.1 [\#227](https://github.com/bytecodealliance/wasmtime-rb/pull/227) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v13.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v13.0.0) (2023-10-02)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v12.0.1...v13.0.0)

@@ -41,7 +41,8 @@ module Wasmtime
       # enum options represented as symbols
       [
         [:cranelift_opt_level, [:none, :speed, :speed_and_size]],
-        [:profiler, profiler_options]
+        [:profiler, profiler_options],
+        [:strategy, [:auto, :cranelift, :winch]]
       ].each do |option, valid|
         it "supports #{option}" do
           valid.each { |value| Engine.new(option => value) }

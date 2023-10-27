@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    wasmtime (14.0.0)
+    wasmtime (14.0.1)
       rb_sys (~> 0.9.81)
 
 GEM

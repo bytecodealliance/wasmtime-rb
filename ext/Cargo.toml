@@ -20,10 +20,10 @@ magnus = { version = "0.5.5", features = ["rb-sys-interop"] }
 rb-sys = { version = "*", default-features = false, features = [
   "stable-api-compiled-fallback",
 ] }
-wasmtime = { version = "= 14.0.0" }
-wasmtime-wasi = "= 14.0.0"
-wasi-common = "= 14.0.0"
-wasi-cap-std-sync = "= 14.0.0"
+wasmtime = { version = "= 14.0.1" }
+wasmtime-wasi = "= 14.0.1"
+wasi-common = "= 14.0.1"
+wasi-cap-std-sync = "= 14.0.1"
 cap-std = "2.0.0"
 anyhow = "*" # Use whatever Wasmtime uses
 wat = "1.0.74"
@@ -37,8 +37,8 @@ async-timer = { version = "1.0.0-beta.8", features = [
   "tokio1",
 ], optional = true }
 static_assertions = "1.1.0"
-wasmtime-runtime = "= 14.0.0"
-wasmtime-environ = "= 14.0.0"
+wasmtime-runtime = "= 14.0.1"
+wasmtime-environ = "= 14.0.1"
 
 [build-dependencies]
 rb-sys-env = "0.1.2"

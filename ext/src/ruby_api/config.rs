@@ -107,7 +107,7 @@ pub fn hash_to_config(hash: RHash) -> Result<Config, Error> {
             config.profiler(entry.try_into()?);
         } else if *CRANELIFT_OPT_LEVEL == id {
             config.cranelift_opt_level(entry.try_into()?);
-        } else if *STRATEGY == id {
+        } else if *STRATEGY == id && cfg!(feature = "winch") {
             config.strategy(entry.try_into()?);
         } else if *TARGET == id {
             let target: Option<String> = entry.try_into()?;

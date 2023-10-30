@@ -79,7 +79,7 @@ impl Engine {
     /// @option config [Boolean] :parallel_compilation (true) Whether compile WASM using multiple threads
     /// @option config [Symbol] :cranelift_opt_level One of +none+, +speed+, +speed_and_size+.
     /// @option config [Symbol] :profiler One of +none+, +jitdump+, +vtune+.
-    /// @option config [Symbol] :strategy One of +auto+, +cranelift+, +winch+
+    /// @option config [Symbol] :strategy One of +auto+, +cranelift+, +winch+ (requires crate feature `winch` to be enabled)
     /// @option config [String] :target
     ///
     /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Engine.html

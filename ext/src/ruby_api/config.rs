@@ -11,7 +11,7 @@ use std::{
     convert::{TryFrom, TryInto},
     sync::Arc,
 };
-use wasmtime::{Config, OptLevel, ProfilingStrategy, WasmBacktraceDetails};
+use wasmtime::{Config, OptLevel, ProfilingStrategy, Strategy, WasmBacktraceDetails};
 
 define_rb_intern!(
     DEBUG_INFO => "debug_info",
@@ -25,6 +25,7 @@ define_rb_intern!(
     WASM_MEMORY64 => "wasm_memory64",
     PROFILER => "profiler",
     CRANELIFT_OPT_LEVEL => "cranelift_opt_level",
+    STRATEGY => "strategy",
     PARALLEL_COMPILATION => "parallel_compilation",
     NONE => "none",
     JITDUMP => "jitdump",
@@ -32,6 +33,9 @@ define_rb_intern!(
     SPEED => "speed",
     SPEED_AND_SIZE => "speed_and_size",
     TARGET => "target",
+    AUTO => "auto",
+    CRANELIFT => "cranelift",
+    WINCH => "winch",
 );
 
 lazy_static! {
@@ -52,6 +56,15 @@ lazy_static! {
         ];
 
         SymbolEnum::new(":profiler", mapping)
+    };
+    static ref STRATEGY_MAPPING: SymbolEnum<'static, Strategy> = {
+        let mapping = vec![
+            (*AUTO, Strategy::Auto),
+            (*CRANELIFT, Strategy::Cranelift),
+            (*WINCH, Strategy::Winch),
+        ];
+
+        SymbolEnum::new(":strategy", mapping)
     };
 }
 
@@ -94,6 +107,8 @@ pub fn hash_to_config(hash: RHash) -> Result<Config, Error> {
             config.profiler(entry.try_into()?);
         } else if *CRANELIFT_OPT_LEVEL == id {
             config.cranelift_opt_level(entry.try_into()?);
+        } else if *STRATEGY == id && cfg!(feature = "winch") {
+            config.strategy(entry.try_into()?);
         } else if *TARGET == id {
             let target: Option<String> = entry.try_into()?;
 
@@ -176,5 +191,12 @@ impl TryFrom<ConfigEntry> for wasmtime::OptLevel {
     type Error = magnus::Error;
     fn try_from(value: ConfigEntry) -> Result<Self, Error> {
         OPT_LEVEL_MAPPING.get(value.1)
+    }
+}
+
+impl TryFrom<ConfigEntry> for wasmtime::Strategy {
+    type Error = magnus::Error;
+    fn try_from(value: ConfigEntry) -> Result<Self, Error> {
+        STRATEGY_MAPPING.get(value.1)
     }
 }

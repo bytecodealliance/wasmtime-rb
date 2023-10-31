@@ -13,6 +13,7 @@ embed = ["magnus/embed"]
 tokio = ["dep:tokio", "dep:async-timer"]
 all-arch = ["wasmtime/all-arch"]
 ruby-api = []
+winch = ["wasmtime/winch"]
 
 [dependencies]
 lazy_static = "1.4.0"

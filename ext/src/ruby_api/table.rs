@@ -51,7 +51,7 @@ impl<'a> Table<'a> {
         let (min,) = kw.required;
         let (max,) = kw.optional;
         let wasm_type = value_type.to_val_type()?;
-        let wasm_default = default.to_wasm_val(wasm_type)?;
+        let wasm_default = default.to_wasm_val(wasm_type.clone())?;
 
         let inner = TableImpl::new(
             s.context_mut(),

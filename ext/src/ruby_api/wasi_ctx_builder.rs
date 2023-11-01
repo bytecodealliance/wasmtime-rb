@@ -213,14 +213,18 @@ impl WasiCtxBuilder {
         if let Some(stdout) = inner.stdout.as_ref() {
             match stdout {
                 WriteStream::Inherit => builder.inherit_stdout(),
-                WriteStream::Path(path) => builder.stdout(file_w(*path).map(wasi_file)?),
+                WriteStream::Path(path) => {
+                    builder.stdout(file_w(ruby.get_inner(*path)).map(wasi_file)?)
+                }
             };
         }
 
         if let Some(stderr) = inner.stderr.as_ref() {
             match stderr {
                 WriteStream::Inherit => builder.inherit_stderr(),
-                WriteStream::Path(path) => builder.stderr(file_w(*path).map(wasi_file)?),
+                WriteStream::Path(path) => {
+                    builder.stderr(file_w(ruby.get_inner(*path)).map(wasi_file)?)
+                }
             };
         }
 
@@ -235,7 +239,7 @@ impl WasiCtxBuilder {
         }
 
         if let Some(env_hash) = inner.env.as_ref() {
-            let env_vec: Vec<(String, String)> = env_hash.to_vec()?;
+            let env_vec: Vec<(String, String)> = ruby.get_inner(*env_hash).to_vec()?;
             builder.envs(&env_vec).map_err(|e| error!("{}", e))?;
         }
 

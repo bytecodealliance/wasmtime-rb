@@ -1,5 +1,14 @@
 # Changelog
 
+## [v14.0.2](https://github.com/bytecodealliance/wasmtime-rb/tree/v14.0.2) (2023-11-01)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v14.0.1...v14.0.2)
+
+**Merged pull requests:**
+
+- chore: Update to `wasmtime` 14.0.2 [\#239](https://github.com/bytecodealliance/wasmtime-rb/pull/239) ([saulecabrera](https://github.com/saulecabrera))
+- Add support for using Winch as a compiler strategy [\#238](https://github.com/bytecodealliance/wasmtime-rb/pull/238) ([jeffcharles](https://github.com/jeffcharles))
+
 ## [v14.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v14.0.1) (2023-10-30)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v14.0.0...v14.0.1)

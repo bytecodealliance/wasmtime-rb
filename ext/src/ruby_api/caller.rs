@@ -66,7 +66,8 @@ impl<'a> Caller<'a> {
     /// @def export(name)
     /// @see Instance#export
     pub fn export(rb_self: Obj<Caller<'a>>, name: RString) -> Result<Option<Extern<'a>>, Error> {
-        let inner = rb_self.handle.get_mut()?;
+        let caller = rb_self;
+        let inner = caller.handle.get_mut()?;
 
         if let Some(export) = inner.get_export(unsafe { name.as_str() }?) {
             export.wrap_wasmtime_type(rb_self.into()).map(Some)

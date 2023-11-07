@@ -27,7 +27,7 @@ wasi-common = "= 14.0.3"
 wasi-cap-std-sync = "= 14.0.3"
 cap-std = "2.0.0"
 anyhow = "*" # Use whatever Wasmtime uses
-wat = "1.0.74"
+wat = "1.0.79"
 tokio = { version = "1.28.2", features = [
   "rt",
   "rt-multi-thread",

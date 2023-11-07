@@ -58,9 +58,9 @@ checksum = "a2e1373abdaa212b704512ec2bd8b26bd0b7d5c3f70117411a5d9a451383c859"
 
 [[package]]
 name = "async-timer"
-version = "1.0.0-beta.10"
+version = "1.0.0-beta.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1efd9b521b9c234ee3e184b1430598c83c5d684cec5b1647df4d24a886637917"
+checksum = "9a85c27a0fad465f4e93d563b849340a6683fac2040cd99f6f99ed75207e7069"
 dependencies = [
  "error-code",
  "libc",

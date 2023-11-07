@@ -1,5 +1,15 @@
 # Changelog
 
+## [v14.0.3](https://github.com/bytecodealliance/wasmtime-rb/tree/v14.0.3) (2023-11-07)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v14.0.2...v14.0.3)
+
+**Merged pull requests:**
+
+- chore: Update to `wasmtimev14.0.3` [\#244](https://github.com/bytecodealliance/wasmtime-rb/pull/244) ([saulecabrera](https://github.com/saulecabrera))
+- Bump rake from 13.0.6 to 13.1.0 [\#241](https://github.com/bytecodealliance/wasmtime-rb/pull/241) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump standard from 1.31.1 to 1.31.2 [\#240](https://github.com/bytecodealliance/wasmtime-rb/pull/240) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v14.0.2](https://github.com/bytecodealliance/wasmtime-rb/tree/v14.0.2) (2023-11-01)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v14.0.1...v14.0.2)

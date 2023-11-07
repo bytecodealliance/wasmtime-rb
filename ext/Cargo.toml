@@ -34,7 +34,7 @@ tokio = { version = "1.28.2", features = [
   "time",
   "net",
 ], optional = true }
-async-timer = { version = "1.0.0-beta.8", features = [
+async-timer = { version = "1.0.0-beta.11", features = [
   "tokio1",
 ], optional = true }
 static_assertions = "1.1.0"

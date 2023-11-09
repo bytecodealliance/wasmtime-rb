@@ -1,5 +1,15 @@
 # Changelog
 
+## [v14.0.4](https://github.com/bytecodealliance/wasmtime-rb/tree/v14.0.4) (2023-11-09)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v14.0.3...v14.0.4)
+
+**Merged pull requests:**
+
+- chore: Update to `wasmtime` 14.0.4 [\#246](https://github.com/bytecodealliance/wasmtime-rb/pull/246) ([saulecabrera](https://github.com/saulecabrera))
+- chore\(deps\): bump wat from 1.0.77 to 1.0.79 [\#245](https://github.com/bytecodealliance/wasmtime-rb/pull/245) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump async-timer from 1.0.0-beta.10 to 1.0.0-beta.11 [\#243](https://github.com/bytecodealliance/wasmtime-rb/pull/243) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v14.0.3](https://github.com/bytecodealliance/wasmtime-rb/tree/v14.0.3) (2023-11-07)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v14.0.2...v14.0.3)

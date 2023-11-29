@@ -117,21 +117,22 @@ impl Store {
     /// @example
     ///   store = Wasmtime::Store.new(Wasmtime::Engine.new, {})
     pub fn new(ruby: &Ruby, args: &[Value]) -> Result<Self, Error> {
-        let args = scan_args::scan_args::<(&Engine,), (Option<Value>,), (), (), _, ()>(args)?;
+        let args = scan_args::scan_args::<(Obj<Engine>,), (Option<Value>,), (), (), _, ()>(args)?;
         let kw = scan_args::get_kwargs::<_, (), (Option<&WasiCtxBuilder>,), ()>(
             args.keywords,
             &[],
             &[*WASI_CTX],
         )?;
         let (engine,) = args.required;
+        let _ = rb_gc_guard!(engine.as_raw());
         let (user_data,) = args.optional;
         let user_data = user_data.unwrap_or_else(|| ruby.qnil().into_value());
+        let _ = rb_gc_guard!(user_data.as_raw());
         let wasi = match kw.optional.0 {
             None => None,
             Some(wasi_ctx_builder) => Some(wasi_ctx_builder.build_context(ruby)?),
         };
 
-        let eng = engine.get();
         let store_data = StoreData {
             user_data,
             wasi,
@@ -139,7 +140,7 @@ impl Store {
             last_error: Default::default(),
         };
         let store = Self {
-            inner: UnsafeCell::new(StoreImpl::new(eng, store_data)),
+            inner: UnsafeCell::new(StoreImpl::new((*engine).get(), store_data)),
         };
 
         Ok(store)

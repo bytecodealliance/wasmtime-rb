@@ -1,6 +1,12 @@
 use super::{convert::WrapWasmtimeType, externals::Extern, root, store::StoreData};
-use crate::error;
-use magnus::{class, method, typed_data::Obj, Error, Module as _, RString, Value};
+use magnus::{
+    class,
+    gc::{Compactor, Marker},
+    method,
+    prelude::*,
+    typed_data::Obj,
+    DataTypeFunctions, Error, RString, TypedData, Value,
+};
 use std::cell::UnsafeCell;
 use wasmtime::{AsContext, AsContextMut, Caller as CallerImpl, StoreContext, StoreContextMut};
 
@@ -42,10 +48,32 @@ impl<'a> CallerHandle<'a> {
 /// Caller is sent as the first parameter to Func's implementation (the
 /// block argument in {Func.new}).
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Caller.html Wasmtime's Rust doc
-#[derive(Debug)]
-#[magnus::wrap(class = "Wasmtime::Caller", free_immediately, unsafe_generics)]
+#[derive(Debug, TypedData)]
+#[magnus(
+    class = "Wasmtime::Caller",
+    free_immediately,
+    unsafe_generics,
+    mark,
+    size
+)]
 pub struct Caller<'a> {
     handle: CallerHandle<'a>,
+}
+
+impl DataTypeFunctions for Caller<'_> {
+    fn mark(&self, marker: &Marker) {
+        self.handle
+            .get()
+            .map(|c| c.data().mark(marker))
+            .unwrap_or_default()
+    }
+
+    fn compact(&self, compactor: &Compactor) {
+        self.handle
+            .get_mut()
+            .map(|c| c.data_mut().compact(compactor))
+            .unwrap_or_default()
+    }
 }
 
 impl<'a> Caller<'a> {

@@ -33,6 +33,7 @@ define_rb_intern!(
     SPEED => "speed",
     SPEED_AND_SIZE => "speed_and_size",
     TARGET => "target",
+    GENERATE_ADDRESS_MAP => "generate_address_map",
     AUTO => "auto",
     CRANELIFT => "cranelift",
     WINCH => "winch",
@@ -117,6 +118,8 @@ pub fn hash_to_config(hash: RHash) -> Result<Config, Error> {
                     Error::new(arg_error(), format!("Invalid target: {}: {}", target, e))
                 })?;
             }
+        } else if *GENERATE_ADDRESS_MAP == id {
+            config.generate_address_map(entry.try_into()?);
         } else {
             return Err(Error::new(
                 arg_error(),

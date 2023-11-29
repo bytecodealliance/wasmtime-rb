@@ -1,14 +1,13 @@
-use crate::{define_data_class, define_rb_intern, error, Memory};
-#[cfg(ruby_gte_3_0)]
-use magnus::{class::object, require, RModule};
+use crate::{define_rb_intern, error, root, Memory};
 use magnus::{
-    gc, memoize, method,
+    class, gc, method,
     rb_sys::{AsRawId, AsRawValue, FromRawValue},
-    typed_data::DataTypeBuilder,
     typed_data::Obj,
     value::IntoId,
-    DataTypeFunctions, Error, Module as _, RClass, TypedData, Value,
+    DataTypeFunctions, Error, Module as _, TryConvert, TypedData, Value,
 };
+#[cfg(ruby_gte_3_0)]
+use magnus::{class::object, memoize, require, RClass, RModule};
 use rb_sys::{rb_ivar_set, rb_obj_freeze, rb_str_new_static};
 #[cfg(ruby_gte_3_0)]
 use rb_sys::{
@@ -25,28 +24,19 @@ use std::ops::Range;
 /// The returned {UnsafeSlice} lazily reads the underlying memory, meaning that
 /// the actual pointer to the string buffer is not materialzed until
 /// {UnsafeSlice#to_str} is called.
-#[derive(Debug)]
+#[derive(Debug, TypedData)]
+#[magnus(
+    class = "Wasmtime::Memory::UnsafeSlice",
+    free_immediately,
+    mark,
+    unsafe_generics
+)]
 pub struct UnsafeSlice<'a> {
     memory: MemoryGuard<'a>,
     range: Range<usize>,
 }
 
 define_rb_intern!(IVAR_NAME => "__slice__",);
-
-unsafe impl TypedData for UnsafeSlice<'_> {
-    fn class() -> magnus::RClass {
-        *memoize!(RClass: define_data_class!(Memory::class(), "UnsafeSlice"))
-    }
-
-    fn data_type() -> &'static magnus::DataType {
-        memoize!(magnus::DataType: {
-            let mut builder = DataTypeBuilder::<UnsafeSlice>::new("Wasmtime::Memory::UnsafeSlice");
-            builder.free_immediately();
-            builder.mark();
-            builder.build()
-        })
-    }
-}
 
 impl DataTypeFunctions for UnsafeSlice<'_> {
     fn mark(&self) {
@@ -134,9 +124,13 @@ impl<'a> UnsafeSlice<'a> {
         _flags: i32,
     ) -> bool {
         let obj = unsafe { Value::from_raw(value) };
-        let Ok(memory) = obj.try_convert::<Obj<UnsafeSlice>>() else { return false };
+        let Ok(memory) = <Obj<UnsafeSlice>>::try_convert(obj) else {
+            return false;
+        };
         let memory = memory.get();
-        let Ok(raw_slice) = memory.get_raw_slice() else { return false; };
+        let Ok(raw_slice) = memory.get_raw_slice() else {
+            return false;
+        };
         let (ptr, size) = (raw_slice.as_ptr(), raw_slice.len());
 
         unsafe { rb_memory_view_init_as_byte_array(view, value, ptr as _, size as _, true) }
@@ -145,7 +139,9 @@ impl<'a> UnsafeSlice<'a> {
     #[cfg(ruby_gte_3_0)]
     extern "C" fn is_memory_view_available(value: VALUE) -> bool {
         let obj = unsafe { Value::from_raw(value) };
-        let Ok(memory) = obj.try_convert::<Obj<UnsafeSlice>>() else { return false };
+        let Ok(memory) = <Obj<UnsafeSlice>>::try_convert(obj) else {
+            return false;
+        };
         let memory = memory.get();
 
         memory.get_raw_slice().is_ok()
@@ -185,13 +181,15 @@ impl<'a> MemoryGuard<'a> {
 }
 
 pub fn init() -> Result<(), Error> {
-    UnsafeSlice::class().define_method("to_str", method!(UnsafeSlice::to_str, 0))?;
+    let parent = root().define_class("Memory", class::object())?;
+
+    let class = parent.define_class("UnsafeSlice", class::object())?;
+    class.define_method("to_str", method!(UnsafeSlice::to_str, 0))?;
 
     #[cfg(ruby_gte_3_0)]
     if require("fiddle").is_ok() && fiddle_memory_view_class().is_some() {
         UnsafeSlice::register_memory_view()?;
-        UnsafeSlice::class()
-            .define_method("to_memory_view", method!(UnsafeSlice::to_memory_view, 0))?;
+        class.define_method("to_memory_view", method!(UnsafeSlice::to_memory_view, 0))?;
     }
 
     Ok(())

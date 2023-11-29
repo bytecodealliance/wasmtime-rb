@@ -1,18 +1,19 @@
 mod unsafe_slice;
 
 use self::unsafe_slice::UnsafeSlice;
-
 use super::{
     root,
     store::{Store, StoreContextValue},
 };
-use crate::{define_data_class, define_rb_intern, error};
+use crate::{define_rb_intern, error};
 use magnus::{
-    function, memoize, method, r_string::RString, scan_args, typed_data::DataTypeBuilder,
-    typed_data::Obj, DataTypeFunctions, Error, Module as _, Object, RClass, TypedData, Value,
+    class, function, method, r_string::RString, scan_args, typed_data::Obj, DataTypeFunctions,
+    Error, Module as _, Object, TypedData, Value,
 };
 
+use rb_sys::tracking_allocator::ManuallyTracked;
 use wasmtime::{Extern, Memory as MemoryImpl};
+use wasmtime_environ::WASM_PAGE_SIZE;
 
 define_rb_intern!(
     MIN_SIZE => "min_size",
@@ -23,25 +24,11 @@ define_rb_intern!(
 /// @rename Wasmtime::Memory
 /// Represents a WebAssembly memory.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Memory.html Wasmtime's Rust doc
-#[derive(Debug)]
+#[derive(Debug, TypedData)]
+#[magnus(class = "Wasmtime::Memory", free_immediately, mark, unsafe_generics)]
 pub struct Memory<'a> {
     store: StoreContextValue<'a>,
-    inner: MemoryImpl,
-}
-
-unsafe impl TypedData for Memory<'_> {
-    fn class() -> magnus::RClass {
-        *memoize!(RClass: define_data_class!(root(), "Memory"))
-    }
-
-    fn data_type() -> &'static magnus::DataType {
-        memoize!(magnus::DataType: {
-            let mut builder = DataTypeBuilder::<Memory<'_>>::new("Wasmtime::Memory");
-            builder.free_immediately();
-            builder.mark();
-            builder.build()
-        })
-    }
+    inner: ManuallyTracked<MemoryImpl>,
 }
 
 impl DataTypeFunctions for Memory<'_> {
@@ -70,28 +57,41 @@ impl<'a> Memory<'a> {
         let store = s.get();
 
         let memtype = wasmtime::MemoryType::new(min, max);
+
         let inner = MemoryImpl::new(store.context_mut(), memtype).map_err(|e| error!("{}", e))?;
+        let memsize = inner.data_size(store.context_mut());
 
         Ok(Self {
             store: s.into(),
-            inner,
+            inner: ManuallyTracked::wrap(inner, memsize),
         })
     }
 
-    pub fn from_inner(store: StoreContextValue<'a>, inner: MemoryImpl) -> Self {
-        Self { store, inner }
+    pub fn from_inner(store: StoreContextValue<'a>, inner: MemoryImpl) -> Result<Self, Error> {
+        let memsize = inner.data_size(store.context()?);
+
+        Ok(Self {
+            store,
+            inner: ManuallyTracked::wrap(inner, memsize),
+        })
     }
 
     /// @yard
     /// @return [Integer] The minimum number of memory pages.
     pub fn min_size(&self) -> Result<u64, Error> {
-        Ok(self.inner.ty(self.store.context()?).minimum())
+        Ok(self
+            .get_wasmtime_memory()
+            .ty(self.store.context()?)
+            .minimum())
     }
 
     /// @yard
     /// @return [Integer, nil] The maximum number of memory pages.
     pub fn max_size(&self) -> Result<Option<u64>, Error> {
-        Ok(self.inner.ty(self.store.context()?).maximum())
+        Ok(self
+            .get_wasmtime_memory()
+            .ty(self.store.context()?)
+            .maximum())
     }
 
     /// @yard
@@ -102,7 +102,7 @@ impl<'a> Memory<'a> {
     /// @param size [Integer]
     /// @return [String] Binary +String+ of the memory.
     pub fn read(&self, offset: usize, size: usize) -> Result<RString, Error> {
-        self.inner
+        self.get_wasmtime_memory()
             .data(self.store.context()?)
             .get(offset..)
             .and_then(|s| s.get(..size))
@@ -118,7 +118,7 @@ impl<'a> Memory<'a> {
     /// @param size [Integer]
     /// @return [String] UTF-8 +String+ of the memory.
     pub fn read_utf8(&self, offset: usize, size: usize) -> Result<RString, Error> {
-        self.inner
+        self.get_wasmtime_memory()
             .data(self.store.context()?)
             .get(offset..)
             .and_then(|s| s.get(..size))
@@ -172,7 +172,7 @@ impl<'a> Memory<'a> {
     pub fn write(&self, offset: usize, value: RString) -> Result<(), Error> {
         let slice = unsafe { value.as_slice() };
 
-        self.inner
+        self.get_wasmtime_memory()
             .write(self.store.context_mut()?, offset, slice)
             .map_err(|e| error!("{}", e))
     }
@@ -184,35 +184,47 @@ impl<'a> Memory<'a> {
     /// @def grow(delta)
     /// @param delta [Integer] The number of pages to grow by.
     /// @return [Integer] The number of pages the memory had before being resized.
-    pub fn grow(&self, delta: u64) -> Result<u64, Error> {
+    pub fn grow(&self, delta: usize) -> Result<u64, Error> {
+        let ret = self
+            .get_wasmtime_memory()
+            .grow(self.store.context_mut()?, delta as _)
+            .map_err(|e| error!("{}", e));
+
         self.inner
-            .grow(self.store.context_mut()?, delta)
-            .map_err(|e| error!("{}", e))
+            .increase_memory_usage(delta * (WASM_PAGE_SIZE as usize));
+
+        ret
     }
 
     /// @yard
     /// @return [Integer] The number of pages of the memory.
     pub fn size(&self) -> Result<u64, Error> {
-        Ok(self.inner.size(self.store.context()?))
+        Ok(self.get_wasmtime_memory().size(self.store.context()?))
     }
 
-    pub fn get(&self) -> MemoryImpl {
-        self.inner
+    /// @yard
+    /// @return [Integer] The number of bytes of the memory.
+    pub fn data_size(&self) -> Result<usize, Error> {
+        Ok(self.get_wasmtime_memory().data_size(self.store.context()?))
+    }
+
+    pub fn get_wasmtime_memory(&self) -> &MemoryImpl {
+        self.inner.get()
     }
 
     fn data(&self) -> Result<&[u8], Error> {
-        Ok(self.inner.data(self.store.context()?))
+        Ok(self.get_wasmtime_memory().data(self.store.context()?))
     }
 }
 
 impl From<&Memory<'_>> for Extern {
     fn from(memory: &Memory) -> Self {
-        Self::Memory(memory.get())
+        Self::Memory(*memory.get_wasmtime_memory())
     }
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = Memory::class();
+    let class = root().define_class("Memory", class::object())?;
     class.define_singleton_method("new", function!(Memory::new, -1))?;
     class.define_method("min_size", method!(Memory::min_size, 0))?;
     class.define_method("max_size", method!(Memory::max_size, 0))?;
@@ -221,6 +233,7 @@ pub fn init() -> Result<(), Error> {
     class.define_method("write", method!(Memory::write, 2))?;
     class.define_method("grow", method!(Memory::grow, 1))?;
     class.define_method("size", method!(Memory::size, 0))?;
+    class.define_method("data_size", method!(Memory::data_size, 0))?;
     class.define_method("read_unsafe_slice", method!(Memory::read_unsafe_slice, 2))?;
 
     unsafe_slice::init()?;

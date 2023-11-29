@@ -3,10 +3,10 @@ use super::{
     root,
     store::{Store, StoreContextValue},
 };
-use crate::{define_data_class, define_rb_intern, error};
+use crate::{define_rb_intern, error};
 use magnus::{
-    function, memoize, method, scan_args, typed_data::DataTypeBuilder, typed_data::Obj,
-    DataTypeFunctions, Error, Module as _, Object, RClass, Symbol, TypedData, Value, QNIL,
+    class, function, method, prelude::*, scan_args, typed_data::Obj, DataTypeFunctions, Error,
+    IntoValue, Object, Symbol, TypedData, Value,
 };
 use wasmtime::{Extern, Table as TableImpl, TableType};
 
@@ -19,25 +19,11 @@ define_rb_intern!(
 /// @rename Wasmtime::Table
 /// Represents a WebAssembly table.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Table.html Wasmtime's Rust doc
-#[derive(Debug)]
+#[derive(Debug, TypedData)]
+#[magnus(class = "Wasmtime::Table", free_immediately, mark, unsafe_generics)]
 pub struct Table<'a> {
     store: StoreContextValue<'a>,
     inner: TableImpl,
-}
-
-unsafe impl TypedData for Table<'_> {
-    fn class() -> magnus::RClass {
-        *memoize!(RClass: define_data_class!(root(), "Table"))
-    }
-
-    fn data_type() -> &'static magnus::DataType {
-        memoize!(magnus::DataType: {
-            let mut builder = DataTypeBuilder::<Table<'_>>::new("Wasmtime::Table");
-            builder.free_immediately();
-            builder.mark();
-            builder.build()
-        })
-    }
 }
 
 impl DataTypeFunctions for Table<'_> {
@@ -66,7 +52,7 @@ impl<'a> Table<'a> {
         let (max,) = kw.optional;
         let store = s.get();
         let wasm_type = value_type.to_val_type()?;
-        let wasm_default = default.to_wasm_val(&wasm_type)?;
+        let wasm_default = default.to_wasm_val(wasm_type.clone())?;
 
         let inner = TableImpl::new(
             store.context_mut(),
@@ -117,7 +103,7 @@ impl<'a> Table<'a> {
     pub fn get(&self, index: u32) -> Result<Value, Error> {
         match self.inner.get(self.store.context_mut()?, index) {
             Some(wasm_val) => wasm_val.to_ruby_value(&self.store),
-            None => Ok(*QNIL),
+            None => Ok(().into_value()),
         }
     }
 
@@ -133,7 +119,7 @@ impl<'a> Table<'a> {
             .set(
                 self.store.context_mut()?,
                 index,
-                value.to_wasm_val(&self.value_type()?)?,
+                value.to_wasm_val(self.value_type()?)?,
             )
             .map_err(|e| error!("{}", e))
             .and_then(|result| {
@@ -155,7 +141,7 @@ impl<'a> Table<'a> {
             .grow(
                 self.store.context_mut()?,
                 delta,
-                initial.to_wasm_val(&self.value_type()?)?,
+                initial.to_wasm_val(self.value_type()?)?,
             )
             .map_err(|e| error!("{}", e))
             .and_then(|result| {
@@ -197,7 +183,7 @@ impl From<&Table<'_>> for Extern {
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Table", Default::default())?;
+    let class = root().define_class("Table", class::object())?;
     class.define_singleton_method("new", function!(Table::new, -1))?;
 
     class.define_method("type", method!(Table::type_, 0))?;

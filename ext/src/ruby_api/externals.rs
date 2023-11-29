@@ -2,37 +2,29 @@ use super::{
     convert::WrapWasmtimeType, func::Func, global::Global, memory::Memory, root,
     store::StoreContextValue, table::Table,
 };
-use crate::{conversion_err, define_data_class, not_implemented};
+use crate::{conversion_err, not_implemented};
 use magnus::{
-    gc, memoize, method, rb_sys::AsRawValue, typed_data::DataTypeBuilder, typed_data::Obj,
-    DataTypeFunctions, Error, Module, RClass, TypedData, Value,
+    class, gc, method, rb_sys::AsRawValue, typed_data::Obj, DataTypeFunctions, Error, Module,
+    RClass, TypedData, Value,
 };
 
 /// @yard
 /// @rename Wasmtime::Extern
 /// An external item to a WebAssembly module, or a list of what can possibly be exported from a Wasm module.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/enum.Extern.html Wasmtime's Rust doc
+#[derive(TypedData)]
+#[magnus(
+    class = "Wasmtime::Extern",
+    size,
+    mark,
+    free_immediately,
+    unsafe_generics
+)]
 pub enum Extern<'a> {
     Func(Obj<Func<'a>>),
     Global(Obj<Global<'a>>),
     Memory(Obj<Memory<'a>>),
     Table(Obj<Table<'a>>),
-}
-
-unsafe impl TypedData for Extern<'_> {
-    fn class() -> magnus::RClass {
-        *memoize!(RClass: define_data_class!(root(), "Extern"))
-    }
-
-    fn data_type() -> &'static magnus::DataType {
-        memoize!(magnus::DataType: {
-            let mut builder = DataTypeBuilder::<Extern<'_>>::new("Wasmtime::Extern");
-            builder.size();
-            builder.mark();
-            builder.free_immediately();
-            builder.build()
-        })
-    }
 }
 
 impl DataTypeFunctions for Extern<'_> {
@@ -54,7 +46,7 @@ impl Extern<'_> {
     /// @return [Func] The exported function.
     pub fn to_func(rb_self: Obj<Self>) -> Result<Value, Error> {
         match rb_self.get() {
-            Extern::Func(f) => Ok(**f),
+            Extern::Func(f) => Ok(f.as_value()),
             _ => conversion_err!(Self::inner_class(rb_self), Func::class()),
         }
     }
@@ -64,7 +56,7 @@ impl Extern<'_> {
     /// @return [Global] The exported global.
     pub fn to_global(rb_self: Obj<Self>) -> Result<Value, Error> {
         match rb_self.get() {
-            Extern::Global(g) => Ok(**g),
+            Extern::Global(g) => Ok(g.as_value()),
             _ => conversion_err!(Self::inner_class(rb_self), Global::class()),
         }
     }
@@ -75,7 +67,7 @@ impl Extern<'_> {
     /// @return [Memory] The exported memory.
     pub fn to_memory(rb_self: Obj<Self>) -> Result<Value, Error> {
         match rb_self.get() {
-            Extern::Memory(m) => Ok(**m),
+            Extern::Memory(m) => Ok(m.as_value()),
             _ => conversion_err!(Self::inner_class(rb_self), Memory::class()),
         }
     }
@@ -85,7 +77,7 @@ impl Extern<'_> {
     /// @return [Table] The exported table.
     pub fn to_table(rb_self: Obj<Self>) -> Result<Value, Error> {
         match rb_self.get() {
-            Extern::Table(t) => Ok(**t),
+            Extern::Table(t) => Ok(t.as_value()),
             _ => conversion_err!(Self::inner_class(rb_self), Table::class()),
         }
     }
@@ -127,7 +119,7 @@ impl<'a> WrapWasmtimeType<'a, Extern<'a>> for wasmtime::Extern {
                 store, *global,
             )))),
             wasmtime::Extern::Memory(mem) => {
-                Ok(Extern::Memory(Obj::wrap(Memory::from_inner(store, *mem))))
+                Ok(Extern::Memory(Obj::wrap(Memory::from_inner(store, *mem)?)))
             }
             wasmtime::Extern::Table(table) => {
                 Ok(Extern::Table(Obj::wrap(Table::from_inner(store, *table))))
@@ -138,7 +130,7 @@ impl<'a> WrapWasmtimeType<'a, Extern<'a>> for wasmtime::Extern {
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Extern", Default::default())?;
+    let class = root().define_class("Extern", class::object())?;
 
     class.define_method("to_func", method!(Extern::to_func, 0))?;
     class.define_method("to_global", method!(Extern::to_global, 0))?;

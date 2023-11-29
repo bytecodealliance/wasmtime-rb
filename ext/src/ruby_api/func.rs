@@ -5,11 +5,10 @@ use super::{
     root,
     store::{Store, StoreContextValue, StoreData},
 };
-use crate::{define_data_class, Caller};
+use crate::Caller;
 use magnus::{
-    block::Proc, function, memoize, method, scan_args::scan_args, typed_data::DataTypeBuilder,
-    typed_data::Obj, DataTypeFunctions, Error, Module as _, Object, RArray, RClass, TypedData,
-    Value, QNIL,
+    block::Proc, class, function, method, prelude::*, scan_args::scan_args, typed_data::Obj,
+    DataTypeFunctions, Error, IntoValue, Object, RArray, TypedData, Value,
 };
 use wasmtime::{Caller as CallerImpl, Func as FuncImpl, Val};
 
@@ -17,26 +16,17 @@ use wasmtime::{Caller as CallerImpl, Func as FuncImpl, Val};
 /// @rename Wasmtime::Func
 /// Represents a WebAssembly Function
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Func.html Wasmtime's Rust doc
-#[derive(Debug)]
+#[derive(Debug, TypedData)]
+#[magnus(
+    class = "Wasmtime::Func",
+    size,
+    mark,
+    free_immediately,
+    unsafe_generics
+)]
 pub struct Func<'a> {
     store: StoreContextValue<'a>,
     inner: FuncImpl,
-}
-
-unsafe impl<'a> TypedData for Func<'a> {
-    fn class() -> magnus::RClass {
-        *memoize!(RClass: define_data_class!(root(), "Func"))
-    }
-
-    fn data_type() -> &'static magnus::DataType {
-        memoize!(magnus::DataType: {
-            let mut builder = DataTypeBuilder::<Func<'_>>::new("Wasmtime::Func");
-            builder.size();
-            builder.mark();
-            builder.free_immediately();
-            builder.build()
-        })
-    }
 }
 
 impl DataTypeFunctions for Func<'_> {
@@ -91,14 +81,13 @@ impl<'a> Func<'a> {
     ///     [arg1.succ, arg2.succ]
     ///   end
     pub fn new(args: &[Value]) -> Result<Self, Error> {
-        let args = scan_args::<(Value, RArray, RArray), (), (), (), (), Proc>(args)?;
-        let (s, params, results) = args.required;
+        let args = scan_args::<(Obj<Store>, RArray, RArray), (), (), (), (), Proc>(args)?;
+        let (wrapped_store, params, results) = args.required;
         let callable = args.block;
-
-        let wrapped_store: Obj<Store> = s.try_convert()?;
         let store = wrapped_store.get();
 
-        store.retain(callable.into());
+        store.retain(callable.as_value());
+
         let context = store.context_mut();
         let ty = wasmtime::FuncType::new(params.to_val_type_vec()?, results.to_val_type_vec()?);
         let func_closure = make_func_closure(&ty, callable);
@@ -183,14 +172,14 @@ impl<'a> Func<'a> {
             .map_err(|e| store.handle_wasm_error(e))?;
 
         match results.as_slice() {
-            [] => Ok(QNIL.into()),
+            [] => Ok(().into_value()),
             [result] => result.to_ruby_value(store),
             _ => {
                 let array = RArray::with_capacity(results.len());
                 for result in results {
                     array.push(result.to_ruby_value(store)?)?;
                 }
-                Ok(array.into())
+                Ok(array.as_value())
             }
         }
     }
@@ -202,6 +191,21 @@ impl From<&Func<'_>> for wasmtime::Extern {
     }
 }
 
+macro_rules! caller_error {
+    ($store:expr, $caller:expr, $error:expr) => {{
+        $store.set_last_error($error);
+        $caller.expire();
+        Err(anyhow::anyhow!(""))
+    }};
+}
+
+macro_rules! result_error {
+    ($store:expr, $caller:expr, $msg:expr) => {{
+        let error = Error::new(result_error(), $msg);
+        caller_error!($store, $caller, error)
+    }};
+}
+
 pub fn make_func_closure(
     ty: &wasmtime::FuncType,
     callable: Proc,
@@ -210,13 +214,17 @@ pub fn make_func_closure(
     let ty = ty.to_owned();
     let callable = ShareableProc(callable);
 
+    // The error handling here is a bit tricky. We want to return a Ruby exception,
+    // but doing so directly can easily cause an early Ruby GC and segfault. So to
+    // be safe, we store all Ruby errors on the store context so it can be marked.
+    // We then return a generic error here. The caller will check for a stored error
+    // and raise it if it exists.
     move |caller_impl: CallerImpl<'_, StoreData>, params: &[Val], results: &mut [Val]| {
         let wrapped_caller = Obj::wrap(Caller::new(caller_impl));
-        let caller = wrapped_caller.get();
         let store_context = StoreContextValue::from(wrapped_caller);
 
         let rparams = RArray::with_capacity(params.len() + 1);
-        rparams.push(Value::from(wrapped_caller)).unwrap();
+        rparams.push(wrapped_caller.as_value()).unwrap();
 
         for (i, param) in params.iter().enumerate() {
             let rparam = param
@@ -227,54 +235,64 @@ pub fn make_func_closure(
 
         let callable = callable.0;
 
-        let result = callable
-            .call(unsafe { rparams.as_slice() })
-            .and_then(|proc_result| {
-                match results.len() {
-                    0 => Ok(()), // Ignore return value
-                    n => {
-                        // For len=1, accept both `val` and `[val]`
-                        let proc_result = RArray::to_ary(proc_result)?;
-                        if proc_result.len() != n {
-                            return Err(Error::new(
-                                result_error(),
-                                format!(
-                                    "wrong number of results (given {}, expected {}) in {}",
-                                    proc_result.len(),
-                                    n,
-                                    callable,
-                                ),
-                            ));
+        match (callable.call(unsafe { rparams.as_slice() }), results.len()) {
+            (Ok(_proc_result), 0) => {
+                wrapped_caller.get().expire();
+                Ok(())
+            }
+            (Ok(proc_result), n) => {
+                // For len=1, accept both `val` and `[val]`
+                let Ok(proc_result) = RArray::to_ary(proc_result) else {
+                    return result_error!(
+                        store_context,
+                        wrapped_caller.get(),
+                        format!("could not convert {} to results array", callable)
+                    );
+                };
+
+                if proc_result.len() != results.len() {
+                    return result_error!(
+                        store_context,
+                        wrapped_caller.get(),
+                        format!(
+                            "wrong number of results (given {}, expected {}) in {}",
+                            proc_result.len(),
+                            n,
+                            callable
+                        )
+                    );
+                }
+
+                for (i, ((rb_val, wasm_val), ty)) in unsafe { proc_result.as_slice() }
+                    .iter()
+                    .zip(results.iter_mut())
+                    .zip(ty.results())
+                    .enumerate()
+                {
+                    match rb_val.to_wasm_val(ty) {
+                        Ok(val) => *wasm_val = val,
+                        Err(e) => {
+                            return result_error!(
+                                store_context,
+                                wrapped_caller.get(),
+                                format!("invalid result at index {i}: {e} in {callable}")
+                            );
                         }
-                        for (i, ((rb_val, wasm_val), ty)) in unsafe { proc_result.as_slice() }
-                            .iter()
-                            .zip(results.iter_mut())
-                            .zip(ty.results())
-                            .enumerate()
-                        {
-                            *wasm_val = rb_val.to_wasm_val(&ty).map_err(|e| {
-                                Error::new(
-                                    result_error(),
-                                    format!("{e} (result index {i} in {callable})"),
-                                )
-                            })?;
-                        }
-                        Ok(())
                     }
                 }
-            })
-            .map_err(|e| anyhow::anyhow!(e));
 
-        // Drop the wasmtime::Caller so it does not outlive the Func call, if e.g. the user
-        // assigned the Ruby Wasmtime::Caller instance to a global.
-        caller.expire();
-
-        result
+                wrapped_caller.get().expire();
+                Ok(())
+            }
+            (Err(e), _) => {
+                caller_error!(store_context, wrapped_caller.get(), e)
+            }
+        }
     }
 }
 
 pub fn init() -> Result<(), Error> {
-    let func = root().define_class("Func", Default::default())?;
+    let func = root().define_class("Func", class::object())?;
     func.define_singleton_method("new", function!(Func::new, -1))?;
     func.define_method("call", method!(Func::call, -1))?;
     func.define_method("params", method!(Func::params, 0))?;

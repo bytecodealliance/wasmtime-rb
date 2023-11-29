@@ -1,12 +1,17 @@
+mod tracked_memory_creator;
+pub(crate) use self::tracked_memory_creator::TrackedMemoryCreator;
 use crate::{define_rb_intern, helpers::SymbolEnum};
 use lazy_static::lazy_static;
 use magnus::{
     exception::{arg_error, type_error},
     r_hash::ForEach,
-    Error, RHash, Symbol, Value,
+    Error, RHash, Symbol, TryConvert, Value,
 };
-use std::convert::{TryFrom, TryInto};
-use wasmtime::{Config, OptLevel, ProfilingStrategy, WasmBacktraceDetails};
+use std::{
+    convert::{TryFrom, TryInto},
+    sync::Arc,
+};
+use wasmtime::{Config, OptLevel, ProfilingStrategy, Strategy, WasmBacktraceDetails};
 
 define_rb_intern!(
     DEBUG_INFO => "debug_info",
@@ -20,6 +25,7 @@ define_rb_intern!(
     WASM_MEMORY64 => "wasm_memory64",
     PROFILER => "profiler",
     CRANELIFT_OPT_LEVEL => "cranelift_opt_level",
+    STRATEGY => "strategy",
     PARALLEL_COMPILATION => "parallel_compilation",
     NONE => "none",
     JITDUMP => "jitdump",
@@ -28,6 +34,9 @@ define_rb_intern!(
     SPEED_AND_SIZE => "speed_and_size",
     TARGET => "target",
     GENERATE_ADDRESS_MAP => "generate_address_map",
+    AUTO => "auto",
+    CRANELIFT => "cranelift",
+    WINCH => "winch",
 );
 
 lazy_static! {
@@ -49,10 +58,28 @@ lazy_static! {
 
         SymbolEnum::new(":profiler", mapping)
     };
+    static ref STRATEGY_MAPPING: SymbolEnum<'static, Strategy> = {
+        let mapping = vec![
+            (*AUTO, Strategy::Auto),
+            (*CRANELIFT, Strategy::Cranelift),
+            (*WINCH, Strategy::Winch),
+        ];
+
+        SymbolEnum::new(":strategy", mapping)
+    };
+}
+
+/// Default for [`wasmtime::Config`], which includes a [`TrackedMemoryCreator`]
+/// to report memory usage to Ruby.
+pub fn default_config() -> Config {
+    let mut config = Config::new();
+    let host_memory = TrackedMemoryCreator::new();
+    config.with_host_memory(Arc::new(host_memory));
+    config
 }
 
 pub fn hash_to_config(hash: RHash) -> Result<Config, Error> {
-    let mut config = Config::new();
+    let mut config = default_config();
     hash.foreach(|name: Symbol, value: Value| {
         let id = magnus::value::Id::from(name);
         let entry = ConfigEntry(name, value);
@@ -81,11 +108,16 @@ pub fn hash_to_config(hash: RHash) -> Result<Config, Error> {
             config.profiler(entry.try_into()?);
         } else if *CRANELIFT_OPT_LEVEL == id {
             config.cranelift_opt_level(entry.try_into()?);
+        } else if *STRATEGY == id && cfg!(feature = "winch") {
+            config.strategy(entry.try_into()?);
         } else if *TARGET == id {
-            let target: String = entry.try_into()?;
-            config.target(&target).map_err(|e| {
-                Error::new(arg_error(), format!("Invalid target: {}: {}", target, e))
-            })?;
+            let target: Option<String> = entry.try_into()?;
+
+            if let Some(target) = target {
+                config.target(&target).map_err(|e| {
+                    Error::new(arg_error(), format!("Invalid target: {}: {}", target, e))
+                })?;
+            }
         } else if *GENERATE_ADDRESS_MAP == id {
             config.generate_address_map(entry.try_into()?);
         } else {
@@ -115,29 +147,36 @@ impl ConfigEntry {
 impl TryFrom<ConfigEntry> for bool {
     type Error = magnus::Error;
     fn try_from(value: ConfigEntry) -> Result<Self, Self::Error> {
-        value.1.try_convert().map_err(|_| value.invalid_type())
+        Self::try_convert(value.1).map_err(|_| value.invalid_type())
     }
 }
 
 impl TryFrom<ConfigEntry> for usize {
     type Error = magnus::Error;
     fn try_from(value: ConfigEntry) -> Result<Self, Self::Error> {
-        value.1.try_convert().map_err(|_| value.invalid_type())
+        Self::try_convert(value.1).map_err(|_| value.invalid_type())
     }
 }
 
 impl TryFrom<ConfigEntry> for String {
     type Error = magnus::Error;
     fn try_from(value: ConfigEntry) -> Result<Self, Self::Error> {
-        value.1.try_convert().map_err(|_| value.invalid_type())
+        Self::try_convert(value.1).map_err(|_| value.invalid_type())
+    }
+}
+
+impl TryFrom<ConfigEntry> for Option<String> {
+    type Error = magnus::Error;
+    fn try_from(value: ConfigEntry) -> Result<Self, Self::Error> {
+        let val: Option<String> = value.1.try_convert().map_err(|_| value.invalid_type())?;
+        Ok(val)
     }
 }
 
 impl TryFrom<ConfigEntry> for WasmBacktraceDetails {
     type Error = magnus::Error;
     fn try_from(value: ConfigEntry) -> Result<WasmBacktraceDetails, Error> {
-        let val: bool = value.1.try_convert().map_err(|_| value.invalid_type())?;
-        Ok(match val {
+        Ok(match value.1.to_bool() {
             true => WasmBacktraceDetails::Enable,
             false => WasmBacktraceDetails::Disable,
         })
@@ -155,5 +194,12 @@ impl TryFrom<ConfigEntry> for wasmtime::OptLevel {
     type Error = magnus::Error;
     fn try_from(value: ConfigEntry) -> Result<Self, Error> {
         OPT_LEVEL_MAPPING.get(value.1)
+    }
+}
+
+impl TryFrom<ConfigEntry> for wasmtime::Strategy {
+    type Error = magnus::Error;
+    fn try_from(value: ConfigEntry) -> Result<Self, Error> {
+        STRATEGY_MAPPING.get(value.1)
     }
 }

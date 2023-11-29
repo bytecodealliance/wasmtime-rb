@@ -60,7 +60,7 @@ module Wasmtime
 
       it "rejects mismatching argument type" do
         func = build_func([:i32], []) {}
-        expect { func.call("foo") }.to raise_error(TypeError, /\(param index 0\)/)
+        expect { func.call("foo") }.to raise_error(TypeError, /\(param at index 0\)/)
       end
 
       it "rejects mismatching results size" do
@@ -72,7 +72,7 @@ module Wasmtime
         func = build_func([], [:i32, :i32]) { [1, nil] }
         expect { func.call }.to raise_error(Wasmtime::ResultError) do |error|
           expect(error.message).to match(/no implicit conversion of nil into Integer/)
-          expect(error.message).to match(/result index 1/)
+          expect(error.message).to match(/result at index 1/)
           expect(error.message).to match(/func_spec.rb:\d+/)
         end
       end
@@ -99,11 +99,26 @@ module Wasmtime
         func.call(1)
         expect(called).to be true
       end
+
+      it "disallows cross-store funcref arg" do
+        store2 = Store.new(engine, {})
+        func = Func.new(store, [:funcref], []) {}
+        store2_func = Func.new(store2, [], []) {}
+
+        expect { func.call(store2_func) }.to raise_error(Wasmtime::Error, /cross-`Store`/)
+      end
+
+      it "disallows cross-store funcref result" do
+        store2 = Store.new(engine, {})
+        store2_func = Func.new(store2, [], []) {}
+        func = Func.new(store, [], [:funcref]) { |_, funcref| store2_func }
+
+        expect { func.call }.to raise_error(Wasmtime::Error, /cross-`Store`/)
+      end
     end
 
     describe "Caller" do
       it "exposes memory and func for the duration of the call only" do
-        engine = Engine.new
         mod = Module.new(engine, <<~WAT)
           (module
             (import "" "" (func))

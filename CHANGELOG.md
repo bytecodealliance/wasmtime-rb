@@ -1,8 +1,178 @@
 # Changelog
 
-## [v6.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v6.0.1) (2023-03-13)
+## [v14.0.4](https://github.com/bytecodealliance/wasmtime-rb/tree/v14.0.4) (2023-11-09)
 
-This release includes 2 security fixes from Wasmtime, see the [Wasmtime 6.0.1 release notes](https://github.com/bytecodealliance/wasmtime/blob/v6.0.1/RELEASES.md#601).
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v14.0.3...v14.0.4)
+
+**Merged pull requests:**
+
+- chore: Update to `wasmtime` 14.0.4 [\#246](https://github.com/bytecodealliance/wasmtime-rb/pull/246) ([saulecabrera](https://github.com/saulecabrera))
+- chore\(deps\): bump wat from 1.0.77 to 1.0.79 [\#245](https://github.com/bytecodealliance/wasmtime-rb/pull/245) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump async-timer from 1.0.0-beta.10 to 1.0.0-beta.11 [\#243](https://github.com/bytecodealliance/wasmtime-rb/pull/243) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+## [v14.0.3](https://github.com/bytecodealliance/wasmtime-rb/tree/v14.0.3) (2023-11-07)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v14.0.2...v14.0.3)
+
+**Merged pull requests:**
+
+- chore: Update to `wasmtimev14.0.3` [\#244](https://github.com/bytecodealliance/wasmtime-rb/pull/244) ([saulecabrera](https://github.com/saulecabrera))
+- Bump rake from 13.0.6 to 13.1.0 [\#241](https://github.com/bytecodealliance/wasmtime-rb/pull/241) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump standard from 1.31.1 to 1.31.2 [\#240](https://github.com/bytecodealliance/wasmtime-rb/pull/240) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+## [v14.0.2](https://github.com/bytecodealliance/wasmtime-rb/tree/v14.0.2) (2023-11-01)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v14.0.1...v14.0.2)
+
+**Merged pull requests:**
+
+- chore: Update to `wasmtime` 14.0.2 [\#239](https://github.com/bytecodealliance/wasmtime-rb/pull/239) ([saulecabrera](https://github.com/saulecabrera))
+- Add support for using Winch as a compiler strategy [\#238](https://github.com/bytecodealliance/wasmtime-rb/pull/238) ([jeffcharles](https://github.com/jeffcharles))
+
+## [v14.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v14.0.1) (2023-10-30)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v14.0.0...v14.0.1)
+
+**Merged pull requests:**
+
+- chore: Update to `wasmtime` 14.0.1 [\#237](https://github.com/bytecodealliance/wasmtime-rb/pull/237) ([saulecabrera](https://github.com/saulecabrera))
+
+## [v14.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v14.0.0) (2023-10-26)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v13.0.0...v14.0.0)
+
+**Merged pull requests:**
+
+- chore: Update to wasmtime 14 [\#236](https://github.com/bytecodealliance/wasmtime-rb/pull/236) ([saulecabrera](https://github.com/saulecabrera))
+- chore: Update wat [\#235](https://github.com/bytecodealliance/wasmtime-rb/pull/235) ([saulecabrera](https://github.com/saulecabrera))
+- Bump actions/checkout from 3 to 4 [\#234](https://github.com/bytecodealliance/wasmtime-rb/pull/234) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump rb-sys from 0.9.81 to 0.9.82 [\#230](https://github.com/bytecodealliance/wasmtime-rb/pull/230) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump rb\_sys from 0.9.81 to 0.9.82 [\#228](https://github.com/bytecodealliance/wasmtime-rb/pull/228) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump standard from 1.31.0 to 1.31.1 [\#227](https://github.com/bytecodealliance/wasmtime-rb/pull/227) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+## [v13.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v13.0.0) (2023-10-02)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v12.0.1...v13.0.0)
+
+**Merged pull requests:**
+
+- chore: Update to wasmtime 13.0.0 [\#225](https://github.com/bytecodealliance/wasmtime-rb/pull/225) ([saulecabrera](https://github.com/saulecabrera))
+
+## [v12.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v12.0.1) (2023-09-07)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v12.0.0...v12.0.1)
+
+**Merged pull requests:**
+
+- chore: Wasmtime v12.0.1 [\#224](https://github.com/bytecodealliance/wasmtime-rb/pull/224) ([saulecabrera](https://github.com/saulecabrera))
+- Bump standard from 1.30.1 to 1.31.0 [\#222](https://github.com/bytecodealliance/wasmtime-rb/pull/222) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+## [v12.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v12.0.0) (2023-08-31)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v11.0.0...v12.0.0)
+
+**Merged pull requests:**
+
+- Update wasmtime@12 [\#221](https://github.com/bytecodealliance/wasmtime-rb/pull/221) ([saulecabrera](https://github.com/saulecabrera))
+
+## [v11.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v11.0.0) (2023-08-30)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v10.0.1...v11.0.0)
+
+**Merged pull requests:**
+
+- Update wasmtime@11.0.0 [\#220](https://github.com/bytecodealliance/wasmtime-rb/pull/220) ([saulecabrera](https://github.com/saulecabrera))
+
+## [v10.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v10.0.1) (2023-08-30)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v10.0.0...v10.0.1)
+
+**Merged pull requests:**
+
+- Update to wasmtime@10.0.1 [\#219](https://github.com/bytecodealliance/wasmtime-rb/pull/219) ([saulecabrera](https://github.com/saulecabrera))
+
+## [v10.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v10.0.0) (2023-08-28)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v9.0.4...v10.0.0)
+
+**Merged pull requests:**
+
+- chore: Update to wasmtime@10 [\#218](https://github.com/bytecodealliance/wasmtime-rb/pull/218) ([saulecabrera](https://github.com/saulecabrera))
+
+## [v9.0.4](https://github.com/bytecodealliance/wasmtime-rb/tree/v9.0.4) (2023-08-22)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v9.0.1...v9.0.4)
+
+**Merged pull requests:**
+
+- Bump rb\_sys from 0.9.78 to 0.9.81 [\#214](https://github.com/bytecodealliance/wasmtime-rb/pull/214) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump rb-sys from 0.9.78 to 0.9.81 [\#213](https://github.com/bytecodealliance/wasmtime-rb/pull/213) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump rake-compiler from 1.2.1 to 1.2.5 [\#212](https://github.com/bytecodealliance/wasmtime-rb/pull/212) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Address Ruby dep issues and bump to `v9.0.4` [\#211](https://github.com/bytecodealliance/wasmtime-rb/pull/211) ([ianks](https://github.com/ianks))
+- Bump wat from 1.0.64 to 1.0.69 [\#209](https://github.com/bytecodealliance/wasmtime-rb/pull/209) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump standard from 1.28.2 to 1.30.1 [\#206](https://github.com/bytecodealliance/wasmtime-rb/pull/206) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump tokio from 1.28.1 to 1.29.1 [\#201](https://github.com/bytecodealliance/wasmtime-rb/pull/201) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Pin nightly and use the same magnus version [\#197](https://github.com/bytecodealliance/wasmtime-rb/pull/197) ([saulecabrera](https://github.com/saulecabrera))
+
+## [v9.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v9.0.1) (2023-05-23)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v8.0.0...v9.0.1)
+
+**Closed issues:**
+
+- Add documentation about fork safety with `Wasmtime::Engine` [\#174](https://github.com/bytecodealliance/wasmtime-rb/issues/174)
+
+**Merged pull requests:**
+
+- Upgrade Wasmtime 9 [\#191](https://github.com/bytecodealliance/wasmtime-rb/pull/191) ([ianks](https://github.com/ianks))
+- Bump rb-sys from 0.9.72 to 0.9.77 [\#190](https://github.com/bytecodealliance/wasmtime-rb/pull/190) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump rb\_sys from 0.9.70 to 0.9.77 [\#189](https://github.com/bytecodealliance/wasmtime-rb/pull/189) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump tokio from 1.27.0 to 1.28.1 [\#188](https://github.com/bytecodealliance/wasmtime-rb/pull/188) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Report memory usage to the Ruby GC [\#187](https://github.com/bytecodealliance/wasmtime-rb/pull/187) ([ianks](https://github.com/ianks))
+- Bump standard from 1.25.3 to 1.28.0 [\#186](https://github.com/bytecodealliance/wasmtime-rb/pull/186) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump yard from 0.9.28 to 0.9.34 [\#185](https://github.com/bytecodealliance/wasmtime-rb/pull/185) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump wat from 1.0.62 to 1.0.63 [\#184](https://github.com/bytecodealliance/wasmtime-rb/pull/184) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump anyhow from 1.0.70 to 1.0.71 [\#179](https://github.com/bytecodealliance/wasmtime-rb/pull/179) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Test that funcrefs aren't used across stores [\#178](https://github.com/bytecodealliance/wasmtime-rb/pull/178) ([jbourassa](https://github.com/jbourassa))
+- Add docs for fork safety [\#177](https://github.com/bytecodealliance/wasmtime-rb/pull/177) ([ianks](https://github.com/ianks))
+
+## [v8.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v8.0.0) (2023-04-25)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v7.0.0...v8.0.0)
+
+**Merged pull requests:**
+
+- Release v8.0.0 [\#176](https://github.com/bytecodealliance/wasmtime-rb/pull/176) ([jbourassa](https://github.com/jbourassa))
+- Remove warning from Ractor spec [\#175](https://github.com/bytecodealliance/wasmtime-rb/pull/175) ([jbourassa](https://github.com/jbourassa))
+- Wasmtime 8.0 [\#173](https://github.com/bytecodealliance/wasmtime-rb/pull/173) ([jbourassa](https://github.com/jbourassa))
+- Forward compatibility with future version of Magnus [\#172](https://github.com/bytecodealliance/wasmtime-rb/pull/172) ([matsadler](https://github.com/matsadler))
+- Add "insanity" specs [\#171](https://github.com/bytecodealliance/wasmtime-rb/pull/171) ([ianks](https://github.com/ianks))
+- Make `Param` be `Copy` and mark exceptions raised from Ruby [\#158](https://github.com/bytecodealliance/wasmtime-rb/pull/158) ([ianks](https://github.com/ianks))
+
+## [v7.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v7.0.0) (2023-04-06)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v6.0.1...v7.0.0)
+
+**Closed issues:**
+
+- Segfault on macOS in Func error handling [\#156](https://github.com/bytecodealliance/wasmtime-rb/issues/156)
+
+**Merged pull requests:**
+
+- Drop support for Ruby 2.7 [\#170](https://github.com/bytecodealliance/wasmtime-rb/pull/170) ([jbourassa](https://github.com/jbourassa))
+- Default to Ruby 3.2 in all workflows [\#168](https://github.com/bytecodealliance/wasmtime-rb/pull/168) ([jbourassa](https://github.com/jbourassa))
+- Update deps in `examples/rust-crate` [\#167](https://github.com/bytecodealliance/wasmtime-rb/pull/167) ([jbourassa](https://github.com/jbourassa))
+- chore\(pkg\): Fix permissions of vendored files [\#166](https://github.com/bytecodealliance/wasmtime-rb/pull/166) ([saulecabrera](https://github.com/saulecabrera))
+- chore\(ext\): Update extension crate authors [\#165](https://github.com/bytecodealliance/wasmtime-rb/pull/165) ([saulecabrera](https://github.com/saulecabrera))
+- Release v7.0.0 [\#164](https://github.com/bytecodealliance/wasmtime-rb/pull/164) ([jbourassa](https://github.com/jbourassa))
+- Wasmtime 7.0 [\#163](https://github.com/bytecodealliance/wasmtime-rb/pull/163) ([jbourassa](https://github.com/jbourassa))
+- Fix potential GC bug when expiring the caller [\#162](https://github.com/bytecodealliance/wasmtime-rb/pull/162) ([jbourassa](https://github.com/jbourassa))
+- Allowing making Module and Engine Ractor shareable [\#161](https://github.com/bytecodealliance/wasmtime-rb/pull/161) ([macournoyer](https://github.com/macournoyer))
+- Mark the Gem as Ractor safe [\#160](https://github.com/bytecodealliance/wasmtime-rb/pull/160) ([macournoyer](https://github.com/macournoyer))
+- Use Magnus macros to implement TypedData trait [\#159](https://github.com/bytecodealliance/wasmtime-rb/pull/159) ([matsadler](https://github.com/matsadler))
+- Add support for configuring the engine's `target` [\#157](https://github.com/bytecodealliance/wasmtime-rb/pull/157) ([ianks](https://github.com/ianks))
+
+## [v6.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v6.0.1) (2023-03-13)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v6.0.0...v6.0.1)
 
@@ -14,12 +184,45 @@ This release includes 2 security fixes from Wasmtime, see the [Wasmtime 6.0.1 re
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v5.0.0...v6.0.0)
 
+**Closed issues:**
+
+- Precompiled gem for Ruby 3.2 [\#103](https://github.com/bytecodealliance/wasmtime-rb/issues/103)
+
 **Merged pull requests:**
 
 - Update Wasmtime to 6.0 [\#152](https://github.com/bytecodealliance/wasmtime-rb/pull/152) ([jbourassa](https://github.com/jbourassa))
+- Fix rb-sys build warning [\#151](https://github.com/bytecodealliance/wasmtime-rb/pull/151) ([jbourassa](https://github.com/jbourassa))
+- Reduce dependabot frequency [\#150](https://github.com/bytecodealliance/wasmtime-rb/pull/150) ([sandstrom](https://github.com/sandstrom))
+- Bump rb-sys from 0.9.64 to 0.9.65 [\#149](https://github.com/bytecodealliance/wasmtime-rb/pull/149) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump wat from 1.0.58 to 1.0.59 [\#148](https://github.com/bytecodealliance/wasmtime-rb/pull/148) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump magnus from 0.5.0 to 0.5.1 [\#147](https://github.com/bytecodealliance/wasmtime-rb/pull/147) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump benchmark-ips from 2.10.0 to 2.11.0 [\#146](https://github.com/bytecodealliance/wasmtime-rb/pull/146) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump rb\_sys from 0.9.64 to 0.9.65 [\#145](https://github.com/bytecodealliance/wasmtime-rb/pull/145) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Fix the build on Ruby \< 3.0 [\#144](https://github.com/bytecodealliance/wasmtime-rb/pull/144) ([jbourassa](https://github.com/jbourassa))
+- Bump rb-sys from 0.9.61 to 0.9.64 [\#142](https://github.com/bytecodealliance/wasmtime-rb/pull/142) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump wat from 1.0.57 to 1.0.58 [\#141](https://github.com/bytecodealliance/wasmtime-rb/pull/141) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump rb\_sys from 0.9.61 to 0.9.64 [\#140](https://github.com/bytecodealliance/wasmtime-rb/pull/140) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump standard from 1.22.1 to 1.24.3 [\#139](https://github.com/bytecodealliance/wasmtime-rb/pull/139) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Upgrade Magnus to 0.5.0 [\#138](https://github.com/bytecodealliance/wasmtime-rb/pull/138) ([matsadler](https://github.com/matsadler))
+- Bump anyhow from 1.0.68 to 1.0.69 [\#137](https://github.com/bytecodealliance/wasmtime-rb/pull/137) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump cap-std from 1.0.4 to 1.0.5 [\#136](https://github.com/bytecodealliance/wasmtime-rb/pull/136) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump wat from 1.0.56 to 1.0.57 [\#134](https://github.com/bytecodealliance/wasmtime-rb/pull/134) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Update `rb-sys` to use new `RbSys::ExtensionTask` [\#132](https://github.com/bytecodealliance/wasmtime-rb/pull/132) ([ianks](https://github.com/ianks))
 - Tweak codegen flags for optimized, profile-able builds [\#131](https://github.com/bytecodealliance/wasmtime-rb/pull/131) ([ianks](https://github.com/ianks))
+- Make ci.yml workflow more trigger happy [\#130](https://github.com/bytecodealliance/wasmtime-rb/pull/130) ([ianks](https://github.com/ianks))
+- Ensure source gem builds properly for `cdylib` [\#129](https://github.com/bytecodealliance/wasmtime-rb/pull/129) ([ianks](https://github.com/ianks))
 - Document profiling configuration from \#125 [\#127](https://github.com/bytecodealliance/wasmtime-rb/pull/127) ([jbourassa](https://github.com/jbourassa))
+- Fix small lint [\#126](https://github.com/bytecodealliance/wasmtime-rb/pull/126) ([ianks](https://github.com/ianks))
 - Add support for profiling configuration [\#125](https://github.com/bytecodealliance/wasmtime-rb/pull/125) ([dylanahsmith](https://github.com/dylanahsmith))
+- Fix linter [\#124](https://github.com/bytecodealliance/wasmtime-rb/pull/124) ([jbourassa](https://github.com/jbourassa))
+- Bump wat from 1.0.55 to 1.0.56 [\#123](https://github.com/bytecodealliance/wasmtime-rb/pull/123) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump tokio from 1.24.2 to 1.25.0 [\#122](https://github.com/bytecodealliance/wasmtime-rb/pull/122) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Patches for easier usage in a crate context [\#121](https://github.com/bytecodealliance/wasmtime-rb/pull/121) ([ianks](https://github.com/ianks))
+- Skip CI & memcheck when pushing v\* tags [\#120](https://github.com/bytecodealliance/wasmtime-rb/pull/120) ([jbourassa](https://github.com/jbourassa))
+- Bump rb\_sys from 0.9.56 to 0.9.58 [\#119](https://github.com/bytecodealliance/wasmtime-rb/pull/119) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump standard from 1.22.0 to 1.22.1 [\#118](https://github.com/bytecodealliance/wasmtime-rb/pull/118) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump rb-sys from 0.9.57 to 0.9.58 [\#117](https://github.com/bytecodealliance/wasmtime-rb/pull/117) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump ruby-lsp from 0.3.5 to 0.3.8 [\#116](https://github.com/bytecodealliance/wasmtime-rb/pull/116) ([dependabot[bot]](https://github.com/apps/dependabot))
 
 ## [v5.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v5.0.0) (2023-01-23)
 
@@ -31,6 +234,14 @@ This release includes 2 security fixes from Wasmtime, see the [Wasmtime 6.0.1 re
 - Add `Memory#slice` for zero-copy data access [\#114](https://github.com/bytecodealliance/wasmtime-rb/pull/114) ([ianks](https://github.com/ianks))
 - Add `Memory#read_utf8` [\#113](https://github.com/bytecodealliance/wasmtime-rb/pull/113) ([ianks](https://github.com/ianks))
 - Implement GC compaction for store data [\#112](https://github.com/bytecodealliance/wasmtime-rb/pull/112) ([ianks](https://github.com/ianks))
+- Bump rb-sys from 0.9.54 to 0.9.56 [\#111](https://github.com/bytecodealliance/wasmtime-rb/pull/111) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump rb\_sys from 0.9.54 to 0.9.56 [\#110](https://github.com/bytecodealliance/wasmtime-rb/pull/110) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump standard from 1.21.1 to 1.22.0 [\#109](https://github.com/bytecodealliance/wasmtime-rb/pull/109) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Version oxidize-rb actions [\#108](https://github.com/bytecodealliance/wasmtime-rb/pull/108) ([ianks](https://github.com/ianks))
+- Bump tokio from 1.23.1 to 1.24.1 [\#107](https://github.com/bytecodealliance/wasmtime-rb/pull/107) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump standard from 1.20.0 to 1.21.1 [\#106](https://github.com/bytecodealliance/wasmtime-rb/pull/106) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump rb-sys to 0.9.54 for Ruby 3.2 [\#105](https://github.com/bytecodealliance/wasmtime-rb/pull/105) ([jbourassa](https://github.com/jbourassa))
+- Bump tokio from 1.23.0 to 1.23.1 [\#104](https://github.com/bytecodealliance/wasmtime-rb/pull/104) ([dependabot[bot]](https://github.com/apps/dependabot))
 
 ## [v0.4.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v0.4.1) (2023-01-02)
 

@@ -1,8 +1,8 @@
 use super::root;
 use crate::error;
 use magnus::{
-    function, gc, method, typed_data::Obj, DataTypeFunctions, Error, Module, Object, RArray, RHash,
-    RString, TypedData,
+    class, function, gc, method, typed_data::Obj, DataTypeFunctions, Error, Module, Object, RArray,
+    RHash, RString, TryConvert, TypedData,
 };
 use std::cell::RefCell;
 use std::{fs::File, path::PathBuf};
@@ -75,7 +75,7 @@ impl WasiCtxBuilderInner {
 ///   Wasmtime's Rust doc
 // #[derive(Debug)]
 #[derive(Default, TypedData)]
-#[magnus(class = "Wasmtime::WasiCtxBuilder", size, mark, free_immediatly)]
+#[magnus(class = "Wasmtime::WasiCtxBuilder", size, mark, free_immediately)]
 pub struct WasiCtxBuilder {
     inner: RefCell<WasiCtxBuilderInner>,
 }
@@ -197,7 +197,7 @@ impl WasiCtxBuilder {
         let inner = self.inner.borrow();
 
         if let Some(stdin) = inner.stdin.as_ref() {
-            builder = match stdin {
+            match stdin {
                 ReadStream::Inherit => builder.inherit_stdin(),
                 ReadStream::Path(path) => builder.stdin(file_r(*path).map(wasi_file)?),
                 ReadStream::String(input) => {
@@ -205,36 +205,36 @@ impl WasiCtxBuilder {
                     let pipe = ReadPipe::from(unsafe { input.as_slice() });
                     builder.stdin(Box::new(pipe))
                 }
-            }
+            };
         }
 
         if let Some(stdout) = inner.stdout.as_ref() {
-            builder = match stdout {
+            match stdout {
                 WriteStream::Inherit => builder.inherit_stdout(),
                 WriteStream::Path(path) => builder.stdout(file_w(*path).map(wasi_file)?),
-            }
+            };
         }
 
         if let Some(stderr) = inner.stderr.as_ref() {
-            builder = match stderr {
+            match stderr {
                 WriteStream::Inherit => builder.inherit_stderr(),
                 WriteStream::Path(path) => builder.stderr(file_w(*path).map(wasi_file)?),
-            }
+            };
         }
 
         if let Some(args) = inner.args.as_ref() {
             // SAFETY: no gc can happen nor do we write to `args`.
             for item in unsafe { args.as_slice() } {
-                let arg = item.try_convert::<RString>()?;
+                let arg = RString::try_convert(*item)?;
                 // SAFETY: &str copied before calling in to Ruby, no GC can happen before.
                 let arg = unsafe { arg.as_str() }?;
-                builder = builder.arg(arg).map_err(|e| error!("{}", e))?
+                builder.arg(arg).map_err(|e| error!("{}", e))?;
             }
         }
 
         if let Some(env_hash) = inner.env.as_ref() {
             let env_vec: Vec<(String, String)> = env_hash.to_vec()?;
-            builder = builder.envs(&env_vec).map_err(|e| error!("{}", e))?;
+            builder.envs(&env_vec).map_err(|e| error!("{}", e))?;
         }
 
         Ok(builder.build())
@@ -260,7 +260,7 @@ fn wasi_file(file: File) -> Box<wasi_cap_std_sync::file::File> {
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("WasiCtxBuilder", Default::default())?;
+    let class = root().define_class("WasiCtxBuilder", class::object())?;
     class.define_singleton_method("new", function!(WasiCtxBuilder::new, 0))?;
 
     class.define_method("inherit_stdin", method!(WasiCtxBuilder::inherit_stdin, 0))?;

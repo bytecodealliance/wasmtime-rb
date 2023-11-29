@@ -75,9 +75,13 @@ namespace :pkg do
       mkdir_p ".cargo"
       sh "cargo vendor --versioned-dirs --locked #{vendor_dir} >> #{cargo_config_path} 2>/dev/null"
 
-      final_gemspec.files += dirglob("**/.cargo/**/*")
-      final_gemspec.files += dirglob("./#{vendor_dir}/**/*")
-      final_gemspec.files.reject! { |f| File.directory?(f) }
+      vendor_files = dirglob("./#{vendor_dir}/**/*").reject { |f| File.directory?(f) }
+      # Ensure that all vendor files have the right read permissions,
+      # which are needed to build the gem.
+      # The permissions that we want _at least_ is readable by all for example `.rw-r--r--`
+      vendor_files.each { |f| FileUtils.chmod("a+r", f) }
+      final_gemspec.files += vendor_files
+      final_gemspec.files += dirglob("**/.cargo/**/*").reject { |f| File.directory?(f) }
 
       puts "Building gem to #{unpacked_dir}.gem..."
       Gem::Package.build(final_gemspec, false, true, "#{slug}.gem")

@@ -3,10 +3,10 @@ use super::{
     root,
     store::{Store, StoreContextValue},
 };
-use crate::{define_data_class, error};
+use crate::error;
 use magnus::{
-    function, memoize, method, typed_data::DataTypeBuilder, typed_data::Obj, DataTypeFunctions,
-    Error, Module as _, Object, RClass, Symbol, TypedData, Value,
+    class, function, method, prelude::*, typed_data::Obj, DataTypeFunctions, Error, Object, Symbol,
+    TypedData, Value,
 };
 use wasmtime::{Extern, Global as GlobalImpl, GlobalType, Mutability};
 
@@ -14,25 +14,11 @@ use wasmtime::{Extern, Global as GlobalImpl, GlobalType, Mutability};
 /// @rename Wasmtime::Global
 /// Represents a WebAssembly global.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Global.html Wasmtime's Rust doc
-#[derive(Debug)]
+#[derive(Debug, TypedData)]
+#[magnus(class = "Wasmtime::Global", free_immediately, mark, unsafe_generics)]
 pub struct Global<'a> {
     store: StoreContextValue<'a>,
     inner: GlobalImpl,
-}
-
-unsafe impl TypedData for Global<'_> {
-    fn class() -> magnus::RClass {
-        *memoize!(RClass: define_data_class!(root(), "Global"))
-    }
-
-    fn data_type() -> &'static magnus::DataType {
-        memoize!(magnus::DataType: {
-            let mut builder = DataTypeBuilder::<Global<'_>>::new("Wasmtime::Global");
-            builder.free_immediately();
-            builder.mark();
-            builder.build()
-        })
-    }
 }
 
 impl DataTypeFunctions for Global<'_> {
@@ -69,7 +55,7 @@ impl<'a> Global<'a> {
         mutability: Mutability,
     ) -> Result<Self, Error> {
         let wasm_type = value_type.to_val_type()?;
-        let wasm_default = default.to_wasm_val(&wasm_type)?;
+        let wasm_default = default.to_wasm_val(wasm_type.clone())?;
         let store = s.get();
         let inner = GlobalImpl::new(
             store.context_mut(),
@@ -130,7 +116,7 @@ impl<'a> Global<'a> {
         self.inner
             .set(
                 self.store.context_mut()?,
-                value.to_wasm_val(&self.value_type()?)?,
+                value.to_wasm_val(self.value_type()?)?,
             )
             .map_err(|e| error!("{}", e))
             .and_then(|result| {
@@ -166,7 +152,7 @@ impl From<&Global<'_>> for Extern {
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Global", Default::default())?;
+    let class = root().define_class("Global", class::object())?;
     class.define_singleton_method("var", function!(Global::var, 3))?;
     class.define_singleton_method("const", function!(Global::const_, 3))?;
 

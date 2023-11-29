@@ -3,8 +3,8 @@ use super::{caller::Caller, engine::Engine, root, trap::Trap, wasi_ctx_builder::
 use crate::{define_rb_intern, error};
 use magnus::Class;
 use magnus::{
-    function, gc, method, scan_args, typed_data::Obj, DataTypeFunctions, Error, Module, Object,
-    TypedData, Value, QNIL,
+    class, function, gc, method, scan_args, typed_data::Obj, DataTypeFunctions, Error, IntoValue,
+    Module, Object, TypedData, Value,
 };
 use std::cell::UnsafeCell;
 use std::convert::TryFrom;
@@ -19,6 +19,7 @@ pub struct StoreData {
     user_data: Value,
     wasi: Option<WasiCtx>,
     refs: Vec<Value>,
+    last_error: Option<Error>,
 }
 
 impl StoreData {
@@ -38,8 +39,28 @@ impl StoreData {
         self.refs.push(value);
     }
 
+    pub fn set_error(&mut self, error: Error) {
+        self.last_error = Some(error);
+    }
+
+    pub fn take_error(&mut self) -> Option<Error> {
+        self.last_error.take()
+    }
+
     pub fn mark(&self) {
         gc::mark_movable(&self.user_data);
+
+        if let Some(ref error) = self.last_error {
+            match error {
+                Error::Error(klass, _msg) => {
+                    gc::mark_movable(*klass);
+                }
+                Error::Exception(obj) => {
+                    gc::mark_movable(*obj);
+                }
+                Error::Jump(_) => {}
+            }
+        }
 
         for value in self.refs.iter() {
             gc::mark_movable(value);
@@ -52,6 +73,18 @@ impl StoreData {
         for value in self.refs.iter_mut() {
             *value = gc::location(*value);
         }
+
+        if let Some(ref mut error) = self.last_error {
+            match error {
+                Error::Error(klass, _msg) => {
+                    *klass = gc::location(*klass);
+                }
+                Error::Exception(obj) => {
+                    *obj = gc::location(*obj);
+                }
+                Error::Jump(_) => {}
+            }
+        }
     }
 }
 
@@ -59,7 +92,7 @@ impl StoreData {
 /// Represents a WebAssembly store.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Store.html Wasmtime's Rust doc
 #[derive(Debug, TypedData)]
-#[magnus(class = "Wasmtime::Store", size, mark, compact, free_immediatly)]
+#[magnus(class = "Wasmtime::Store", size, mark, compact, free_immediately)]
 pub struct Store {
     inner: UnsafeCell<StoreImpl<StoreData>>,
 }
@@ -103,7 +136,7 @@ impl Store {
         )?;
         let (engine,) = args.required;
         let (user_data,) = args.optional;
-        let user_data = user_data.unwrap_or_else(|| QNIL.into());
+        let user_data = user_data.unwrap_or_else(|| ().into_value());
         let wasi = match kw.optional.0 {
             None => None,
             Some(wasi_ctx_builder) => Some(wasi_ctx_builder.build_context()?),
@@ -114,6 +147,7 @@ impl Store {
             user_data,
             wasi,
             refs: Default::default(),
+            last_error: Default::default(),
         };
         let store = Self {
             inner: UnsafeCell::new(StoreImpl::new(eng, store_data)),
@@ -141,12 +175,12 @@ impl Store {
     /// @param fuel [Integer] The fuel to add.
     /// @def add_fuel(fuel)
     /// @return [Nil]
-    pub fn add_fuel(&self, fuel: u64) -> Result<Value, Error> {
+    pub fn add_fuel(&self, fuel: u64) -> Result<(), Error> {
         unsafe { &mut *self.inner.get() }
             .add_fuel(fuel)
             .map_err(|e| error!("{}", e))?;
 
-        Ok(*QNIL)
+        Ok(())
     }
 
     /// @yard
@@ -187,6 +221,10 @@ impl Store {
 
     pub fn retain(&self, value: Value) {
         self.context_mut().data_mut().retain(value);
+    }
+
+    pub fn take_last_error(&self) -> Option<Error> {
+        self.context_mut().data_mut().take_error()
     }
 
     fn inner_ref(&self) -> &StoreImpl<StoreData> {
@@ -239,8 +277,21 @@ impl<'a> StoreContextValue<'a> {
         }
     }
 
+    pub fn set_last_error(&self, error: Error) {
+        match self {
+            Self::Store(store) => store.get().context_mut().data_mut().set_error(error),
+            Self::Caller(caller) => {
+                if let Ok(mut context) = caller.get().context_mut() {
+                    context.data_mut().set_error(error);
+                }
+            }
+        };
+    }
+
     pub fn handle_wasm_error(&self, error: anyhow::Error) -> Error {
-        if let Some(exit) = error.downcast_ref::<I32Exit>() {
+        if let Ok(Some(error)) = self.take_last_error() {
+            error
+        } else if let Some(exit) = error.downcast_ref::<I32Exit>() {
             wasi_exit_error().new_instance((exit.0,)).unwrap().into()
         } else {
             Trap::try_from(error)
@@ -256,10 +307,17 @@ impl<'a> StoreContextValue<'a> {
         self.context_mut()?.data_mut().retain(value);
         Ok(())
     }
+
+    fn take_last_error(&self) -> Result<Option<Error>, Error> {
+        match self {
+            Self::Store(store) => Ok(store.get().take_last_error()),
+            Self::Caller(caller) => Ok(caller.get().context_mut()?.data_mut().take_error()),
+        }
+    }
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Store", Default::default())?;
+    let class = root().define_class("Store", class::object())?;
 
     class.define_singleton_method("new", function!(Store::new, -1))?;
     class.define_method("data", method!(Store::data, 0))?;

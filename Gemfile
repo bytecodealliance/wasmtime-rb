@@ -6,12 +6,10 @@ source "https://rubygems.org"
 gemspec
 
 group :development do
-  gem "rake", "~> 13.0"
+  gem "rake", "~> 13.1"
   gem "rake-compiler"
-  gem "rb_sys", "~> 0.9.65"
-  gem "standard", "~> 1.24"
+  gem "standard", "~> 1.31"
   gem "get_process_mem"
-  gem "ruby-lsp", require: false
   gem "yard", require: false
   gem "yard-rustdoc", "~> 0.3.2", require: false
   gem "benchmark-ips", require: false

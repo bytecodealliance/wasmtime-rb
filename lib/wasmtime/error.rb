@@ -10,7 +10,7 @@ module Wasmtime
   # Wasm types.
   class ResultError < Error; end
 
-  # Raised when converting an {Extern} to its concrete type fails.
+  # Raised when converting an {Wasmtime::Extern} to its concrete type fails.
   class ConversionError < Error; end
 
   # Raised on Wasm trap.

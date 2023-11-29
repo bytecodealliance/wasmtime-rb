@@ -1,6 +1,17 @@
-use super::{config::hash_to_config, root};
+use super::{
+    config::{default_config, hash_to_config},
+    root,
+};
 use crate::error;
-use magnus::{function, method, scan_args, Error, Module, Object, RHash, RString, Value};
+use magnus::{
+    class, function, memoize, method, scan_args, typed_data::Obj, value::Id, Error, Module, Object,
+    RHash, RString, TryConvert, Value,
+};
+use std::{
+    collections::hash_map::DefaultHasher,
+    hash::{Hash, Hasher},
+    sync::Mutex,
+};
 use wasmtime::Engine as EngineImpl;
 
 #[cfg(feature = "tokio")]
@@ -15,13 +26,32 @@ lazy_static::lazy_static! {
 
 /// @yard
 /// Represents a Wasmtime execution engine.
+///
+/// @example Disabling parallel compilation
+///    # Many Ruby servers use a pre-forking mechanism to allow parallel request
+///    # processing. Unfortunately, this can causes processes to deadlock if you
+///    # use parallel compilation to compile Wasm prior to calling
+///    # `Process::fork`. To avoid this issue, any compilations that need to be
+///    # done before forking need to disable the `parallel_compilation` option.
+///
+///    prefork_engine = Wasmtime::Engine.new(parallel_compilation: false)
+///    wasm_module = Wasmtime::Module.new(prefork_engine, "(module)")
+///
+///    fork do
+///      # We can enable parallel compilation now that we've forked.
+///      engine = Wasmtime::Engine.new(parallel_compilation: true)
+///      store = Wasmtime::Store.new(engine)
+///      instance = Wasmtime::Instance.new(store, wasm_module)
+///      # ...
+///    end
+///
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Engine.html Wasmtime's Rust doc
-#[magnus::wrap(class = "Wasmtime::Engine", free_immediately)]
+#[magnus::wrap(class = "Wasmtime::Engine", free_immediately, frozen_shareable)]
 pub struct Engine {
     inner: EngineImpl,
 
     #[cfg(feature = "tokio")]
-    timer_task: std::cell::RefCell<Option<tokio::task::JoinHandle<()>>>,
+    timer_task: Mutex<Option<tokio::task::JoinHandle<()>>>,
 }
 
 #[cfg(feature = "tokio")]
@@ -46,10 +76,11 @@ impl Engine {
     /// @option config [Boolean] :wasm_threads
     /// @option config [Boolean] :wasm_multi_memory
     /// @option config [Boolean] :wasm_memory64
-    /// @option config [Boolean] :parallel_compilation
+    /// @option config [Boolean] :parallel_compilation (true) Whether compile WASM using multiple threads
     /// @option config [Boolean] :generate_address_map
     /// @option config [Symbol] :cranelift_opt_level One of +none+, +speed+, +speed_and_size+.
     /// @option config [Symbol] :profiler One of +none+, +jitdump+, +vtune+.
+    /// @option config [Symbol] :strategy One of +auto+, +cranelift+, +winch+ (requires crate feature `winch` to be enabled)
     /// @option config [String] :target
     ///
     /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Engine.html
@@ -60,11 +91,11 @@ impl Engine {
         let config = config.and_then(|v| if v.is_nil() { None } else { Some(v) });
         let inner = match config {
             Some(config) => {
-                let config = config.try_convert::<RHash>().and_then(hash_to_config)?;
+                let config = RHash::try_convert(config).and_then(hash_to_config)?;
 
                 EngineImpl::new(&config).map_err(|e| error!("{}", e))?
             }
-            None => EngineImpl::default(),
+            None => EngineImpl::new(&default_config()).map_err(|e| error!("{}", e))?,
         };
 
         Ok(Self {
@@ -97,7 +128,7 @@ impl Engine {
             }
         });
 
-        *self.timer_task.borrow_mut() = Some(handle);
+        *self.timer_task.lock().unwrap() = Some(handle);
     }
 
     /// @yard
@@ -106,7 +137,9 @@ impl Engine {
     /// @return [nil]
     #[cfg(feature = "tokio")]
     pub fn stop_epoch_interval(&self) {
-        if let Some(handle) = self.timer_task.take() {
+        let maybe_handle = self.timer_task.lock().unwrap().take();
+
+        if let Some(handle) = maybe_handle {
             handle.abort();
         }
     }
@@ -141,13 +174,37 @@ impl Engine {
             .map_err(|e| error!("{}", e.to_string()))
     }
 
+    /// @yard
+    /// If two engines have a matching {Engine.precompile_compatibility_key},
+    /// then serialized modules from one engine can be deserialized by the
+    /// other.
+    /// @return [String] The hex formatted string that can be used to check precompiled module compatibility.
+    pub fn precompile_compatibility_key(rb_self: Obj<Self>) -> Result<RString, Error> {
+        let ivar_id = *memoize!(Id: Id::new("precompile_compatibility_key"));
+
+        if let Ok(cached) = rb_self.ivar_get::<_, RString>(ivar_id) {
+            return Ok(cached);
+        }
+
+        let mut hasher = DefaultHasher::new();
+        let engine = rb_self.get().inner.clone();
+        engine.precompile_compatibility_hash().hash(&mut hasher);
+        let hex_encoded = format!("{:x}", hasher.finish());
+        let key = RString::new(&hex_encoded);
+        key.freeze();
+
+        rb_self.ivar_set(ivar_id, key)?;
+
+        Ok(key)
+    }
+
     pub fn get(&self) -> &EngineImpl {
         &self.inner
     }
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Engine", Default::default())?;
+    let class = root().define_class("Engine", class::object())?;
 
     class.define_singleton_method("new", function!(Engine::new, -1))?;
 
@@ -165,6 +222,10 @@ pub fn init() -> Result<(), Error> {
     class.define_method("increment_epoch", method!(Engine::increment_epoch, 0))?;
     class.define_method("==", method!(Engine::is_equal, 1))?;
     class.define_method("precompile_module", method!(Engine::precompile_module, 1))?;
+    class.define_method(
+        "precompile_compatibility_key",
+        method!(Engine::precompile_compatibility_key, 0),
+    )?;
 
     Ok(())
 }

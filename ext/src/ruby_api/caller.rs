@@ -1,9 +1,6 @@
 use super::{convert::WrapWasmtimeType, externals::Extern, root, store::StoreData};
-use crate::{define_data_class, error};
-use magnus::{
-    memoize, method, typed_data::DataTypeBuilder, typed_data::Obj, DataTypeFunctions, Error,
-    Module as _, RClass, RString, TypedData, Value, QNIL,
-};
+use crate::error;
+use magnus::{class, method, typed_data::Obj, Error, Module as _, RString, Value};
 use std::cell::UnsafeCell;
 use wasmtime::{AsContext, AsContextMut, Caller as CallerImpl, StoreContext, StoreContextMut};
 
@@ -46,6 +43,7 @@ impl<'a> CallerHandle<'a> {
 /// block argument in {Func.new}).
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Caller.html Wasmtime's Rust doc
 #[derive(Debug)]
+#[magnus::wrap(class = "Wasmtime::Caller", free_immediately, unsafe_generics)]
 pub struct Caller<'a> {
     handle: CallerHandle<'a>,
 }
@@ -87,12 +85,12 @@ impl<'a> Caller<'a> {
     /// @yard
     /// (see Store#add_fuel)
     /// @def add_fuel(fuel)
-    pub fn add_fuel(&self, fuel: u64) -> Result<Value, Error> {
+    pub fn add_fuel(&self, fuel: u64) -> Result<(), Error> {
         self.handle
             .get_mut()
             .and_then(|c| c.add_fuel(fuel).map_err(|e| error!("{}", e)))?;
 
-        Ok(*QNIL)
+        Ok(())
     }
 
     /// @yard
@@ -117,26 +115,10 @@ impl<'a> Caller<'a> {
     }
 }
 
-unsafe impl<'a> TypedData for Caller<'a> {
-    fn class() -> magnus::RClass {
-        *memoize!(RClass: define_data_class!(root(), "Caller"))
-    }
-
-    fn data_type() -> &'static magnus::DataType {
-        memoize!(magnus::DataType: {
-            let mut builder = DataTypeBuilder::<Caller<'_>>::new("Wasmtime::Caller");
-            builder.free_immediately();
-            builder.build()
-        })
-    }
-}
-
-impl DataTypeFunctions for Caller<'_> {}
-
 unsafe impl Send for Caller<'_> {}
 
 pub fn init() -> Result<(), Error> {
-    let klass = root().define_class("Caller", Default::default())?;
+    let klass = root().define_class("Caller", class::object())?;
     klass.define_method("store_data", method!(Caller::store_data, 0))?;
     klass.define_method("export", method!(Caller::export, 1))?;
     klass.define_method("fuel_consumed", method!(Caller::fuel_consumed, 0))?;

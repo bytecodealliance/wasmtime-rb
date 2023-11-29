@@ -2,8 +2,16 @@
 
 require "wasmtime"
 
+DEBUG = ENV["DEBUG"] == "true" || ENV["DEBUG"] == "1" || ENV["RB_SYS_CARGO_PROFILE"] == "dev"
+
+GLOBAL_ENGINE = Wasmtime::Engine.new(
+  debug_info: false, # see https://github.com/bytecodealliance/wasmtime/issues/3999
+  wasm_backtrace_details: DEBUG,
+  target: ENV["WASMTIME_TARGET"]
+)
+
 RSpec.shared_context("default lets") do
-  let(:engine) { Wasmtime::Engine.new }
+  let(:engine) { GLOBAL_ENGINE }
   let(:store_data) { Object.new }
   let(:store) { Wasmtime::Store.new(engine, store_data) }
   let(:wat) { "(module)" }
@@ -29,7 +37,35 @@ module WasmFixtures
   extend self
 
   def wasi_debug
-    @wasi_debug_module ||= Module.from_file(Engine.new, "spec/fixtures/wasi-debug.wasm")
+    @wasi_debug_module ||= Module.from_file(engine, "spec/fixtures/wasi-debug.wasm")
+  end
+end
+
+module GcHelpers
+  def without_gc_stress
+    old = GC.stress
+    GC.stress = false
+    yield
+  ensure
+    GC.stress = old
+  end
+
+  def with_gc_stress
+    old = GC.stress
+    GC.stress = true
+    yield
+  ensure
+    GC.stress = old
+  end
+
+  def measure_gc_stat(name)
+    without_gc_stress do
+      10.times { GC.start(full_mark: true, immediate_sweep: true) }
+      before = GC.stat(name)
+      ret = yield
+      after = GC.stat(name)
+      [ret, after - before]
+    end
   end
 end
 
@@ -41,10 +77,12 @@ RSpec.configure do |config|
   end
 
   config.include_context("default lets")
+  config.include GcHelpers
 
   # So memcheck steps can still pass if RSpec fails
   config.failure_exit_code = ENV.fetch("RSPEC_FAILURE_EXIT_CODE", 1).to_i
   config.default_formatter = ENV.fetch("RSPEC_FORMATTER") do
+    next "doc" if DEBUG
     config.files_to_run.one? ? "doc" : "progress"
   end
 
@@ -60,11 +98,16 @@ RSpec.configure do |config|
 
   if ENV["GC_STRESS"]
     config.around :each do |ex|
-      GC.stress = true
-      ex.run
-    ensure
-      GC.stress = false
+      with_gc_stress { ex.run }
     end
+  end
+
+  config.around(:each, :ractor) do |example|
+    was = Warning[:experimental]
+    Warning[:experimental] = false
+    example.run
+  ensure
+    Warning[:experimental] = was
   end
 end
 

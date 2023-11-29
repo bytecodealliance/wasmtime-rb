@@ -1,4 +1,5 @@
 use super::{convert::WrapWasmtimeType, externals::Extern, root, store::StoreData};
+use crate::{error, unsafe_impl_send_sync};
 use magnus::{
     class,
     gc::{Compactor, Marker},
@@ -143,7 +144,7 @@ impl<'a> Caller<'a> {
     }
 }
 
-unsafe impl Send for Caller<'_> {}
+unsafe_impl_send_sync!(Caller);
 
 pub fn init() -> Result<(), Error> {
     let klass = root().define_class("Caller", class::object())?;

@@ -1,6 +1,6 @@
 use super::errors::wasi_exit_error;
 use super::{caller::Caller, engine::Engine, root, trap::Trap, wasi_ctx_builder::WasiCtxBuilder};
-use crate::{define_rb_intern, error};
+use crate::{define_rb_intern, error, unsafe_impl_send_sync};
 use magnus::rb_sys::AsRawValue;
 use magnus::Class;
 use magnus::{
@@ -96,8 +96,7 @@ impl DataTypeFunctions for Store {
     }
 }
 
-unsafe impl Send for Store {}
-unsafe impl Send for StoreData {}
+unsafe_impl_send_sync!(Store);
 
 impl Store {
     /// @yard

@@ -5,7 +5,7 @@ use super::{
     root,
     store::{Store, StoreContextValue},
 };
-use crate::{define_rb_intern, error};
+use crate::{define_rb_intern, error, unsafe_impl_send_sync};
 use magnus::{
     class, function, gc::Marker, method, r_string::RString, scan_args, typed_data::Obj,
     DataTypeFunctions, Error, Module as _, Object, Ruby, TypedData, Value,
@@ -31,12 +31,13 @@ pub struct Memory<'a> {
     inner: ManuallyTracked<MemoryImpl>,
 }
 
+unsafe_impl_send_sync!(Memory<'_>);
+
 impl DataTypeFunctions for Memory<'_> {
     fn mark(&self, marker: &Marker) {
         self.store.mark(marker)
     }
 }
-unsafe impl Send for Memory<'_> {}
 
 impl<'a> Memory<'a> {
     /// @yard

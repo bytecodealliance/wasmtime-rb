@@ -10,3 +10,20 @@ macro_rules! define_rb_intern {
         )*
     };
 }
+
+/// Boilerplate for defining send and sync on a Magnus struct when the feature is enabled.
+#[macro_export]
+macro_rules! unsafe_impl_send_sync {
+    ($struct:ident) => {
+        #[cfg(feature = "unsafe-impl-send")]
+        unsafe impl Send for $struct {}
+        #[cfg(feature = "unsafe-impl-sync")]
+        unsafe impl Sync for $struct {}
+    };
+    ($struct:ident <'_>) => {
+        #[cfg(feature = "unsafe-impl-send")]
+        unsafe impl Send for $struct<'_> {}
+        #[cfg(feature = "unsafe-impl-sync")]
+        unsafe impl Sync for $struct<'_> {}
+    };
+}

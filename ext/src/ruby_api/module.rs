@@ -14,7 +14,7 @@ pub struct Module {
     _track_memory_usage: ManuallyTracked<()>,
 }
 
-// Needed for ManuallyTracked
+#[cfg(feature = "unsafe-impl-send")]
 unsafe impl Send for Module {}
 
 impl Module {

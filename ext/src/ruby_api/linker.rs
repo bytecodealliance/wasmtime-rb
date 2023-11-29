@@ -9,7 +9,7 @@ use super::{
     root,
     store::{Store, StoreContextValue, StoreData},
 };
-use crate::{define_rb_intern, err, error};
+use crate::{define_rb_intern, err, error, unsafe_impl_send_sync};
 use magnus::{
     block::Proc, class, function, gc::Marker, method, prelude::*, scan_args, scan_args::scan_args,
     typed_data::Obj, DataTypeFunctions, Error, Object, RArray, RHash, RString, Ruby, TypedData,
@@ -32,7 +32,7 @@ pub struct Linker {
     has_wasi: bool,
 }
 
-unsafe impl Send for Linker {}
+unsafe_impl_send_sync!(Linker);
 
 impl DataTypeFunctions for Linker {
     fn mark(&self, marker: &Marker) {

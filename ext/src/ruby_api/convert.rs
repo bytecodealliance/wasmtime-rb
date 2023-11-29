@@ -1,4 +1,4 @@
-use crate::{define_rb_intern, err, error, helpers::SymbolEnum};
+use crate::{define_rb_intern, err, error, helpers::SymbolEnum, unsafe_impl_send_sync};
 use lazy_static::lazy_static;
 use magnus::{prelude::*, Error, IntoValue, RArray, Ruby, Symbol, TryConvert, TypedData, Value};
 use wasmtime::{ExternRef, Val, ValType};
@@ -95,8 +95,8 @@ impl From<Value> for ExternRefValue {
         Self(v)
     }
 }
-unsafe impl Send for ExternRefValue {}
-unsafe impl Sync for ExternRefValue {}
+
+unsafe_impl_send_sync!(ExternRefValue);
 
 pub trait ToExtern {
     fn to_extern(&self, ruby: &Ruby) -> Result<wasmtime::Extern, Error>;

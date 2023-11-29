@@ -5,7 +5,7 @@ use super::{
     root,
     store::{Store, StoreContextValue, StoreData},
 };
-use crate::err;
+use crate::{err, unsafe_impl_send_sync};
 use magnus::{
     class, function, gc::Marker, method, prelude::*, scan_args, typed_data::Obj, DataTypeFunctions,
     Error, Object, RArray, RHash, RString, Ruby, TryConvert, TypedData, Value,
@@ -22,7 +22,7 @@ pub struct Instance {
     store: Obj<Store>,
 }
 
-unsafe impl Send for Instance {}
+unsafe_impl_send_sync!(Instance);
 
 impl DataTypeFunctions for Instance {
     fn mark(&self, marker: &Marker) {

@@ -14,10 +14,16 @@ tokio = ["dep:tokio", "dep:async-timer"]
 all-arch = ["wasmtime/all-arch"]
 ruby-api = []
 winch = ["wasmtime/winch"]
+unsafe-impl-sync = []
+unsafe-impl-send = []
+unsafe-impl-send-sync = ["unsafe-impl-send", "unsafe-impl-sync"]
 
 [dependencies]
 lazy_static = "1.4.0"
-magnus = { version = "0.6", features = ["rb-sys", "deprecated-send-sync-value"] }
+magnus = { version = "0.6", features = [
+  "rb-sys",
+  "deprecated-send-sync-value",
+] }
 rb-sys = { version = "*", default-features = false, features = [
   "stable-api-compiled-fallback",
 ] }

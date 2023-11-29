@@ -1,6 +1,7 @@
 use super::errors::wasi_exit_error;
 use super::{caller::Caller, engine::Engine, root, trap::Trap, wasi_ctx_builder::WasiCtxBuilder};
 use crate::{define_rb_intern, error};
+use magnus::rb_sys::AsRawValue;
 use magnus::Class;
 use magnus::{
     class, function,
@@ -10,6 +11,7 @@ use magnus::{
     value::Opaque,
     DataTypeFunctions, Error, IntoValue, Module, Object, Ruby, TypedData, Value,
 };
+use rb_sys::rb_gc_guard;
 use std::cell::UnsafeCell;
 use std::convert::TryFrom;
 use wasmtime::{AsContext, AsContextMut, Store as StoreImpl, StoreContext, StoreContextMut};
@@ -69,6 +71,7 @@ impl StoreData {
         self.user_data = compactor.location(self.user_data);
 
         for value in self.refs.iter_mut() {
+            let _guarded = rb_gc_guard!(value.as_raw());
             *value = compactor.location(*value);
         }
     }
@@ -122,7 +125,7 @@ impl Store {
         )?;
         let (engine,) = args.required;
         let (user_data,) = args.optional;
-        let user_data = user_data.unwrap_or_else(|| ().into_value());
+        let user_data = user_data.unwrap_or_else(|| ruby.qnil().into_value());
         let wasi = match kw.optional.0 {
             None => None,
             Some(wasi_ctx_builder) => Some(wasi_ctx_builder.build_context(ruby)?),
@@ -153,7 +156,7 @@ impl Store {
     /// or +nil+ when the {Engine}’s config does not have fuel enabled.
     /// @return [Integer, Nil]
     pub fn fuel_consumed(&self) -> Option<u64> {
-        self.inner_ref().fuel_consumed()
+        self.inner_store().fuel_consumed()
     }
 
     /// @yard
@@ -162,7 +165,7 @@ impl Store {
     /// @def add_fuel(fuel)
     /// @return [Nil]
     pub fn add_fuel(&self, fuel: u64) -> Result<(), Error> {
-        unsafe { &mut *self.inner.get() }
+        self.inner_store_mut()
             .add_fuel(fuel)
             .map_err(|e| error!("{}", e))?;
 
@@ -178,7 +181,7 @@ impl Store {
     /// @def consume_fuel(fuel)
     /// @return [Integer] The remaining fuel.
     pub fn consume_fuel(&self, fuel: u64) -> Result<u64, Error> {
-        unsafe { &mut *self.inner.get() }
+        self.inner_store_mut()
             .consume_fuel(fuel)
             .map_err(|e| error!("{}", e))
     }
@@ -194,15 +197,16 @@ impl Store {
     /// @param ticks_beyond_current [Integer] The number of ticks before this store reaches the deadline.
     /// @return [nil]
     pub fn set_epoch_deadline(&self, ticks_beyond_current: u64) {
-        unsafe { &mut *self.inner.get() }.set_epoch_deadline(ticks_beyond_current);
+        self.inner_store_mut()
+            .set_epoch_deadline(ticks_beyond_current);
     }
 
     pub fn context(&self) -> StoreContext<StoreData> {
-        unsafe { (*self.inner.get()).as_context() }
+        self.inner_store().as_context()
     }
 
     pub fn context_mut(&self) -> StoreContextMut<StoreData> {
-        unsafe { (*self.inner.get()).as_context_mut() }
+        self.inner_store_mut().as_context_mut()
     }
 
     pub fn retain(&self, value: Value) {
@@ -213,8 +217,17 @@ impl Store {
         self.context_mut().data_mut().take_error()
     }
 
-    fn inner_ref(&self) -> &StoreImpl<StoreData> {
+    fn inner_store(&self) -> &StoreImpl<StoreData> {
+        let _ = Ruby::get().expect("must be called from a Ruby thread holding the GVL");
+        // SAFETY: Store is not Send, and we rely on the GVL to ensure no concurrent access.
         unsafe { &*self.inner.get() }
+    }
+
+    #[allow(clippy::mut_from_ref)]
+    fn inner_store_mut(&self) -> &mut StoreImpl<StoreData> {
+        let _ = Ruby::get().expect("must be called from a Ruby thread holding the GVL");
+        // SAFETY: Store is not Send, and we rely on the GVL to ensure no concurrent access.
+        unsafe { &mut *self.inner.get() }
     }
 }
 
@@ -242,15 +255,12 @@ impl<'a> StoreContextValue<'a> {
     pub fn mark(&self, marker: &Marker) {
         match self {
             Self::Store(store) => marker.mark(*store),
-            Self::Caller(_) => {
-                // The Caller is on the stack while it's "live". Right before the end of a host call,
-                // we remove the Caller form the Ruby object, thus there is no need to mark.
-            }
+            Self::Caller(caller) => marker.mark(*caller),
         }
     }
 
     pub fn context(&self) -> Result<StoreContext<StoreData>, Error> {
-        let ruby = Ruby::get().unwrap();
+        let ruby = Ruby::get().expect("must be called from a Ruby thread holding the GVL");
         match self {
             Self::Store(store) => Ok(ruby.get_inner_ref(store).context()),
             Self::Caller(caller) => ruby.get_inner_ref(caller).context(),
@@ -258,7 +268,7 @@ impl<'a> StoreContextValue<'a> {
     }
 
     pub fn context_mut(&self) -> Result<StoreContextMut<StoreData>, Error> {
-        let ruby = Ruby::get().unwrap();
+        let ruby = Ruby::get().expect("must be called from a Ruby thread holding the GVL");
         match self {
             Self::Store(store) => Ok(ruby.get_inner_ref(store).context_mut()),
             Self::Caller(caller) => ruby.get_inner_ref(caller).context_mut(),

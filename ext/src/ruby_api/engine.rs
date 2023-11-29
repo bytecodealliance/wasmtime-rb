@@ -47,6 +47,7 @@ impl Engine {
     /// @option config [Boolean] :wasm_multi_memory
     /// @option config [Boolean] :wasm_memory64
     /// @option config [Boolean] :parallel_compilation
+    /// @option config [Boolean] :generate_address_map
     /// @option config [Symbol] :cranelift_opt_level One of +none+, +speed+, +speed_and_size+.
     /// @option config [Symbol] :profiler One of +none+, +jitdump+, +vtune+.
     /// @option config [String] :target

@@ -55,7 +55,7 @@ lazy_static! {
             (*NONE, ProfilingStrategy::None),
             (*JITDUMP, ProfilingStrategy::JitDump),
             (*VTUNE, ProfilingStrategy::VTune),
-            (*PERFMAP, ProfilingStrategy::PerfMap)
+            (*PERFMAP, ProfilingStrategy::PerfMap),
         ];
 
         SymbolEnum::new(":profiler", mapping)

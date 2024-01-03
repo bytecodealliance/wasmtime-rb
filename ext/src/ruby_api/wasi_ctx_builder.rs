@@ -7,6 +7,7 @@ use magnus::{
 use std::cell::RefCell;
 use std::{fs::File, path::PathBuf};
 use wasi_common::pipe::ReadPipe;
+use wasi_common::clocks::WasiClocks;
 
 enum ReadStream {
     Inherit,
@@ -37,6 +38,11 @@ impl WriteStream {
     }
 }
 
+enum SystemType {
+    Inherit,
+    Deterministic
+}
+
 #[derive(Default)]
 struct WasiCtxBuilderInner {
     stdin: Option<ReadStream>,
@@ -44,6 +50,8 @@ struct WasiCtxBuilderInner {
     stderr: Option<WriteStream>,
     env: Option<RHash>,
     args: Option<RArray>,
+    clock: Option<SystemType>,
+    random: Option<SystemType>,
 }
 
 impl WasiCtxBuilderInner {
@@ -192,8 +200,21 @@ impl WasiCtxBuilder {
         rb_self
     }
 
+    pub fn set_deterministic_clock(rb_self: RbSelf) -> RbSelf {
+        let mut inner = rb_self.get().inner.borrow_mut();
+        inner.clock = Some(SystemType::Deterministic);
+        rb_self
+    }
+
+    pub fn set_deterministic_random(rb_self: RbSelf) -> RbSelf {
+        let mut inner = rb_self.get().inner.borrow_mut();
+        inner.random = Some(SystemType::Deterministic);
+        rb_self
+    }
+
     pub fn build_context(&self) -> Result<wasmtime_wasi::WasiCtx, Error> {
         let mut builder = wasmtime_wasi::WasiCtxBuilder::new();
+
         let inner = self.inner.borrow();
 
         if let Some(stdin) = inner.stdin.as_ref() {
@@ -237,9 +258,17 @@ impl WasiCtxBuilder {
             builder.envs(&env_vec).map_err(|e| error!("{}", e))?;
         }
 
+        if let Some(clock) = inner.clock.as_ref() {
+            // MonotonicClock
+        }
+
         Ok(builder.build())
     }
 }
+
+//
+// Helpers
+//
 
 fn file_r(path: RString) -> Result<File, Error> {
     // SAFETY: &str copied before calling in to Ruby, no GC can happen before.
@@ -258,6 +287,10 @@ fn wasi_file(file: File) -> Box<wasi_cap_std_sync::file::File> {
     let file = wasi_cap_std_sync::file::File::from_cap_std(file);
     Box::new(file)
 }
+
+//
+// Magnus Binding
+//
 
 pub fn init() -> Result<(), Error> {
     let class = root().define_class("WasiCtxBuilder", class::object())?;
@@ -285,6 +318,9 @@ pub fn init() -> Result<(), Error> {
     class.define_method("set_env", method!(WasiCtxBuilder::set_env, 1))?;
 
     class.define_method("set_argv", method!(WasiCtxBuilder::set_argv, 1))?;
+
+    class.define_method("set_deterministic_clock", method!(WasiCtxBuilder::set_deterministic_clock, 0))?;
+    class.define_method("set_deterministic_random", method!(WasiCtxBuilder::set_deterministic_random, 0))?;
 
     Ok(())
 }

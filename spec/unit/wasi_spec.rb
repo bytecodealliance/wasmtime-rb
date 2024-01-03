@@ -58,7 +58,9 @@ module Wasmtime
         str = ""
         wasi_config = WasiCtxBuilder.new.set_stdout_string(str)
         run_wasi_module(wasi_config)
-        expect(str.size > 1).to eq(true)
+
+        parsed_output = JSON.parse(str)
+        expect(parsed_output.fetch("name")).to eq("stdout")
       end
 
       it "reads stdin from string" do

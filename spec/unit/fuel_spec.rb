@@ -23,38 +23,24 @@ module Wasmtime
     let(:store) { Store.new(engine) }
     let(:store_without_fuel) { Store.new(Engine.new) }
 
-    describe "#add_fuel" do
+    describe "#set_fuel" do
       test_on_store_and_caller "returns nil on success" do |store_like|
-        expect(store_like.add_fuel(100)).to be_nil
+        expect(store_like.set_fuel(100)).to be_nil
       end
 
       test_on_store_and_caller "raises when fuel isn't configured", :store_without_fuel do |store_like|
-        expect { store_like.add_fuel(100) }
-          .to(raise_error(Wasmtime::Error, /fuel is not configured/))
+        expect { store_like.set_fuel(100) }
+          .to(raise_error(Wasmtime::Error, /fuel is not configured in this store/))
       end
     end
 
-    describe "#fuel_consumed" do
+    describe "#get_fuel" do
       test_on_store_and_caller "starts at 0" do |store_like|
-        expect(store_like.fuel_consumed).to eq(0)
+        expect(store_like.get_fuel).to eq(0)
       end
 
-      test_on_store_and_caller "is nil when fuel isn't configured", :store_without_fuel do |store_like|
-        expect(store_like.fuel_consumed).to be_nil
-      end
-    end
-
-    describe "#consume_fuel" do
-      test_on_store_and_caller "increases fuel consumed and returns fuel left" do |store_like|
-        store_like.add_fuel(10)
-        expect(store_like.consume_fuel(1)).to eq(9)
-        expect(store_like.fuel_consumed).to eq(1)
-      end
-
-      test_on_store_and_caller "raises when out of fuel" do |store_like|
-        store_like.add_fuel(10)
-        expect { store_like.consume_fuel(11) }
-          .to raise_error(Wasmtime::Error, /not enough fuel remaining in store/)
+      test_on_store_and_caller "raises an error when fuel is not configured", :store_without_fuel do |store_like|
+        expect { store_like.get_fuel }.to(raise_error(Wasmtime::Error, /fuel is not configured in this store/))
       end
     end
 
@@ -65,7 +51,7 @@ module Wasmtime
             i32.const 42))
       WAT
       instance = Instance.new(store, mod)
-      store.add_fuel(1)
+      store.set_fuel(1)
       expect { instance.invoke("f") }.to raise_error(Trap, /all fuel consumed/) do |error|
         expect(error.code).to eq(Trap::OUT_OF_FUEL)
       end

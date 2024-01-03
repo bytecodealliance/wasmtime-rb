@@ -237,10 +237,8 @@ impl WasiCtxBuilder {
                 WriteStream::Inherit => builder.inherit_stderr(),
                 WriteStream::Path(path) => builder.stderr(file_w(*path).map(wasi_file)?),
                 WriteStream::String(mut input) => {
-                    // let pipe = WritePipe::new_in_memory();
-                    let new_pipe = WritePipe::new(input);
-
-                    builder.stderr(Box::new(new_pipe))
+                    let pipe = WritePipe::new(input);
+                    builder.stdout(Box::new(pipe))
                 },
             };
         }

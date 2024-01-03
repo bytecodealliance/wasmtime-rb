@@ -77,29 +77,22 @@ impl<'a> Caller<'a> {
     }
 
     /// @yard
-    /// (see Store#fuel_consumed)
-    pub fn fuel_consumed(&self) -> Result<Option<u64>, Error> {
-        self.handle.get().map(|c| c.fuel_consumed())
+    /// @see Store#get_fuel
+    pub fn get_fuel(&self) -> Result<u64, Error> {
+        self.handle
+            .get()
+            .map(|c| c.get_fuel())?
+            .map_err(|e| error!("{}", e))
     }
 
     /// @yard
-    /// (see Store#add_fuel)
-    /// @def add_fuel(fuel)
-    pub fn add_fuel(&self, fuel: u64) -> Result<(), Error> {
+    /// @see Store#set_fuel
+    pub fn set_fuel(&self, fuel: u64) -> Result<(), Error> {
         self.handle
             .get_mut()
-            .and_then(|c| c.add_fuel(fuel).map_err(|e| error!("{}", e)))?;
+            .and_then(|c| c.set_fuel(fuel).map_err(|e| error!("{}", e)))?;
 
         Ok(())
-    }
-
-    /// @yard
-    /// (see Store#consume_fuel)
-    /// @def consume_fuel(fuel)
-    pub fn consume_fuel(&self, fuel: u64) -> Result<u64, Error> {
-        self.handle
-            .get_mut()
-            .and_then(|c| c.consume_fuel(fuel).map_err(|e| error!("{}", e)))
     }
 
     pub fn context(&self) -> Result<StoreContext<StoreData>, Error> {
@@ -121,9 +114,8 @@ pub fn init() -> Result<(), Error> {
     let klass = root().define_class("Caller", class::object())?;
     klass.define_method("store_data", method!(Caller::store_data, 0))?;
     klass.define_method("export", method!(Caller::export, 1))?;
-    klass.define_method("fuel_consumed", method!(Caller::fuel_consumed, 0))?;
-    klass.define_method("add_fuel", method!(Caller::add_fuel, 1))?;
-    klass.define_method("consume_fuel", method!(Caller::consume_fuel, 1))?;
+    klass.define_method("get_fuel", method!(Caller::get_fuel, 0))?;
+    klass.define_method("set_fuel", method!(Caller::set_fuel, 1))?;
 
     Ok(())
 }

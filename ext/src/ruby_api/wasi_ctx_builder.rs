@@ -6,7 +6,7 @@ use magnus::{
 };
 use std::cell::RefCell;
 use std::{fs::File, path::PathBuf};
-use wasi_common::pipe::ReadPipe;
+use wasi_common::pipe::{ReadPipe, WritePipe};
 
 enum ReadStream {
     Inherit,
@@ -27,12 +27,14 @@ impl ReadStream {
 enum WriteStream {
     Inherit,
     Path(RString),
+    String(RString)
 }
 impl WriteStream {
     pub fn mark(&self) {
         match self {
             Self::Inherit => (),
             Self::Path(v) => gc::mark(*v),
+            Self::String(v) => gc::mark(*v),
         }
     }
 }
@@ -150,6 +152,17 @@ impl WasiCtxBuilder {
     }
 
     /// @yard
+    /// Set stdout to write to a buffer.
+    /// @param obj [Value] The ruby buffer class instance
+    /// @def set_stdout_string(str)
+    /// @return [WasiCtxBuilder] +self+
+    pub fn set_stdout_string(rb_self: RbSelf, str: RString) -> RbSelf {
+        let mut inner = rb_self.get().inner.borrow_mut();
+        inner.stdout = Some(WriteStream::String(str));
+        rb_self
+    }
+
+    /// @yard
     /// Inherit stderr from the current Ruby process.
     /// @return [WasiCtxBuilder] +self+
     pub fn inherit_stderr(rb_self: RbSelf) -> RbSelf {
@@ -212,6 +225,10 @@ impl WasiCtxBuilder {
             match stdout {
                 WriteStream::Inherit => builder.inherit_stdout(),
                 WriteStream::Path(path) => builder.stdout(file_w(*path).map(wasi_file)?),
+                WriteStream::String(mut input) => {
+                    let pipe = WritePipe::new(input);
+                    builder.stdout(Box::new(pipe))
+                },
             };
         }
 
@@ -219,6 +236,12 @@ impl WasiCtxBuilder {
             match stderr {
                 WriteStream::Inherit => builder.inherit_stderr(),
                 WriteStream::Path(path) => builder.stderr(file_w(*path).map(wasi_file)?),
+                WriteStream::String(mut input) => {
+                    // let pipe = WritePipe::new_in_memory();
+                    let new_pipe = WritePipe::new(input);
+
+                    builder.stderr(Box::new(new_pipe))
+                },
             };
         }
 
@@ -274,6 +297,10 @@ pub fn init() -> Result<(), Error> {
     class.define_method(
         "set_stdout_file",
         method!(WasiCtxBuilder::set_stdout_file, 1),
+    )?;
+    class.define_method(
+        "set_stdout_string",
+        method!(WasiCtxBuilder::set_stdout_string, 1),
     )?;
 
     class.define_method("inherit_stderr", method!(WasiCtxBuilder::inherit_stderr, 0))?;

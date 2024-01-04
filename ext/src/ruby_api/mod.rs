@@ -2,6 +2,11 @@
 #![allow(rustdoc::invalid_html_tags)]
 #![allow(rustdoc::bare_urls)]
 #![allow(rustdoc::invalid_rust_codeblocks)]
+// The `pub use` imports below need to be publicly exposed when the ruby_api
+// feature is enabled, else they must be publicly exposed to the crate only
+// (`pub(crate) use`). Allowing unused imports is easier and less repetitive.
+// Also the feature is already correctly gated in lib.rs.
+#![allow(unused_imports)]
 use magnus::{define_module, function, memoize, Error, RModule, RString};
 
 mod caller;

@@ -235,7 +235,7 @@ pub fn make_func_closure(
 
         let callable = callable.0;
 
-        match (callable.call(unsafe { rparams.as_slice() }), results.len()) {
+        match (callable.call(rparams), results.len()) {
             (Ok(_proc_result), 0) => {
                 wrapped_caller.get().expire();
                 Ok(())

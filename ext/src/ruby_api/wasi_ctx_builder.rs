@@ -225,8 +225,8 @@ impl WasiCtxBuilder {
             match stdout {
                 WriteStream::Inherit => builder.inherit_stdout(),
                 WriteStream::Path(path) => builder.stdout(file_w(*path).map(wasi_file)?),
-                WriteStream::String(mut input) => {
-                    let pipe = WritePipe::new(input);
+                WriteStream::String(input) => {
+                    let pipe = WritePipe::new(*input);
                     builder.stdout(Box::new(pipe))
                 },
             };
@@ -236,8 +236,8 @@ impl WasiCtxBuilder {
             match stderr {
                 WriteStream::Inherit => builder.inherit_stderr(),
                 WriteStream::Path(path) => builder.stderr(file_w(*path).map(wasi_file)?),
-                WriteStream::String(mut input) => {
-                    let pipe = WritePipe::new(input);
+                WriteStream::String(input) => {
+                    let pipe = WritePipe::new(*input);
                     builder.stdout(Box::new(pipe))
                 },
             };

@@ -4,10 +4,10 @@ use magnus::{
     class, function, gc, method, typed_data::Obj, DataTypeFunctions, Error, Module, Object, RArray,
     RHash, RString, TryConvert, TypedData,
 };
+use wasi_common::random;
 use std::cell::RefCell;
 use std::{fs::File, path::PathBuf};
 use wasi_common::pipe::ReadPipe;
-use wasi_common::clocks::WasiClocks;
 
 enum ReadStream {
     Inherit,
@@ -37,8 +37,11 @@ impl WriteStream {
         }
     }
 }
-
-enum SystemType {
+enum Clocks {
+    Inherit,
+    Deterministic
+}
+enum Random {
     Inherit,
     Deterministic
 }
@@ -50,8 +53,8 @@ struct WasiCtxBuilderInner {
     stderr: Option<WriteStream>,
     env: Option<RHash>,
     args: Option<RArray>,
-    clock: Option<SystemType>,
-    random: Option<SystemType>,
+    clock: Option<Clocks>,
+    random: Option<Random>,
 }
 
 impl WasiCtxBuilderInner {
@@ -200,15 +203,15 @@ impl WasiCtxBuilder {
         rb_self
     }
 
-    pub fn set_deterministic_clock(rb_self: RbSelf) -> RbSelf {
+    pub fn set_clock(rb_self: RbSelf) -> RbSelf {
         let mut inner = rb_self.get().inner.borrow_mut();
-        inner.clock = Some(SystemType::Deterministic);
+        inner.clock = Some(Clocks::Deterministic);
         rb_self
     }
 
-    pub fn set_deterministic_random(rb_self: RbSelf) -> RbSelf {
+    pub fn set_random(rb_self: RbSelf) -> RbSelf {
         let mut inner = rb_self.get().inner.borrow_mut();
-        inner.random = Some(SystemType::Deterministic);
+        inner.random = Some(Random::Deterministic);
         rb_self
     }
 
@@ -259,7 +262,23 @@ impl WasiCtxBuilder {
         }
 
         if let Some(clock) = inner.clock.as_ref() {
-            // MonotonicClock
+            match clock {
+                Clocks::Inherit => {},
+                Clocks::Deterministic => {
+                    let clk = wasi_common::WasiClocks::new();
+                    let wasi_clock = wasi_common::WasiClocks::monotonic(&clk);
+
+                }
+            }
+        }
+
+        if let Some(random) = inner.random.as_ref() {
+            match random {
+                Random::Inherit => {},
+                Random::Deterministic => {
+
+                }
+            }
         }
 
         Ok(builder.build())
@@ -319,8 +338,8 @@ pub fn init() -> Result<(), Error> {
 
     class.define_method("set_argv", method!(WasiCtxBuilder::set_argv, 1))?;
 
-    class.define_method("set_deterministic_clock", method!(WasiCtxBuilder::set_deterministic_clock, 0))?;
-    class.define_method("set_deterministic_random", method!(WasiCtxBuilder::set_deterministic_random, 0))?;
+    class.define_method("set_clock", method!(WasiCtxBuilder::set_clock, 0))?;
+    class.define_method("set_random", method!(WasiCtxBuilder::set_random, 0))?;
 
     Ok(())
 }

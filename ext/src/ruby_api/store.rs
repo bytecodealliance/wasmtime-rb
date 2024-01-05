@@ -163,38 +163,25 @@ impl Store {
     }
 
     /// @yard
-    /// Returns the amount of fuel consumed by this {Store}’s execution so far,
-    /// or +nil+ when the {Engine}’s config does not have fuel enabled.
-    /// @return [Integer, Nil]
-    pub fn fuel_consumed(&self) -> Option<u64> {
-        self.inner_ref().fuel_consumed()
+    /// Returns the amount of fuel in the {Store}.
+    ///
+    /// @return [Integer]
+    /// @raise [Error] if fuel consumption is not enabled via {Wasmtime::Engine#new}
+    pub fn get_fuel(&self) -> Result<u64, Error> {
+        self.inner_ref().get_fuel().map_err(|e| error!("{}", e))
     }
 
     /// @yard
-    /// Adds fuel to the {Store}.
-    /// @param fuel [Integer] The fuel to add.
-    /// @def add_fuel(fuel)
-    /// @return [Nil]
-    pub fn add_fuel(&self, fuel: u64) -> Result<(), Error> {
+    /// Sets fuel to the {Store}.
+    /// @param fuel [Integer] The new fuel amount.
+    /// @def set_fuel(fuel)
+    /// @raise [Error] if fuel consumption is not enabled via {Wasmtime::Engine#new}
+    pub fn set_fuel(&self, fuel: u64) -> Result<(), Error> {
         unsafe { &mut *self.inner.get() }
-            .add_fuel(fuel)
+            .set_fuel(fuel)
             .map_err(|e| error!("{}", e))?;
 
         Ok(())
-    }
-
-    /// @yard
-    /// Synthetically consumes fuel from this {Store}.
-    /// Raises if there isn't enough fuel left in the {Store}, or
-    /// when the {Engine}’s config does not have fuel enabled.
-    ///
-    /// @param fuel [Integer] The fuel to consume.
-    /// @def consume_fuel(fuel)
-    /// @return [Integer] The remaining fuel.
-    pub fn consume_fuel(&self, fuel: u64) -> Result<u64, Error> {
-        unsafe { &mut *self.inner.get() }
-            .consume_fuel(fuel)
-            .map_err(|e| error!("{}", e))
     }
 
     /// @yard
@@ -321,9 +308,8 @@ pub fn init() -> Result<(), Error> {
 
     class.define_singleton_method("new", function!(Store::new, -1))?;
     class.define_method("data", method!(Store::data, 0))?;
-    class.define_method("fuel_consumed", method!(Store::fuel_consumed, 0))?;
-    class.define_method("add_fuel", method!(Store::add_fuel, 1))?;
-    class.define_method("consume_fuel", method!(Store::consume_fuel, 1))?;
+    class.define_method("get_fuel", method!(Store::get_fuel, 0))?;
+    class.define_method("set_fuel", method!(Store::set_fuel, 1))?;
     class.define_method("set_epoch_deadline", method!(Store::set_epoch_deadline, 1))?;
 
     Ok(())

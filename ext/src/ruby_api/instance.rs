@@ -131,7 +131,7 @@ impl Instance {
     /// @return (see Func#call)
     /// @see Func#call
     pub fn invoke(&self, args: &[Value]) -> Result<Value, Error> {
-        let name = RString::try_convert(*args.get(0).ok_or_else(|| {
+        let name = RString::try_convert(*args.first().ok_or_else(|| {
             Error::new(
                 magnus::exception::type_error(),
                 "wrong number of arguments (given 0, expected 1+)",

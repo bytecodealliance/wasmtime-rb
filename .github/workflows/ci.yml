@@ -86,7 +86,7 @@ jobs:
 
       - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
         with:
-          ruby-version: "3.2"
+          ruby-version: "3.3"
           rustup-toolchain: "${{ env.NIGHTLY_VERSION }}"
           bundler-cache: true
           cargo-cache: true

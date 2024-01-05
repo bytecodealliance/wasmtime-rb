@@ -77,7 +77,8 @@ impl<'a> Caller<'a> {
     }
 
     /// @yard
-    /// @see Store#get_fuel
+    /// (see Store#get_fuel)
+    /// @def get_fuel
     pub fn get_fuel(&self) -> Result<u64, Error> {
         self.handle
             .get()
@@ -86,7 +87,8 @@ impl<'a> Caller<'a> {
     }
 
     /// @yard
-    /// @see Store#set_fuel
+    /// (see Store#set_fuel)
+    /// @def set_fuel(fuel)
     pub fn set_fuel(&self, fuel: u64) -> Result<(), Error> {
         self.handle
             .get_mut()

@@ -164,19 +164,18 @@ impl Store {
 
     /// @yard
     /// Returns the amount of fuel in the {Store}.
-    /// This function errors if fuel consumption is not configured by passing
-    /// enabling fuel consumption via Wasmtime::Engine::new.
     ///
-    /// @return [Integer, Error]
+    /// @return [Integer]
+    /// @raise [Error] if fuel consumption is not enabled via {Wasmtime::Engine#new}
     pub fn get_fuel(&self) -> Result<u64, Error> {
         self.inner_ref().get_fuel().map_err(|e| error!("{}", e))
     }
 
     /// @yard
     /// Sets fuel to the {Store}.
-    /// @param fuel [Integer] The fuel to add.
+    /// @param fuel [Integer] The new fuel amount.
     /// @def set_fuel(fuel)
-    /// @return [Error]
+    /// @raise [Error] if fuel consumption is not enabled via {Wasmtime::Engine#new}
     pub fn set_fuel(&self, fuel: u64) -> Result<(), Error> {
         unsafe { &mut *self.inner.get() }
             .set_fuel(fuel)

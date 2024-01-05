@@ -697,7 +697,7 @@ pub fn exports(&amp;self) -&gt; Result&lt;RHash, Error&gt; {
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 133</span>
 
 pub fn invoke(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
-    let name = RString::try_convert(*args.get(0).ok_or_else(|| {
+    let name = RString::try_convert(*args.first().ok_or_else(|| {
         Error::new(
             magnus::exception::type_error(),
             &quot;wrong number of arguments (given 0, expected 1+)&quot;,
@@ -718,7 +718,7 @@ pub fn invoke(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Dec 12 15:22:40 2023 by
+  Generated on Fri Jan  5 20:38:07 2024 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.34 (ruby-3.2.2).
 </div>

@@ -135,54 +135,6 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#add_fuel-instance_method" title="#add_fuel (instance method)">#<strong>add_fuel</strong>(fuel)  &#x21d2; Nil </a>
-    
-
-    
-  </span>
-  
-  
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'>
-<p>Adds fuel to the <span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span>.</p>
-</div></span>
-  
-</li>
-
-      
-        <li class="public ">
-  <span class="summary_signature">
-    
-      <a href="#consume_fuel-instance_method" title="#consume_fuel (instance method)">#<strong>consume_fuel</strong>(fuel)  &#x21d2; Integer </a>
-    
-
-    
-  </span>
-  
-  
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'>
-<p>Synthetically consumes fuel from this <span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span>.</p>
-</div></span>
-  
-</li>
-
-      
-        <li class="public ">
-  <span class="summary_signature">
-    
       <a href="#export-instance_method" title="#export (instance method)">#<strong>export</strong>(name)  &#x21d2; Object </a>
     
 
@@ -205,7 +157,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#fuel_consumed-instance_method" title="#fuel_consumed (instance method)">#<strong>fuel_consumed</strong>  &#x21d2; Integer, Nil </a>
+      <a href="#get_fuel-instance_method" title="#get_fuel (instance method)">#<strong>get_fuel</strong>  &#x21d2; Integer </a>
     
 
     
@@ -220,7 +172,31 @@
 
   
     <span class="summary_desc"><div class='inline'>
-<p>Returns the amount of fuel consumed by this <span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span>’s execution so far, or <code>nil</code> when the <span class='object_link'><a href="Engine.html" title="Wasmtime::Engine (class)">Engine</a></span>’s config does not have fuel enabled.</p>
+<p>Returns the amount of fuel in the <span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span>.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#set_fuel-instance_method" title="#set_fuel (instance method)">#<strong>set_fuel</strong>(fuel)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Sets fuel to the <span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span>.</p>
 </div></span>
   
 </li>
@@ -260,172 +236,7 @@
 
     
       <div class="method_details first">
-  <h3 class="signature first" id="add_fuel-instance_method">
-  
-    #<strong>add_fuel</strong>(fuel)  &#x21d2; <tt>Nil</tt> 
-  
-
-  
-
-  
-</h3><div class="docstring">
-  <div class="discussion">
-    
-<p>Adds fuel to the <span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span>.</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  <p class="tag_title">Parameters:</p>
-<ul class="param">
-  
-    <li>
-      
-        <span class='name'>fuel</span>
-      
-      
-        <span class='type'>(<tt>Integer</tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'>
-<p>The fuel to add.</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-<p class="tag_title">Returns:</p>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt>Nil</tt>)</span>
-      
-      
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-88
-89
-90
-91
-92
-93
-94</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 88</span>
-
-pub fn add_fuel(&amp;self, fuel: u64) -&gt; Result&lt;(), Error&gt; {
-    self.handle
-        .get_mut()
-        .and_then(|c| c.add_fuel(fuel).map_err(|e| error!(&quot;{}&quot;, e)))?;
-
-    Ok(())
-}</pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-      <div class="method_details ">
-  <h3 class="signature " id="consume_fuel-instance_method">
-  
-    #<strong>consume_fuel</strong>(fuel)  &#x21d2; <tt>Integer</tt> 
-  
-
-  
-
-  
-</h3><div class="docstring">
-  <div class="discussion">
-    
-<p>Synthetically consumes fuel from this <span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span>. Raises if there isn’t enough fuel left in the <span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span>, or when the <span class='object_link'><a href="Engine.html" title="Wasmtime::Engine (class)">Engine</a></span>’s config does not have fuel enabled.</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  <p class="tag_title">Parameters:</p>
-<ul class="param">
-  
-    <li>
-      
-        <span class='name'>fuel</span>
-      
-      
-        <span class='type'>(<tt>Integer</tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'>
-<p>The fuel to consume.</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-<p class="tag_title">Returns:</p>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt>Integer</tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'>
-<p>The remaining fuel.</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-99
-100
-101
-102
-103</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 99</span>
-
-pub fn consume_fuel(&amp;self, fuel: u64) -&gt; Result&lt;u64, Error&gt; {
-    self.handle
-        .get_mut()
-        .and_then(|c| c.consume_fuel(fuel).map_err(|e| error!(&quot;{}&quot;, e)))
-}</pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-      <div class="method_details ">
-  <h3 class="signature " id="export-instance_method">
+  <h3 class="signature first" id="export-instance_method">
   
     #<strong>export</strong>(name)  &#x21d2; <tt>Object</tt> 
   
@@ -485,9 +296,9 @@ pub fn export(rb_self: Obj&lt;Caller&lt;&#39;a&gt;&gt;, name: RString) -&gt; Res
 </div>
     
       <div class="method_details ">
-  <h3 class="signature " id="fuel_consumed-instance_method">
+  <h3 class="signature " id="get_fuel-instance_method">
   
-    #<strong>fuel_consumed</strong>  &#x21d2; <tt>Integer</tt>, <tt>Nil</tt> 
+    #<strong>get_fuel</strong>  &#x21d2; <tt>Integer</tt> 
   
 
   
@@ -496,7 +307,7 @@ pub fn export(rb_self: Obj&lt;Caller&lt;&#39;a&gt;&gt;, name: RString) -&gt; Res
 </h3><div class="docstring">
   <div class="discussion">
     
-<p>Returns the amount of fuel consumed by this <span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span>’s execution so far, or <code>nil</code> when the <span class='object_link'><a href="Engine.html" title="Wasmtime::Engine (class)">Engine</a></span>’s config does not have fuel enabled.</p>
+<p>Returns the amount of fuel in the <span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span>.</p>
 
 
   </div>
@@ -509,9 +320,27 @@ pub fn export(rb_self: Obj&lt;Caller&lt;&#39;a&gt;&gt;, name: RString) -&gt; Res
     <li>
       
       
-        <span class='type'>(<tt>Integer</tt>, <tt>Nil</tt>)</span>
+        <span class='type'>(<tt>Integer</tt>)</span>
       
       
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="Error.html" title="Wasmtime::Error (class)">Error</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>if fuel consumption is not enabled via Engine#new</p>
+</div>
       
     </li>
   
@@ -523,15 +352,108 @@ pub fn export(rb_self: Obj&lt;Caller&lt;&#39;a&gt;&gt;, name: RString) -&gt; Res
       <pre class="lines">
 
 
-81
 82
-83</pre>
+83
+84
+85
+86
+87</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 81</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 82</span>
 
-pub fn fuel_consumed(&amp;self) -&gt; Result&lt;Option&lt;u64&gt;, Error&gt; {
-    self.handle.get().map(|c| c.fuel_consumed())
+pub fn get_fuel(&amp;self) -&gt; Result&lt;u64, Error&gt; {
+    self.handle
+        .get()
+        .map(|c| c.get_fuel())?
+        .map_err(|e| error!(&quot;{}&quot;, e))
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="set_fuel-instance_method">
+  
+    #<strong>set_fuel</strong>(fuel)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Sets fuel to the <span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span>.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>fuel</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The new fuel amount.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="Error.html" title="Wasmtime::Error (class)">Error</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>if fuel consumption is not enabled via Engine#new</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+92
+93
+94
+95
+96
+97
+98</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 92</span>
+
+pub fn set_fuel(&amp;self, fuel: u64) -&gt; Result&lt;(), Error&gt; {
+    self.handle
+        .get_mut()
+        .and_then(|c| c.set_fuel(fuel).map_err(|e| error!(&quot;{}&quot;, e)))?;
+
+    Ok(())
 }</pre>
     </td>
   </tr>
@@ -602,7 +524,7 @@ pub fn store_data(&amp;self) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Dec 12 15:22:40 2023 by
+  Generated on Fri Jan  5 20:38:07 2024 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.34 (ruby-3.2.2).
 </div>

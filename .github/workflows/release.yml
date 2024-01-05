@@ -37,7 +37,7 @@ jobs:
 
       - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
         with:
-          ruby-version: "3.2"
+          ruby-version: "3.3"
           bundler-cache: false
           cargo-cache: true
           cargo-vendor: true
@@ -63,12 +63,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
         with:
-          ruby-version: "3.2"
+          ruby-version: "3.3"
           bundler-cache: true
           cargo-cache: true
           cache-version: v1
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: cross-gem
+
+      - name: Package source gem
+        run: bundle exec rake pkg:ruby
 
       - name: Ensure version matches the tag
         run: |
@@ -78,13 +86,6 @@ jobs:
             echo "  v$GEM_VERSION != ${{ github.ref_name }}"
             exit 1
           fi
-
-      - uses: actions/download-artifact@v3
-        with:
-          name: cross-gem
-
-      - name: Package source gem
-        run: bundle exec rake pkg:ruby
 
       - name: Push Gem
         working-directory: pkg/

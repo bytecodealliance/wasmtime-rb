@@ -98,14 +98,23 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>lib/wasmtime/error.rb<span class="defines">,<br />
-  ext/src/ruby_api/trap.rs</span>
-</dd>
+    <dd>lib/wasmtime/error.rb</dd>
   </dl>
   
 </div>
 
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    
+<p>Raised on Wasm trap.</p>
 
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
   
     <h2>
       Constant Summary
@@ -193,89 +202,6 @@
 
 
 
-  
-    <h2>
-      Instance Method Summary
-      <small><a href="#" class="summary_toggle">collapse</a></small>
-    </h2>
-
-    <ul class="summary">
-      
-        <li class="public ">
-  <span class="summary_signature">
-    
-      <a href="#code-instance_method" title="#code (instance method)">#<strong>code</strong>  &#x21d2; Symbol<sup>?</sup> </a>
-    
-
-    
-  </span>
-  
-  
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'>
-<p>Returns the trap code as a Symbol, possibly nil if the trap did not origin from Wasm code.</p>
-</div></span>
-  
-</li>
-
-      
-        <li class="public ">
-  <span class="summary_signature">
-    
-      <a href="#message-instance_method" title="#message (instance method)">#<strong>message</strong>  &#x21d2; String </a>
-    
-
-    
-  </span>
-  
-  
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'>
-<p>Returns a textual description of the trap error, for example:     wasm trap: wasm ‘unreachable` instruction executed.</p>
-</div></span>
-  
-</li>
-
-      
-        <li class="public ">
-  <span class="summary_signature">
-    
-      <a href="#wasm_backtrace_message-instance_method" title="#wasm_backtrace_message (instance method)">#<strong>wasm_backtrace_message</strong>  &#x21d2; String<sup>?</sup> </a>
-    
-
-    
-  </span>
-  
-  
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'>
-<p>Returns a textual representation of the Wasm backtrce, if it exists.</p>
-</div></span>
-  
-</li>
-
-      
-    </ul>
-  
-
 
   
   
@@ -284,218 +210,11 @@
   
   
   
-
-  <div id="instance_method_details" class="method_details_list">
-    <h2>Instance Method Details</h2>
-
-    
-      <div class="method_details first">
-  <h3 class="signature first" id="code-instance_method">
-  
-    #<strong>code</strong>  &#x21d2; <tt>Symbol</tt><sup>?</sup> 
-  
-
-  
-
-  
-</h3><div class="docstring">
-  <div class="discussion">
-    
-<p>Returns the trap code as a Symbol, possibly nil if the trap did not origin from Wasm code. All possible trap codes are defined as constants on <span class='object_link'><a href="" title="Wasmtime::Trap (class)">Wasmtime::Trap</a></span>.</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  
-<p class="tag_title">Returns:</p>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt>Symbol</tt>, <tt>nil</tt>)</span>
-      
-      
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/trap.rs', line 59</span>
-
-pub fn code(&amp;self) -&gt; Result&lt;Option&lt;Symbol&gt;, Error&gt; {
-    match self.trap {
-        wasmtime::Trap::StackOverflow =&gt; trap_const!(STACK_OVERFLOW),
-        wasmtime::Trap::MemoryOutOfBounds =&gt; trap_const!(MEMORY_OUT_OF_BOUNDS),
-        wasmtime::Trap::HeapMisaligned =&gt; trap_const!(HEAP_MISALIGNED),
-        wasmtime::Trap::TableOutOfBounds =&gt; trap_const!(TABLE_OUT_OF_BOUNDS),
-        wasmtime::Trap::IndirectCallToNull =&gt; trap_const!(INDIRECT_CALL_TO_NULL),
-        wasmtime::Trap::BadSignature =&gt; trap_const!(BAD_SIGNATURE),
-        wasmtime::Trap::IntegerOverflow =&gt; trap_const!(INTEGER_OVERFLOW),
-        wasmtime::Trap::IntegerDivisionByZero =&gt; trap_const!(INTEGER_DIVISION_BY_ZERO),
-        wasmtime::Trap::BadConversionToInteger =&gt; trap_const!(BAD_CONVERSION_TO_INTEGER),
-        wasmtime::Trap::UnreachableCodeReached =&gt; trap_const!(UNREACHABLE_CODE_REACHED),
-        wasmtime::Trap::Interrupt =&gt; trap_const!(INTERRUPT),
-        wasmtime::Trap::AlwaysTrapAdapter =&gt; trap_const!(ALWAYS_TRAP_ADAPTER),
-        wasmtime::Trap::OutOfFuel =&gt; trap_const!(OUT_OF_FUEL),
-        // When adding a trap code here, define a matching constant on Wasmtime::Trap (in Ruby)
-        _ =&gt; trap_const!(UNKNOWN),
-    }
-}</pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-      <div class="method_details ">
-  <h3 class="signature " id="message-instance_method">
-  
-    #<strong>message</strong>  &#x21d2; <tt>String</tt> 
-  
-
-  
-
-  
-</h3><div class="docstring">
-  <div class="discussion">
-    
-<p>Returns a textual description of the trap error, for example:</p>
-
-<pre class="code rustdoc"><code class="rustdoc">wasm trap: wasm `unreachable` instruction executed
-</code></pre>
-
-
-  </div>
-</div>
-<div class="tags">
-  
-<p class="tag_title">Returns:</p>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt>String</tt>)</span>
-      
-      
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-41
-42
-43</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/trap.rs', line 41</span>
-
-pub fn message(&amp;self) -&gt; String {
-    self.trap.to_string()
-}</pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-      <div class="method_details ">
-  <h3 class="signature " id="wasm_backtrace_message-instance_method">
-  
-    #<strong>wasm_backtrace_message</strong>  &#x21d2; <tt>String</tt><sup>?</sup> 
-  
-
-  
-
-  
-</h3><div class="docstring">
-  <div class="discussion">
-    
-<p>Returns a textual representation of the Wasm backtrce, if it exists. For example:</p>
-
-<pre class="code rustdoc"><code class="rustdoc">error while executing at wasm backtrace:
-    0:   0x1a - &lt;unknown&gt;!&lt;wasm function 0&gt;
-</code></pre>
-
-
-  </div>
-</div>
-<div class="tags">
-  
-<p class="tag_title">Returns:</p>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt>String</tt>, <tt>nil</tt>)</span>
-      
-      
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-51
-52
-53</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/trap.rs', line 51</span>
-
-pub fn wasm_backtrace_message(&amp;self) -&gt; Option&lt;String&gt; {
-    self.wasm_backtrace.as_ref().map(|bt| format!(&quot;{bt}&quot;))
-}</pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-  </div>
 
 </div>
 
       <div id="footer">
-  Generated on Fri Jan  5 21:51:58 2024 by
+  Generated on Sun Jan  7 23:11:44 2024 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.34 (ruby-3.3.0).
 </div>

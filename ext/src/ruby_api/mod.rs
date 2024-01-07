@@ -7,7 +7,7 @@
 // (`pub(crate) use`). Allowing unused imports is easier and less repetitive.
 // Also the feature is already correctly gated in lib.rs.
 #![allow(unused_imports)]
-use magnus::{define_module, function, memoize, Error, RModule, RString};
+use magnus::{function, value::Lazy, Error, RModule, RString, Ruby};
 
 mod caller;
 mod config;
@@ -41,7 +41,9 @@ pub use wasi_ctx_builder::WasiCtxBuilder;
 
 /// The "Wasmtime" Ruby module.
 pub fn root() -> RModule {
-    *memoize!(RModule: define_module("Wasmtime").unwrap())
+    static ROOT: Lazy<RModule> = Lazy::new(|ruby| ruby.define_module("Wasmtime").unwrap());
+    let ruby = Ruby::get().unwrap();
+    ruby.get_inner(&ROOT)
 }
 
 // This Struct is a placeholder for documentation, so that we can hang methods
@@ -62,7 +64,7 @@ impl Wasmtime {
     }
 }
 
-pub fn init() -> Result<(), Error> {
+pub fn init(ruby: &Ruby) -> Result<(), Error> {
     let wasmtime = root();
 
     wasmtime.define_module_function("wat2wasm", function!(Wasmtime::wat2wasm, 1))?;
@@ -75,7 +77,7 @@ pub fn init() -> Result<(), Error> {
     instance::init()?;
     func::init()?;
     caller::init()?;
-    memory::init()?;
+    memory::init(ruby)?;
     linker::init()?;
     externals::init()?;
     wasi_ctx_builder::init()?;

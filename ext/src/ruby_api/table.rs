@@ -5,8 +5,8 @@ use super::{
 };
 use crate::{define_rb_intern, error};
 use magnus::{
-    class, function, method, prelude::*, scan_args, typed_data::Obj, DataTypeFunctions, Error,
-    IntoValue, Object, Symbol, TypedData, Value,
+    class, function, gc::Marker, method, prelude::*, scan_args, typed_data::Obj, DataTypeFunctions,
+    Error, IntoValue, Object, Symbol, TypedData, Value,
 };
 use wasmtime::{Extern, Table as TableImpl, TableType};
 
@@ -19,7 +19,7 @@ define_rb_intern!(
 /// @rename Wasmtime::Table
 /// Represents a WebAssembly table.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Table.html Wasmtime's Rust doc
-#[derive(Debug, TypedData)]
+#[derive(TypedData)]
 #[magnus(class = "Wasmtime::Table", free_immediately, mark, unsafe_generics)]
 pub struct Table<'a> {
     store: StoreContextValue<'a>,
@@ -27,8 +27,8 @@ pub struct Table<'a> {
 }
 
 impl DataTypeFunctions for Table<'_> {
-    fn mark(&self) {
-        self.store.mark()
+    fn mark(&self, marker: &Marker) {
+        self.store.mark(marker)
     }
 }
 
@@ -47,10 +47,9 @@ impl<'a> Table<'a> {
             &[*MIN_SIZE],
             &[*MAX_SIZE],
         )?;
-        let (s, value_type, default) = args.required;
+        let (store, value_type, default) = args.required;
         let (min,) = kw.required;
         let (max,) = kw.optional;
-        let store = s.get();
         let wasm_type = value_type.to_val_type()?;
         let wasm_default = default.to_wasm_val(wasm_type.clone())?;
 
@@ -62,7 +61,7 @@ impl<'a> Table<'a> {
         .map_err(|e| error!("{}", e))?;
 
         let table = Self {
-            store: s.into(),
+            store: store.into(),
             inner,
         };
 

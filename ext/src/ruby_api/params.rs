@@ -1,5 +1,5 @@
 use super::convert::ToWasmVal;
-use magnus::{exception::arg_error, Error, ExceptionClass, Value};
+use magnus::{error::ErrorType, exception::arg_error, Error, Value};
 use static_assertions::assert_eq_size;
 use wasmtime::{FuncType, ValType};
 
@@ -22,12 +22,12 @@ impl Param {
     fn to_wasmtime_val(&self) -> Result<wasmtime::Val, Error> {
         self.val
             .to_wasm_val(self.ty.clone())
-            .map_err(|error| match error {
-                Error::Error(class, msg) => {
-                    Error::new(class, format!("{} (param at index {})", msg, self.index))
+            .map_err(|error| match error.error_type() {
+                ErrorType::Error(class, msg) => {
+                    Error::new(*class, format!("{} (param at index {})", msg, self.index))
                 }
-                Error::Exception(exception) => Error::new(
-                    ExceptionClass::from_value(exception.class().into()).unwrap_or_else(arg_error),
+                ErrorType::Exception(exception) => Error::new(
+                    exception.exception_class(),
                     format!("{} (param at index {})", exception, self.index),
                 ),
                 _ => error,

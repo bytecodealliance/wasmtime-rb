@@ -7,8 +7,8 @@ use super::{
 };
 use crate::{define_rb_intern, error};
 use magnus::{
-    class, function, method, r_string::RString, scan_args, typed_data::Obj, DataTypeFunctions,
-    Error, Module as _, Object, TypedData, Value,
+    class, function, gc::Marker, method, r_string::RString, scan_args, typed_data::Obj,
+    DataTypeFunctions, Error, Module as _, Object, Ruby, TypedData, Value,
 };
 
 use rb_sys::tracking_allocator::ManuallyTracked;
@@ -24,7 +24,7 @@ define_rb_intern!(
 /// @rename Wasmtime::Memory
 /// Represents a WebAssembly memory.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Memory.html Wasmtime's Rust doc
-#[derive(Debug, TypedData)]
+#[derive(TypedData)]
 #[magnus(class = "Wasmtime::Memory", free_immediately, mark, unsafe_generics)]
 pub struct Memory<'a> {
     store: StoreContextValue<'a>,
@@ -32,8 +32,8 @@ pub struct Memory<'a> {
 }
 
 impl DataTypeFunctions for Memory<'_> {
-    fn mark(&self) {
-        self.store.mark()
+    fn mark(&self, marker: &Marker) {
+        self.store.mark(marker)
     }
 }
 unsafe impl Send for Memory<'_> {}
@@ -51,10 +51,9 @@ impl<'a> Memory<'a> {
             &[*MIN_SIZE],
             &[*MAX_SIZE],
         )?;
-        let (s,) = args.required;
+        let (store,) = args.required;
         let (min,) = kw.required;
         let (max,) = kw.optional;
-        let store = s.get();
 
         let memtype = wasmtime::MemoryType::new(min, max);
 
@@ -62,7 +61,7 @@ impl<'a> Memory<'a> {
         let memsize = inner.data_size(store.context_mut());
 
         Ok(Self {
-            store: s.into(),
+            store: store.into(),
             inner: ManuallyTracked::wrap(inner, memsize),
         })
     }
@@ -223,7 +222,7 @@ impl From<&Memory<'_>> for Extern {
     }
 }
 
-pub fn init() -> Result<(), Error> {
+pub fn init(ruby: &Ruby) -> Result<(), Error> {
     let class = root().define_class("Memory", class::object())?;
     class.define_singleton_method("new", function!(Memory::new, -1))?;
     class.define_method("min_size", method!(Memory::min_size, 0))?;
@@ -236,7 +235,7 @@ pub fn init() -> Result<(), Error> {
     class.define_method("data_size", method!(Memory::data_size, 0))?;
     class.define_method("read_unsafe_slice", method!(Memory::read_unsafe_slice, 2))?;
 
-    unsafe_slice::init()?;
+    unsafe_slice::init(ruby)?;
 
     Ok(())
 }

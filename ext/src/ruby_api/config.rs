@@ -4,6 +4,7 @@ use crate::{define_rb_intern, helpers::SymbolEnum};
 use lazy_static::lazy_static;
 use magnus::{
     exception::{arg_error, type_error},
+    prelude::*,
     r_hash::ForEach,
     Error, RHash, Symbol, TryConvert, Value,
 };
@@ -170,8 +171,7 @@ impl TryFrom<ConfigEntry> for String {
 impl TryFrom<ConfigEntry> for Option<String> {
     type Error = magnus::Error;
     fn try_from(value: ConfigEntry) -> Result<Self, Self::Error> {
-        let val: Option<String> = value.1.try_convert().map_err(|_| value.invalid_type())?;
-        Ok(val)
+        <Option<String>>::try_convert(value.1).map_err(|_| value.invalid_type())
     }
 }
 

@@ -1,13 +1,15 @@
 use crate::{define_rb_intern, error, root, Memory};
 use magnus::{
-    class, gc, method,
+    class,
+    gc::Marker,
+    method,
     rb_sys::{AsRawId, AsRawValue, FromRawValue},
     typed_data::Obj,
-    value::IntoId,
-    DataTypeFunctions, Error, Module as _, TryConvert, TypedData, Value,
+    value::{IntoId, Lazy, Opaque},
+    Class, DataTypeFunctions, Error, Module as _, Ruby, TryConvert, TypedData, Value,
 };
 #[cfg(ruby_gte_3_0)]
-use magnus::{class::object, memoize, require, RClass, RModule};
+use magnus::{class::object, require, RClass, RModule};
 use rb_sys::{rb_ivar_set, rb_obj_freeze, rb_str_new_static};
 #[cfg(ruby_gte_3_0)]
 use rb_sys::{
@@ -24,7 +26,7 @@ use std::ops::Range;
 /// The returned {UnsafeSlice} lazily reads the underlying memory, meaning that
 /// the actual pointer to the string buffer is not materialzed until
 /// {UnsafeSlice#to_str} is called.
-#[derive(Debug, TypedData)]
+#[derive(TypedData)]
 #[magnus(
     class = "Wasmtime::Memory::UnsafeSlice",
     free_immediately,
@@ -39,8 +41,8 @@ pub struct UnsafeSlice<'a> {
 define_rb_intern!(IVAR_NAME => "__slice__",);
 
 impl DataTypeFunctions for UnsafeSlice<'_> {
-    fn mark(&self) {
-        self.memory.mark()
+    fn mark(&self, marker: &Marker) {
+        self.memory.mark(marker)
     }
 }
 
@@ -66,13 +68,9 @@ impl<'a> UnsafeSlice<'a> {
     /// @return [Fiddle::MemoryView] Memory view of the slice.
     #[cfg(ruby_gte_3_0)]
     pub fn to_memory_view(rb_self: Obj<Self>) -> Result<Value, Error> {
-        let klass = *memoize!(RClass: {
-            let c = fiddle_memory_view_class().unwrap();
-            gc::register_mark_object(c);
-            c
-        });
-
-        klass.new_instance((rb_self,))
+        static CLASS: Lazy<RClass> = Lazy::new(|_| fiddle_memory_view_class().unwrap());
+        let ruby = Ruby::get().unwrap();
+        ruby.get_inner(&CLASS).new_instance((rb_self,))
     }
 
     /// @yard
@@ -81,7 +79,7 @@ impl<'a> UnsafeSlice<'a> {
     /// @def to_str
     /// @return [String] Binary +String+ of the memory.
     pub fn to_str(rb_self: Obj<Self>) -> Result<Value, Error> {
-        let raw_slice = rb_self.get().get_raw_slice()?;
+        let raw_slice = rb_self.get_raw_slice()?;
         let id = IVAR_NAME.into_id();
         let rstring = unsafe {
             let val = rb_str_new_static(raw_slice.as_ptr() as _, raw_slice.len() as _);
@@ -101,8 +99,8 @@ impl<'a> UnsafeSlice<'a> {
     }
 
     #[cfg(ruby_gte_3_0)]
-    fn register_memory_view() -> Result<(), Error> {
-        let class = Self::class();
+    fn register_memory_view(ruby: &Ruby) -> Result<(), Error> {
+        let class = Self::class(ruby);
 
         static ENTRY: rb_memory_view_entry_t = rb_memory_view_entry_t {
             get_func: Some(UnsafeSlice::initialize_memory_view),
@@ -127,7 +125,6 @@ impl<'a> UnsafeSlice<'a> {
         let Ok(memory) = <Obj<UnsafeSlice>>::try_convert(obj) else {
             return false;
         };
-        let memory = memory.get();
         let Ok(raw_slice) = memory.get_raw_slice() else {
             return false;
         };
@@ -142,31 +139,30 @@ impl<'a> UnsafeSlice<'a> {
         let Ok(memory) = <Obj<UnsafeSlice>>::try_convert(obj) else {
             return false;
         };
-        let memory = memory.get();
 
         memory.get_raw_slice().is_ok()
     }
 }
 
 /// A guard that ensures that a memory slice is not invalidated by resizing
-#[derive(Debug)]
 pub struct MemoryGuard<'a> {
-    memory: Obj<Memory<'a>>,
+    memory: Opaque<Obj<Memory<'a>>>,
     original_size: u64,
 }
 
 impl<'a> MemoryGuard<'a> {
     pub fn new(memory: Obj<Memory<'a>>) -> Result<Self, Error> {
-        let original_size = memory.get().size()?;
+        let original_size = memory.size()?;
 
         Ok(Self {
-            memory,
+            memory: memory.into(),
             original_size,
         })
     }
 
     pub fn get(&self) -> Result<&Memory<'a>, Error> {
-        let mem = self.memory.get();
+        let ruby = Ruby::get().unwrap();
+        let mem = ruby.get_inner_ref(&self.memory);
 
         if mem.size()? != self.original_size {
             Err(error!("memory slice was invalidated by resize"))
@@ -175,12 +171,12 @@ impl<'a> MemoryGuard<'a> {
         }
     }
 
-    pub fn mark(&self) {
-        gc::mark(self.memory)
+    pub fn mark(&self, marker: &Marker) {
+        marker.mark(self.memory)
     }
 }
 
-pub fn init() -> Result<(), Error> {
+pub fn init(ruby: &Ruby) -> Result<(), Error> {
     let parent = root().define_class("Memory", class::object())?;
 
     let class = parent.define_class("UnsafeSlice", class::object())?;
@@ -188,7 +184,7 @@ pub fn init() -> Result<(), Error> {
 
     #[cfg(ruby_gte_3_0)]
     if require("fiddle").is_ok() && fiddle_memory_view_class().is_some() {
-        UnsafeSlice::register_memory_view()?;
+        UnsafeSlice::register_memory_view(ruby)?;
         class.define_method("to_memory_view", method!(UnsafeSlice::to_memory_view, 0))?;
     }
 

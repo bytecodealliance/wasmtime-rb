@@ -5,8 +5,8 @@ use super::{
 };
 use crate::error;
 use magnus::{
-    class, function, method, prelude::*, typed_data::Obj, DataTypeFunctions, Error, Object, Symbol,
-    TypedData, Value,
+    class, function, gc::Marker, method, prelude::*, typed_data::Obj, DataTypeFunctions, Error,
+    Object, Symbol, TypedData, Value,
 };
 use wasmtime::{Extern, Global as GlobalImpl, GlobalType, Mutability};
 
@@ -14,7 +14,7 @@ use wasmtime::{Extern, Global as GlobalImpl, GlobalType, Mutability};
 /// @rename Wasmtime::Global
 /// Represents a WebAssembly global.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Global.html Wasmtime's Rust doc
-#[derive(Debug, TypedData)]
+#[derive(TypedData)]
 #[magnus(class = "Wasmtime::Global", free_immediately, mark, unsafe_generics)]
 pub struct Global<'a> {
     store: StoreContextValue<'a>,
@@ -22,8 +22,8 @@ pub struct Global<'a> {
 }
 
 impl DataTypeFunctions for Global<'_> {
-    fn mark(&self) {
-        self.store.mark()
+    fn mark(&self, marker: &Marker) {
+        self.store.mark(marker)
     }
 }
 
@@ -49,14 +49,13 @@ impl<'a> Global<'a> {
     }
 
     fn new(
-        s: Obj<Store>,
+        store: Obj<Store>,
         value_type: Symbol,
         default: Value,
         mutability: Mutability,
     ) -> Result<Self, Error> {
         let wasm_type = value_type.to_val_type()?;
         let wasm_default = default.to_wasm_val(wasm_type.clone())?;
-        let store = s.get();
         let inner = GlobalImpl::new(
             store.context_mut(),
             GlobalType::new(wasm_type, mutability),
@@ -65,7 +64,7 @@ impl<'a> Global<'a> {
         .map_err(|e| error!("{}", e))?;
 
         let global = Self {
-            store: s.into(),
+            store: store.into(),
             inner,
         };
 

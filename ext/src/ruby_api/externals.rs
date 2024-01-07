@@ -4,8 +4,8 @@ use super::{
 };
 use crate::{conversion_err, not_implemented};
 use magnus::{
-    class, gc, method, rb_sys::AsRawValue, typed_data::Obj, DataTypeFunctions, Error, Module,
-    RClass, TypedData, Value,
+    class, gc::Marker, method, prelude::*, rb_sys::AsRawValue, typed_data::Obj, DataTypeFunctions,
+    Error, Module, RClass, Ruby, TypedData, Value,
 };
 
 /// @yard
@@ -28,12 +28,12 @@ pub enum Extern<'a> {
 }
 
 impl DataTypeFunctions for Extern<'_> {
-    fn mark(&self) {
+    fn mark(&self, marker: &Marker) {
         match self {
-            Extern::Func(f) => gc::mark(*f),
-            Extern::Global(g) => gc::mark(*g),
-            Extern::Memory(m) => gc::mark(*m),
-            Extern::Table(t) => gc::mark(*t),
+            Extern::Func(f) => marker.mark(*f),
+            Extern::Global(g) => marker.mark(*g),
+            Extern::Memory(m) => marker.mark(*m),
+            Extern::Table(t) => marker.mark(*t),
         }
     }
 }
@@ -44,20 +44,20 @@ impl Extern<'_> {
     /// Returns the exported function or raises a `{ConversionError}` when the export is not a
     /// function.
     /// @return [Func] The exported function.
-    pub fn to_func(rb_self: Obj<Self>) -> Result<Value, Error> {
-        match rb_self.get() {
+    pub fn to_func(ruby: &Ruby, rb_self: Obj<Self>) -> Result<Value, Error> {
+        match *rb_self {
             Extern::Func(f) => Ok(f.as_value()),
-            _ => conversion_err!(Self::inner_class(rb_self), Func::class()),
+            _ => conversion_err!(Self::inner_class(rb_self), Func::class(ruby)),
         }
     }
 
     /// @yard
     /// Returns the exported global or raises a `{ConversionError}` when the export is not a global.
     /// @return [Global] The exported global.
-    pub fn to_global(rb_self: Obj<Self>) -> Result<Value, Error> {
-        match rb_self.get() {
+    pub fn to_global(ruby: &Ruby, rb_self: Obj<Self>) -> Result<Value, Error> {
+        match *rb_self {
             Extern::Global(g) => Ok(g.as_value()),
-            _ => conversion_err!(Self::inner_class(rb_self), Global::class()),
+            _ => conversion_err!(Self::inner_class(rb_self), Global::class(ruby)),
         }
     }
 
@@ -65,27 +65,25 @@ impl Extern<'_> {
     /// Returns the exported memory or raises a `{ConversionError}` when the export is not a
     /// memory.
     /// @return [Memory] The exported memory.
-    pub fn to_memory(rb_self: Obj<Self>) -> Result<Value, Error> {
-        match rb_self.get() {
+    pub fn to_memory(ruby: &Ruby, rb_self: Obj<Self>) -> Result<Value, Error> {
+        match *rb_self {
             Extern::Memory(m) => Ok(m.as_value()),
-            _ => conversion_err!(Self::inner_class(rb_self), Memory::class()),
+            _ => conversion_err!(Self::inner_class(rb_self), Memory::class(ruby)),
         }
     }
 
     /// @yard
     /// Returns the exported table or raises a `{ConversionError}` when the export is not a table.
     /// @return [Table] The exported table.
-    pub fn to_table(rb_self: Obj<Self>) -> Result<Value, Error> {
-        match rb_self.get() {
+    pub fn to_table(ruby: &Ruby, rb_self: Obj<Self>) -> Result<Value, Error> {
+        match *rb_self {
             Extern::Table(t) => Ok(t.as_value()),
-            _ => conversion_err!(Self::inner_class(rb_self), Table::class()),
+            _ => conversion_err!(Self::inner_class(rb_self), Table::class(ruby)),
         }
     }
 
     pub fn inspect(rb_self: Obj<Self>) -> Result<String, Error> {
-        let rs_self = rb_self.get();
-
-        let inner_string: String = match rs_self {
+        let inner_string: String = match *rb_self {
             Extern::Func(f) => f.inspect(),
             Extern::Global(g) => g.inspect(),
             Extern::Memory(m) => m.inspect(),
@@ -100,7 +98,7 @@ impl Extern<'_> {
     }
 
     fn inner_class(rb_self: Obj<Self>) -> RClass {
-        match rb_self.get() {
+        match *rb_self {
             Extern::Func(f) => f.class(),
             Extern::Global(g) => g.class(),
             Extern::Memory(m) => m.class(),

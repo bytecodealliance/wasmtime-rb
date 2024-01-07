@@ -11,8 +11,9 @@ use super::{
 };
 use crate::{define_rb_intern, err, error};
 use magnus::{
-    block::Proc, class, function, gc, method, prelude::*, scan_args, scan_args::scan_args,
-    typed_data::Obj, DataTypeFunctions, Error, Object, RArray, RHash, RString, TypedData, Value,
+    block::Proc, class, function, gc::Marker, method, prelude::*, scan_args, scan_args::scan_args,
+    typed_data::Obj, DataTypeFunctions, Error, Object, RArray, RHash, RString, Ruby, TypedData,
+    Value,
 };
 use std::cell::RefCell;
 use wasmtime::Linker as LinkerImpl;
@@ -34,8 +35,8 @@ pub struct Linker {
 unsafe impl Send for Linker {}
 
 impl DataTypeFunctions for Linker {
-    fn mark(&self) {
-        gc::mark_slice(self.refs.borrow().as_slice());
+    fn mark(&self, marker: &Marker) {
+        marker.mark_slice(self.refs.borrow().as_slice());
     }
 }
 
@@ -100,15 +101,17 @@ impl Linker {
     /// @param item [Func, Memory] The item to define.
     /// @return [void]
     pub fn define(
-        &self,
+        ruby: &Ruby,
+        rb_self: &Self,
         store: &Store,
         module: RString,
         name: RString,
         item: Value,
     ) -> Result<(), Error> {
-        let item = item.to_extern()?;
+        let item = item.to_extern(ruby)?;
 
-        self.inner
+        rb_self
+            .inner
             .borrow_mut()
             .define(
                 store.context(),
@@ -138,7 +141,7 @@ impl Linker {
         let (module, name, params, results) = args.required;
         let callable = args.block;
         let ty = wasmtime::FuncType::new(params.to_val_type_vec()?, results.to_val_type_vec()?);
-        let func_closure = func::make_func_closure(&ty, callable);
+        let func_closure = func::make_func_closure(&ty, callable.into());
 
         self.refs.borrow_mut().push(callable.as_value());
 
@@ -164,11 +167,10 @@ impl Linker {
     /// @return [Extern, nil] The item if it exists, nil otherwise.
     pub fn get(
         &self,
-        s: Obj<Store>,
+        store: Obj<Store>,
         module: RString,
         name: RString,
     ) -> Result<Option<Extern>, Error> {
-        let store = s.get();
         let ext =
             self.inner
                 .borrow()
@@ -178,7 +180,7 @@ impl Linker {
 
         match ext {
             None => Ok(None),
-            Some(ext) => ext.wrap_wasmtime_type(s.into()).map(Some),
+            Some(ext) => ext.wrap_wasmtime_type(store.into()).map(Some),
         }
     }
 
@@ -272,9 +274,7 @@ impl Linker {
     /// @param store [Store]
     /// @param mod [Module]
     /// @return [Instance]
-    pub fn instantiate(&self, s: Obj<Store>, module: &Module) -> Result<Instance, Error> {
-        let store = s.get();
-
+    pub fn instantiate(&self, store: Obj<Store>, module: &Module) -> Result<Instance, Error> {
         if self.has_wasi && !store.context().data().has_wasi_ctx() {
             return err!(
                 "Store is missing WASI configuration.\n\n\
@@ -288,10 +288,10 @@ impl Linker {
         self.inner
             .borrow_mut()
             .instantiate(store.context_mut(), module.get())
-            .map_err(|e| StoreContextValue::from(s).handle_wasm_error(e))
+            .map_err(|e| StoreContextValue::from(store).handle_wasm_error(e))
             .map(|instance| {
                 self.refs.borrow().iter().for_each(|val| store.retain(*val));
-                Instance::from_inner(s, instance)
+                Instance::from_inner(store, instance)
             })
     }
 
@@ -301,13 +301,11 @@ impl Linker {
     /// @param store [Store]
     /// @param mod [String] Module name
     /// @return [Func]
-    pub fn get_default(&self, s: Obj<Store>, module: RString) -> Result<Func, Error> {
-        let store = s.get();
-
+    pub fn get_default(&self, store: Obj<Store>, module: RString) -> Result<Func, Error> {
         self.inner
             .borrow()
             .get_default(store.context_mut(), unsafe { module.as_str() }?)
-            .map(|func| Func::from_inner(s.into(), func))
+            .map(|func| Func::from_inner(store.into(), func))
             .map_err(|e| error!("{}", e))
     }
 }

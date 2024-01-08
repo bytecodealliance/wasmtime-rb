@@ -14,7 +14,6 @@ Gem::Specification.new do |spec|
   spec.license = "Apache-2.0"
   spec.required_ruby_version = ">= 3.0.0"
 
-  spec.metadata["homepage_uri"] = "https://github.com/BytecodeAlliance/wasmtime-rb"
   spec.metadata["source_code_uri"] = "https://github.com/BytecodeAlliance/wasmtime-rb"
   spec.metadata["cargo_crate_name"] = "wasmtime-rb"
   spec.metadata["changelog_uri"] = "https://github.com/bytecodealliance/wasmtime-rb/blob/main/CHANGELOG.md"

@@ -474,6 +474,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "deterministic-wasi-ctx"
+version = "0.1.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "278c99eec9202f996c0d05cef77ce5606784a071080e29b4844c06980569e170"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "cap-primitives",
+ "rand_core",
+ "rand_pcg",
+ "wasi-common",
+]
+
+[[package]]
 name = "digest"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1110,6 +1124,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 dependencies = [
  "getrandom",
+]
+
+[[package]]
+name = "rand_pcg"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "59cad018caf63deb318e5a4586d99a24424a364f40f1e5778c29aca23f4fc73e"
+dependencies = [
+ "rand_core",
 ]
 
 [[package]]
@@ -1936,6 +1959,7 @@ dependencies = [
  "anyhow",
  "async-timer",
  "cap-std",
+ "deterministic-wasi-ctx",
  "lazy_static",
  "magnus",
  "rb-sys",

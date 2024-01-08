@@ -11,8 +11,8 @@ GEM
     benchmark-ips (2.12.0)
     diff-lcs (1.5.0)
     ffi (1.15.5)
-    ffi (1.15.5-x64-mingw-ucrt)
     ffi (1.15.5-x64-mingw32)
+    ffi (1.15.5-x64-unknown)
     get_process_mem (0.2.7)
       ffi (~> 1.0)
     json (2.7.0)
@@ -84,8 +84,9 @@ GEM
 PLATFORMS
   arm64-darwin-21
   arm64-darwin-22
-  x64-mingw-ucrt
+  arm64-darwin-23
   x64-mingw32
+  x64-unknown
   x86_64-darwin-19
   x86_64-linux
 
@@ -101,4 +102,4 @@ DEPENDENCIES
   yard-rustdoc (~> 0.3.2)
 
 BUNDLED WITH
-   2.4.3
+   2.4.18

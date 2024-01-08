@@ -1,18 +1,18 @@
 use super::errors::wasi_exit_error;
 use super::{caller::Caller, engine::Engine, root, trap::Trap, wasi_ctx_builder::WasiCtxBuilder};
 use crate::{define_rb_intern, error};
-use magnus::Class;
+use magnus::{Class, RHash};
 use magnus::{
     class, function,
     gc::{Compactor, Marker},
     method, scan_args,
     typed_data::Obj,
     value::Opaque,
-    DataTypeFunctions, Error, IntoValue, Module, Object, Ruby, TypedData, Value,
+    DataTypeFunctions, Error, IntoValue, Module, Object, Ruby, TypedData, Value, StaticSymbol
 };
 use std::cell::UnsafeCell;
 use std::convert::TryFrom;
-use wasmtime::{AsContext, AsContextMut, Store as StoreImpl, StoreContext, StoreContextMut};
+use wasmtime::{AsContext, AsContextMut, Store as StoreImpl, StoreContext, StoreContextMut, StoreLimitsBuilder, StoreLimits};
 use wasmtime_wasi::{I32Exit, WasiCtx};
 
 define_rb_intern!(
@@ -24,6 +24,7 @@ pub struct StoreData {
     wasi: Option<WasiCtx>,
     refs: Vec<Value>,
     last_error: Option<Error>,
+    store_limits: StoreLimits
 }
 
 impl StoreData {
@@ -134,6 +135,7 @@ impl Store {
             wasi,
             refs: Default::default(),
             last_error: Default::default(),
+            store_limits: Default::default() // StoreLimits::default()
         };
         let store = Self {
             inner: UnsafeCell::new(StoreImpl::new(eng, store_data)),
@@ -168,6 +170,24 @@ impl Store {
             .map_err(|e| error!("{}", e))?;
 
         Ok(())
+    }
+
+    pub fn set_limits(&self, options: RHash) {
+        let mut limiter: StoreLimitsBuilder = StoreLimitsBuilder::new();
+
+        let memory_size_result: Result<usize, Error> = options.lookup::<_, usize>(StaticSymbol::new("memory_size"));
+        let memory_size = match memory_size_result {
+            Ok(size) => Some(size),
+            Err(_error) => None
+        };
+        if memory_size.is_some() {
+            limiter = limiter.memory_size(memory_size.unwrap());
+        }
+
+        self.context_mut().data_mut().store_limits = limiter.build();
+
+        unsafe { &mut *self.inner.get() }
+            .limiter(|data| &mut data.store_limits);
     }
 
     /// @yard
@@ -305,6 +325,7 @@ pub fn init() -> Result<(), Error> {
     class.define_method("data", method!(Store::data, 0))?;
     class.define_method("get_fuel", method!(Store::get_fuel, 0))?;
     class.define_method("set_fuel", method!(Store::set_fuel, 1))?;
+    class.define_method("set_limits", method!(Store::set_limits, 1))?;
     class.define_method("set_epoch_deadline", method!(Store::set_epoch_deadline, 1))?;
 
     Ok(())

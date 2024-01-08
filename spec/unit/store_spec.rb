@@ -25,6 +25,15 @@ module Wasmtime
         GC.compact
         expect(store.data.value).to eql({foo: "bar", baz: "qux"})
       end
+
+      it "sets a limit" do
+        store = Store.new(engine)
+        store.set_limits(memory_size: 150_000)
+
+        mem = Memory.new(store, min_size: 1)
+        mem.grow(1)
+        expect { mem.grow(1) }.to raise_error(Wasmtime::Error, "failed to grow memory by `1`")
+      end
     end
   end
 end

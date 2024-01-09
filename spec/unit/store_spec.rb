@@ -8,7 +8,7 @@ module Wasmtime
         expect(store.data).to be_nil
       end
 
-      it "accepts WasiCtx" do
+      it "accepts Wasi Deterministic Context" do
         ctx = Wasmtime::WasiDeterministicCtxBuilder.new
         store = Store.new(engine, wasi_det_ctx: ctx)
         expect(store.has_wasi_ctx).to eq(true)

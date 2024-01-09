@@ -1,33 +1,35 @@
 use super::root;
 use crate::error;
 use magnus::{
-    class, function, gc, method, typed_data::Obj, DataTypeFunctions, Error, Module, Object, TypedData, RString
+    class, function, gc::Marker, method, typed_data::Obj, value::Opaque, DataTypeFunctions, Error,
+    Module, Object, RArray, RHash, RString, Ruby, TryConvert, TypedData,
 };
+
 use std::cell::RefCell;
 use std::{fs::File, path::PathBuf};
 use wasi_common::pipe::ReadPipe;
 
 enum ReadStream {
-  Path(RString),
-  String(RString),
+  Path(Opaque<RString>),
+  String(Opaque<RString>),
 }
 
 impl ReadStream {
-  pub fn mark(&self) {
+  pub fn mark(&self, marker: &Marker) {
       match self {
-          Self::Path(s) => gc::mark(*s),
-          Self::String(s) => gc::mark(*s),
+          Self::Path(s) => marker.mark(*s),
+          Self::String(s) => marker.mark(*s),
       }
   }
 }
 
 enum WriteStream {
-  Path(RString),
+  Path(Opaque<RString>),
 }
 impl WriteStream {
-  pub fn mark(&self) {
+  pub fn mark(&self, marker: &Marker) {
       match self {
-          Self::Path(v) => gc::mark(*v),
+          Self::Path(v) => marker.mark(*v),
       }
   }
 }
@@ -40,15 +42,15 @@ struct WasiDeterministicCtxBuilderInner {
 }
 
 impl WasiDeterministicCtxBuilderInner {
-    pub fn mark(&self) {
+    pub fn mark(&self, marker: &Marker) {
       if let Some(v) = self.stdin.as_ref() {
-          v.mark();
+          v.mark(marker);
       }
       if let Some(v) = self.stdout.as_ref() {
-          v.mark();
+          v.mark(marker);
       }
       if let Some(v) = self.stderr.as_ref() {
-          v.mark();
+          v.mark(marker);
       }
     }
 }
@@ -68,8 +70,8 @@ pub struct WasiDeterministicCtxBuilder {
 }
 
 impl DataTypeFunctions for WasiDeterministicCtxBuilder {
-    fn mark(&self) {
-        self.inner.borrow().mark();
+    fn mark(&self, marker: &Marker) {
+      self.inner.borrow().mark(marker);
     }
 }
 
@@ -90,8 +92,8 @@ impl WasiDeterministicCtxBuilder {
     /// @def set_stdin_file(path)
     /// @return [WasiCtxBuilder] +self+
     pub fn set_stdin_file(rb_self: RbSelf, path: RString) -> RbSelf {
-      let mut inner = rb_self.get().inner.borrow_mut();
-      inner.stdin = Some(ReadStream::Path(path));
+      let mut inner = rb_self.inner.borrow_mut();
+      inner.stdin = Some(ReadStream::Path(path.into()));
       rb_self
     }
 
@@ -101,8 +103,8 @@ impl WasiDeterministicCtxBuilder {
     /// @def set_stdin_string(content)
     /// @return [WasiCtxBuilder] +self+
     pub fn set_stdin_string(rb_self: RbSelf, content: RString) -> RbSelf {
-      let mut inner = rb_self.get().inner.borrow_mut();
-      inner.stdin = Some(ReadStream::String(content));
+      let mut inner = rb_self.inner.borrow_mut();
+      inner.stdin = Some(ReadStream::String(content.into()));
       rb_self
     }
 
@@ -113,8 +115,8 @@ impl WasiDeterministicCtxBuilder {
     /// @def set_stdout_file(path)
     /// @return [WasiCtxBuilder] +self+
     pub fn set_stdout_file(rb_self: RbSelf, path: RString) -> RbSelf {
-      let mut inner = rb_self.get().inner.borrow_mut();
-      inner.stdout = Some(WriteStream::Path(path));
+      let mut inner = rb_self.inner.borrow_mut();
+      inner.stdout = Some(WriteStream::Path(path.into()));
       rb_self
     }
 
@@ -125,24 +127,23 @@ impl WasiDeterministicCtxBuilder {
     /// @def set_stderr_file(path)
     /// @return [WasiCtxBuilder] +self+
     pub fn set_stderr_file(rb_self: RbSelf, path: RString) -> RbSelf {
-      let mut inner = rb_self.get().inner.borrow_mut();
-      inner.stderr = Some(WriteStream::Path(path));
+      let mut inner = rb_self.inner.borrow_mut();
+      inner.stderr = Some(WriteStream::Path(path.into()));
       rb_self
     }
 
-    pub fn build_context(&self) -> Result<wasmtime_wasi::WasiCtx, Error> {
+    pub fn build_context(&self, ruby: &Ruby) -> Result<wasmtime_wasi::WasiCtx, Error> {
         let context = deterministic_wasi_ctx::build_wasi_ctx();
         let inner = self.inner.borrow();
 
         if let Some(stdin) = inner.stdin.as_ref() {
           match stdin {
               ReadStream::Path(path) => {
-                // builder.stdin(file_r(*path).map(wasi_file)?)
-                context.set_stdin(file_r(*path).map(wasi_file)?)
+                context.set_stdin(file_r(ruby.get_inner(*path)).map(wasi_file)?)
               },
               ReadStream::String(input) => {
                   // SAFETY: &[u8] copied before calling in to Ruby, no GC can happen before.
-                  let pipe = ReadPipe::from(unsafe { input.as_slice() });
+                  let pipe = ReadPipe::from(unsafe { ruby.get_inner(*input).as_slice() });
                   context.set_stdin(Box::new(pipe));
               }
           };
@@ -151,7 +152,7 @@ impl WasiDeterministicCtxBuilder {
       if let Some(stdout) = inner.stdout.as_ref() {
           match stdout {
               WriteStream::Path(path) => {
-                context.set_stdout(file_w(*path).map(wasi_file)?)
+                context.set_stdout(file_w(ruby.get_inner(*path)).map(wasi_file)?)
               },
           };
       }
@@ -159,7 +160,7 @@ impl WasiDeterministicCtxBuilder {
       if let Some(stderr) = inner.stderr.as_ref() {
         match stderr {
             WriteStream::Path(path) => {
-              context.set_stderr(file_w(*path).map(wasi_file)?)
+              context.set_stderr(file_w(ruby.get_inner(*path)).map(wasi_file)?)
             },
         };
       }

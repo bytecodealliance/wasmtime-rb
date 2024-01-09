@@ -78,6 +78,69 @@ module Wasmtime
         expect(env.fetch("env").to_h).to eq(ENV.to_h)
       end
     end
+    # Uses the program from spec/wasi-debug to test the WASI integration
+    describe WasiCtxBuilder do
+      it "writes std streams to files" do
+        File.write(tempfile_path("stdin"), "stdin content")
+        wasi_config = WasiCtxBuilder.new
+          .set_stdin_file(tempfile_path("stdin"))
+          .set_stdout_file(tempfile_path("stdout"))
+          .set_stderr_file(tempfile_path("stderr"))
+
+        run_wasi_module(wasi_config)
+
+        stdout = JSON.parse(File.read(tempfile_path("stdout")))
+        stderr = JSON.parse(File.read(tempfile_path("stderr")))
+        expect(stdout.fetch("name")).to eq("stdout")
+        expect(stderr.fetch("name")).to eq("stderr")
+        expect(stdout.dig("wasi", "stdin")).to eq("stdin content")
+      end
+
+      it "reads stdin from string" do
+        env = wasi_module_env { |config| config.set_stdin_string("¡UTF-8 from Ruby!") }
+        expect(env.fetch("stdin")).to eq("¡UTF-8 from Ruby!")
+      end
+
+      it "uses specified args" do
+        env = wasi_module_env { |config| config.set_argv(["foo", "bar"]) }
+        expect(env.fetch("args")).to eq(["foo", "bar"])
+      end
+
+      it "uses ARGV" do
+        env = wasi_module_env { |config| config.set_argv(ARGV) }
+        expect(env.fetch("args")).to eq(ARGV)
+      end
+
+      it "uses specified env" do
+        env = wasi_module_env { |config| config.set_env("ENV_VAR" => "VAL") }
+        expect(env.fetch("env").to_h).to eq("ENV_VAR" => "VAL")
+      end
+
+      it "uses ENV" do
+        env = wasi_module_env { |config| config.set_env(ENV) }
+        expect(env.fetch("env").to_h).to eq(ENV.to_h)
+      end
+    end
+    # Uses the program from spec/wasi-debug to test the WASI integration
+    describe WasiDeterministicCtxBuilder do
+      it "writes std streams to files" do
+        File.write(tempfile_path("stdin"), "stdin content")
+        wasi_config = WasiDeterministicCtxBuilder.new
+          .set_stdin_file(tempfile_path("stdin"))
+          .set_stdout_file(tempfile_path("stdout"))
+          .set_stderr_file(tempfile_path("stderr"))
+
+        linker = Linker.new(@engine, wasi: true)
+        store = Store.new(@engine, wasi_det_ctx: wasi_config)
+        linker.instantiate(store, wasi_module).invoke("_start")
+
+        stdout = JSON.parse(File.read(tempfile_path("stdout")))
+        stderr = JSON.parse(File.read(tempfile_path("stderr")))
+        expect(stdout.fetch("name")).to eq("stdout")
+        expect(stderr.fetch("name")).to eq("stderr")
+        expect(stdout.dig("wasi", "stdin")).to eq("stdin content")
+      end
+    end
 
     def wasi_module
       Module.deserialize(@engine, @compiled_wasi_module)

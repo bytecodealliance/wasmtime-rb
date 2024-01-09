@@ -159,7 +159,7 @@ impl WasiDeterministicCtxBuilder {
       if let Some(stderr) = inner.stderr.as_ref() {
         match stderr {
             WriteStream::Path(path) => {
-              context.set_stdout(file_w(*path).map(wasi_file)?)
+              context.set_stderr(file_w(*path).map(wasi_file)?)
             },
         };
       }

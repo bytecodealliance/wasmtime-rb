@@ -10,13 +10,7 @@ GEM
     ast (2.4.2)
     benchmark-ips (2.13.0)
     diff-lcs (1.5.0)
-<<<<<<< HEAD
-    ffi (1.15.5)
-    ffi (1.15.5-x64-mingw32)
-    ffi (1.15.5-x64-unknown)
-=======
     ffi (1.16.3)
->>>>>>> cee59c7 (Update dependencies)
     get_process_mem (0.2.7)
       ffi (~> 1.0)
     json (2.7.1)
@@ -89,12 +83,8 @@ PLATFORMS
   arm64-darwin-21
   arm64-darwin-22
   arm64-darwin-23
-<<<<<<< HEAD
-=======
   x64-mingw-ucrt
->>>>>>> cee59c7 (Update dependencies)
   x64-mingw32
-  x64-unknown
   x86_64-darwin-19
   x86_64-linux
 

@@ -117,16 +117,16 @@ impl Store {
     ///   store = Wasmtime::Store.new(Wasmtime::Engine.new, {})
     pub fn new(ruby: &Ruby, args: &[Value]) -> Result<Self, Error> {
         let args = scan_args::scan_args::<(&Engine,), (Option<Value>,), (), (), _, ()>(args)?;
+        let (engine,) = args.required;
+        let (user_data,) = args.optional;
+        let user_data = user_data.unwrap_or_else(|| ().into_value());
+
+      
         let kw = scan_args::get_kwargs::<_, (), (Option<&WasiCtxBuilder>, Option<&WasiDeterministicCtxBuilder>), ()>(
             args.keywords,
             &[],
             &[*WASI_CTX, *WASI_DET_CTX],
         )?;
-        let (engine,) = args.required;
-        let (user_data,) = args.optional;
-        let user_data = user_data.unwrap_or_else(|| ().into_value());
-
-
         let (ctx, det) = kw.optional;
         let wasi = match (ctx, det) {
             (Some(_), Some(_)) => None,

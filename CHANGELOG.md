@@ -1,5 +1,27 @@
 # Changelog
 
+## [v15.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v15.0.0) (2024-01-09)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v14.0.4...v15.0.0)
+
+**Closed issues:**
+
+- Upgrade to magnus v0.6.1 [\#215](https://github.com/bytecodealliance/wasmtime-rb/issues/215)
+
+**Merged pull requests:**
+
+- Fix occasional Func call params conversion error [\#274](https://github.com/bytecodealliance/wasmtime-rb/pull/274) ([matsadler](https://github.com/matsadler))
+- Update dependencies [\#273](https://github.com/bytecodealliance/wasmtime-rb/pull/273) ([jbourassa](https://github.com/jbourassa))
+- Fix gemspec for 3.3 compat [\#272](https://github.com/bytecodealliance/wasmtime-rb/pull/272) ([jbourassa](https://github.com/jbourassa))
+- Add support for precompiled binaries on Ruby 3.3 [\#270](https://github.com/bytecodealliance/wasmtime-rb/pull/270) ([ianks](https://github.com/ianks))
+- chore: Update to `wasmtime` 15 [\#266](https://github.com/bytecodealliance/wasmtime-rb/pull/266) ([saulecabrera](https://github.com/saulecabrera))
+- Allow perfmap as a profiling config [\#255](https://github.com/bytecodealliance/wasmtime-rb/pull/255) ([Maaarcocr](https://github.com/Maaarcocr))
+- chore\(deps\): bump rb-sys from 0.9.82 to 0.9.83 [\#252](https://github.com/bytecodealliance/wasmtime-rb/pull/252) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump rb\_sys from 0.9.82 to 0.9.83 [\#249](https://github.com/bytecodealliance/wasmtime-rb/pull/249) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump standard from 1.31.2 to 1.32.0 [\#248](https://github.com/bytecodealliance/wasmtime-rb/pull/248) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Allow `generate_address_map` config in `Engine` [\#247](https://github.com/bytecodealliance/wasmtime-rb/pull/247) ([Maaarcocr](https://github.com/Maaarcocr))
+- Upgrade Magnus to 0.6 [\#205](https://github.com/bytecodealliance/wasmtime-rb/pull/205) ([matsadler](https://github.com/matsadler))
+
 ## [v14.0.4](https://github.com/bytecodealliance/wasmtime-rb/tree/v14.0.4) (2023-11-09)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v14.0.3...v14.0.4)

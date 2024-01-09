@@ -1,5 +1,4 @@
 require "spec_helper"
-require "pry"
 
 module Wasmtime
   RSpec.describe Store do

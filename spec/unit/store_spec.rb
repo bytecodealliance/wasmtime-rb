@@ -1,4 +1,5 @@
 require "spec_helper"
+require "pry"
 
 module Wasmtime
   RSpec.describe Store do
@@ -6,6 +7,12 @@ module Wasmtime
       it "default to nil data" do
         store = Store.new(engine)
         expect(store.data).to be_nil
+      end
+
+      it "accepts WasiCtx" do
+        ctx = Wasmtime::WasiDeterministicCtxBuilder.new
+        store = Store.new(engine, wasi_det_ctx: ctx)
+        expect(store.has_wasi_ctx).to eq(true)
       end
 
       it "accepts user-provided data" do

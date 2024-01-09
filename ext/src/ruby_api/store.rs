@@ -1,5 +1,6 @@
 use super::errors::wasi_exit_error;
-use super::{caller::Caller, engine::Engine, root, trap::Trap, wasi_ctx_builder::WasiCtxBuilder};
+use super::wasi_deterministic_ctx_builder;
+use super::{caller::Caller, engine::Engine, root, trap::Trap, wasi_ctx_builder::WasiCtxBuilder, wasi_deterministic_ctx_builder::WasiDeterministicCtxBuilder};
 use crate::{define_rb_intern, error};
 use magnus::Class;
 use magnus::{
@@ -13,6 +14,7 @@ use wasmtime_wasi::{I32Exit, WasiCtx};
 
 define_rb_intern!(
     WASI_CTX => "wasi_ctx",
+    WASI_DET_CTX => "wasi_det_ctx",
 );
 
 pub struct StoreData {
@@ -129,18 +131,24 @@ impl Store {
     ///   store = Wasmtime::Store.new(Wasmtime::Engine.new, {})
     pub fn new(args: &[Value]) -> Result<Self, Error> {
         let args = scan_args::scan_args::<(&Engine,), (Option<Value>,), (), (), _, ()>(args)?;
-        let kw = scan_args::get_kwargs::<_, (), (Option<&WasiCtxBuilder>,), ()>(
+        let kw = scan_args::get_kwargs::<_, (), (Option<&WasiCtxBuilder>, Option<&WasiDeterministicCtxBuilder>), ()>(
             args.keywords,
             &[],
-            &[*WASI_CTX],
+            &[*WASI_CTX, *WASI_DET_CTX],
         )?;
         let (engine,) = args.required;
         let (user_data,) = args.optional;
         let user_data = user_data.unwrap_or_else(|| ().into_value());
-        let wasi = match kw.optional.0 {
-            None => None,
-            Some(wasi_ctx_builder) => Some(wasi_ctx_builder.build_context()?),
+
+
+        let (ctx, det) = kw.optional;
+        let wasi = match (ctx, det) {
+            (Some(_), Some(_)) => None,
+            (Some(ctx), None) => Some(ctx.build_context()?),
+            (None, Some(det)) => Some(det.build_context()?),
+            (None, None) => None,
         };
+
 
         let eng = engine.get();
         let store_data = StoreData {
@@ -209,6 +217,10 @@ impl Store {
     /// @return [nil]
     pub fn set_epoch_deadline(&self, ticks_beyond_current: u64) {
         unsafe { &mut *self.inner.get() }.set_epoch_deadline(ticks_beyond_current);
+    }
+
+    pub fn has_wasi_ctx(&self) -> bool {
+        self.context().data().has_wasi_ctx()
     }
 
     pub fn context(&self) -> StoreContext<StoreData> {
@@ -325,6 +337,7 @@ pub fn init() -> Result<(), Error> {
     class.define_method("add_fuel", method!(Store::add_fuel, 1))?;
     class.define_method("consume_fuel", method!(Store::consume_fuel, 1))?;
     class.define_method("set_epoch_deadline", method!(Store::set_epoch_deadline, 1))?;
+    class.define_method("has_wasi_ctx", method!(Store::has_wasi_ctx, 0))?;
 
     Ok(())
 }

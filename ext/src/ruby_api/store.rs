@@ -1,15 +1,14 @@
 use super::errors::wasi_exit_error;
 use super::{caller::Caller, engine::Engine, root, trap::Trap, wasi_ctx_builder::WasiCtxBuilder};
 use crate::{define_rb_intern, error};
-use magnus::method::MethodCAry;
-use magnus::{Class, RHash};
+use magnus::Class;
 use magnus::{
     class, function,
     gc::{Compactor, Marker},
     method, scan_args,
     typed_data::Obj,
     value::Opaque,
-    DataTypeFunctions, Error, IntoValue, Module, Object, Ruby, TypedData, Value, StaticSymbol
+    DataTypeFunctions, Error, IntoValue, Module, Object, Ruby, TypedData, Value,
 };
 use std::cell::UnsafeCell;
 use std::convert::TryFrom;
@@ -136,7 +135,7 @@ impl Store {
             wasi,
             refs: Default::default(),
             last_error: Default::default(),
-            store_limits: Default::default() // StoreLimits::default()
+            store_limits: Default::default()
         };
         let store = Self {
             inner: UnsafeCell::new(StoreImpl::new(eng, store_data)),
@@ -173,9 +172,20 @@ impl Store {
         Ok(())
     }
 
+    /// @yard
+    /// Sets limits on the {Store}.
+    /// @param memory_size [Integer]
+    ///   The maximum number of bytes a linear memory can grow to.
+    /// @param table_elements [Integer]
+    ///   The maximum number of elements in a table.
+    /// @param instances [Integer]
+    ///   The maximum number of instances that can be created for a Store.
+    /// @param tables [Integer]
+    ///   The maximum number of tables that can be created for a Store.
+    /// @param memories [Integer]
+    ///   The maximum number of linear memories that can be created for a Store.
+    /// @raise [Error] if arguments can not be converted.
     pub fn set_limits(&self, args: &[Value]) -> Result<(), Error> {
-        let mut limiter: StoreLimitsBuilder = StoreLimitsBuilder::new();
-
         let args = scan_args::scan_args::<(), (), (), (), _, ()>(args)?;
         let kw = scan_args::get_kwargs::<
             _,
@@ -188,6 +198,7 @@ impl Store {
             &["memory_size", "table_elements", "instances", "tables", "memories"]
         )?;
 
+        let mut limiter: StoreLimitsBuilder = StoreLimitsBuilder::new();
         let (memory_size, table_elements, instances, tables, memories) = kw.optional;
 
         if memory_size.is_some() {

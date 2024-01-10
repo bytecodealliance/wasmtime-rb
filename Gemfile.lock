@@ -100,4 +100,4 @@ DEPENDENCIES
   yard-rustdoc (~> 0.3.2)
 
 BUNDLED WITH
-   2.5.4
+  2.5.4

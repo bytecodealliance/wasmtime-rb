@@ -6,7 +6,9 @@ use magnus::{
 };
 use std::cell::RefCell;
 use std::{fs::File, path::PathBuf};
+use wasmtime_wasi::{preview2::bindings::wasi, stdio};
 use wasi_common::pipe::ReadPipe;
+
 
 enum ReadStream {
     Inherit,
@@ -44,6 +46,7 @@ struct WasiCtxBuilderInner {
     stderr: Option<WriteStream>,
     env: Option<Opaque<RHash>>,
     args: Option<Opaque<RArray>>,
+    deterministic: Option<bool>,
 }
 
 impl WasiCtxBuilderInner {
@@ -192,38 +195,56 @@ impl WasiCtxBuilder {
         rb_self
     }
 
+    pub fn set_deterministic(rb_self: RbSelf) -> RbSelf {
+        let mut inner = rb_self.inner.borrow_mut();
+        inner.deterministic = Some(true);
+        rb_self
+    }
+
     pub fn build_context(&self, ruby: &Ruby) -> Result<wasmtime_wasi::WasiCtx, Error> {
-        let mut builder = wasmtime_wasi::WasiCtxBuilder::new();
         let inner = self.inner.borrow();
+
+        let mut wasi_ctx = if inner.deterministic.is_none() {
+            let mut ctx = wasmtime_wasi::WasiCtxBuilder::new();
+            ctx.build()
+        } else {
+            deterministic_wasi_ctx::build_wasi_ctx()
+        };
 
         if let Some(stdin) = inner.stdin.as_ref() {
             match stdin {
-                ReadStream::Inherit => builder.inherit_stdin(),
+                ReadStream::Inherit => {
+                    wasi_ctx.set_stdin(Box::new(stdio::stdin()));
+                },
                 ReadStream::Path(path) => {
-                    builder.stdin(file_r(ruby.get_inner(*path)).map(wasi_file)?)
-                }
+                    wasi_ctx.set_stdin(file_r(ruby.get_inner(*path)).map(wasi_file)?);
+                },
                 ReadStream::String(input) => {
                     // SAFETY: &[u8] copied before calling in to Ruby, no GC can happen before.
                     let pipe = ReadPipe::from(unsafe { ruby.get_inner(*input).as_slice() });
-                    builder.stdin(Box::new(pipe))
-                }
+                    wasi_ctx.set_stdin(Box::new(pipe))
+                },
             };
         }
 
         if let Some(stdout) = inner.stdout.as_ref() {
             match stdout {
-                WriteStream::Inherit => builder.inherit_stdout(),
+                WriteStream::Inherit => {
+                    wasi_ctx.set_stdout(Box::new(stdio::stdout()));
+                },
                 WriteStream::Path(path) => {
-                    builder.stdout(file_w(ruby.get_inner(*path)).map(wasi_file)?)
+                    wasi_ctx.set_stdout(file_w(ruby.get_inner(*path)).map(wasi_file)?);
                 }
             };
         }
 
         if let Some(stderr) = inner.stderr.as_ref() {
             match stderr {
-                WriteStream::Inherit => builder.inherit_stderr(),
+                WriteStream::Inherit => {
+                    wasi_ctx.set_stderr(Box::new(stdio::stderr()));
+                },
                 WriteStream::Path(path) => {
-                    builder.stderr(file_w(ruby.get_inner(*path)).map(wasi_file)?)
+                    wasi_ctx.set_stderr(file_w(ruby.get_inner(*path)).map(wasi_file)?);
                 }
             };
         }
@@ -234,16 +255,19 @@ impl WasiCtxBuilder {
                 let arg = RString::try_convert(*item)?;
                 // SAFETY: &str copied before calling in to Ruby, no GC can happen before.
                 let arg = unsafe { arg.as_str() }?;
-                builder.arg(arg).map_err(|e| error!("{}", e))?;
+                wasi_ctx.push_arg(arg).map_err(|e| error!("{}", e))?;
             }
         }
 
         if let Some(env_hash) = inner.env.as_ref() {
             let env_vec: Vec<(String, String)> = ruby.get_inner(*env_hash).to_vec()?;
-            builder.envs(&env_vec).map_err(|e| error!("{}", e))?;
+
+            for (k, v) in env_vec.iter() {
+                wasi_ctx.push_env(k, v).map_err(|e| error!("{}", e))?;
+            }
         }
 
-        Ok(builder.build())
+        Ok(wasi_ctx)
     }
 }
 
@@ -291,6 +315,8 @@ pub fn init() -> Result<(), Error> {
     class.define_method("set_env", method!(WasiCtxBuilder::set_env, 1))?;
 
     class.define_method("set_argv", method!(WasiCtxBuilder::set_argv, 1))?;
+
+    class.define_method("set_deterministic", method!(WasiCtxBuilder::set_deterministic, 0))?;
 
     Ok(())
 }

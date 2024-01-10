@@ -2,7 +2,10 @@ use super::{
     config::{default_config, hash_to_config},
     root,
 };
-use crate::error;
+use crate::{
+    error,
+    helpers::{nogvl, Tmplock},
+};
 use magnus::{
     class, function, method, prelude::*, scan_args, typed_data::Obj, value::LazyId, Error, Module,
     Object, RHash, RString, Ruby, TryConvert, Value,
@@ -168,8 +171,9 @@ impl Engine {
     /// @return [String] Binary String of the compiled module.
     /// @see Module.deserialize
     pub fn precompile_module(&self, wat_or_wasm: RString) -> Result<RString, Error> {
-        self.inner
-            .precompile_module(unsafe { wat_or_wasm.as_slice() })
+        let (wat_or_wasm, _guard) = unsafe { wat_or_wasm.as_locked_slice() }?;
+
+        nogvl(|| self.inner.precompile_module(wat_or_wasm))
             .map(|bytes| RString::from_slice(&bytes))
             .map_err(|e| error!("{}", e.to_string()))
     }

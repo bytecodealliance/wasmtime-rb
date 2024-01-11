@@ -1,5 +1,13 @@
 # Changelog
 
+## [v16.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v16.0.0) (2024-01-11)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v15.0.1...v16.0.0)
+
+**Merged pull requests:**
+
+- chore: Update to wasmtime v16 [\#280](https://github.com/bytecodealliance/wasmtime-rb/pull/280) ([saulecabrera](https://github.com/saulecabrera))
+
 ## [v15.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v15.0.1) (2024-01-11)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v15.0.0...v15.0.1)

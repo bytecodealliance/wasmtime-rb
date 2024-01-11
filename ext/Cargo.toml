@@ -38,7 +38,7 @@ async-timer = { version = "1.0.0-beta.11", features = [
   "tokio1",
 ], optional = true }
 static_assertions = "1.1.0"
-wasmtime-runtime = "= 15.0.1"
+wasmtime-runtime = "= 16.0.0"
 wasmtime-environ = "= 15.0.1"
 
 [build-dependencies]

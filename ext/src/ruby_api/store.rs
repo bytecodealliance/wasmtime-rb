@@ -12,11 +12,19 @@ use magnus::{
 };
 use std::cell::UnsafeCell;
 use std::convert::TryFrom;
-use wasmtime::{AsContext, AsContextMut, Store as StoreImpl, StoreContext, StoreContextMut, StoreLimitsBuilder, StoreLimits};
+use wasmtime::{
+    AsContext, AsContextMut, Store as StoreImpl, StoreContext, StoreContextMut, StoreLimits,
+    StoreLimitsBuilder,
+};
 use wasmtime_wasi::{I32Exit, WasiCtx};
 
 define_rb_intern!(
     WASI_CTX => "wasi_ctx",
+    MEMORY_SIZE => "memory_size",
+    TABLE_ELEMENTS => "table_elements",
+    INSTANCES => "instances",
+    TABLES => "tables",
+    MEMORIES => "memories",
 );
 
 pub struct StoreData {
@@ -24,7 +32,7 @@ pub struct StoreData {
     wasi: Option<WasiCtx>,
     refs: Vec<Value>,
     last_error: Option<Error>,
-    store_limits: StoreLimits
+    store_limits: StoreLimits,
 }
 
 impl StoreData {
@@ -107,6 +115,16 @@ impl Store {
     ///   The data attached to the store. Can be retrieved through {Wasmtime::Store#data} and {Wasmtime::Caller#data}.
     /// @param wasi_ctx [Wasmtime::WasiCtxBuilder]
     ///   The WASI context to use in this store.
+    /// @param memory_size [Integer]
+    ///   The maximum number of bytes a linear memory can grow to.
+    /// @param table_elements [Integer]
+    ///   The maximum number of elements in a table.
+    /// @param instances [Integer]
+    ///   The maximum number of instances that can be created for a Store.
+    /// @param tables [Integer]
+    ///   The maximum number of tables that can be created for a Store.
+    /// @param memories [Integer]
+    ///   The maximum number of linear memories that can be created for a Store.
     /// @return [Wasmtime::Store]
     ///
     /// @example
@@ -116,11 +134,31 @@ impl Store {
     ///   store = Wasmtime::Store.new(Wasmtime::Engine.new, {})
     pub fn new(ruby: &Ruby, args: &[Value]) -> Result<Self, Error> {
         let args = scan_args::scan_args::<(&Engine,), (Option<Value>,), (), (), _, ()>(args)?;
-        let kw = scan_args::get_kwargs::<_, (), (Option<&WasiCtxBuilder>,), ()>(
+        let kw = scan_args::get_kwargs::<
+            _,
+            (),
+            (
+                Option<&WasiCtxBuilder>,
+                Option<u64>,
+                Option<u64>,
+                Option<u64>,
+                Option<u64>,
+                Option<u64>,
+            ),
+            (),
+        >(
             args.keywords,
             &[],
-            &[*WASI_CTX],
+            &[
+                *WASI_CTX,
+                *MEMORY_SIZE,
+                *TABLE_ELEMENTS,
+                *INSTANCES,
+                *TABLES,
+                *MEMORIES,
+            ],
         )?;
+
         let (engine,) = args.required;
         let (user_data,) = args.optional;
         let user_data = user_data.unwrap_or_else(|| ().into_value());
@@ -129,17 +167,42 @@ impl Store {
             Some(wasi_ctx_builder) => Some(wasi_ctx_builder.build_context(ruby)?),
         };
 
+        let mut limiter: StoreLimitsBuilder = StoreLimitsBuilder::new();
+        let (_, memory_size, table_elements, instances, tables, memories) = kw.optional;
+
+        if let Some(ms) = memory_size {
+            limiter = limiter.memory_size(ms as usize);
+        }
+
+        if let Some(te) = table_elements {
+            limiter = limiter.table_elements(te as u32);
+        }
+
+        if let Some(i) = instances {
+            limiter = limiter.instances(i as usize);
+        }
+
+        if let Some(t) = tables {
+            limiter = limiter.tables(t as usize);
+        }
+
+        if let Some(m) = memories {
+            limiter = limiter.memories(m as usize);
+        }
+
         let eng = engine.get();
         let store_data = StoreData {
             user_data,
             wasi,
             refs: Default::default(),
             last_error: Default::default(),
-            store_limits: Default::default()
+            store_limits: limiter.build(),
         };
         let store = Self {
             inner: UnsafeCell::new(StoreImpl::new(eng, store_data)),
         };
+
+        unsafe { &mut *store.inner.get() }.limiter(|data| &mut data.store_limits);
 
         Ok(store)
     }
@@ -168,64 +231,6 @@ impl Store {
         unsafe { &mut *self.inner.get() }
             .set_fuel(fuel)
             .map_err(|e| error!("{}", e))?;
-
-        Ok(())
-    }
-
-    /// @yard
-    /// Sets limits on the {Store}.
-    /// @param memory_size [Integer]
-    ///   The maximum number of bytes a linear memory can grow to.
-    /// @param table_elements [Integer]
-    ///   The maximum number of elements in a table.
-    /// @param instances [Integer]
-    ///   The maximum number of instances that can be created for a Store.
-    /// @param tables [Integer]
-    ///   The maximum number of tables that can be created for a Store.
-    /// @param memories [Integer]
-    ///   The maximum number of linear memories that can be created for a Store.
-    /// @raise [Error] if arguments can not be converted.
-    pub fn set_limits(&self, args: &[Value]) -> Result<(), Error> {
-        let args = scan_args::scan_args::<(), (), (), (), _, ()>(args)?;
-        let kw = scan_args::get_kwargs::<
-            _,
-            (),
-            (Option<u64>, Option<u64>, Option<u64>, Option<u64>, Option<u64>),
-            ()
-        >(
-            args.keywords,
-            &[],
-            &["memory_size", "table_elements", "instances", "tables", "memories"]
-        )?;
-
-        let mut limiter: StoreLimitsBuilder = StoreLimitsBuilder::new();
-        let (memory_size, table_elements, instances, tables, memories) = kw.optional;
-
-        if memory_size.is_some() {
-            limiter = limiter.memory_size(memory_size.unwrap() as usize);
-        }
-
-        if table_elements.is_some() {
-            limiter = limiter.table_elements(table_elements.unwrap() as u32);
-        }
-
-        if instances.is_some() {
-            limiter = limiter.instances(instances.unwrap() as usize);
-        }
-
-        if tables.is_some() {
-            limiter = limiter.tables(tables.unwrap() as usize);
-            println!("SET TABLES");
-        }
-
-        if memories.is_some() {
-            limiter = limiter.memories(memories.unwrap() as usize);
-        }
-
-        self.context_mut().data_mut().store_limits = limiter.build();
-
-        unsafe { &mut *self.inner.get() }
-            .limiter(|data| &mut data.store_limits);
 
         Ok(())
     }
@@ -365,7 +370,6 @@ pub fn init() -> Result<(), Error> {
     class.define_method("data", method!(Store::data, 0))?;
     class.define_method("get_fuel", method!(Store::get_fuel, 0))?;
     class.define_method("set_fuel", method!(Store::set_fuel, 1))?;
-    class.define_method("set_limits", method!(Store::set_limits, -1))?;
     class.define_method("set_epoch_deadline", method!(Store::set_epoch_deadline, 1))?;
 
     Ok(())

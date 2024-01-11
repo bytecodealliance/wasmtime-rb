@@ -25,12 +25,9 @@ module Wasmtime
         GC.compact
         expect(store.data.value).to eql({foo: "bar", baz: "qux"})
       end
-    end
 
-    describe "#set_limits" do
       it "sets a memory size limit" do
-        store = Store.new(engine)
-        store.set_limits(memory_size: 150_000)
+        store = Store.new(engine, memory_size: 150_000)
 
         mem = Memory.new(store, min_size: 1)
         mem.grow(1)
@@ -38,16 +35,14 @@ module Wasmtime
       end
 
       it "sets a table elements limit" do
-        store = Store.new(engine)
-        store.set_limits(table_elements: 1)
+        store = Store.new(engine, table_elements: 1)
 
         table = Table.new(store, :funcref, nil, min_size: 1)
         expect { table.grow(1, nil) }.to raise_error(Wasmtime::Error, "failed to grow table by `1`")
       end
 
       it "sets a instances limit" do
-        store = Store.new(engine)
-        store.set_limits(instances: 1)
+        store = Store.new(engine, instances: 1)
 
         mod = Module.new(engine, <<~WAT)
           (module
@@ -60,8 +55,7 @@ module Wasmtime
       end
 
       it "sets a tables limit" do
-        store = Store.new(engine)
-        store.set_limits(tables: 1)
+        store = Store.new(engine, tables: 1)
 
         mod = Module.new(engine, <<~WAT)
           (module
@@ -75,8 +69,7 @@ module Wasmtime
       end
 
       it "sets a memories limit" do
-        store = Store.new(engine)
-        store.set_limits(memories: 1)
+        store = Store.new(engine, memories: 1)
 
         mod = Module.new(engine, <<~WAT)
           (module
@@ -90,8 +83,7 @@ module Wasmtime
       end
 
       it "handles multiple keywords" do
-        store = Store.new(engine)
-        store.set_limits(memories: 1, tables: 1)
+        store = Store.new(engine, memories: 1, tables: 1)
 
         memory_mod = Module.new(engine, <<~WAT)
           (module

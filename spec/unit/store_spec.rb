@@ -25,6 +25,99 @@ module Wasmtime
         GC.compact
         expect(store.data.value).to eql({foo: "bar", baz: "qux"})
       end
+
+      context "limits" do
+        [
+          :memory_size,
+          :table_elements,
+          :instances,
+          :tables,
+          :memories
+        ].each do |limit_prop|
+          it "rejects non-numeric #{limit_prop}" do
+            expect { Store.new(engine, limits: {limit_prop => "bad"}) }.to raise_error(TypeError)
+          end
+        end
+
+        it "sets a memory size limit" do
+          store = Store.new(engine, limits: {memory_size: 150_000})
+
+          mem = Memory.new(store, min_size: 1)
+          mem.grow(1)
+          expect { mem.grow(1) }.to raise_error(Wasmtime::Error, "failed to grow memory by `1`")
+        end
+
+        it "sets a table elements limit" do
+          store = Store.new(engine, limits: {table_elements: 1})
+
+          table = Table.new(store, :funcref, nil, min_size: 1)
+          expect { table.grow(1, nil) }.to raise_error(Wasmtime::Error, "failed to grow table by `1`")
+        end
+
+        it "sets a instances limit" do
+          store = Store.new(engine, limits: {instances: 1})
+
+          mod = Module.new(engine, <<~WAT)
+            (module
+              (func nop)
+              (start 0))
+          WAT
+
+          Instance.new(store, mod)
+          expect { Instance.new(store, mod) }.to raise_error(Wasmtime::Error, "resource limit exceeded: instance count too high at 2")
+        end
+
+        it "sets a tables limit" do
+          store = Store.new(engine, limits: {tables: 1})
+
+          mod = Module.new(engine, <<~WAT)
+            (module
+              (table $table1 1 funcref)
+              (table $table2 1 funcref)
+              (func nop)
+              (start 0))
+          WAT
+
+          expect { Instance.new(store, mod) }.to raise_error(Wasmtime::Error, "resource limit exceeded: table count too high at 2")
+        end
+
+        it "sets a memories limit" do
+          store = Store.new(engine, limits: {memories: 1})
+
+          mod = Module.new(engine, <<~WAT)
+            (module
+              (memory $memory1 1)
+              (memory $memory2 1)
+              (func nop)
+              (start 0))
+          WAT
+
+          expect { Instance.new(store, mod) }.to raise_error(Wasmtime::Error, "resource limit exceeded: memory count too high at 2")
+        end
+
+        it "handles multiple keywords" do
+          store = Store.new(engine, limits: {memories: 1, tables: 1})
+
+          memory_mod = Module.new(engine, <<~WAT)
+            (module
+              (memory $memory1 1)
+              (memory $memory2 1)
+              (func nop)
+              (start 0))
+          WAT
+
+          table_mod = Module.new(engine, <<~WAT)
+            (module
+              (table $table1 1 funcref)
+              (table $table2 1 funcref)
+              (func nop)
+              (start 0))
+          WAT
+
+          expect { Instance.new(store, memory_mod) }.to raise_error(Wasmtime::Error, "resource limit exceeded: memory count too high at 2")
+          expect { Instance.new(store, table_mod) }.to raise_error(Wasmtime::Error, "resource limit exceeded: table count too high at 2")
+        end
+      end
     end
   end
 end

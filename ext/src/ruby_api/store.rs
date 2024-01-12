@@ -1,7 +1,7 @@
 use super::errors::wasi_exit_error;
 use super::{caller::Caller, engine::Engine, root, trap::Trap, wasi_ctx_builder::WasiCtxBuilder};
 use crate::{define_rb_intern, error};
-use magnus::Class;
+use magnus::value::StaticSymbol;
 use magnus::{
     class, function,
     gc::{Compactor, Marker},
@@ -10,13 +10,18 @@ use magnus::{
     value::Opaque,
     DataTypeFunctions, Error, IntoValue, Module, Object, Ruby, TypedData, Value,
 };
+use magnus::{Class, RHash};
 use std::cell::UnsafeCell;
 use std::convert::TryFrom;
-use wasmtime::{AsContext, AsContextMut, Store as StoreImpl, StoreContext, StoreContextMut};
+use wasmtime::{
+    AsContext, AsContextMut, Store as StoreImpl, StoreContext, StoreContextMut, StoreLimits,
+    StoreLimitsBuilder,
+};
 use wasmtime_wasi::{I32Exit, WasiCtx};
 
 define_rb_intern!(
     WASI_CTX => "wasi_ctx",
+    LIMITS => "limits",
 );
 
 pub struct StoreData {
@@ -24,6 +29,7 @@ pub struct StoreData {
     wasi: Option<WasiCtx>,
     refs: Vec<Value>,
     last_error: Option<Error>,
+    store_limits: StoreLimits,
 }
 
 impl StoreData {
@@ -106,6 +112,19 @@ impl Store {
     ///   The data attached to the store. Can be retrieved through {Wasmtime::Store#data} and {Wasmtime::Caller#data}.
     /// @param wasi_ctx [Wasmtime::WasiCtxBuilder]
     ///   The WASI context to use in this store.
+    /// @param limits [Hash]
+    ///   See the {https://docs.rs/wasmtime/latest/wasmtime/struct.StoreLimitsBuilder.html +StoreLimitsBuilder+‘s Rust doc}
+    ///   for detailed description of the different options and the defaults.
+    /// @option limits memory_size [Integer]
+    ///   The maximum number of bytes a linear memory can grow to.
+    /// @option limits table_elements [Integer]
+    ///   The maximum number of elements in a table.
+    /// @option limits instances [Integer]
+    ///   The maximum number of instances that can be created for a Store.
+    /// @option limits tables [Integer]
+    ///   The maximum number of tables that can be created for a Store.
+    /// @option limits memories [Integer]
+    ///   The maximum number of linear memories that can be created for a Store.
     /// @return [Wasmtime::Store]
     ///
     /// @example
@@ -115,11 +134,12 @@ impl Store {
     ///   store = Wasmtime::Store.new(Wasmtime::Engine.new, {})
     pub fn new(ruby: &Ruby, args: &[Value]) -> Result<Self, Error> {
         let args = scan_args::scan_args::<(&Engine,), (Option<Value>,), (), (), _, ()>(args)?;
-        let kw = scan_args::get_kwargs::<_, (), (Option<&WasiCtxBuilder>,), ()>(
+        let kw = scan_args::get_kwargs::<_, (), (Option<&WasiCtxBuilder>, Option<RHash>), ()>(
             args.keywords,
             &[],
-            &[*WASI_CTX],
+            &[*WASI_CTX, *LIMITS],
         )?;
+
         let (engine,) = args.required;
         let (user_data,) = args.optional;
         let user_data = user_data.unwrap_or_else(|| ().into_value());
@@ -128,16 +148,24 @@ impl Store {
             Some(wasi_ctx_builder) => Some(wasi_ctx_builder.build_context(ruby)?),
         };
 
+        let limiter = match kw.optional.1 {
+            None => StoreLimitsBuilder::new(),
+            Some(limits) => hash_to_store_limits_builder(limits)?,
+        };
+
         let eng = engine.get();
         let store_data = StoreData {
             user_data,
             wasi,
             refs: Default::default(),
             last_error: Default::default(),
+            store_limits: limiter.build(),
         };
         let store = Self {
             inner: UnsafeCell::new(StoreImpl::new(eng, store_data)),
         };
+
+        unsafe { &mut *store.inner.get() }.limiter(|data| &mut data.store_limits);
 
         Ok(store)
     }
@@ -296,6 +324,34 @@ impl<'a> StoreContextValue<'a> {
                 .take_error()),
         }
     }
+}
+
+fn hash_to_store_limits_builder(limits: RHash) -> Result<StoreLimitsBuilder, Error> {
+    let mut limiter: StoreLimitsBuilder = StoreLimitsBuilder::new();
+
+    if let Some(memory_size) = limits.lookup::<_, Option<u64>>(StaticSymbol::new("memory_size"))? {
+        limiter = limiter.memory_size(memory_size as usize);
+    }
+
+    if let Some(table_elements) =
+        limits.lookup::<_, Option<u64>>(StaticSymbol::new("table_elements"))?
+    {
+        limiter = limiter.table_elements(table_elements as u32);
+    }
+
+    if let Some(instances) = limits.lookup::<_, Option<u64>>(StaticSymbol::new("instances"))? {
+        limiter = limiter.instances(instances as usize);
+    }
+
+    if let Some(tables) = limits.lookup::<_, Option<u64>>(StaticSymbol::new("tables"))? {
+        limiter = limiter.tables(tables as usize);
+    }
+
+    if let Some(memories) = limits.lookup::<_, Option<u64>>(StaticSymbol::new("memories"))? {
+        limiter = limiter.memories(memories as usize);
+    }
+
+    Ok(limiter)
 }
 
 pub fn init() -> Result<(), Error> {

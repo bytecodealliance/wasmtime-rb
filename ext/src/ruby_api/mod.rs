@@ -26,6 +26,7 @@ mod store;
 mod table;
 mod trap;
 mod wasi_ctx_builder;
+mod wasi_context;
 
 pub use caller::Caller;
 pub use engine::Engine;
@@ -38,6 +39,7 @@ pub use params::Params;
 pub use store::Store;
 pub use trap::Trap;
 pub use wasi_ctx_builder::WasiCtxBuilder;
+pub use wasi_context::WasiContext;
 
 /// The "Wasmtime" Ruby module.
 pub fn root() -> RModule {
@@ -83,6 +85,7 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
     wasi_ctx_builder::init()?;
     table::init()?;
     global::init()?;
+    wasi_context::init()?;
 
     Ok(())
 }

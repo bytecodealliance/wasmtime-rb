@@ -11,6 +11,7 @@ module Wasmtime
 
       # Compile module only once for speed
       @compiled_wasi_module = @engine.precompile_module(IO.binread("spec/fixtures/wasi-debug.wasm"))
+      @compiled_wasi_deterministic_module = @engine.precompile_module(IO.binread("spec/fixtures/deterministic.wasm"))
     end
 
     describe "Linker.new" do
@@ -76,6 +77,68 @@ module Wasmtime
       it "uses ENV" do
         env = wasi_module_env { |config| config.set_env(ENV) }
         expect(env.fetch("env").to_h).to eq(ENV.to_h)
+      end
+
+      describe "WasiContext" do
+        describe "deterministic" do
+          before do
+            2.times do |t|
+              t += 1
+              wasi_ctx_builder = WasiCtxBuilder.new
+                .set_stdout_file(tempfile_path("stdout-deterministic-#{t}"))
+                .set_stderr_file(tempfile_path("stderr-deterministic-#{t}"))
+
+              deterministic_module = Module.deserialize(@engine, @compiled_wasi_deterministic_module)
+
+              linker = Linker.new(@engine, wasi: true)
+              store = Store.new(@engine, wasi_ctx: wasi_ctx_builder)
+              linker.instantiate(store, deterministic_module).invoke("_start")
+            end
+          end
+
+          let (:stdout1) {
+            output = File.read(tempfile_path("stdout-deterministic-1"))[1..-1].strip
+            JSON.parse(output)
+          }
+          let (:stdout2) {
+            output = File.read(tempfile_path("stdout-deterministic-2"))[1..-1].strip
+            JSON.parse(output)
+          }
+          let (:stderr1) { File.read(tempfile_path("stderr-deterministic-1")).strip }
+          let (:stderr2) { File.read(tempfile_path("stderr-deterministic-2")).strip }
+
+          it "can create a deterministic context" do
+            wasi_ctx = Wasmtime::WasiContext.deterministic()
+            expect(wasi_ctx.class).to eq(Wasmtime::WasiContext)
+
+            expect(wasi_ctx).to respond_to(:set_stdin_file)
+            expect(wasi_ctx).to respond_to(:set_stdin_string)
+            expect(wasi_ctx).to respond_to(:set_stdout_file)
+            expect(wasi_ctx).to respond_to(:set_stderr_file)
+          end
+
+          it "returns the same random values" do
+            expect(stdout1["rand1"]).to eq(stdout2["rand1"])
+            expect(stdout1["rand2"]).to eq(stdout2["rand2"])
+            expect(stdout1["rand3"]).to eq(stdout2["rand3"])
+          end
+
+          it "returns SystemTime returns UTC 0" do
+            utc_start_date_str = "1970-01-01T00:00:00+00:00"
+            utc_time_keys = %w[utc1 utc2]
+            elapsed_time_key = "system_time1_elapsed"
+            elapsed_time = "2"
+
+            # Confirm that that time elapsed between utc1 and utc2
+            expect(stdout1[elapsed_time_key]).to eq(elapsed_time)
+            expect(stdout2[elapsed_time_key]).to eq(elapsed_time)
+
+            utc_time_keys.each do |key|
+              expect(stdout1[key]).to eq(utc_start_date_str)
+              expect(stdout2[key]).to eq(utc_start_date_str)
+            end
+          end
+        end
       end
     end
 

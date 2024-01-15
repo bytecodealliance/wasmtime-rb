@@ -99,7 +99,7 @@ jobs:
         run: bundle exec rake doc
 
       - name: Upload generated doc
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: doc
           path: doc

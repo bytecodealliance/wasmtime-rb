@@ -1,4 +1,4 @@
-use super::{root, WasiContext};
+use super::{root, WasiCtx};
 use crate::error;
 use magnus::{
     class, function, gc::Marker, method, typed_data::Obj, value::Opaque, DataTypeFunctions, Error,

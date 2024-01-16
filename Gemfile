@@ -18,9 +18,3 @@ end
 group :test do
   gem "rspec", "~> 3.1"
 end
-
-group :development, :test do
-  gem "pry", "~> 0.14.2"
-  gem "solargraph", "~> 0.50.0"
-  gem "rubocop", "~> 1.59"
-end

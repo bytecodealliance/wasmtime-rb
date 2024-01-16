@@ -6,12 +6,12 @@ use wasmtime_wasi::WasiCtx as WasiCtxImpl;
 use deterministic_wasi_ctx::build_wasi_ctx as wasi_deterministic_ctx;
 use wasi_common::pipe::ReadPipe;
 
-#[magnus::wrap(class = "Wasmtime::WasiContext")]
-pub struct WasiContext {
+#[magnus::wrap(class = "Wasmtime::WasiCtx", size, free_immediately)]
+pub struct WasiCtx {
     inner: RefCell<WasiCtxImpl>,
 }
 
-impl WasiContext {
+impl WasiCtx {
 
     // pub fn from_builder(builder: WasiCtxBuilder) -> Self {
         // builder.build_context()
@@ -35,22 +35,26 @@ impl WasiContext {
     }
     fn set_stdout_file(&self, path: RString) {
         let inner = self.inner.borrow_mut();
-        let cs = file_r(path).map(wasi_file).unwrap();
+        let cs = file_w(path).map(wasi_file).unwrap();
         inner.set_stdout(cs);
     }
     fn set_stderr_file(&self, path: RString) {
         let inner = self.inner.borrow_mut();
-        let cs = file_r(path).map(wasi_file).unwrap();
+        let cs = file_w(path).map(wasi_file).unwrap();
         inner.set_stderr(cs);
+    }
+
+    pub fn get_inner(&self) -> WasiCtxImpl {
+        return self.inner.borrow().clone();
     }
 }
 
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("WasiContext", class::object())?;
-    class.define_singleton_method("deterministic", function!(WasiContext::deterministic, 0))?;
-    class.define_method("set_stdin_file", method!(WasiContext::set_stdin_file, 1))?;
-    class.define_method("set_stdin_string", method!(WasiContext::set_stdin_string, 1))?;
-    class.define_method("set_stdout_file", method!(WasiContext::set_stdout_file, 1))?;
-    class.define_method("set_stderr_file", method!(WasiContext::set_stderr_file, 1))?;
+    let class = root().define_class("WasiCtx", class::object())?;
+    class.define_singleton_method("deterministic", function!(WasiCtx::deterministic, 0))?;
+    class.define_method("set_stdin_file", method!(WasiCtx::set_stdin_file, 1))?;
+    class.define_method("set_stdin_string", method!(WasiCtx::set_stdin_string, 1))?;
+    class.define_method("set_stdout_file", method!(WasiCtx::set_stdout_file, 1))?;
+    class.define_method("set_stderr_file", method!(WasiCtx::set_stderr_file, 1))?;
     Ok(())
 }

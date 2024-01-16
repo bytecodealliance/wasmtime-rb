@@ -19,7 +19,7 @@
 //
 // Contributing Notes:
 //  Compile: `cargo build --target wasm32-wasi`
-//  Run: `wasmer run target/wasm32-wasi/debug/deterministic.wasm`
+//  Run: `wasmtime run target/wasm32-wasi/debug/deterministic.wasm`
 //
 
 // Import rust's io and filesystem module

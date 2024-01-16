@@ -1,5 +1,5 @@
 use super::errors::wasi_exit_error;
-use super::{caller::Caller, engine::Engine, root, trap::Trap, wasi_ctx_builder::WasiCtxBuilder};
+use super::{caller::Caller, engine::Engine, root, trap::Trap, wasi_ctx::WasiCtx};
 use crate::{define_rb_intern, error};
 use magnus::value::StaticSymbol;
 use magnus::{
@@ -17,7 +17,7 @@ use wasmtime::{
     AsContext, AsContextMut, Store as StoreImpl, StoreContext, StoreContextMut, StoreLimits,
     StoreLimitsBuilder,
 };
-use wasmtime_wasi::{I32Exit, WasiCtx};
+use wasmtime_wasi::{I32Exit, WasiCtx as WasiCtxImpl};
 
 define_rb_intern!(
     WASI_CTX => "wasi_ctx",
@@ -26,7 +26,7 @@ define_rb_intern!(
 
 pub struct StoreData {
     user_data: Value,
-    wasi: Option<WasiCtx>,
+    wasi: Option<WasiCtxImpl>,
     refs: Vec<Value>,
     last_error: Option<Error>,
     store_limits: StoreLimits,
@@ -41,7 +41,7 @@ impl StoreData {
         self.wasi.is_some()
     }
 
-    pub fn wasi_ctx_mut(&mut self) -> &mut WasiCtx {
+    pub fn wasi_ctx_mut(&mut self) -> &mut WasiCtxImpl {
         self.wasi.as_mut().expect("Store must have a WASI context")
     }
 
@@ -132,9 +132,9 @@ impl Store {
     ///
     /// @example
     ///   store = Wasmtime::Store.new(Wasmtime::Engine.new, {})
-    pub fn new(ruby: &Ruby, args: &[Value]) -> Result<Self, Error> {
+    pub fn new(args: &[Value]) -> Result<Self, Error> {
         let args = scan_args::scan_args::<(&Engine,), (Option<Value>,), (), (), _, ()>(args)?;
-        let kw = scan_args::get_kwargs::<_, (), (Option<&WasiCtxBuilder>, Option<RHash>), ()>(
+        let kw = scan_args::get_kwargs::<_, (), (Option<&WasiCtx>, Option<RHash>), ()>(
             args.keywords,
             &[],
             &[*WASI_CTX, *LIMITS],
@@ -145,7 +145,7 @@ impl Store {
         let user_data = user_data.unwrap_or_else(|| ().into_value());
         let wasi = match kw.optional.0 {
             None => None,
-            Some(wasi_ctx_builder) => Some(wasi_ctx_builder.build_context(ruby)?),
+            Some(wasi_ctx) => Some(wasi_ctx.get_inner()),
         };
 
         let limiter = match kw.optional.1 {

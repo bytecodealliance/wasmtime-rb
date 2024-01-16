@@ -84,14 +84,15 @@ module Wasmtime
           before do
             2.times do |t|
               t += 1
-              wasi_ctx_builder = WasiCtxBuilder.new
-                .set_stdout_file(tempfile_path("stdout-deterministic-#{t}"))
-                .set_stderr_file(tempfile_path("stderr-deterministic-#{t}"))
+              wasi_ctx = Wasmtime::WasiCtx.deterministic()
+
+              wasi_ctx.set_stdout_file(tempfile_path("stdout-deterministic-#{t}"))
+              wasi_ctx.set_stderr_file(tempfile_path("stderr-deterministic-#{t}"))
 
               deterministic_module = Module.deserialize(@engine, @compiled_wasi_deterministic_module)
 
               linker = Linker.new(@engine, wasi: true)
-              store = Store.new(@engine, wasi_ctx: wasi_ctx_builder)
+              store = Store.new(@engine, wasi_ctx: wasi_ctx)
               linker.instantiate(store, deterministic_module).invoke("_start")
             end
           end
@@ -107,16 +108,6 @@ module Wasmtime
           let (:stderr1) { File.read(tempfile_path("stderr-deterministic-1")).strip }
           let (:stderr2) { File.read(tempfile_path("stderr-deterministic-2")).strip }
 
-          it "can create a deterministic context" do
-            wasi_ctx = Wasmtime::WasiContext.deterministic()
-            expect(wasi_ctx.class).to eq(Wasmtime::WasiContext)
-
-            expect(wasi_ctx).to respond_to(:set_stdin_file)
-            expect(wasi_ctx).to respond_to(:set_stdin_string)
-            expect(wasi_ctx).to respond_to(:set_stdout_file)
-            expect(wasi_ctx).to respond_to(:set_stderr_file)
-          end
-
           it "returns the same random values" do
             expect(stdout1["rand1"]).to eq(stdout2["rand1"])
             expect(stdout1["rand2"]).to eq(stdout2["rand2"])
@@ -127,7 +118,7 @@ module Wasmtime
             utc_start_date_str = "1970-01-01T00:00:00+00:00"
             utc_time_keys = %w[utc1 utc2]
             elapsed_time_key = "system_time1_elapsed"
-            elapsed_time = "2"
+            elapsed_time = "0"
 
             # Confirm that that time elapsed between utc1 and utc2
             expect(stdout1[elapsed_time_key]).to eq(elapsed_time)

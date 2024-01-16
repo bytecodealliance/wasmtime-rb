@@ -11,6 +11,7 @@ use magnus::{
     DataTypeFunctions, Error, IntoValue, Module, Object, Ruby, TypedData, Value,
 };
 use magnus::{Class, RHash};
+use std::borrow::Borrow;
 use std::cell::UnsafeCell;
 use std::convert::TryFrom;
 use wasmtime::{

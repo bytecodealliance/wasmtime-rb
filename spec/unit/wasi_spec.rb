@@ -44,8 +44,7 @@ module Wasmtime
           .set_stdin_file(tempfile_path("stdin"))
           .set_stdout_file(tempfile_path("stdout"))
           .set_stderr_file(tempfile_path("stderr"))
-          .build()
-
+          .build
 
         run_wasi_module(wasi_config)
 
@@ -86,10 +85,10 @@ module Wasmtime
           before do
             2.times do |t|
               t += 1
-              wasi_ctx = Wasmtime::WasiCtx.deterministic()
-
-              wasi_ctx.set_stdout_file(tempfile_path("stdout-deterministic-#{t}"))
-              wasi_ctx.set_stderr_file(tempfile_path("stderr-deterministic-#{t}"))
+              wasi_ctx = Wasmtime::WasiCtx
+                .deterministic
+                .set_stdout_file(tempfile_path("stdout-deterministic-#{t}"))
+                .set_stderr_file(tempfile_path("stderr-deterministic-#{t}"))
 
               deterministic_module = Module.deserialize(@engine, @compiled_wasi_deterministic_module)
 
@@ -99,16 +98,16 @@ module Wasmtime
             end
           end
 
-          let (:stdout1) {
-            output = File.read(tempfile_path("stdout-deterministic-1"))[1..-1].strip
+          let(:stdout1) {
+            output = File.read(tempfile_path("stdout-deterministic-1"))[1..].strip
             JSON.parse(output)
           }
-          let (:stdout2) {
-            output = File.read(tempfile_path("stdout-deterministic-2"))[1..-1].strip
+          let(:stdout2) {
+            output = File.read(tempfile_path("stdout-deterministic-2"))[1..].strip
             JSON.parse(output)
           }
-          let (:stderr1) { File.read(tempfile_path("stderr-deterministic-1")).strip }
-          let (:stderr2) { File.read(tempfile_path("stderr-deterministic-2")).strip }
+          let(:stderr1) { File.read(tempfile_path("stderr-deterministic-1")).strip }
+          let(:stderr2) { File.read(tempfile_path("stderr-deterministic-2")).strip }
 
           it "returns the same random values" do
             expect(stdout1["rand1"]).to eq(stdout2["rand1"])

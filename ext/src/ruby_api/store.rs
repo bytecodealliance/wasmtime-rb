@@ -144,10 +144,7 @@ impl Store {
         let (engine,) = args.required;
         let (user_data,) = args.optional;
         let user_data = user_data.unwrap_or_else(|| ().into_value());
-        let wasi = match kw.optional.0 {
-            None => None,
-            Some(wasi_ctx) => Some(wasi_ctx.get_inner()),
-        };
+        let wasi = kw.optional.0.map(|wasi_ctx| wasi_ctx.get_inner());
 
         let limiter = match kw.optional.1 {
             None => StoreLimitsBuilder::new(),

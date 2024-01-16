@@ -1,7 +1,18 @@
+use std::{
+    mem::{transmute, MaybeUninit},
+    ops::Deref,
+    os::raw::c_void,
+};
+
 use super::{engine::Engine, root};
-use crate::error;
-use magnus::{class, function, method, Error, Module as _, Object, RString};
-use rb_sys::tracking_allocator::ManuallyTracked;
+use crate::{
+    error,
+    helpers::{nogvl, Tmplock},
+};
+use magnus::{class, function, method, rb_sys::AsRawValue, Error, Module as _, Object, RString};
+use rb_sys::{
+    rb_str_locktmp, rb_str_unlocktmp, tracking_allocator::ManuallyTracked, RSTRING_LEN, RSTRING_PTR,
+};
 use wasmtime::Module as ModuleImpl;
 
 /// @yard
@@ -25,8 +36,8 @@ impl Module {
     /// @return [Wasmtime::Module]
     pub fn new(engine: &Engine, wat_or_wasm: RString) -> Result<Self, Error> {
         let eng = engine.get();
-        // SAFETY: this string is immediately copied and never moved off the stack
-        let module = ModuleImpl::new(eng, unsafe { wat_or_wasm.as_slice() })
+        let (locked_slice, _locked_slice_guard) = wat_or_wasm.as_locked_slice()?;
+        let module = nogvl(|| ModuleImpl::new(eng, locked_slice))
             .map_err(|e| error!("Could not build module: {}", e))?;
 
         Ok(module.into())
@@ -39,8 +50,9 @@ impl Module {
     /// @return [Wasmtime::Module]
     pub fn from_file(engine: &Engine, path: RString) -> Result<Self, Error> {
         let eng = engine.get();
+        let (path, _locked_str_guard) = path.as_locked_str()?;
         // SAFETY: this string is immediately copied and never moved off the stack
-        let module = ModuleImpl::from_file(eng, unsafe { path.as_str()? })
+        let module = nogvl(|| ModuleImpl::from_file(eng, path))
             .map_err(|e| error!("Could not build module from file: {}", e))?;
 
         Ok(module.into())
@@ -83,8 +95,10 @@ impl Module {
     /// @return [String]
     /// @see .deserialize
     pub fn serialize(&self) -> Result<RString, Error> {
-        self.get()
-            .serialize()
+        let module = self.get();
+        let bytes = module.serialize();
+
+        bytes
             .map(|bytes| RString::from_slice(&bytes))
             .map_err(|e| error!("{:?}", e))
     }

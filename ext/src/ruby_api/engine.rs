@@ -171,7 +171,7 @@ impl Engine {
     /// @return [String] Binary String of the compiled module.
     /// @see Module.deserialize
     pub fn precompile_module(&self, wat_or_wasm: RString) -> Result<RString, Error> {
-        let (wat_or_wasm, _guard) = unsafe { wat_or_wasm.as_locked_slice() }?;
+        let (wat_or_wasm, _guard) = wat_or_wasm.as_locked_slice()?;
 
         nogvl(|| self.inner.precompile_module(wat_or_wasm))
             .map(|bytes| RString::from_slice(&bytes))

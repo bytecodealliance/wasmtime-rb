@@ -36,7 +36,7 @@ impl Module {
     /// @return [Wasmtime::Module]
     pub fn new(engine: &Engine, wat_or_wasm: RString) -> Result<Self, Error> {
         let eng = engine.get();
-        let (locked_slice, _locked_slice_guard) = unsafe { wat_or_wasm.as_locked_slice() }?;
+        let (locked_slice, _locked_slice_guard) = wat_or_wasm.as_locked_slice()?;
         let module = nogvl(|| ModuleImpl::new(eng, locked_slice))
             .map_err(|e| error!("Could not build module: {}", e))?;
 
@@ -50,7 +50,7 @@ impl Module {
     /// @return [Wasmtime::Module]
     pub fn from_file(engine: &Engine, path: RString) -> Result<Self, Error> {
         let eng = engine.get();
-        let (path, _locked_str_guard) = unsafe { path.as_locked_str()? };
+        let (path, _locked_str_guard) = path.as_locked_str()?;
         // SAFETY: this string is immediately copied and never moved off the stack
         let module = nogvl(|| ModuleImpl::from_file(eng, path))
             .map_err(|e| error!("Could not build module from file: {}", e))?;
@@ -96,7 +96,7 @@ impl Module {
     /// @see .deserialize
     pub fn serialize(&self) -> Result<RString, Error> {
         let module = self.get();
-        let bytes = nogvl(|| module.serialize());
+        let bytes = module.serialize();
 
         bytes
             .map(|bytes| RString::from_slice(&bytes))

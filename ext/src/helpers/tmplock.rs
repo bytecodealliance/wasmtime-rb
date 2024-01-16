@@ -4,8 +4,8 @@ use magnus::{
 };
 
 pub trait Tmplock {
-    unsafe fn as_locked_slice(&self) -> Result<(&[u8], TmplockGuard), magnus::Error>;
-    unsafe fn as_locked_str(&self) -> Result<(&str, TmplockGuard), magnus::Error>;
+    fn as_locked_slice(&self) -> Result<(&[u8], TmplockGuard), magnus::Error>;
+    fn as_locked_str(&self) -> Result<(&str, TmplockGuard), magnus::Error>;
 }
 
 #[derive(Debug)]
@@ -25,19 +25,19 @@ impl Drop for TmplockGuard {
 }
 
 impl Tmplock for RString {
-    unsafe fn as_locked_slice(&self) -> Result<(&[u8], TmplockGuard), magnus::Error> {
+    fn as_locked_slice(&self) -> Result<(&[u8], TmplockGuard), magnus::Error> {
         let raw = self.as_raw();
-        let slice = self.as_slice();
-        let raw = protect(|| rb_sys::rb_str_locktmp(raw))?;
+        let slice = unsafe { self.as_slice() };
+        let raw = protect(|| unsafe { rb_sys::rb_str_locktmp(raw) })?;
         let guard = TmplockGuard { raw };
 
         Ok((slice, guard))
     }
 
-    unsafe fn as_locked_str(&self) -> Result<(&str, TmplockGuard), magnus::Error> {
-        let str_result = self.as_str()?;
+    fn as_locked_str(&self) -> Result<(&str, TmplockGuard), magnus::Error> {
+        let str_result = unsafe { self.as_str()? };
         let raw = self.as_raw();
-        let raw = protect(|| rb_sys::rb_str_locktmp(raw))?;
+        let raw = protect(|| unsafe { rb_sys::rb_str_locktmp(raw) })?;
         let guard = TmplockGuard { raw };
 
         Ok((str_result, guard))

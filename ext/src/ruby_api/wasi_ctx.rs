@@ -29,7 +29,7 @@ type RbSelf = Obj<WasiCtx>;
 
 impl WasiCtx {
     /// @yard
-    /// Create a new {WasiCtx} with determinisitic Clock and Random. By default, it has nothing: no stdin/out/err.
+    /// Create a new deterministic {WasiCtx}. See https://github.com/Shopify/deterministic-wasi-ctx for more details
     /// @return [WasiCtx]
     pub fn deterministic() -> Self {
         Self {

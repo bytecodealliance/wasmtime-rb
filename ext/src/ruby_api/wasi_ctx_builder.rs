@@ -192,9 +192,8 @@ impl WasiCtxBuilder {
         rb_self
     }
 
-    pub fn build(rb_self: RbSelf) -> Result<WasiCtx, Error> {
+    pub fn build(ruby: &Ruby, rb_self: RbSelf) -> Result<WasiCtx, Error> {
         let mut builder = wasmtime_wasi::WasiCtxBuilder::new();
-        let ruby = Ruby::get().unwrap();
         let inner = rb_self.inner.borrow();
 
         if let Some(stdin) = inner.stdin.as_ref() {

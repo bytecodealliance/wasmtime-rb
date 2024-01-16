@@ -1,5 +1,6 @@
 use super::{
     convert::{ToExtern, WrapWasmtimeType},
+    errors::module_disposed_err,
     func::Func,
     module::Module,
     root,
@@ -42,6 +43,7 @@ impl Instance {
         let args =
             scan_args::scan_args::<(Obj<Store>, &Module), (Option<Value>,), (), (), (), ()>(args)?;
         let (wrapped_store, module) = args.required;
+
         let mut context = wrapped_store.context_mut();
         let imports = args
             .optional
@@ -62,7 +64,9 @@ impl Instance {
             None => vec![],
         };
 
-        let module = module.get();
+        let Some(module) = module.get() else {
+            return module_disposed_err();
+        };
         let inner = InstanceImpl::new(context, module, &imports)
             .map_err(|e| StoreContextValue::from(wrapped_store).handle_wasm_error(e))?;
 

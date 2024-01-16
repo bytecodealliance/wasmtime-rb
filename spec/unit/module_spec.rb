@@ -86,5 +86,22 @@ module Wasmtime
         expect(mod).to be_a(Wasmtime::Module)
       end
     end
+
+    describe "#dispose" do
+      it "renders the module unusable" do
+        mod = Module.new(engine, wat)
+        mod.dispose!
+        expect { mod.serialize }.to raise_error(Wasmtime::Error)
+      end
+
+      it "can be called multiple times" do
+        mod = Module.new(engine, wat)
+
+        expect(mod.disposed?).to be(false)
+        expect(mod.dispose!).to be(true)
+        expect(mod.disposed?).to be(true)
+        expect(mod.dispose!).to be(false)
+      end
+    end
   end
 end

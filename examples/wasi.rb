@@ -11,6 +11,7 @@ wasi_ctx = Wasmtime::WasiCtxBuilder.new
   .inherit_stderr
   .set_argv(ARGV)
   .set_env(ENV)
+  .build
 store = Wasmtime::Store.new(engine, wasi_ctx: wasi_ctx)
 
 instance = linker.instantiate(store, mod)

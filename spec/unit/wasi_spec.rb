@@ -31,7 +31,7 @@ module Wasmtime
 
       it "returns an instance that can run when store is properly configured" do
         linker = Linker.new(@engine, wasi: true)
-        store = Store.new(@engine, wasi_ctx: WasiCtxBuilder.new.set_stdin_string("some str"))
+        store = Store.new(@engine, wasi_ctx: WasiCtxBuilder.new.set_stdin_string("some str").build)
         linker.instantiate(store, wasi_module).invoke("_start")
       end
     end
@@ -44,6 +44,8 @@ module Wasmtime
           .set_stdin_file(tempfile_path("stdin"))
           .set_stdout_file(tempfile_path("stdout"))
           .set_stderr_file(tempfile_path("stderr"))
+          .build()
+
 
         run_wasi_module(wasi_config)
 
@@ -150,7 +152,7 @@ module Wasmtime
       yield(wasi_config)
       wasi_config.set_stdout_file(stdout_file)
 
-      run_wasi_module(wasi_config)
+      run_wasi_module(wasi_config.build)
 
       JSON.parse(File.read(stdout_file)).fetch("wasi")
     end

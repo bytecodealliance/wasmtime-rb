@@ -192,9 +192,10 @@ impl WasiCtxBuilder {
         rb_self
     }
 
-    pub fn build_context(&self, ruby: &Ruby) -> Result<wasmtime_wasi::WasiCtx, Error> {
+    pub fn build(rb_self: RbSelf) -> Result<WasiCtx, Error> {
         let mut builder = wasmtime_wasi::WasiCtxBuilder::new();
-        let inner = self.inner.borrow();
+        let ruby = Ruby::get().unwrap();
+        let inner = rb_self.inner.borrow();
 
         if let Some(stdin) = inner.stdin.as_ref() {
             match stdin {
@@ -243,7 +244,8 @@ impl WasiCtxBuilder {
             builder.envs(&env_vec).map_err(|e| error!("{}", e))?;
         }
 
-        Ok(builder.build())
+        let ctx = WasiCtx::from_inner(builder.build());
+        Ok(ctx)
     }
 }
 
@@ -291,6 +293,8 @@ pub fn init() -> Result<(), Error> {
     class.define_method("set_env", method!(WasiCtxBuilder::set_env, 1))?;
 
     class.define_method("set_argv", method!(WasiCtxBuilder::set_argv, 1))?;
+
+    class.define_method("build", method!(WasiCtxBuilder::build, 0))?;
 
     Ok(())
 }

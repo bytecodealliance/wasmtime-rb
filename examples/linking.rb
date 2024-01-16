@@ -12,6 +12,7 @@ mod2 = Wasmtime::Module.from_file(engine, "examples/linking2.wat")
 wasi_ctx_builder = Wasmtime::WasiCtxBuilder.new
   .inherit_stdin
   .inherit_stdout
+  .build
 
 store = Wasmtime::Store.new(engine, wasi_ctx: wasi_ctx_builder)
 

@@ -11,6 +11,7 @@ module Wasmtime
 
       # Compile module only once for speed
       @compiled_wasi_module = @engine.precompile_module(IO.binread("spec/fixtures/wasi-debug.wasm"))
+      @compiled_wasi_deterministic_module = @engine.precompile_module(IO.binread("spec/fixtures/deterministic.wasm"))
     end
 
     describe "Linker.new" do
@@ -30,7 +31,7 @@ module Wasmtime
 
       it "returns an instance that can run when store is properly configured" do
         linker = Linker.new(@engine, wasi: true)
-        store = Store.new(@engine, wasi_ctx: WasiCtxBuilder.new.set_stdin_string("some str"))
+        store = Store.new(@engine, wasi_ctx: WasiCtxBuilder.new.set_stdin_string("some str").build)
         linker.instantiate(store, wasi_module).invoke("_start")
       end
     end
@@ -43,6 +44,7 @@ module Wasmtime
           .set_stdin_file(tempfile_path("stdin"))
           .set_stdout_file(tempfile_path("stdout"))
           .set_stderr_file(tempfile_path("stderr"))
+          .build
 
         run_wasi_module(wasi_config)
 
@@ -77,6 +79,59 @@ module Wasmtime
         env = wasi_module_env { |config| config.set_env(ENV) }
         expect(env.fetch("env").to_h).to eq(ENV.to_h)
       end
+
+      describe "WasiContext" do
+        describe "deterministic" do
+          before do
+            2.times do |t|
+              t += 1
+              wasi_ctx = Wasmtime::WasiCtx
+                .deterministic
+                .set_stdout_file(tempfile_path("stdout-deterministic-#{t}"))
+                .set_stderr_file(tempfile_path("stderr-deterministic-#{t}"))
+
+              deterministic_module = Module.deserialize(@engine, @compiled_wasi_deterministic_module)
+
+              linker = Linker.new(@engine, wasi: true)
+              store = Store.new(@engine, wasi_ctx: wasi_ctx)
+              linker.instantiate(store, deterministic_module).invoke("_start")
+            end
+          end
+
+          let(:stdout1) {
+            output = File.read(tempfile_path("stdout-deterministic-1"))[1..].strip
+            JSON.parse(output)
+          }
+          let(:stdout2) {
+            output = File.read(tempfile_path("stdout-deterministic-2"))[1..].strip
+            JSON.parse(output)
+          }
+          let(:stderr1) { File.read(tempfile_path("stderr-deterministic-1")).strip }
+          let(:stderr2) { File.read(tempfile_path("stderr-deterministic-2")).strip }
+
+          it "returns the same random values" do
+            expect(stdout1["rand1"]).to eq(stdout2["rand1"])
+            expect(stdout1["rand2"]).to eq(stdout2["rand2"])
+            expect(stdout1["rand3"]).to eq(stdout2["rand3"])
+          end
+
+          it "returns SystemTime returns UTC 0" do
+            utc_start_date_str = "1970-01-01T00:00:00+00:00"
+            utc_time_keys = %w[utc1 utc2]
+            elapsed_time_key = "system_time1_elapsed"
+            elapsed_time = "0"
+
+            # Confirm that that time elapsed between utc1 and utc2
+            expect(stdout1[elapsed_time_key]).to eq(elapsed_time)
+            expect(stdout2[elapsed_time_key]).to eq(elapsed_time)
+
+            utc_time_keys.each do |key|
+              expect(stdout1[key]).to eq(utc_start_date_str)
+              expect(stdout2[key]).to eq(utc_start_date_str)
+            end
+          end
+        end
+      end
     end
 
     def wasi_module
@@ -96,7 +151,7 @@ module Wasmtime
       yield(wasi_config)
       wasi_config.set_stdout_file(stdout_file)
 
-      run_wasi_module(wasi_config)
+      run_wasi_module(wasi_config.build)
 
       JSON.parse(File.read(stdout_file)).fetch("wasi")
     end

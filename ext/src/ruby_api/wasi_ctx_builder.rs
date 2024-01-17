@@ -1,4 +1,4 @@
-use super::root;
+use super::{root, WasiCtx};
 use crate::error;
 use magnus::{
     class, function, gc::Marker, method, typed_data::Obj, value::Opaque, DataTypeFunctions, Error,
@@ -192,9 +192,9 @@ impl WasiCtxBuilder {
         rb_self
     }
 
-    pub fn build_context(&self, ruby: &Ruby) -> Result<wasmtime_wasi::WasiCtx, Error> {
+    pub fn build(ruby: &Ruby, rb_self: RbSelf) -> Result<WasiCtx, Error> {
         let mut builder = wasmtime_wasi::WasiCtxBuilder::new();
-        let inner = self.inner.borrow();
+        let inner = rb_self.inner.borrow();
 
         if let Some(stdin) = inner.stdin.as_ref() {
             match stdin {
@@ -243,23 +243,24 @@ impl WasiCtxBuilder {
             builder.envs(&env_vec).map_err(|e| error!("{}", e))?;
         }
 
-        Ok(builder.build())
+        let ctx = WasiCtx::from_inner(builder.build());
+        Ok(ctx)
     }
 }
 
-fn file_r(path: RString) -> Result<File, Error> {
+pub fn file_r(path: RString) -> Result<File, Error> {
     // SAFETY: &str copied before calling in to Ruby, no GC can happen before.
     File::open(PathBuf::from(unsafe { path.as_str()? }))
         .map_err(|e| error!("Failed to open file {}\n{}", path, e))
 }
 
-fn file_w(path: RString) -> Result<File, Error> {
+pub fn file_w(path: RString) -> Result<File, Error> {
     // SAFETY: &str copied before calling in to Ruby, no GC can happen before.
     File::create(unsafe { path.as_str()? })
         .map_err(|e| error!("Failed to write to file {}\n{}", path, e))
 }
 
-fn wasi_file(file: File) -> Box<wasi_cap_std_sync::file::File> {
+pub fn wasi_file(file: File) -> Box<wasi_cap_std_sync::file::File> {
     let file = cap_std::fs::File::from_std(file);
     let file = wasi_cap_std_sync::file::File::from_cap_std(file);
     Box::new(file)
@@ -291,6 +292,8 @@ pub fn init() -> Result<(), Error> {
     class.define_method("set_env", method!(WasiCtxBuilder::set_env, 1))?;
 
     class.define_method("set_argv", method!(WasiCtxBuilder::set_argv, 1))?;
+
+    class.define_method("build", method!(WasiCtxBuilder::build, 0))?;
 
     Ok(())
 }

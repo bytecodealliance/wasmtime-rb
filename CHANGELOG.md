@@ -1,5 +1,19 @@
 # Changelog
 
+## [v17.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v17.0.0) (2024-01-30)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v16.0.0...v17.0.0)
+
+**Merged pull requests:**
+
+- chore: Update to wasmtime v17 [\#285](https://github.com/bytecodealliance/wasmtime-rb/pull/285) ([saulecabrera](https://github.com/saulecabrera))
+- chore: Bump download artifact in publish doc workflow [\#284](https://github.com/bytecodealliance/wasmtime-rb/pull/284) ([saulecabrera](https://github.com/saulecabrera))
+- Expose Wasi Context to Ruby [\#282](https://github.com/bytecodealliance/wasmtime-rb/pull/282) ([cameronbarker](https://github.com/cameronbarker))
+- Add support for resource limits on `Wasmtime::Store` [\#281](https://github.com/bytecodealliance/wasmtime-rb/pull/281) ([ryanische](https://github.com/ryanische))
+- Unlock the GVL when compiling WASM code [\#277](https://github.com/bytecodealliance/wasmtime-rb/pull/277) ([ianks](https://github.com/ianks))
+- chore\(deps\): bump actions/download-artifact from 3 to 4 [\#257](https://github.com/bytecodealliance/wasmtime-rb/pull/257) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump actions/upload-artifact from 3 to 4 [\#256](https://github.com/bytecodealliance/wasmtime-rb/pull/256) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v16.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v16.0.0) (2024-01-11)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v15.0.1...v16.0.0)

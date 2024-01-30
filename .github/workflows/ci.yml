@@ -23,6 +23,12 @@ jobs:
     steps:
       - id: fetch
         uses: oxidize-rb/actions/fetch-ci-data@v1
+        with:
+          # TODO(#286)
+          # Disabaling head until we reach consensus on what to do in the
+          # presence of errors.
+          stable-ruby-versions: |
+            exclude: [head]
 
   ci:
     runs-on: ${{ matrix.os }}

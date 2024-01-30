@@ -71,7 +71,11 @@ jobs:
           cargo-cache: true
           cache-version: v1
 
-      - uses: actions/download-artifact@v4
+      # It seems that v4 is not compatible with how artifacts are uploaded by
+      # oxidize-rb/cross-gem-action. So this must stay as v3 until the issue
+      # below is fixed.
+      # See https://github.com/oxidize-rb/actions/issues/27, for more details.
+      - uses: actions/download-artifact@v3
         with:
           name: cross-gem
 

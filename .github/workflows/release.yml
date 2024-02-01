@@ -75,7 +75,7 @@ jobs:
       # oxidize-rb/cross-gem-action. So this must stay as v3 until the issue
       # below is fixed.
       # See https://github.com/oxidize-rb/actions/issues/27, for more details.
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: cross-gem
 

@@ -23,6 +23,11 @@ jobs:
     steps:
       - id: fetch
         uses: oxidize-rb/actions/fetch-ci-data@v1
+        with:
+          stable-ruby-versions: |
+              # See https://github.com/bytecodealliance/wasmtime-rb/issues/286
+              # for details.
+              exclude: [head]
 
   ci:
     runs-on: ${{ matrix.os }}
@@ -32,9 +37,11 @@ jobs:
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         ruby: ${{ fromJSON(needs.ci-data.outputs.result).stable-ruby-versions }}
-        include:
-          - os: windows-latest
-            ruby: mswin
+        # include:
+          # mswin relies on head and we're not creating releases for it
+          # so disabling it as well.
+          # - os: windows-latest
+          #   ruby: mswin
     steps:
       - uses: actions/checkout@v4
 

@@ -12,6 +12,7 @@ GEM
     diff-lcs (1.5.0)
     ffi (1.16.3)
     ffi (1.16.3-x64-mingw-ucrt)
+    ffi (1.16.3-x64-mingw32)
     get_process_mem (0.2.7)
       ffi (~> 1.0)
     json (2.7.1)
@@ -27,7 +28,7 @@ GEM
     rake (13.1.0)
     rake-compiler (1.2.5)
       rake
-    rb_sys (0.9.86)
+    rb_sys (0.9.87)
     regexp_parser (2.8.3)
     rexml (3.2.6)
     rspec (3.12.0)

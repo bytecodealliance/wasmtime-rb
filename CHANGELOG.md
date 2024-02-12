@@ -1,11 +1,21 @@
 # Changelog
 
+## [v17.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v17.0.1) (2024-02-12)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v17.0.0...v17.0.1)
+
+**Merged pull requests:**
+
+- chore: Disable Ruby head temporarily [\#296](https://github.com/bytecodealliance/wasmtime-rb/pull/296) ([saulecabrera](https://github.com/saulecabrera))
+- upgrade wasmtime to 17.0.1 [\#295](https://github.com/bytecodealliance/wasmtime-rb/pull/295) ([glebpom](https://github.com/glebpom))
+
 ## [v17.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v17.0.0) (2024-01-30)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v16.0.0...v17.0.0)
 
 **Merged pull requests:**
 
+- \[ci skip\] chore: Update release workflow to use download-artifact@v3 [\#288](https://github.com/bytecodealliance/wasmtime-rb/pull/288) ([saulecabrera](https://github.com/saulecabrera))
 - chore: Update to wasmtime v17 [\#285](https://github.com/bytecodealliance/wasmtime-rb/pull/285) ([saulecabrera](https://github.com/saulecabrera))
 - chore: Bump download artifact in publish doc workflow [\#284](https://github.com/bytecodealliance/wasmtime-rb/pull/284) ([saulecabrera](https://github.com/saulecabrera))
 - Expose Wasi Context to Ruby [\#282](https://github.com/bytecodealliance/wasmtime-rb/pull/282) ([cameronbarker](https://github.com/cameronbarker))

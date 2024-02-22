@@ -73,7 +73,7 @@ pub fn init() -> Result<(), Error> {
     memory::init()?;
     linker::init()?;
     externals::init()?;
-    wasi_ctx_builder::init()?;
+        wasi_ctx_builder::init()?;
     table::init()?;
     global::init()?;
 

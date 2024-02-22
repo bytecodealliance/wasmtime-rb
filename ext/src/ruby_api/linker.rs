@@ -51,10 +51,15 @@ impl Linker {
         let (engine,) = args.required;
         let wasi = kw.optional.0.unwrap_or(false);
 
+        #[allow(unused_mut)]
         let mut inner: LinkerImpl<StoreData> = LinkerImpl::new(engine.get());
-        if wasi {
-            wasmtime_wasi::add_to_linker(&mut inner, |s| s.wasi_ctx_mut())
-                .map_err(|e| error!("{}", e))?
+
+        #[cfg(feature = "wasi")]
+        {
+            if wasi {
+                wasmtime_wasi::add_to_linker(&mut inner, |s| s.wasi_ctx_mut())
+                    .map_err(|e| error!("{}", e))?;
+            }
         }
         Ok(Self {
             inner: RefCell::new(inner),

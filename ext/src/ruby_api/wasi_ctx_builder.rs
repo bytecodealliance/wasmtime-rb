@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
 use super::root;
 use crate::error;
 use magnus::{
@@ -6,7 +8,6 @@ use magnus::{
 };
 use std::cell::RefCell;
 use std::{fs::File, path::PathBuf};
-use wasi_common::pipe::ReadPipe;
 
 enum ReadStream {
     Inherit,
@@ -192,7 +193,9 @@ impl WasiCtxBuilder {
         rb_self
     }
 
+    #[cfg(feature = "wasi")]
     pub fn build_context(&self) -> Result<wasmtime_wasi::WasiCtx, Error> {
+        use wasi_common::pipe::ReadPipe;
         let mut builder = wasmtime_wasi::WasiCtxBuilder::new();
         let inner = self.inner.borrow();
 
@@ -247,12 +250,14 @@ fn file_r(path: RString) -> Result<File, Error> {
         .map_err(|e| error!("Failed to open file {}\n{}", path, e))
 }
 
+
 fn file_w(path: RString) -> Result<File, Error> {
     // SAFETY: &str copied before calling in to Ruby, no GC can happen before.
     File::create(unsafe { path.as_str()? })
         .map_err(|e| error!("Failed to write to file {}\n{}", path, e))
 }
 
+#[cfg(feature = "wasi")]
 fn wasi_file(file: File) -> Box<wasi_cap_std_sync::file::File> {
     let file = cap_std::fs::File::from_std(file);
     let file = wasi_cap_std_sync::file::File::from_cap_std(file);

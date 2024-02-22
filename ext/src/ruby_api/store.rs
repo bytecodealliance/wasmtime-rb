@@ -1,6 +1,7 @@
-use super::errors::wasi_exit_error;
-use super::{caller::Caller, engine::Engine, root, trap::Trap, wasi_ctx_builder::WasiCtxBuilder};
+use super::{caller::Caller, engine::Engine, root, trap::Trap};
 use crate::{define_rb_intern, error};
+use super::WasiCtxBuilder;
+#[allow(unused_imports)]
 use magnus::Class;
 use magnus::{
     function, gc, method, scan_args, typed_data::Obj, DataTypeFunctions, Error, Module, Object,
@@ -9,7 +10,12 @@ use magnus::{
 use std::cell::UnsafeCell;
 use std::convert::TryFrom;
 use wasmtime::{AsContext, AsContextMut, Store as StoreImpl, StoreContext, StoreContextMut};
-use wasmtime_wasi::{I32Exit, WasiCtx};
+
+#[cfg(not(feature = "wasi"))]
+type WasiCtx = ();
+
+#[cfg(feature = "wasi")]
+type WasiCtx = wasmtime_wasi::WasiCtx;
 
 define_rb_intern!(
     WASI_CTX => "wasi_ctx",
@@ -96,6 +102,7 @@ impl Store {
     ///   store = Wasmtime::Store.new(Wasmtime::Engine.new, {})
     pub fn new(args: &[Value]) -> Result<Self, Error> {
         let args = scan_args::scan_args::<(&Engine,), (Option<Value>,), (), (), _, ()>(args)?;
+        #[allow(unused_variables)]
         let kw = scan_args::get_kwargs::<_, (), (Option<&WasiCtxBuilder>,), ()>(
             args.keywords,
             &[],
@@ -104,10 +111,14 @@ impl Store {
         let (engine,) = args.required;
         let (user_data,) = args.optional;
         let user_data = user_data.unwrap_or_else(|| QNIL.into());
-        let wasi = match kw.optional.0 {
-            None => None,
-            Some(wasi_ctx_builder) => Some(wasi_ctx_builder.build_context()?),
-        };
+        #[cfg(feature = "wasi")]
+        let wasi =
+                match kw.optional.0 {
+                None => None,
+                Some(wasi_ctx_builder) => Some(wasi_ctx_builder.build_context()?),
+            };
+        #[cfg(not(feature = "wasi"))]
+        let wasi = None;
 
         let eng = engine.get();
         let store_data = StoreData {
@@ -240,8 +251,8 @@ impl<'a> StoreContextValue<'a> {
     }
 
     pub fn handle_wasm_error(&self, error: anyhow::Error) -> Error {
-        if let Some(exit) = error.downcast_ref::<I32Exit>() {
-            wasi_exit_error().new_instance((exit.0,)).unwrap().into()
+        if let Some(exit) = try_into_i32_exit(&error) {
+            exit
         } else {
             Trap::try_from(error)
                 .map(|trap| trap.into())
@@ -251,6 +262,7 @@ impl<'a> StoreContextValue<'a> {
                 })
         }
     }
+
 
     pub fn retain(&self, value: Value) -> Result<(), Error> {
         self.context_mut()?.data_mut().retain(value);
@@ -270,3 +282,18 @@ pub fn init() -> Result<(), Error> {
 
     Ok(())
 }
+
+#[cfg(feature = "wasi")]
+fn try_into_i32_exit(error: &anyhow::Error) -> Option<Error>{
+    if let Some(exit) = error.downcast_ref::<wasmtime_wasi::I32Exit>() {
+        Some(magnus::Error::Exception(super::errors::wasi_exit_error().new_instance((exit.0,)).unwrap().into()))
+    } else {
+        None
+    }
+}
+
+#[cfg(not(feature = "wasi"))]
+fn try_into_i32_exit(_error: &anyhow::Error) -> Option<Error>{
+    None
+}
+

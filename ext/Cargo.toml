@@ -12,22 +12,40 @@ default = ["tokio", "all-arch", "wasi"]
 embed = ["magnus/embed"]
 tokio = ["dep:tokio", "dep:async-timer"]
 all-arch = ["wasmtime/all-arch"]
-wasi = ["dep:wasmtime-wasi", "dep:wasi-common", "dep:wasi-cap-std-sync", "dep:cap-std"]
+wasi = [
+  "dep:wasmtime-wasi",
+  "dep:wasi-common",
+  "dep:wasi-cap-std-sync",
+  "dep:cap-std",
+]
 ruby-api = []
 
 [dependencies]
 lazy_static = "1.4.0"
 magnus = { version = "0.5", features = ["rb-sys-interop"] }
 rb-sys = "~0.9.65"
-wasmtime = { version = "= 6.0.1" }
+wasmtime = { version = "= 6.0.1", default-features = false, features = [
+  "jitdump",
+  "wat",
+  "parallel-compilation",
+  "pooling-allocator",
+  "cranelift",
+] }
 wasmtime-wasi = { version = "= 6.0.1", optional = true }
 wasi-common = { version = "= 6.0.1", optional = true }
 wasi-cap-std-sync = { version = "= 6.0.1", optional = true }
 cap-std = { version = "= 1.0.5", optional = true }
 anyhow = "*" # Use whatever Wasmtime uses
 wat = "1.0.59"
-tokio = { version = "1.25.0", features = ["rt", "rt-multi-thread", "time", "net"], optional = true }
-async-timer = { version = "1.0.0-beta.8", features = ["tokio1"], optional = true }
+tokio = { version = "1.25.0", features = [
+  "rt",
+  "rt-multi-thread",
+  "time",
+  "net",
+], optional = true }
+async-timer = { version = "1.0.0-beta.8", features = [
+  "tokio1",
+], optional = true }
 
 [build-dependencies]
 rb-sys-env = "0.1.2"

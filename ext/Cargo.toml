@@ -39,7 +39,7 @@ async-timer = { version = "1.0.0-beta.11", features = [
 ], optional = true }
 static_assertions = "1.1.0"
 wasmtime-runtime = "17.0.1"
-wasmtime-environ = "= 17.0.1"
+wasmtime-environ = "= 18.0.2"
 deterministic-wasi-ctx = "=0.1.18"
 
 [build-dependencies]

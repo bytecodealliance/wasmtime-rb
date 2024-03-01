@@ -76,7 +76,7 @@ GEM
     syntax_tree (5.3.0)
       prettier_print (>= 1.2.0)
     unicode-display_width (2.5.0)
-    yard (0.9.34)
+    yard (0.9.36)
     yard-rustdoc (0.3.2)
       syntax_tree (~> 5.0)
       yard (~> 0.9)

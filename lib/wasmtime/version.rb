@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 module Wasmtime
-  VERSION = "17.0.1"
+  VERSION = "17.0.2"
 end

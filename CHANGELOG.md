@@ -1,5 +1,28 @@
 # Changelog
 
+## [v17.0.2](https://github.com/bytecodealliance/wasmtime-rb/tree/v17.0.2) (2024-03-04)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v17.0.1...v17.0.2)
+
+**Closed issues:**
+
+- wasmtime gem is not fully published [\#298](https://github.com/bytecodealliance/wasmtime-rb/issues/298)
+
+**Merged pull requests:**
+
+- chore: Update to wasmtime v17.0.2 [\#307](https://github.com/bytecodealliance/wasmtime-rb/pull/307) ([saulecabrera](https://github.com/saulecabrera))
+- chore\(deps\): bump rb-sys from 0.9.87 to 0.9.89 [\#306](https://github.com/bytecodealliance/wasmtime-rb/pull/306) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump tokio from 1.35.1 to 1.36.0 [\#305](https://github.com/bytecodealliance/wasmtime-rb/pull/305) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump wat from 1.0.87 to 1.201.0 [\#304](https://github.com/bytecodealliance/wasmtime-rb/pull/304) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump rb\_sys from 0.9.87 to 0.9.89 [\#302](https://github.com/bytecodealliance/wasmtime-rb/pull/302) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump rspec from 3.12.0 to 3.13.0 [\#301](https://github.com/bytecodealliance/wasmtime-rb/pull/301) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump yard from 0.9.34 to 0.9.36 [\#300](https://github.com/bytecodealliance/wasmtime-rb/pull/300) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump standard from 1.33.0 to 1.34.0 [\#299](https://github.com/bytecodealliance/wasmtime-rb/pull/299) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump wat from 1.0.82 to 1.0.87 [\#297](https://github.com/bytecodealliance/wasmtime-rb/pull/297) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump rb\_sys from 0.9.86 to 0.9.87 [\#292](https://github.com/bytecodealliance/wasmtime-rb/pull/292) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump rb-sys from 0.9.86 to 0.9.87 [\#291](https://github.com/bytecodealliance/wasmtime-rb/pull/291) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump rake-compiler from 1.2.5 to 1.2.7 [\#290](https://github.com/bytecodealliance/wasmtime-rb/pull/290) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v17.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v17.0.1) (2024-02-12)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v17.0.0...v17.0.1)

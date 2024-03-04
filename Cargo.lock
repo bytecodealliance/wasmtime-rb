@@ -189,8 +189,8 @@ version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "88e341d15ac1029aadce600be764a1a1edafe40e03cde23285bc1d261b3a4866"
 dependencies = [
- "cap-primitives",
- "cap-std",
+ "cap-primitives 2.0.1",
+ "cap-std 2.0.1",
  "io-lifetimes",
  "windows-sys 0.52.0",
 ]
@@ -201,8 +201,8 @@ version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "434168fe6533055f0f4204039abe3ff6d7db338ef46872a5fa39e9d5ad5ab7a9"
 dependencies = [
- "cap-primitives",
- "cap-std",
+ "cap-primitives 2.0.1",
+ "cap-std 2.0.1",
  "rustix",
  "smallvec",
 ]
@@ -212,6 +212,23 @@ name = "cap-primitives"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fe16767ed8eee6d3f1f00d6a7576b81c226ab917eb54b96e5f77a5216ef67abb"
+dependencies = [
+ "ambient-authority",
+ "fs-set-times",
+ "io-extras",
+ "io-lifetimes",
+ "ipnet",
+ "maybe-owned",
+ "rustix",
+ "windows-sys 0.52.0",
+ "winx",
+]
+
+[[package]]
+name = "cap-primitives"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "90a0b44fc796b1a84535a63753d50ba3972c4db55c7255c186f79140e63d56d0"
 dependencies = [
  "ambient-authority",
  "fs-set-times",
@@ -240,7 +257,19 @@ version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "593db20e4c51f62d3284bae7ee718849c3214f93a3b94ea1899ad85ba119d330"
 dependencies = [
- "cap-primitives",
+ "cap-primitives 2.0.1",
+ "io-extras",
+ "io-lifetimes",
+ "rustix",
+]
+
+[[package]]
+name = "cap-std"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "266626ce180cf9709f317d0bf9754e3a5006359d87f4bf792f06c9c5f1b63c0f"
+dependencies = [
+ "cap-primitives 3.0.0",
  "io-extras",
  "io-lifetimes",
  "rustix",
@@ -253,7 +282,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "03261630f291f425430a36f38c847828265bc928f517cdd2004c56f4b02f002b"
 dependencies = [
  "ambient-authority",
- "cap-primitives",
+ "cap-primitives 2.0.1",
  "iana-time-zone",
  "once_cell",
  "rustix",
@@ -496,7 +525,7 @@ checksum = "fa6fab566231a24351c9a429938d5b9afc33e3997da7e257f774a952349a3885"
 dependencies = [
  "anyhow",
  "async-trait",
- "cap-primitives",
+ "cap-primitives 2.0.1",
  "rand_core",
  "rand_pcg",
  "wasi-common",
@@ -1473,7 +1502,7 @@ checksum = "0682e006dd35771e392a6623ac180999a9a854b1d4a6c12fb2e804941c2b1f58"
 dependencies = [
  "bitflags 2.4.1",
  "cap-fs-ext",
- "cap-std",
+ "cap-std 2.0.1",
  "fd-lock",
  "io-lifetimes",
  "rustix",
@@ -1657,7 +1686,7 @@ dependencies = [
  "async-trait",
  "cap-fs-ext",
  "cap-rand",
- "cap-std",
+ "cap-std 2.0.1",
  "cap-time-ext",
  "fs-set-times",
  "io-extras",
@@ -1679,7 +1708,7 @@ dependencies = [
  "anyhow",
  "bitflags 2.4.1",
  "cap-rand",
- "cap-std",
+ "cap-std 2.0.1",
  "io-extras",
  "log",
  "rustix",
@@ -2006,7 +2035,7 @@ version = "9.0.4"
 dependencies = [
  "anyhow",
  "async-timer",
- "cap-std",
+ "cap-std 3.0.0",
  "deterministic-wasi-ctx",
  "lazy_static",
  "magnus",
@@ -2090,7 +2119,7 @@ dependencies = [
  "cap-fs-ext",
  "cap-net-ext",
  "cap-rand",
- "cap-std",
+ "cap-std 2.0.1",
  "cap-time-ext",
  "fs-set-times",
  "futures",

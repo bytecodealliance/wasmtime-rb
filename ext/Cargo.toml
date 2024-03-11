@@ -21,10 +21,9 @@ magnus = { version = "0.6", features = ["rb-sys"] }
 rb-sys = { version = "*", default-features = false, features = [
   "stable-api-compiled-fallback",
 ] }
-wasmtime = { version = "= 17.0.2" }
-wasmtime-wasi = "= 17.0.2"
-wasi-common = "= 17.0.2"
-wasi-cap-std-sync = "17.0.2"
+wasmtime = { version = "=18.0.3" }
+wasmtime-wasi = "=18.0.3"
+wasi-common = "=18.0.3"
 cap-std = "2.0.0"
 anyhow = "*" # Use whatever Wasmtime uses
 wat = "1.201.0"
@@ -38,9 +37,9 @@ async-timer = { version = "1.0.0-beta.11", features = [
   "tokio1",
 ], optional = true }
 static_assertions = "1.1.0"
-wasmtime-runtime = "17.0.2"
-wasmtime-environ = "= 17.0.2"
-deterministic-wasi-ctx = "=0.1.18"
+wasmtime-runtime = "=18.0.3"
+wasmtime-environ = "=18.0.3"
+deterministic-wasi-ctx = "=0.1.19"
 
 [build-dependencies]
 rb-sys-env = "0.1.2"

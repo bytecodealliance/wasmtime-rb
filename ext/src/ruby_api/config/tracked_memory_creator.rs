@@ -69,7 +69,7 @@ unsafe impl MemoryCreator for TrackedMemoryCreator {
             shared: ty.is_shared(),
             memory64: ty.is_64(),
         };
-        let tunables = wasmtime_environ::Tunables::default();
+        let tunables = wasmtime_environ::Tunables::default_host();
         let plan = MemoryPlan::for_memory(memory, &tunables);
         let base = default_memory_creator
             .new_memory(&plan, minimum, maximum, None)

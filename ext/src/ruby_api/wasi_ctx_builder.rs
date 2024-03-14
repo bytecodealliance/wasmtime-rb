@@ -260,9 +260,9 @@ pub fn file_w(path: RString) -> Result<File, Error> {
         .map_err(|e| error!("Failed to write to file {}\n{}", path, e))
 }
 
-pub fn wasi_file(file: File) -> Box<wasi_cap_std_sync::file::File> {
+pub fn wasi_file(file: File) -> Box<wasmtime_wasi::file::File> {
     let file = cap_std::fs::File::from_std(file);
-    let file = wasi_cap_std_sync::file::File::from_cap_std(file);
+    let file = wasmtime_wasi::file::File::from_cap_std(file);
     Box::new(file)
 }
 

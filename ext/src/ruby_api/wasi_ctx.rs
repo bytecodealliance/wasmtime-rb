@@ -11,7 +11,7 @@ use magnus::{
 };
 use std::{borrow::Borrow, cell::RefCell, fs::File, path::PathBuf};
 use wasi_common::pipe::ReadPipe;
-use wasmtime_wasi::WasiCtx as WasiCtxImpl;
+use wasi_common::WasiCtx as WasiCtxImpl;
 
 /// @yard
 /// WASI context to be sent as {Store#new}’s +wasi_ctx+ keyword argument.

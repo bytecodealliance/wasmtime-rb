@@ -14,11 +14,11 @@ use magnus::{Class, RHash};
 use std::borrow::Borrow;
 use std::cell::UnsafeCell;
 use std::convert::TryFrom;
+use wasi_common::{I32Exit, WasiCtx as WasiCtxImpl};
 use wasmtime::{
     AsContext, AsContextMut, Store as StoreImpl, StoreContext, StoreContextMut, StoreLimits,
     StoreLimitsBuilder,
 };
-use wasmtime_wasi::{I32Exit, WasiCtx as WasiCtxImpl};
 
 define_rb_intern!(
     WASI_CTX => "wasi_ctx",

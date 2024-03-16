@@ -23,6 +23,21 @@ pub fn conversion_error() -> ExceptionClass {
     ruby.get_inner(&ERR)
 }
 
+/// Raised when attempting to use a module that has been disposed.
+pub fn module_disposed_error() -> ExceptionClass {
+    static ERR: Lazy<ExceptionClass> =
+        Lazy::new(|_| root().const_get("ModuleDisposedError").unwrap());
+    let ruby = Ruby::get().unwrap();
+    ruby.get_inner(&ERR)
+}
+
+pub fn module_disposed_err<T>() -> Result<T, Error> {
+    Err(Error::new(
+        module_disposed_error(),
+        "module has been disposed",
+    ))
+}
+
 /// Raised when a WASI program terminates early by calling +exit+.
 pub fn wasi_exit_error() -> ExceptionClass {
     static ERR: Lazy<ExceptionClass> = Lazy::new(|_| root().const_get("WasiExit").unwrap());

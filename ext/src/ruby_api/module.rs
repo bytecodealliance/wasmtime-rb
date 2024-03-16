@@ -1,10 +1,12 @@
 use std::{
+    borrow::Borrow,
+    cell::{Cell, RefCell, UnsafeCell},
     mem::{transmute, MaybeUninit},
     ops::Deref,
     os::raw::c_void,
 };
 
-use super::{engine::Engine, root};
+use super::{engine::Engine, errors::module_disposed_err, root};
 use crate::{
     error,
     helpers::{nogvl, Tmplock},
@@ -18,15 +20,15 @@ use wasmtime::Module as ModuleImpl;
 /// @yard
 /// Represents a WebAssembly module.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Module.html Wasmtime's Rust doc
-#[derive(Clone)]
 #[magnus::wrap(class = "Wasmtime::Module", size, free_immediately, frozen_shareable)]
 pub struct Module {
-    inner: ModuleImpl,
+    inner: UnsafeCell<Option<ModuleImpl>>,
     _track_memory_usage: ManuallyTracked<()>,
 }
 
 // Needed for ManuallyTracked
 unsafe impl Send for Module {}
+unsafe impl Sync for Module {}
 
 impl Module {
     /// @yard
@@ -95,7 +97,9 @@ impl Module {
     /// @return [String]
     /// @see .deserialize
     pub fn serialize(&self) -> Result<RString, Error> {
-        let module = self.get();
+        let Some(module) = self.get() else {
+            return module_disposed_err();
+        };
         let bytes = module.serialize();
 
         bytes
@@ -103,8 +107,25 @@ impl Module {
             .map_err(|e| error!("{:?}", e))
     }
 
-    pub fn get(&self) -> &ModuleImpl {
-        &self.inner
+    /// @yard
+    /// Disposes the module, freeing the underlying resources without waiting
+    /// for the GC. The module is rendered unusable after this call.
+    /// @return [Boolean] Whether the module was disposed or not.
+    pub fn dispose(&self) -> Result<bool, Error> {
+        let borrowed = unsafe { &mut *self.inner.get() };
+
+        Ok(borrowed.take().is_some())
+    }
+
+    /// @yard
+    /// Checks whether the module has been disposed manually.
+    /// @return [Boolean] Whether the module has been manually disposed of.
+    pub fn is_disposed(&self) -> Result<bool, Error> {
+        Ok(self.get().is_none())
+    }
+
+    pub fn get(&self) -> Option<&ModuleImpl> {
+        unsafe { &*self.inner.get() }.as_ref()
     }
 }
 
@@ -113,7 +134,7 @@ impl From<ModuleImpl> for Module {
         let size = inner.image_range().len();
 
         Self {
-            inner,
+            inner: UnsafeCell::new(Some(inner)),
             _track_memory_usage: ManuallyTracked::new(size),
         }
     }
@@ -127,6 +148,8 @@ pub fn init() -> Result<(), Error> {
     class.define_singleton_method("deserialize", function!(Module::deserialize, 2))?;
     class.define_singleton_method("deserialize_file", function!(Module::deserialize_file, 2))?;
     class.define_method("serialize", method!(Module::serialize, 0))?;
+    class.define_method("dispose!", method!(Module::dispose, 0))?;
+    class.define_method("disposed?", method!(Module::is_disposed, 0))?;
 
     Ok(())
 }

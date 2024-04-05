@@ -4,13 +4,14 @@ use super::{
     WasiCtxBuilder,
 };
 use crate::error;
+use crate::helpers::OutputLimitedBuffer;
 use deterministic_wasi_ctx::build_wasi_ctx as wasi_deterministic_ctx;
 use magnus::{
     class, function, gc::Marker, method, prelude::*, typed_data::Obj, Error, Object, RString,
     RTypedData, Ruby, TypedData, Value,
 };
 use std::{borrow::Borrow, cell::RefCell, fs::File, path::PathBuf};
-use wasi_common::pipe::ReadPipe;
+use wasi_common::pipe::{ReadPipe, WritePipe};
 use wasi_common::WasiCtx as WasiCtxImpl;
 
 /// @yard
@@ -76,6 +77,19 @@ impl WasiCtx {
     }
 
     /// @yard
+    /// Set stdout to write to a string buffer.
+    /// @param buffer [String] The string buffer to write to.
+    /// @param capacity [Integer] The maximum number of bytes that can be written to the output buffer.
+    /// @def set_stout_buffer(buffer, capacity)
+    /// @return [WasiCtx] +self+
+    fn set_stdout_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -> RbSelf {
+        let inner = rb_self.inner.borrow_mut();
+        let pipe = WritePipe::new(OutputLimitedBuffer::new(buffer.into(), capacity));
+        inner.set_stdout(Box::new(pipe));
+        rb_self
+    }
+
+    /// @yard
     /// Set stderr to write to a file. Will truncate the file if it exists,
     /// otherwise try to create it.
     /// @param path [String] The path of the file to write to.
@@ -85,6 +99,19 @@ impl WasiCtx {
         let inner = rb_self.inner.borrow_mut();
         let cs = file_w(path).map(wasi_file).unwrap();
         inner.set_stderr(cs);
+        rb_self
+    }
+
+    /// @yard
+    /// Set stderr to write to a string buffer.
+    /// @param buffer [String] The string buffer to write to.
+    /// @param capacity [Integer] The maximum number of bytes that can be written to the output buffer.
+    /// @def set_stout_buffer(buffer, capacity)
+    /// @return [WasiCtx] +self+
+    fn set_stderr_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -> RbSelf {
+        let inner = rb_self.inner.borrow_mut();
+        let pipe = WritePipe::new(OutputLimitedBuffer::new(buffer.into(), capacity));
+        inner.set_stderr(Box::new(pipe));
         rb_self
     }
 
@@ -105,6 +132,8 @@ pub fn init() -> Result<(), Error> {
     class.define_method("set_stdin_file", method!(WasiCtx::set_stdin_file, 1))?;
     class.define_method("set_stdin_string", method!(WasiCtx::set_stdin_string, 1))?;
     class.define_method("set_stdout_file", method!(WasiCtx::set_stdout_file, 1))?;
+    class.define_method("set_stdout_buffer", method!(WasiCtx::set_stdout_buffer, 2))?;
     class.define_method("set_stderr_file", method!(WasiCtx::set_stderr_file, 1))?;
+    class.define_method("set_stderr_buffer", method!(WasiCtx::set_stderr_buffer, 2))?;
     Ok(())
 }

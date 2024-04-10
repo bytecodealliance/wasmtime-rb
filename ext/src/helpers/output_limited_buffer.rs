@@ -16,8 +16,8 @@ impl OutputLimitedBuffer {
 
 impl io::Write for OutputLimitedBuffer {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        /// Append a buffer to the string and truncate when hitting the capacity.
-        /// We return the input buffer size regardless of whether we truncated or not to avoid a panic.
+        // Append a buffer to the string and truncate when hitting the capacity.
+        // We return the input buffer size regardless of whether we truncated or not to avoid a panic.
         let ruby = Ruby::get().unwrap();
 
         let mut inner_buffer = self.buffer.get_inner_with(&ruby);
@@ -28,9 +28,15 @@ impl io::Write for OutputLimitedBuffer {
 
         if inner_buffer.len() + buf.len() > self.capacity {
             let portion = self.capacity - inner_buffer.len();
-            inner_buffer.write(&buf[0..portion])?
+            let amount_written = inner_buffer.write(&buf[0..portion])?;
+            if amount_written < portion {
+                return Ok(amount_written);
+            }
         } else {
-            inner_buffer.write(buf)?
+            let amount_written = inner_buffer.write(buf)?;
+            if amount_written < buf.len() {
+                return Ok(amount_written);
+            }
         };
 
         Ok(buf.len())

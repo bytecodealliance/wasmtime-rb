@@ -1,6 +1,9 @@
 use magnus::{value::InnerValue, value::Opaque, RString, Ruby};
 use std::io;
 
+/// A buffer that limits the number of bytes that can be written to it.
+/// If the buffer is full, it will truncate the data.
+/// Is used in the buffer implementations of stdout and stderr in `WasiCtx` and `WasiCtxBuilder`.
 pub struct OutputLimitedBuffer {
     buffer: Opaque<RString>,
     /// The maximum number of bytes that can be written to the output stream buffer.
@@ -26,15 +29,15 @@ impl io::Write for OutputLimitedBuffer {
             return Ok(buf.len());
         }
 
-        if inner_buffer.len() + buf.len() > self.capacity {
-            let portion = self.capacity - inner_buffer.len();
-            let amount_written = inner_buffer.write(&buf[0..portion])?;
-            if amount_written < portion {
+        if inner_buffer.len().checked_add(buf.len()).is_some_and(|val| val < self.capacity){
+            let amount_written = inner_buffer.write(buf)?;
+            if amount_written < buf.len() {
                 return Ok(amount_written);
             }
         } else {
-            let amount_written = inner_buffer.write(buf)?;
-            if amount_written < buf.len() {
+            let portion = self.capacity - inner_buffer.len();
+            let amount_written = inner_buffer.write(&buf[0..portion])?;
+            if amount_written < portion {
                 return Ok(amount_written);
             }
         };

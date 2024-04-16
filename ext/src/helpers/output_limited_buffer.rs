@@ -1,4 +1,7 @@
-use magnus::{value::InnerValue, value::Opaque, RString, Ruby};
+use magnus::{
+    value::{InnerValue, Opaque, ReprValue},
+    RString, Ruby,
+};
 use std::io;
 
 /// A buffer that limits the number of bytes that can be written to it.
@@ -24,6 +27,12 @@ impl io::Write for OutputLimitedBuffer {
         let ruby = Ruby::get().unwrap();
 
         let mut inner_buffer = self.buffer.get_inner_with(&ruby);
+
+        let is_frozen = inner_buffer.as_value().is_frozen();
+
+        if is_frozen {
+            return Ok(0);
+        }
 
         if buf.is_empty() {
             return Ok(0);

@@ -163,6 +163,7 @@ impl WasiCtxBuilder {
         inner.stdout = Some(WriteStream::Buffer(buffer.into(), capacity));
         rb_self
     }
+
     /// @yard
     /// Inherit stderr from the current Ruby process.
     /// @return [WasiCtxBuilder] +self+

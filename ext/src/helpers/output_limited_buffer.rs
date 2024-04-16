@@ -26,10 +26,14 @@ impl io::Write for OutputLimitedBuffer {
         let mut inner_buffer = self.buffer.get_inner_with(&ruby);
 
         if buf.is_empty() {
-            return Ok(buf.len());
+            return Ok(0);
         }
 
-        if inner_buffer.len().checked_add(buf.len()).is_some_and(|val| val < self.capacity){
+        if inner_buffer
+            .len()
+            .checked_add(buf.len())
+            .is_some_and(|val| val < self.capacity)
+        {
             let amount_written = inner_buffer.write(buf)?;
             if amount_written < buf.len() {
                 return Ok(amount_written);

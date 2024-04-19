@@ -32,10 +32,10 @@ impl io::Write for OutputLimitedBuffer {
         let is_frozen = inner_buffer.as_value().is_frozen();
 
         if is_frozen {
-            return (Err(io::Error::new(
+            return Err(io::Error::new(
                 ErrorKind::WriteZero,
                 "Cannot write to a frozen buffer.",
-            )));
+            ));
             // return Ok(buf.len());
         }
 

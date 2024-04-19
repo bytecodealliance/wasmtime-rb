@@ -3,6 +3,7 @@ use magnus::{
     RString, Ruby,
 };
 use std::io;
+use std::io::ErrorKind;
 
 /// A buffer that limits the number of bytes that can be written to it.
 /// If the buffer is full, it will truncate the data.
@@ -31,7 +32,11 @@ impl io::Write for OutputLimitedBuffer {
         let is_frozen = inner_buffer.as_value().is_frozen();
 
         if is_frozen {
-            return Ok(0);
+            return (Err(io::Error::new(
+                ErrorKind::WriteZero,
+                "Cannot write to a frozen buffer.",
+            )));
+            // return Ok(buf.len());
         }
 
         if buf.is_empty() {

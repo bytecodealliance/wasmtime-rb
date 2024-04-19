@@ -105,7 +105,7 @@ module Wasmtime
         stdout_str.freeze
         expect { run_wasi_module(wasi_config) }.to raise_error do |error|
           expect(error).to be_a(Wasmtime::Error)
-          expect(error.message).to match(/Cannot write to a frozen buffer./)
+          expect(error.message).to eq("Cannot write to a frozen buffer.")
         end
 
         parsed_stderr = JSON.parse(stderr_str)
@@ -126,7 +126,7 @@ module Wasmtime
         stderr_str.freeze
         expect { run_wasi_module(wasi_config) }.to raise_error do |error|
           expect(error).to be_a(Wasmtime::Error)
-          expect(error.message).to match(/Cannot write to a frozen buffer./)
+          expect(error.message).to eq("Cannot write to a frozen buffer.")
         end
 
         expect(stderr_str).to eq("")

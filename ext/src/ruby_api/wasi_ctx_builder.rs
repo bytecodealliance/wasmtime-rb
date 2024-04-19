@@ -154,6 +154,8 @@ impl WasiCtxBuilder {
 
     /// @yard
     /// Set stdout to write to a string buffer.
+    /// If the string buffer is frozen, Wasm execution will raise a Wasmtime::Error error.
+    /// No encoding checks are done on the resulting string, it is the caller's responsibility to ensure the string contains a valid encoding
     /// @param buffer [String] The string buffer to write to.
     /// @param capacity [Integer] The maximum number of bytes that can be written to the output buffer.
     /// @def set_stdout_buffer(buffer, capacity)
@@ -187,6 +189,8 @@ impl WasiCtxBuilder {
 
     /// @yard
     /// Set stderr to write to a string buffer.
+    /// If the string buffer is frozen, Wasm execution will raise a Wasmtime::Error error.
+    /// No encoding checks are done on the resulting string, it is the caller's responsibility to ensure the string contains a valid encoding
     /// @param buffer [String] The string buffer to write to.
     /// @param capacity [Integer] The maximum number of bytes that can be written to the output buffer.
     /// @def set_stderr_buffer(buffer, capacity)

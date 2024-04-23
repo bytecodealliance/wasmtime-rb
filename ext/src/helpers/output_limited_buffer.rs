@@ -29,14 +29,13 @@ impl io::Write for OutputLimitedBuffer {
 
         let mut inner_buffer = self.buffer.get_inner_with(&ruby);
 
+        // Handling frozen case here is necessary because magnus does not check if a string is frozen before writing to it.
         let is_frozen = inner_buffer.as_value().is_frozen();
-
         if is_frozen {
             return Err(io::Error::new(
                 ErrorKind::WriteZero,
                 "Cannot write to a frozen buffer.",
             ));
-            // return Ok(buf.len());
         }
 
         if buf.is_empty() {

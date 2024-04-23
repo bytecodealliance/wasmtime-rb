@@ -300,12 +300,6 @@ impl<'a> StoreContextValue<'a> {
         } else if let Some(exit) = error.downcast_ref::<I32Exit>() {
             wasi_exit_error().new_instance((exit.0,)).unwrap().into()
         } else {
-            if let Some(error) = error.downcast_ref::<std::io::Error>() {
-                if error.kind() == std::io::ErrorKind::WriteZero {
-                    return error!("{}", error.to_string());
-                }
-            }
-
             Trap::try_from(error)
                 .map(|trap| trap.into())
                 .unwrap_or_else(|e| error!("{}", e))

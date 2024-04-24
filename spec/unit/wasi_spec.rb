@@ -55,6 +55,84 @@ module Wasmtime
         expect(stdout.dig("wasi", "stdin")).to eq("stdin content")
       end
 
+      it "writes std streams to buffers" do
+        File.write(tempfile_path("stdin"), "stdin content")
+
+        stdout_str = ""
+        stderr_str = ""
+        wasi_config = WasiCtxBuilder.new
+          .set_stdin_file(tempfile_path("stdin"))
+          .set_stdout_buffer(stdout_str, 40000)
+          .set_stderr_buffer(stderr_str, 40000)
+          .build
+
+        run_wasi_module(wasi_config)
+
+        parsed_stdout = JSON.parse(stdout_str)
+        parsed_stderr = JSON.parse(stderr_str)
+        expect(parsed_stdout.fetch("name")).to eq("stdout")
+        expect(parsed_stderr.fetch("name")).to eq("stderr")
+      end
+
+      it "writes std streams to buffers until capacity" do
+        File.write(tempfile_path("stdin"), "stdin content")
+
+        stdout_str = ""
+        stderr_str = ""
+        wasi_config = WasiCtxBuilder.new
+          .set_stdin_file(tempfile_path("stdin"))
+          .set_stdout_buffer(stdout_str, 5)
+          .set_stderr_buffer(stderr_str, 10)
+          .build
+
+        run_wasi_module(wasi_config)
+
+        expect(stdout_str).to eq("{\"nam")
+        expect(stderr_str).to eq("{\"name\":\"s")
+      end
+
+      it "frozen stdout string is not written to" do
+        File.write(tempfile_path("stdin"), "stdin content")
+
+        stdout_str = ""
+        stderr_str = ""
+        wasi_config = WasiCtxBuilder.new
+          .set_stdin_file(tempfile_path("stdin"))
+          .set_stdout_buffer(stdout_str, 40000)
+          .set_stderr_buffer(stderr_str, 40000)
+          .build
+
+        stdout_str.freeze
+        expect { run_wasi_module(wasi_config) }.to raise_error do |error|
+          expect(error).to be_a(Wasmtime::Error)
+          expect(error.message).to match(/error while executing at wasm backtrace:/)
+        end
+
+        parsed_stderr = JSON.parse(stderr_str)
+        expect(stdout_str).to eq("")
+        expect(parsed_stderr.fetch("name")).to eq("stderr")
+      end
+      it "frozen stderr string is not written to" do
+        File.write(tempfile_path("stdin"), "stdin content")
+
+        stderr_str = ""
+        stdout_str = ""
+        wasi_config = WasiCtxBuilder.new
+          .set_stdin_file(tempfile_path("stdin"))
+          .set_stderr_buffer(stderr_str, 40000)
+          .set_stdout_buffer(stdout_str, 40000)
+          .build
+
+        stderr_str.freeze
+        expect { run_wasi_module(wasi_config) }.to raise_error do |error|
+          expect(error).to be_a(Wasmtime::Error)
+          expect(error.message).to match(/error while executing at wasm backtrace:/)
+        end
+
+        expect(stderr_str).to eq("")
+        expect(stdout_str).to eq("")
+      end
+
       it "reads stdin from string" do
         env = wasi_module_env { |config| config.set_stdin_string("¡UTF-8 from Ruby!") }
         expect(env.fetch("stdin")).to eq("¡UTF-8 from Ruby!")

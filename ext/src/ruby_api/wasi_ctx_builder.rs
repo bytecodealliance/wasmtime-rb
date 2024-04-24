@@ -1,12 +1,13 @@
 use super::{root, WasiCtx};
 use crate::error;
+use crate::helpers::OutputLimitedBuffer;
 use magnus::{
     class, function, gc::Marker, method, typed_data::Obj, value::Opaque, DataTypeFunctions, Error,
     Module, Object, RArray, RHash, RString, Ruby, TryConvert, TypedData,
 };
 use std::cell::RefCell;
 use std::{fs::File, path::PathBuf};
-use wasi_common::pipe::ReadPipe;
+use wasi_common::pipe::{ReadPipe, WritePipe};
 
 enum ReadStream {
     Inherit,
@@ -27,12 +28,14 @@ impl ReadStream {
 enum WriteStream {
     Inherit,
     Path(Opaque<RString>),
+    Buffer(Opaque<RString>, usize),
 }
 impl WriteStream {
     pub fn mark(&self, marker: &Marker) {
         match self {
             Self::Inherit => (),
             Self::Path(v) => marker.mark(*v),
+            Self::Buffer(v, _) => marker.mark(*v),
         }
     }
 }
@@ -150,6 +153,20 @@ impl WasiCtxBuilder {
     }
 
     /// @yard
+    /// Set stdout to write to a string buffer.
+    /// If the string buffer is frozen, Wasm execution will raise a Wasmtime::Error error.
+    /// No encoding checks are done on the resulting string, it is the caller's responsibility to ensure the string contains a valid encoding
+    /// @param buffer [String] The string buffer to write to.
+    /// @param capacity [Integer] The maximum number of bytes that can be written to the output buffer.
+    /// @def set_stdout_buffer(buffer, capacity)
+    /// @return [WasiCtxBuilder] +self+
+    pub fn set_stdout_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -> RbSelf {
+        let mut inner = rb_self.inner.borrow_mut();
+        inner.stdout = Some(WriteStream::Buffer(buffer.into(), capacity));
+        rb_self
+    }
+
+    /// @yard
     /// Inherit stderr from the current Ruby process.
     /// @return [WasiCtxBuilder] +self+
     pub fn inherit_stderr(rb_self: RbSelf) -> RbSelf {
@@ -170,6 +187,19 @@ impl WasiCtxBuilder {
         rb_self
     }
 
+    /// @yard
+    /// Set stderr to write to a string buffer.
+    /// If the string buffer is frozen, Wasm execution will raise a Wasmtime::Error error.
+    /// No encoding checks are done on the resulting string, it is the caller's responsibility to ensure the string contains a valid encoding
+    /// @param buffer [String] The string buffer to write to.
+    /// @param capacity [Integer] The maximum number of bytes that can be written to the output buffer.
+    /// @def set_stderr_buffer(buffer, capacity)
+    /// @return [WasiCtxBuilder] +self+
+    pub fn set_stderr_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -> RbSelf {
+        let mut inner = rb_self.inner.borrow_mut();
+        inner.stderr = Some(WriteStream::Buffer(buffer.into(), capacity));
+        rb_self
+    }
     /// @yard
     /// Set env to the specified +Hash+.
     /// @param env [Hash<String, String>]
@@ -216,6 +246,10 @@ impl WasiCtxBuilder {
                 WriteStream::Path(path) => {
                     builder.stdout(file_w(ruby.get_inner(*path)).map(wasi_file)?)
                 }
+                WriteStream::Buffer(buffer, capacity) => {
+                    let buf = OutputLimitedBuffer::new(*buffer, *capacity);
+                    builder.stdout(Box::new(WritePipe::new(buf)))
+                }
             };
         }
 
@@ -224,6 +258,10 @@ impl WasiCtxBuilder {
                 WriteStream::Inherit => builder.inherit_stderr(),
                 WriteStream::Path(path) => {
                     builder.stderr(file_w(ruby.get_inner(*path)).map(wasi_file)?)
+                }
+                WriteStream::Buffer(buffer, capacity) => {
+                    let buf = OutputLimitedBuffer::new(*buffer, *capacity);
+                    builder.stderr(Box::new(WritePipe::new(buf)))
                 }
             };
         }
@@ -282,11 +320,19 @@ pub fn init() -> Result<(), Error> {
         "set_stdout_file",
         method!(WasiCtxBuilder::set_stdout_file, 1),
     )?;
+    class.define_method(
+        "set_stdout_buffer",
+        method!(WasiCtxBuilder::set_stdout_buffer, 2),
+    )?;
 
     class.define_method("inherit_stderr", method!(WasiCtxBuilder::inherit_stderr, 0))?;
     class.define_method(
         "set_stderr_file",
         method!(WasiCtxBuilder::set_stderr_file, 1),
+    )?;
+    class.define_method(
+        "set_stderr_buffer",
+        method!(WasiCtxBuilder::set_stderr_buffer, 2),
     )?;
 
     class.define_method("set_env", method!(WasiCtxBuilder::set_env, 1))?;

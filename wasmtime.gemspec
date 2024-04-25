@@ -29,5 +29,5 @@ Gem::Specification.new do |spec|
 
   spec.rdoc_options += ["--exclude", "vendor"]
 
-  spec.add_dependency "rb_sys", "~> 0.9.86"
+  spec.add_dependency "rb_sys", "~> 0.9.97"
 end

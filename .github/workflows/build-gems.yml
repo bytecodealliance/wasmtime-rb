@@ -20,7 +20,12 @@ jobs:
         uses: oxidize-rb/actions/fetch-ci-data@v1
         with:
           supported-ruby-platforms: |
-            exclude: [arm-linux] # no cranelift support yet
+            # Excluding:
+            # `arm-linux`: Cranelift doesn't support 32-bit architectures
+            # `x64-mingw32`: `x64-mingw-ucrt` should be used for Ruby 3.1+ (https://github.com/rake-compiler/rake-compiler-dock?tab=readme-ov-file#windows)
+            # 3.0 is deprecated as stable ruby version according to:
+            #  https://github.com/oxidize-rb/actions/blob/main/fetch-ci-data/evaluate.rb#L54
+            exclude: [arm-linux, x64-mingw32]
           stable-ruby-versions: |
             exclude: [head]
 

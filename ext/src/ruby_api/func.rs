@@ -79,7 +79,12 @@ impl<'a> Func<'a> {
         store.retain(callable.as_value());
 
         let context = store.context_mut();
-        let ty = wasmtime::FuncType::new(params.to_val_type_vec()?, results.to_val_type_vec()?);
+        let engine = context.engine();
+        let ty = wasmtime::FuncType::new(
+            engine,
+            params.to_val_type_vec()?,
+            results.to_val_type_vec()?,
+        );
         let func_closure = make_func_closure(&ty, callable.into());
         let inner = wasmtime::Func::new(context, ty, func_closure);
 
@@ -127,25 +132,25 @@ impl<'a> Func<'a> {
     /// @yard
     /// @return [Array<Symbol>] The function's parameter types.
     pub fn params(&self) -> Result<RArray, Error> {
-        let params = self
-            .inner
-            .ty(self.store.context()?)
-            .params()
-            .map(ToSym::to_sym)
-            .collect();
-        Ok(params)
+        let ty = self.inner.ty(self.store.context()?);
+        let len = ty.params().len();
+        let mut params = ty.params();
+        params.try_fold(RArray::with_capacity(len), |array, p| {
+            array.push(p.as_sym()?);
+            Ok::<_, Error>(array)
+        })
     }
 
     /// @yard
     /// @return [Array<Symbol>] The function's result types.
     pub fn results(&self) -> Result<RArray, Error> {
-        let results = self
-            .inner
-            .ty(self.store.context()?)
-            .results()
-            .map(ToSym::to_sym)
-            .collect();
-        Ok(results)
+        let ty = self.inner.ty(self.store.context()?);
+        let len = ty.results().len();
+        let mut results = ty.results();
+        results.try_fold(RArray::with_capacity(len), |array, r| {
+            array.push(r.as_sym()?);
+            Ok::<_, Error>(array)
+        })
     }
 
     pub fn invoke(
@@ -156,7 +161,7 @@ impl<'a> Func<'a> {
         let mut context = store.context_mut()?;
         let func_ty = func.ty(&mut context);
         let params = Params::new(&func_ty, args)?.to_vec()?;
-        let mut results = vec![Val::null(); func_ty.results().len()];
+        let mut results = vec![Val::null_func_ref(); func_ty.results().len()];
 
         func.call(context, &params, &mut results)
             .map_err(|e| store.handle_wasm_error(e))?;

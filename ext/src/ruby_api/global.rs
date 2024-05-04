@@ -95,7 +95,7 @@ impl<'a> Global<'a> {
     /// @def type
     /// @return [Symbol] The Wasm type of the global‘s content.
     pub fn type_(&self) -> Result<Symbol, Error> {
-        self.ty().map(|ty| ty.content().clone().to_sym())
+        self.ty()?.content().as_sym()
     }
 
     /// @yard
@@ -133,7 +133,7 @@ impl<'a> Global<'a> {
     }
 
     fn retain_non_nil_extern_ref(&self, value: Value) -> Result<(), Error> {
-        if wasmtime::ValType::ExternRef == self.value_type()? && !value.is_nil() {
+        if !value.is_nil() && self.value_type()?.matches(&wasmtime::ValType::EXTERNREF) {
             self.store.retain(value)?;
         }
         Ok(())

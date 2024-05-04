@@ -1,7 +1,7 @@
 use crate::{define_rb_intern, err, error, helpers::SymbolEnum};
 use lazy_static::lazy_static;
 use magnus::{prelude::*, Error, IntoValue, RArray, Ruby, Symbol, TryConvert, TypedData, Value};
-use wasmtime::{ExternRef, Val, ValType};
+use wasmtime::{ExternRef, RefType, Val, ValType};
 
 use super::{func::Func, global::Global, memory::Memory, store::StoreContextValue, table::Table};
 
@@ -13,6 +13,7 @@ define_rb_intern!(
     V128 => "v128",
     FUNCREF => "funcref",
     EXTERNREF => "externref",
+    NULLFUNCREF => "nullfuncref",
 );
 
 lazy_static! {
@@ -23,8 +24,8 @@ lazy_static! {
             (*F32, ValType::F32),
             (*F64, ValType::F64),
             (*V128, ValType::V128),
-            (*FUNCREF, ValType::FuncRef),
-            (*EXTERNREF, ValType::ExternRef),
+            (*FUNCREF, ValType::FUNCREF),
+            (*EXTERNREF, ValType::EXTERNREF),
         ];
 
         SymbolEnum::new("WebAssembly type", mapping)
@@ -64,27 +65,32 @@ pub trait ToWasmVal {
 
 impl ToWasmVal for Value {
     fn to_wasm_val(&self, ty: ValType) -> Result<Val, Error> {
+        if ty.matches(&ValType::EXTERNREF) {
+            let extern_ref_value = match self.is_nil() {
+                true => None,
+                false => Some(ExternRef::new(ExternRefValue::from(*self))),
+            };
+
+            return Ok(Val::ExternRef(extern_ref_value));
+        }
+
+        if ty.matches(&ValType::FUNCREF) {
+            let func_ref_value = match self.is_nil() {
+                true => None,
+                false => Some(*<&Func>::try_convert(*self)?.inner()),
+            };
+            return Ok(Val::FuncRef(func_ref_value));
+        }
+
         match ty {
             ValType::I32 => Ok(i32::try_convert(*self)?.into()),
             ValType::I64 => Ok(i64::try_convert(*self)?.into()),
             ValType::F32 => Ok(f32::try_convert(*self)?.into()),
             ValType::F64 => Ok(f64::try_convert(*self)?.into()),
-            ValType::ExternRef => {
-                let extern_ref_value = match self.is_nil() {
-                    true => None,
-                    false => Some(ExternRef::new(ExternRefValue::from(*self))),
-                };
-
-                Ok(Val::ExternRef(extern_ref_value))
-            }
-            ValType::FuncRef => {
-                let func_ref_value = match self.is_nil() {
-                    true => None,
-                    false => Some(*<&Func>::try_convert(*self)?.inner()),
-                };
-                Ok(Val::FuncRef(func_ref_value))
-            }
             ValType::V128 => err!("converting from Ruby to v128 not supported"),
+            // TODO: to be filled in once typed function references and/or GC
+            // are enabled by default.
+            t => err!("unsupported type: {t:?}"),
         }
     }
 }
@@ -122,22 +128,42 @@ impl ToExtern for Value {
 }
 
 pub trait ToSym {
-    fn to_sym(self) -> Symbol;
+    fn as_sym(&self) -> Result<Symbol, Error>;
 }
 
 impl ToSym for ValType {
-    fn to_sym(self) -> Symbol {
+    fn as_sym(&self) -> Result<Symbol, Error> {
+        if self.matches(&ValType::EXTERNREF) {
+            return Ok(Symbol::from(*EXTERNREF));
+        }
+
+        if self.matches(&ValType::FUNCREF) {
+            return Ok(Symbol::from(*FUNCREF));
+        }
+
         match self {
-            ValType::I32 => Symbol::from(*I32),
-            ValType::I64 => Symbol::from(*I64),
-            ValType::F32 => Symbol::from(*F32),
-            ValType::F64 => Symbol::from(*F64),
-            ValType::V128 => Symbol::from(*V128),
-            ValType::FuncRef => Symbol::from(*FUNCREF),
-            ValType::ExternRef => Symbol::from(*EXTERNREF),
+            &ValType::I32 => Ok(Symbol::from(*I32)),
+            &ValType::I64 => Ok(Symbol::from(*I64)),
+            &ValType::F32 => Ok(Symbol::from(*F32)),
+            &ValType::F64 => Ok(Symbol::from(*F64)),
+            &ValType::V128 => Ok(Symbol::from(*V128)),
+            t => Err(error!("Unsupported type {t:?}")),
         }
     }
 }
+
+impl ToSym for RefType {
+    fn as_sym(&self) -> Result<Symbol, Error> {
+        if self.matches(&RefType::FUNCREF) {
+            return Ok(Symbol::from(*FUNCREF));
+        }
+        if self.matches(&RefType::EXTERNREF) {
+            return Ok(Symbol::from(*EXTERNREF));
+        }
+        Err(error!("Unsupported RefType {self:}"))
+    }
+}
+
 pub trait ToValType {
     fn to_val_type(&self) -> Result<ValType, Error>;
 }

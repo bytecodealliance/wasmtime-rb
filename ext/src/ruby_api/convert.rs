@@ -13,7 +13,6 @@ define_rb_intern!(
     V128 => "v128",
     FUNCREF => "funcref",
     EXTERNREF => "externref",
-    NULLFUNCREF => "nullfuncref",
 );
 
 lazy_static! {

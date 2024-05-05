@@ -140,8 +140,8 @@ impl Linker {
         let args = scan_args::<(RString, RString, RArray, RArray), (), (), (), RHash, Proc>(args)?;
         let (module, name, params, results) = args.required;
         let callable = args.block;
-        let inner = self.inner.borrow();
-        let engine = inner.engine();
+        let mut inner_mut = self.inner.borrow_mut();
+        let engine = inner_mut.engine();
         let ty = wasmtime::FuncType::new(
             engine,
             params.to_val_type_vec()?,
@@ -151,8 +151,7 @@ impl Linker {
 
         self.refs.borrow_mut().push(callable.as_value());
 
-        self.inner
-            .borrow_mut()
+        inner_mut
             .func_new(
                 unsafe { module.as_str() }?,
                 unsafe { name.as_str() }?,

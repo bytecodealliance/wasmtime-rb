@@ -105,7 +105,7 @@ module Wasmtime
         func = Func.new(store, [:funcref], []) {}
         store2_func = Func.new(store2, [], []) {}
 
-        expect { func.call(store2_func) }.to raise_error(Wasmtime::Error, /cross-`Store`/)
+        expect { func.call(store2_func) }.to raise_error(Wasmtime::Error, /argument type mismatch/)
       end
 
       it "disallows cross-store funcref result" do
@@ -113,7 +113,7 @@ module Wasmtime
         store2_func = Func.new(store2, [], []) {}
         func = Func.new(store, [], [:funcref]) { |_, funcref| store2_func }
 
-        expect { func.call }.to raise_error(Wasmtime::Error, /cross-`Store`/)
+        expect { func.call }.to raise_error(Wasmtime::Error, /function attempted to return an incompatible value/)
       end
     end
 

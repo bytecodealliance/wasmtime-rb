@@ -136,8 +136,8 @@ impl<'a> Func<'a> {
         let len = ty.params().len();
         let mut params = ty.params();
         params.try_fold(RArray::with_capacity(len), |array, p| {
-            array.push(p.as_sym()?).map_err(|e| error!("{e}"))?;
-            Ok::<_, Error>(array)
+            array.push(p.to_sym()?)?;
+            Ok(array)
         })
     }
 
@@ -148,8 +148,8 @@ impl<'a> Func<'a> {
         let len = ty.results().len();
         let mut results = ty.results();
         results.try_fold(RArray::with_capacity(len), |array, r| {
-            array.push(r.as_sym()?).map_err(|e| error!("{e}"))?;
-            Ok::<_, Error>(array)
+            array.push(r.to_sym()?)?;
+            Ok(array)
         })
     }
 

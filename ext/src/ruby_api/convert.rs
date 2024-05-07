@@ -127,11 +127,11 @@ impl ToExtern for Value {
 }
 
 pub trait ToSym {
-    fn as_sym(&self) -> Result<Symbol, Error>;
+    fn to_sym(&self) -> Result<Symbol, Error>;
 }
 
 impl ToSym for ValType {
-    fn as_sym(&self) -> Result<Symbol, Error> {
+    fn to_sym(&self) -> Result<Symbol, Error> {
         if self.matches(&ValType::EXTERNREF) {
             return Ok(Symbol::from(*EXTERNREF));
         }
@@ -152,7 +152,7 @@ impl ToSym for ValType {
 }
 
 impl ToSym for RefType {
-    fn as_sym(&self) -> Result<Symbol, Error> {
+    fn to_sym(&self) -> Result<Symbol, Error> {
         if self.matches(&RefType::FUNCREF) {
             return Ok(Symbol::from(*FUNCREF));
         }

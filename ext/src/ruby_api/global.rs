@@ -95,7 +95,7 @@ impl<'a> Global<'a> {
     /// @def type
     /// @return [Symbol] The Wasm type of the global‘s content.
     pub fn type_(&self) -> Result<Symbol, Error> {
-        self.ty()?.content().as_sym()
+        self.ty()?.content().to_sym()
     }
 
     /// @yard

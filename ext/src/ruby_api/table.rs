@@ -89,7 +89,7 @@ impl<'a> Table<'a> {
     /// @def type
     /// @return [Symbol] The Wasm type of the elements of this table.
     pub fn type_(&self) -> Result<Symbol, Error> {
-        self.ty()?.element().as_sym()
+        self.ty()?.element().to_sym()
     }
 
     /// @yard

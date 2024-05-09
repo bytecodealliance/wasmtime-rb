@@ -50,6 +50,13 @@ module Wasmtime
         end
       end
 
+      it "supports allocation_strategy config" do
+        expect(Engine.new(allocation_strategy: :pooling)).to be_a(Engine)
+        expect(Engine.new(allocation_strategy: :on_demand)).to be_a(Engine)
+        expect(Engine.new(allocation_strategy: PoolingAllocationConfig.new)).to be_a(Engine)
+        expect { Engine.new(allocation_strategy: :nope) }.to raise_error(ArgumentError, /invalid instance allocation strategy: :nope/)
+      end
+
       it "supports target options" do
         expect { Engine.new(target: "x86_64-unknown-linux-gnu") }.not_to raise_error
         expect { Engine.new(target: "nope") }.to raise_error(ArgumentError, /Unrecognized architecture/)

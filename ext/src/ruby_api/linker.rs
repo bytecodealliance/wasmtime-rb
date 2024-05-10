@@ -2,6 +2,7 @@ use super::{
     convert::WrapWasmtimeType,
     convert::{ToExtern, ToValTypeVec},
     engine::Engine,
+    errors::module_disposed_err,
     externals::Extern,
     func::{self, Func},
     instance::Instance,
@@ -11,9 +12,9 @@ use super::{
 };
 use crate::{define_rb_intern, err, error};
 use magnus::{
-    block::Proc, class, function, gc::Marker, method, prelude::*, scan_args, scan_args::scan_args,
-    typed_data::Obj, DataTypeFunctions, Error, Object, RArray, RHash, RString, Ruby, TypedData,
-    Value,
+    block::Proc, class, function, gc::Marker, method, module, prelude::*, scan_args,
+    scan_args::scan_args, typed_data::Obj, DataTypeFunctions, Error, Object, RArray, RHash,
+    RString, Ruby, TypedData, Value,
 };
 use std::cell::RefCell;
 use wasmtime::Linker as LinkerImpl;
@@ -86,9 +87,13 @@ impl Linker {
     /// @param mod [Module]
     /// @return [void]
     pub fn define_unknown_imports_as_traps(&self, module: &Module) -> Result<(), Error> {
+        let Some(module) = module.get() else {
+            return module_disposed_err();
+        };
+
         self.inner
             .borrow_mut()
-            .define_unknown_imports_as_traps(module.get())
+            .define_unknown_imports_as_traps(module)
             .map_err(|e| error!("{}", e))
     }
 
@@ -218,9 +223,13 @@ impl Linker {
     /// @param mod [Module]
     /// @return [void]
     pub fn module(&self, store: &Store, name: RString, module: &Module) -> Result<(), Error> {
+        let Some(module) = module.get() else {
+            return module_disposed_err();
+        };
+
         self.inner
             .borrow_mut()
-            .module(store.context_mut(), unsafe { name.as_str()? }, module.get())
+            .module(store.context_mut(), unsafe { name.as_str()? }, module)
             .map(|_| ())
             .map_err(|e| error!("{}", e))
     }
@@ -285,9 +294,13 @@ impl Linker {
             );
         }
 
+        let Some(module) = module.get() else {
+            return module_disposed_err();
+        };
+
         self.inner
             .borrow_mut()
-            .instantiate(store.context_mut(), module.get())
+            .instantiate(store.context_mut(), module)
             .map_err(|e| StoreContextValue::from(store).handle_wasm_error(e))
             .map(|instance| {
                 self.refs.borrow().iter().for_each(|val| store.retain(*val));

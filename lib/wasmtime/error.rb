@@ -45,4 +45,7 @@ module Wasmtime
       "WASI exit with code #{code}"
     end
   end
+
+  # Raised when attempting to use a disposed Wasmtime module.
+  class ModuleDisposedError < Error; end
 end

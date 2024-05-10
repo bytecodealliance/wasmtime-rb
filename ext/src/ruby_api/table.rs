@@ -3,12 +3,15 @@ use super::{
     root,
     store::{Store, StoreContextValue},
 };
+
+use anyhow::anyhow;
+
 use crate::{define_rb_intern, error};
 use magnus::{
     class, function, gc::Marker, method, prelude::*, scan_args, typed_data::Obj, DataTypeFunctions,
     Error, IntoValue, Object, Symbol, TypedData, Value,
 };
-use wasmtime::{Extern, Table as TableImpl, TableType};
+use wasmtime::{Extern, Table as TableImpl, TableType, Val};
 
 define_rb_intern!(
     MIN_SIZE => "min_size",
@@ -52,11 +55,19 @@ impl<'a> Table<'a> {
         let (max,) = kw.optional;
         let wasm_type = value_type.to_val_type()?;
         let wasm_default = default.to_wasm_val(wasm_type.clone())?;
+        let ref_ = wasm_default
+            .ref_()
+            .ok_or_else(|| error!("Expected Ref for table value"))?;
+
+        let table_type = wasm_type
+            .as_ref()
+            .ok_or_else(|| error!("Expected RefType"))?
+            .clone();
 
         let inner = TableImpl::new(
             store.context_mut(),
-            TableType::new(wasm_type, min, max),
-            wasm_default,
+            TableType::new(table_type, min, max),
+            ref_,
         )
         .map_err(|e| error!("{}", e))?;
 
@@ -78,7 +89,7 @@ impl<'a> Table<'a> {
     /// @def type
     /// @return [Symbol] The Wasm type of the elements of this table.
     pub fn type_(&self) -> Result<Symbol, Error> {
-        self.ty().map(|ty| ty.element().to_sym())
+        self.ty()?.element().to_sym()
     }
 
     /// @yard
@@ -101,7 +112,7 @@ impl<'a> Table<'a> {
     /// @return [Object, nil]
     pub fn get(&self, index: u32) -> Result<Value, Error> {
         match self.inner.get(self.store.context_mut()?, index) {
-            Some(wasm_val) => wasm_val.to_ruby_value(&self.store),
+            Some(wasm_val) => Val::from(wasm_val).to_ruby_value(&self.store),
             None => Ok(().into_value()),
         }
     }
@@ -118,7 +129,10 @@ impl<'a> Table<'a> {
             .set(
                 self.store.context_mut()?,
                 index,
-                value.to_wasm_val(self.value_type()?)?,
+                value
+                    .to_wasm_val(wasmtime::ValType::from(self.value_type()?))?
+                    .ref_()
+                    .ok_or_else(|| error!("Expected Ref"))?,
             )
             .map_err(|e| error!("{}", e))
             .and_then(|result| {
@@ -140,7 +154,10 @@ impl<'a> Table<'a> {
             .grow(
                 self.store.context_mut()?,
                 delta,
-                initial.to_wasm_val(self.value_type()?)?,
+                initial
+                    .to_wasm_val(wasmtime::ValType::from(self.value_type()?))?
+                    .ref_()
+                    .ok_or_else(|| error!("Expected Ref"))?,
             )
             .map_err(|e| error!("{}", e))
             .and_then(|result| {
@@ -159,12 +176,15 @@ impl<'a> Table<'a> {
         Ok(self.inner.ty(self.store.context()?))
     }
 
-    fn value_type(&self) -> Result<wasmtime::ValType, Error> {
-        Ok(self.inner.ty(self.store.context()?).element())
+    fn value_type(&self) -> Result<wasmtime::RefType, Error> {
+        let table_type = self.inner.ty(self.store.context()?);
+        let el = table_type.element();
+
+        Ok(el.clone())
     }
 
     fn retain_non_nil_extern_ref(&self, value: Value) -> Result<(), Error> {
-        if wasmtime::ValType::ExternRef == self.value_type()? && !value.is_nil() {
+        if !value.is_nil() && self.value_type()?.matches(&wasmtime::RefType::EXTERNREF) {
             self.store.retain(value)?;
         }
         Ok(())

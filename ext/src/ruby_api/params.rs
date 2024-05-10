@@ -10,9 +10,6 @@ struct Param {
     index: u32,
     ty: ValType,
 }
-// Keep `Param` small so copying it to the stack is cheap, typically anything
-// less than 3usize is good
-assert_eq_size!(Param, [u64; 2]);
 
 impl Param {
     pub fn new(index: u32, ty: ValType, val: Value) -> Self {

@@ -223,7 +223,7 @@ impl WasiCtxBuilder {
     }
 
     pub fn build(ruby: &Ruby, rb_self: RbSelf) -> Result<WasiCtx, Error> {
-        let mut builder = wasmtime_wasi::WasiCtxBuilder::new();
+        let mut builder = wasi_common::sync::WasiCtxBuilder::new();
         let inner = rb_self.inner.borrow();
 
         if let Some(stdin) = inner.stdin.as_ref() {
@@ -298,9 +298,9 @@ pub fn file_w(path: RString) -> Result<File, Error> {
         .map_err(|e| error!("Failed to write to file {}\n{}", path, e))
 }
 
-pub fn wasi_file(file: File) -> Box<wasmtime_wasi::file::File> {
+pub fn wasi_file(file: File) -> Box<wasi_common::sync::file::File> {
     let file = cap_std::fs::File::from_std(file);
-    let file = wasmtime_wasi::file::File::from_cap_std(file);
+    let file = wasi_common::sync::file::File::from_cap_std(file);
     Box::new(file)
 }
 

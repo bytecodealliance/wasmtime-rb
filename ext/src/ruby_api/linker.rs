@@ -54,7 +54,7 @@ impl Linker {
 
         let mut inner: LinkerImpl<StoreData> = LinkerImpl::new(engine.get());
         if wasi {
-            wasmtime_wasi::add_to_linker(&mut inner, |s| s.wasi_ctx_mut())
+            wasi_common::sync::add_to_linker(&mut inner, |s| s.wasi_ctx_mut())
                 .map_err(|e| error!("{}", e))?
         }
         Ok(Self {
@@ -140,13 +140,18 @@ impl Linker {
         let args = scan_args::<(RString, RString, RArray, RArray), (), (), (), RHash, Proc>(args)?;
         let (module, name, params, results) = args.required;
         let callable = args.block;
-        let ty = wasmtime::FuncType::new(params.to_val_type_vec()?, results.to_val_type_vec()?);
+        let mut inner_mut = self.inner.borrow_mut();
+        let engine = inner_mut.engine();
+        let ty = wasmtime::FuncType::new(
+            engine,
+            params.to_val_type_vec()?,
+            results.to_val_type_vec()?,
+        );
         let func_closure = func::make_func_closure(&ty, callable.into());
 
         self.refs.borrow_mut().push(callable.as_value());
 
-        self.inner
-            .borrow_mut()
+        inner_mut
             .func_new(
                 unsafe { module.as_str() }?,
                 unsafe { name.as_str() }?,

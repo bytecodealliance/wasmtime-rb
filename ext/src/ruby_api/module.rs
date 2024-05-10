@@ -110,11 +110,21 @@ impl Module {
 
 impl From<ModuleImpl> for Module {
     fn from(inner: ModuleImpl) -> Self {
-        let size = inner.image_range().len();
+        let range = inner.image_range();
+        let start = range.start;
+        let end = range.end;
+
+        let size = if end > start {
+            unsafe { end.offset_from(start) }
+        } else {
+            // This is mostly a safety mechanism; this should never happen if
+            // things are correctly configured.
+            0
+        };
 
         Self {
             inner,
-            _track_memory_usage: ManuallyTracked::new(size),
+            _track_memory_usage: ManuallyTracked::new(size as usize),
         }
     }
 }

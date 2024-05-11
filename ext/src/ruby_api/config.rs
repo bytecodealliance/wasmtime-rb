@@ -1,18 +1,23 @@
 mod tracked_memory_creator;
 pub(crate) use self::tracked_memory_creator::TrackedMemoryCreator;
-use crate::{define_rb_intern, helpers::SymbolEnum};
+use crate::{define_rb_intern, helpers::SymbolEnum, PoolingAllocationConfig};
 use lazy_static::lazy_static;
 use magnus::{
     exception::{arg_error, type_error},
     prelude::*,
     r_hash::ForEach,
+    try_convert,
+    typed_data::Obj,
     Error, RHash, Symbol, TryConvert, Value,
 };
 use std::{
     convert::{TryFrom, TryInto},
+    ops::Deref,
     sync::Arc,
 };
-use wasmtime::{Config, OptLevel, ProfilingStrategy, Strategy, WasmBacktraceDetails};
+use wasmtime::{
+    Config, InstanceAllocationStrategy, OptLevel, ProfilingStrategy, Strategy, WasmBacktraceDetails,
+};
 
 define_rb_intern!(
     DEBUG_INFO => "debug_info",
@@ -39,6 +44,9 @@ define_rb_intern!(
     AUTO => "auto",
     CRANELIFT => "cranelift",
     WINCH => "winch",
+    ALLOCATION_STRATEGY => "allocation_strategy",
+    POOLING => "pooling",
+    ON_DEMAND => "on_demand",
 );
 
 lazy_static! {
@@ -123,6 +131,8 @@ pub fn hash_to_config(hash: RHash) -> Result<Config, Error> {
             }
         } else if *GENERATE_ADDRESS_MAP == id {
             config.generate_address_map(entry.try_into()?);
+        } else if *ALLOCATION_STRATEGY == id {
+            config.allocation_strategy(entry.try_into()?);
         } else {
             return Err(Error::new(
                 arg_error(),
@@ -203,5 +213,31 @@ impl TryFrom<ConfigEntry> for wasmtime::Strategy {
     type Error = magnus::Error;
     fn try_from(value: ConfigEntry) -> Result<Self, Error> {
         STRATEGY_MAPPING.get(value.1)
+    }
+}
+
+impl TryFrom<ConfigEntry> for InstanceAllocationStrategy {
+    type Error = magnus::Error;
+
+    fn try_from(value: ConfigEntry) -> Result<Self, Error> {
+        if let Ok(strategy) = Obj::<PoolingAllocationConfig>::try_convert(value.1) {
+            return Ok(InstanceAllocationStrategy::Pooling(strategy.to_inner()?));
+        }
+
+        if let Ok(symbol) = Symbol::try_convert(value.1) {
+            if symbol.equal(Symbol::new("pooling"))? {
+                return Ok(InstanceAllocationStrategy::Pooling(Default::default()));
+            } else if symbol.equal(Symbol::new("on_demand"))? {
+                return Ok(InstanceAllocationStrategy::OnDemand);
+            }
+        }
+
+        Err(Error::new(
+            arg_error(),
+            format!(
+                "invalid instance allocation strategy: {}",
+                value.1.inspect()
+            ),
+        ))
     }
 }

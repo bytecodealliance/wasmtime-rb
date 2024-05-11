@@ -22,6 +22,7 @@ mod linker;
 mod memory;
 mod module;
 mod params;
+mod pooling_allocation_config;
 mod store;
 mod table;
 mod trap;
@@ -36,6 +37,7 @@ pub use linker::Linker;
 pub use memory::Memory;
 pub use module::Module;
 pub use params::Params;
+pub use pooling_allocation_config::PoolingAllocationConfig;
 pub use store::Store;
 pub use trap::Trap;
 pub use wasi_ctx::WasiCtx;
@@ -86,6 +88,7 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
     table::init()?;
     global::init()?;
     wasi_ctx::init()?;
+    pooling_allocation_config::init()?;
 
     Ok(())
 }

@@ -1,5 +1,20 @@
 # Changelog
 
+## [v19.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v19.0.0) (2024-05-13)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v18.0.3...v19.0.0)
+
+**Closed issues:**
+
+- 18.0.3 is not fully published [\#309](https://github.com/bytecodealliance/wasmtime-rb/issues/309)
+
+**Merged pull requests:**
+
+- Add ability to configure `allocation_strategy` [\#323](https://github.com/bytecodealliance/wasmtime-rb/pull/323) ([ianks](https://github.com/ianks))
+- Update to wasmtime v19 [\#322](https://github.com/bytecodealliance/wasmtime-rb/pull/322) ([saulecabrera](https://github.com/saulecabrera))
+- chore: Update rb-sys [\#317](https://github.com/bytecodealliance/wasmtime-rb/pull/317) ([saulecabrera](https://github.com/saulecabrera))
+- add string buffer for stdout and stderr [\#316](https://github.com/bytecodealliance/wasmtime-rb/pull/316) ([jenniferwills](https://github.com/jenniferwills))
+
 ## [v18.0.3](https://github.com/bytecodealliance/wasmtime-rb/tree/v18.0.3) (2024-03-14)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v17.0.2...v18.0.3)

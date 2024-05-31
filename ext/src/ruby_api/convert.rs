@@ -45,7 +45,8 @@ impl ToRubyValue for Val {
             Val::ExternRef(eref) => match eref {
                 None => Ok(().into_value()),
                 Some(eref) => eref
-                    .data()
+                    .data(store.context()?)
+                    .map_err(|e| error!("{e}"))?
                     .downcast_ref::<ExternRefValue>()
                     .map(|v| v.0)
                     .ok_or_else(|| error!("failed to extract externref")),
@@ -55,20 +56,27 @@ impl ToRubyValue for Val {
                 Some(funcref) => Ok(Func::from_inner(*store, *funcref).into_value()),
             },
             Val::V128(_) => err!("converting from v128 to Ruby unsupported"),
+            t => err!("cannot convert value: {t:?} to Ruby value"),
         }
     }
 }
 pub trait ToWasmVal {
-    fn to_wasm_val(&self, ty: ValType) -> Result<Val, Error>;
+    fn to_wasm_val(&self, store: &StoreContextValue, ty: ValType) -> Result<Val, Error>;
 }
 
 impl ToWasmVal for Value {
-    fn to_wasm_val(&self, ty: ValType) -> Result<Val, Error> {
+    fn to_wasm_val(&self, store: &StoreContextValue, ty: ValType) -> Result<Val, Error> {
         if ty.matches(&ValType::EXTERNREF) {
-            let extern_ref_value = match self.is_nil() {
-                true => None,
-                false => Some(ExternRef::new(ExternRefValue::from(*self))),
-            };
+            // Don't special case `nil` in order to ensure that it's always
+            // a rooted value. Even though it's `nil` from Ruby's perspective,
+            // it's a host managed object.
+            let extern_ref_value = Some(
+                ExternRef::new(
+                    store.context_mut().map_err(|e| error!("{e}"))?,
+                    ExternRefValue::from(*self),
+                )
+                .map_err(|e| error!("{e}"))?,
+            );
 
             return Ok(Val::ExternRef(extern_ref_value));
         }

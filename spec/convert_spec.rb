@@ -36,6 +36,7 @@ module Wasmtime
 
       it("converts nil back and forth") { expect(roundtrip_value(:externref, nil)).to be_nil }
       it("converts string back and forth") { expect(roundtrip_value(:externref, "foo")).to eq("foo") }
+      it("converts a nil funcref back and forth") { expect(roundtrip_value(:funcref, nil)).to be_nil }
       it "converts BasicObject back and forth" do
         expect(roundtrip_value(:externref, basic_object)).to equal(basic_object)
       end

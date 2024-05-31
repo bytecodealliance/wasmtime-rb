@@ -54,7 +54,7 @@ impl<'a> Table<'a> {
         let (min,) = kw.required;
         let (max,) = kw.optional;
         let wasm_type = value_type.to_val_type()?;
-        let wasm_default = default.to_wasm_val(wasm_type.clone())?;
+        let wasm_default = default.to_wasm_val(&store.into(), wasm_type.clone())?;
         let ref_ = wasm_default
             .ref_()
             .ok_or_else(|| error!("Expected Ref for table value"))?;
@@ -130,7 +130,7 @@ impl<'a> Table<'a> {
                 self.store.context_mut()?,
                 index,
                 value
-                    .to_wasm_val(wasmtime::ValType::from(self.value_type()?))?
+                    .to_wasm_val(&self.store, wasmtime::ValType::from(self.value_type()?))?
                     .ref_()
                     .ok_or_else(|| error!("Expected Ref"))?,
             )
@@ -155,7 +155,7 @@ impl<'a> Table<'a> {
                 self.store.context_mut()?,
                 delta,
                 initial
-                    .to_wasm_val(wasmtime::ValType::from(self.value_type()?))?
+                    .to_wasm_val(&self.store, wasmtime::ValType::from(self.value_type()?))?
                     .ref_()
                     .ok_or_else(|| error!("Expected Ref"))?,
             )

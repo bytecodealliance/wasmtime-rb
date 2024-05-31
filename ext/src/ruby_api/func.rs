@@ -160,7 +160,7 @@ impl<'a> Func<'a> {
     ) -> Result<Value, Error> {
         let mut context = store.context_mut()?;
         let func_ty = func.ty(&mut context);
-        let params = Params::new(&func_ty, args)?.to_vec()?;
+        let params = Params::new(&func_ty, args)?.to_vec(store)?;
         let mut results = vec![Val::null_func_ref(); func_ty.results().len()];
 
         func.call(context, &params, &mut results)
@@ -264,7 +264,7 @@ pub fn make_func_closure(
                     .zip(ty.results())
                     .enumerate()
                 {
-                    match rb_val.to_wasm_val(ty) {
+                    match rb_val.to_wasm_val(&store_context, ty) {
                         Ok(val) => *wasm_val = val,
                         Err(e) => {
                             return result_error!(

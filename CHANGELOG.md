@@ -1,5 +1,15 @@
 # Changelog
 
+## [v20.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v20.0.0) (2024-05-31)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v19.0.2...v20.0.0)
+
+**Merged pull requests:**
+
+- Update to wasmtime v20 [\#328](https://github.com/bytecodealliance/wasmtime-rb/pull/328) ([saulecabrera](https://github.com/saulecabrera))
+- chore\(deps\): bump anyhow from 1.0.79 to 1.0.83 [\#324](https://github.com/bytecodealliance/wasmtime-rb/pull/324) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump standard from 1.34.0 to 1.35.1 [\#311](https://github.com/bytecodealliance/wasmtime-rb/pull/311) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v19.0.2](https://github.com/bytecodealliance/wasmtime-rb/tree/v19.0.2) (2024-05-15)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v19.0.0...v19.0.2)

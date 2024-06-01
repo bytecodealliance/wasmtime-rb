@@ -24,7 +24,7 @@ rb-sys = { version = "*", default-features = false, features = [
 wasmtime = { version = "=20.0.0" }
 wasmtime-wasi = "=20.0.0"
 wasi-common = "=20.0.0"
-cap-std = "3.0.0"
+cap-std = "3.1.0"
 anyhow = "*" # Use whatever Wasmtime uses
 wat = "1.201.0"
 tokio = { version = "1.36.0", features = [

@@ -25,7 +25,7 @@ GEM
     prettier_print (1.2.1)
     racc (1.7.3)
     rainbow (3.1.1)
-    rake (13.1.0)
+    rake (13.2.1)
     rake-compiler (1.2.7)
       rake
     rb_sys (0.9.97)
@@ -93,7 +93,7 @@ PLATFORMS
 DEPENDENCIES
   benchmark-ips
   get_process_mem
-  rake (~> 13.1)
+  rake (~> 13.2)
   rake-compiler
   rspec (~> 3.13)
   standard (~> 1.35)

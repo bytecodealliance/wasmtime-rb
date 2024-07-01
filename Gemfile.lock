@@ -18,8 +18,8 @@ GEM
     json (2.7.2)
     language_server-protocol (3.17.0.3)
     lint_roller (1.1.0)
-    parallel (1.24.0)
-    parser (3.3.2.0)
+    parallel (1.25.1)
+    parser (3.3.3.0)
       ast (~> 2.4.1)
       racc
     prettier_print (1.2.1)
@@ -30,8 +30,8 @@ GEM
       rake
     rb_sys (0.9.97)
     regexp_parser (2.9.2)
-    rexml (3.2.8)
-      strscan (>= 3.0.9)
+    rexml (3.3.1)
+      strscan
     rspec (3.13.0)
       rspec-core (~> 3.13.0)
       rspec-expectations (~> 3.13.0)
@@ -45,7 +45,7 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
     rspec-support (3.13.1)
-    rubocop (1.63.5)
+    rubocop (1.64.1)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
       parallel (~> 1.10)
@@ -58,14 +58,14 @@ GEM
       unicode-display_width (>= 2.4.0, < 3.0)
     rubocop-ast (1.31.3)
       parser (>= 3.3.1.0)
-    rubocop-performance (1.21.0)
+    rubocop-performance (1.21.1)
       rubocop (>= 1.48.1, < 2.0)
       rubocop-ast (>= 1.31.1, < 2.0)
     ruby-progressbar (1.13.0)
-    standard (1.36.0)
+    standard (1.39.0)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.0)
-      rubocop (~> 1.63.0)
+      rubocop (~> 1.64.0)
       standard-custom (~> 1.0.0)
       standard-performance (~> 1.4)
     standard-custom (1.0.2)
@@ -98,7 +98,7 @@ DEPENDENCIES
   rake (~> 13.2)
   rake-compiler
   rspec (~> 3.13)
-  standard (~> 1.36)
+  standard (~> 1.39)
   wasmtime!
   yard
   yard-rustdoc (~> 0.3.2)

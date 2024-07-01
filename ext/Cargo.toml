@@ -16,7 +16,7 @@ ruby-api = []
 winch = ["wasmtime/winch"]
 
 [dependencies]
-lazy_static = "1.4.0"
+lazy_static = "1.5.0"
 magnus = { version = "0.6", features = ["rb-sys"] }
 rb-sys = { version = "*", default-features = false, features = [
   "stable-api-compiled-fallback",

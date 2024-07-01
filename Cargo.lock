@@ -67,14 +67,15 @@ checksum = "7d5a26814d8dcb93b0e5a0ff3c6d80a8843bafb21b39e8e18a6f05471870e110"
 
 [[package]]
 name = "async-timer"
-version = "1.0.0-beta.11"
+version = "1.0.0-beta.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a85c27a0fad465f4e93d563b849340a6683fac2040cd99f6f99ed75207e7069"
+checksum = "5ff4ca74f619ff7e4eb279686a814665fc910cd2fca2bb943491b9bc40e80c8b"
 dependencies = [
  "error-code",
  "libc",
  "tokio",
  "wasm-bindgen",
+ "web-time",
 ]
 
 [[package]]
@@ -2164,6 +2165,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42203ec0271d113f8eb1f77ebc624886530cecb35915a7f63a497131f16e4d24"
 dependencies = [
  "wast 209.0.1",
+]
+
+[[package]]
+name = "web-time"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a6580f308b1fad9207618087a65c04e7a10bc77e02c8e84e9b00dd4b12fa0bb"
+dependencies = [
+ "js-sys",
+ "wasm-bindgen",
 ]
 
 [[package]]

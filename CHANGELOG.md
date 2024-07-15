@@ -1,5 +1,20 @@
 # Changelog
 
+## [v20.0.2](https://github.com/bytecodealliance/wasmtime-rb/tree/v20.0.2) (2024-07-15)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v20.0.0...v20.0.2)
+
+**Merged pull requests:**
+
+- Update to wasmtime `v20.0.2` [\#341](https://github.com/bytecodealliance/wasmtime-rb/pull/341) ([saulecabrera](https://github.com/saulecabrera))
+- chore\(deps-dev\): bump standard from 1.36.0 to 1.39.0 [\#340](https://github.com/bytecodealliance/wasmtime-rb/pull/340) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump async-timer from 1.0.0-beta.11 to 1.0.0-beta.14 [\#338](https://github.com/bytecodealliance/wasmtime-rb/pull/338) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump lazy\_static from 1.4.0 to 1.5.0 [\#336](https://github.com/bytecodealliance/wasmtime-rb/pull/336) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump cap-std from 3.0.0 to 3.1.0 [\#334](https://github.com/bytecodealliance/wasmtime-rb/pull/334) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump wat from 1.208.1 to 1.209.1 [\#333](https://github.com/bytecodealliance/wasmtime-rb/pull/333) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump standard from 1.35.1 to 1.36.0 [\#332](https://github.com/bytecodealliance/wasmtime-rb/pull/332) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump rake from 13.1.0 to 13.2.1 [\#331](https://github.com/bytecodealliance/wasmtime-rb/pull/331) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v20.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v20.0.0) (2024-05-31)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v19.0.2...v20.0.0)

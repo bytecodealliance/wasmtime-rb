@@ -1,3 +1,4 @@
+#![allow(clippy::doc_lazy_continuation)]
 use magnus::{Error, Ruby};
 mod helpers;
 mod ruby_api;

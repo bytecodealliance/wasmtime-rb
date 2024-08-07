@@ -7,6 +7,9 @@ license = "Apache-2.0"
 publish = false
 build = "build.rs"
 
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(ruby_gte_3_0)'] }
+
 [features]
 default = ["tokio", "all-arch"]
 embed = ["magnus/embed"]

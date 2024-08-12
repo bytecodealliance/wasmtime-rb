@@ -11,13 +11,14 @@ use magnus::{
     DataTypeFunctions, Error, IntoValue, Module, Object, Ruby, TypedData, Value,
 };
 use magnus::{Class, RHash};
+use rb_sys::tracking_allocator::TrackingAllocator;
 use std::borrow::Borrow;
 use std::cell::UnsafeCell;
 use std::convert::TryFrom;
 use wasi_common::{I32Exit, WasiCtx as WasiCtxImpl};
 use wasmtime::{
-    AsContext, AsContextMut, Store as StoreImpl, StoreContext, StoreContextMut, StoreLimits,
-    StoreLimitsBuilder,
+    AsContext, AsContextMut, ResourceLimiter, Store as StoreImpl, StoreContext, StoreContextMut,
+    StoreLimits, StoreLimitsBuilder,
 };
 
 define_rb_intern!(
@@ -30,7 +31,7 @@ pub struct StoreData {
     wasi: Option<WasiCtxImpl>,
     refs: Vec<Value>,
     last_error: Option<Error>,
-    store_limits: StoreLimits,
+    store_limits: TrackingResourceLimiter,
 }
 
 impl StoreData {
@@ -149,7 +150,9 @@ impl Store {
         let limiter = match kw.optional.1 {
             None => StoreLimitsBuilder::new(),
             Some(limits) => hash_to_store_limits_builder(limits)?,
-        };
+        }
+        .build();
+        let limiter = TrackingResourceLimiter::new(limiter);
 
         let eng = engine.get();
         let store_data = StoreData {
@@ -157,7 +160,7 @@ impl Store {
             wasi,
             refs: Default::default(),
             last_error: Default::default(),
-            store_limits: limiter.build(),
+            store_limits: limiter,
         };
         let store = Self {
             inner: UnsafeCell::new(StoreImpl::new(eng, store_data)),
@@ -362,4 +365,71 @@ pub fn init() -> Result<(), Error> {
     class.define_method("set_epoch_deadline", method!(Store::set_epoch_deadline, 1))?;
 
     Ok(())
+}
+
+/// A resource limiter proxy used to report memory usage to Ruby's GC.
+struct TrackingResourceLimiter {
+    inner: StoreLimits,
+    allocated: isize,
+}
+
+impl TrackingResourceLimiter {
+    /// Create a new tracking limiter around an inner limiter.
+    pub fn new(resource_limiter: StoreLimits) -> Self {
+        Self {
+            inner: resource_limiter,
+            allocated: 0,
+        }
+    }
+}
+
+impl ResourceLimiter for TrackingResourceLimiter {
+    fn memory_growing(
+        &mut self,
+        current: usize,
+        desired: usize,
+        maximum: Option<usize>,
+    ) -> anyhow::Result<bool> {
+        let res = self.inner.memory_growing(current, desired, maximum);
+        if res.is_ok() && maximum.map_or(true, |maximum| desired <= maximum) {
+            self.allocated = desired as isize;
+            TrackingAllocator::adjust_memory_usage((desired - current) as isize);
+        }
+        res
+    }
+
+    fn table_growing(
+        &mut self,
+        current: u32,
+        desired: u32,
+        maximum: Option<u32>,
+    ) -> anyhow::Result<bool> {
+        self.inner.table_growing(current, desired, maximum)
+    }
+
+    fn memory_grow_failed(&mut self, error: anyhow::Error) -> anyhow::Result<()> {
+        self.inner.memory_grow_failed(error)
+    }
+
+    fn table_grow_failed(&mut self, error: anyhow::Error) -> anyhow::Result<()> {
+        self.inner.table_grow_failed(error)
+    }
+
+    fn instances(&self) -> usize {
+        self.inner.instances()
+    }
+
+    fn tables(&self) -> usize {
+        self.inner.tables()
+    }
+
+    fn memories(&self) -> usize {
+        self.inner.memories()
+    }
+}
+
+impl Drop for TrackingResourceLimiter {
+    fn drop(&mut self) {
+        TrackingAllocator::adjust_memory_usage(-self.allocated);
+    }
 }

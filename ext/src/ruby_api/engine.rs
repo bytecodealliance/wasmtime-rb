@@ -1,7 +1,4 @@
-use super::{
-    config::{default_config, hash_to_config},
-    root,
-};
+use super::{config::hash_to_config, root};
 use crate::{
     error,
     helpers::{nogvl, Tmplock},
@@ -15,7 +12,7 @@ use std::{
     hash::{Hash, Hasher},
     sync::Mutex,
 };
-use wasmtime::Engine as EngineImpl;
+use wasmtime::{Config, Engine as EngineImpl};
 
 #[cfg(feature = "tokio")]
 lazy_static::lazy_static! {
@@ -98,7 +95,7 @@ impl Engine {
 
                 EngineImpl::new(&config).map_err(|e| error!("{}", e))?
             }
-            None => EngineImpl::new(&default_config()).map_err(|e| error!("{}", e))?,
+            None => EngineImpl::new(&Config::default()).map_err(|e| error!("{}", e))?,
         };
 
         Ok(Self {

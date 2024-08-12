@@ -1,5 +1,3 @@
-mod tracked_memory_creator;
-pub(crate) use self::tracked_memory_creator::TrackedMemoryCreator;
 use crate::{define_rb_intern, helpers::SymbolEnum, PoolingAllocationConfig};
 use lazy_static::lazy_static;
 use magnus::{
@@ -80,17 +78,8 @@ lazy_static! {
     };
 }
 
-/// Default for [`wasmtime::Config`], which includes a [`TrackedMemoryCreator`]
-/// to report memory usage to Ruby.
-pub fn default_config() -> Config {
-    let mut config = Config::new();
-    let host_memory = TrackedMemoryCreator::new();
-    config.with_host_memory(Arc::new(host_memory));
-    config
-}
-
 pub fn hash_to_config(hash: RHash) -> Result<Config, Error> {
-    let mut config = default_config();
+    let mut config = Config::default();
     hash.foreach(|name: Symbol, value: Value| {
         let id = magnus::value::Id::from(name);
         let entry = ConfigEntry(name, value);

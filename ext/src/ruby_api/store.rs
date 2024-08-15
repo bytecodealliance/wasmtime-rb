@@ -11,7 +11,7 @@ use magnus::{
     DataTypeFunctions, Error, IntoValue, Module, Object, Ruby, TypedData, Value,
 };
 use magnus::{Class, RHash};
-use rb_sys::tracking_allocator::TrackingAllocator;
+use rb_sys::tracking_allocator::{ManuallyTracked, TrackingAllocator};
 use std::borrow::Borrow;
 use std::cell::UnsafeCell;
 use std::convert::TryFrom;
@@ -370,7 +370,7 @@ pub fn init() -> Result<(), Error> {
 /// A resource limiter proxy used to report memory usage to Ruby's GC.
 struct TrackingResourceLimiter {
     inner: StoreLimits,
-    allocated: isize,
+    tracker: ManuallyTracked<()>,
 }
 
 impl TrackingResourceLimiter {
@@ -378,7 +378,7 @@ impl TrackingResourceLimiter {
     pub fn new(resource_limiter: StoreLimits) -> Self {
         Self {
             inner: resource_limiter,
-            allocated: 0,
+            tracker: ManuallyTracked::new(0),
         }
     }
 }
@@ -392,8 +392,7 @@ impl ResourceLimiter for TrackingResourceLimiter {
     ) -> anyhow::Result<bool> {
         let res = self.inner.memory_growing(current, desired, maximum);
         if res.is_ok() && maximum.map_or(true, |maximum| desired <= maximum) {
-            self.allocated = desired as isize;
-            TrackingAllocator::adjust_memory_usage((desired - current) as isize);
+            self.tracker.increase_memory_usage(desired - current);
         }
         res
     }
@@ -425,11 +424,5 @@ impl ResourceLimiter for TrackingResourceLimiter {
 
     fn memories(&self) -> usize {
         self.inner.memories()
-    }
-}
-
-impl Drop for TrackingResourceLimiter {
-    fn drop(&mut self) {
-        TrackingAllocator::adjust_memory_usage(-self.allocated);
     }
 }

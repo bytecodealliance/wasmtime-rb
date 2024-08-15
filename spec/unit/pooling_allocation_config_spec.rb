@@ -69,9 +69,9 @@ module Wasmtime
       expect(config.inspect).to include("max_unused_warm_slots: 1,")
     end
 
-    it "allows memory_pages configuration" do
-      config.memory_pages = 1
-      expect(config.inspect).to include("memory_pages: 1")
+    it "allows max_memory_size configuration" do
+      config.max_memory_size = 1
+      expect(config.inspect).to include("max_memory_size: 1")
     end
 
     it "allows memory_protection_keys configuration" do

@@ -175,11 +175,11 @@ impl PoolingAllocationConfig {
         Ok(rb_self)
     }
 
-    /// @def memory_pages=
-    /// @param pages [Integer]
+    /// @def max_memory_size=
+    /// @param bytes [Integer]
     /// @return [Wasmtime::PoolingAllocationConfig]
-    pub fn set_memory_pages(rb_self: Obj<Self>, pages: u64) -> Result<Obj<Self>, Error> {
-        rb_self.borrow_mut()?.memory_pages(pages);
+    pub fn set_max_memory_size(rb_self: Obj<Self>, bytes: usize) -> Result<Obj<Self>, Error> {
+        rb_self.borrow_mut()?.max_memory_size(bytes);
         Ok(rb_self)
     }
 
@@ -357,8 +357,8 @@ pub fn init() -> Result<(), Error> {
         method!(PoolingAllocationConfig::set_max_unused_warm_slots, 1),
     )?;
     class.define_method(
-        "memory_pages=",
-        method!(PoolingAllocationConfig::set_memory_pages, 1),
+        "max_memory_size=",
+        method!(PoolingAllocationConfig::set_max_memory_size, 1),
     )?;
     class.define_method(
         "memory_protection_keys=",

@@ -1,5 +1,19 @@
 # Changelog
 
+## [v21.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v21.0.1) (2024-08-15)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v20.0.2...v21.0.1)
+
+**Merged pull requests:**
+
+- Update to Wasmtime v21.0.1 [\#359](https://github.com/bytecodealliance/wasmtime-rb/pull/359) ([jeffcharles](https://github.com/jeffcharles))
+- Remove wasmtime-runtime by using resource limiter to track memory [\#354](https://github.com/bytecodealliance/wasmtime-rb/pull/354) ([jeffcharles](https://github.com/jeffcharles))
+- chore\(deps\): bump rb-sys from 0.9.97 to 0.9.100 [\#353](https://github.com/bytecodealliance/wasmtime-rb/pull/353) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump rb\_sys from 0.9.97 to 0.9.100 [\#352](https://github.com/bytecodealliance/wasmtime-rb/pull/352) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Fix CI [\#351](https://github.com/bytecodealliance/wasmtime-rb/pull/351) ([jeffcharles](https://github.com/jeffcharles))
+- chore\(deps-dev\): bump get\_process\_mem from 0.2.7 to 1.0.0 [\#345](https://github.com/bytecodealliance/wasmtime-rb/pull/345) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump standard from 1.39.0 to 1.39.2 [\#343](https://github.com/bytecodealliance/wasmtime-rb/pull/343) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v20.0.2](https://github.com/bytecodealliance/wasmtime-rb/tree/v20.0.2) (2024-07-15)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v20.0.0...v20.0.2)

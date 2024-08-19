@@ -1,5 +1,16 @@
 # Changelog
 
+## [v22.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v22.0.0) (2024-08-19)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v21.0.1...v22.0.0)
+
+**Merged pull requests:**
+
+- Clarify release instructions [\#363](https://github.com/bytecodealliance/wasmtime-rb/pull/363) ([jeffcharles](https://github.com/jeffcharles))
+- v21.0.1 changelog [\#362](https://github.com/bytecodealliance/wasmtime-rb/pull/362) ([jeffcharles](https://github.com/jeffcharles))
+- Bump gem version to 22.0.0 [\#361](https://github.com/bytecodealliance/wasmtime-rb/pull/361) ([jeffcharles](https://github.com/jeffcharles))
+- Update to Wasmtime 22, updates pooling allocator config API [\#360](https://github.com/bytecodealliance/wasmtime-rb/pull/360) ([jeffcharles](https://github.com/jeffcharles))
+
 ## [v21.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v21.0.1) (2024-08-15)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v20.0.2...v21.0.1)

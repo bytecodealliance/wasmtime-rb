@@ -13,7 +13,8 @@ use magnus::{
 
 use rb_sys::tracking_allocator::ManuallyTracked;
 use wasmtime::{Extern, Memory as MemoryImpl};
-use wasmtime_environ::WASM_PAGE_SIZE;
+
+const WASM_PAGE_SIZE: u32 = wasmtime_environ::Memory::DEFAULT_PAGE_SIZE;
 
 define_rb_intern!(
     MIN_SIZE => "min_size",

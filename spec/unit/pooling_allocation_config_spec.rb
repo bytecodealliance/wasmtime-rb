@@ -26,7 +26,7 @@ module Wasmtime
 
     it "allows async_stack_keep_resident configuration" do
       config.async_stack_keep_resident = 1
-      expect(config.inspect).to match(/async_stack_keep_resident: (16384|4096),/) # page size rounded up to 16KiB
+      expect(config.inspect).to include("async_stack_keep_resident: 1,")
     end
 
     it "allows async_stack_zeroing configuration" do
@@ -36,7 +36,7 @@ module Wasmtime
 
     it "allows linear_memory_keep_resident configuration" do
       config.linear_memory_keep_resident = 1
-      expect(config.inspect).to match(/linear_memory_keep_resident: (16384|4096),/) # page size rounded up to 16KiB
+      expect(config.inspect).to include("linear_memory_keep_resident: 1,")
     end
 
     it "allows max_component_instance_size configuration" do
@@ -90,7 +90,7 @@ module Wasmtime
 
     it "allows table_keep_resident configuration" do
       config.table_keep_resident = 1
-      expect(config.inspect).to match(/table_keep_resident: (16384|4096),/) # page size rounded up to 16KiB
+      expect(config.inspect).to include("table_keep_resident: 1,")
     end
 
     it "allows total_component_instances configuration" do

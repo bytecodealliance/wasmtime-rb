@@ -17,6 +17,17 @@ Compile the gem, run the tests & Ruby linter:
 bundle exec rake
 ```
 
+## If running the Run Examples step of CI fails
+
+If there was an update to `deterministic-wasi-ctx`, try running:
+
+```
+$ cd examples/rust-crate
+$ cargo update -p deterministic-wasi-ctx
+```
+
+If the lock file for the example Rust crate changed, commit and push that change.
+
 ## Releasing
 
 1. Bump the `VERSION` in `lib/wasmtime/version.rb`

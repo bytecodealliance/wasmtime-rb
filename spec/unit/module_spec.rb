@@ -86,5 +86,31 @@ module Wasmtime
         expect(mod).to be_a(Wasmtime::Module)
       end
     end
+
+    describe "#imports" do
+      it "returns an array of import information" do
+        wat = "(module (import \"env\" \"func\" (func)))"
+        mod = Module.new(engine, wat)
+        imports = mod.imports
+
+        expect(imports).to be_an(Array)
+        expect(imports.length).to eq(1)
+        expect(imports[0]).to be_a(Hash)
+        expect(imports[0]["module"]).to eq("env")
+        expect(imports[0]["name"]).to eq("func")
+        expect(imports[0]["type"]).to start_with("Func(FuncType")
+        expect(imports[0]["type"]).to include("params: []")
+        expect(imports[0]["type"]).to include("returns: []")
+      end
+
+      it "returns an empty array for a module with no imports" do
+        wat = "(module)"
+        mod = Module.new(engine, wat)
+        imports = mod.imports
+
+        expect(imports).to be_an(Array)
+        expect(imports).to be_empty
+      end
+    end
   end
 end

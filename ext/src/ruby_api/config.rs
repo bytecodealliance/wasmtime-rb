@@ -45,6 +45,7 @@ define_rb_intern!(
     ALLOCATION_STRATEGY => "allocation_strategy",
     POOLING => "pooling",
     ON_DEMAND => "on_demand",
+    WASM_REFERENCE_TYPES => "wasm_reference_types",
 );
 
 lazy_static! {
@@ -104,6 +105,8 @@ pub fn hash_to_config(hash: RHash) -> Result<Config, Error> {
             config.wasm_memory64(entry.try_into()?);
         } else if *PARALLEL_COMPILATION == id {
             config.parallel_compilation(entry.try_into()?);
+        } else if *WASM_REFERENCE_TYPES == id {
+            config.wasm_reference_types(entry.try_into()?);
         } else if *PROFILER == id {
             config.profiler(entry.try_into()?);
         } else if *CRANELIFT_OPT_LEVEL == id {

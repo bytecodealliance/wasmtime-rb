@@ -76,6 +76,7 @@ impl Engine {
     /// @option config [Boolean] :wasm_threads
     /// @option config [Boolean] :wasm_multi_memory
     /// @option config [Boolean] :wasm_memory64
+    /// @option config [Boolean] :wasm_reference_types
     /// @option config [Boolean] :parallel_compilation (true) Whether compile WASM using multiple threads
     /// @option config [Boolean] :generate_address_map Configures whether compiled artifacts will contain information to map native program addresses back to the original wasm module. This configuration option is `true` by default. Disabling this feature can result in considerably smaller serialized modules.
     /// @option config [Symbol] :cranelift_opt_level One of +none+, +speed+, +speed_and_size+.

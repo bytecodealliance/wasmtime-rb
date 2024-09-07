@@ -9,11 +9,14 @@ use crate::{
     error,
     helpers::{nogvl, Tmplock},
 };
-use magnus::{class, function, method, rb_sys::AsRawValue, Error, Module as _, Object, RString, RArray, RHash, Ruby};
+use magnus::{
+    class, function, method, rb_sys::AsRawValue, Error, Module as _, Object, RArray, RHash,
+    RString, Ruby,
+};
 use rb_sys::{
     rb_str_locktmp, rb_str_unlocktmp, tracking_allocator::ManuallyTracked, RSTRING_LEN, RSTRING_PTR,
 };
-use wasmtime::{Module as ModuleImpl, ImportType};
+use wasmtime::{ImportType, Module as ModuleImpl};
 
 /// @yard
 /// Represents a WebAssembly module.
@@ -113,7 +116,7 @@ impl Module {
     pub fn imports(&self) -> Result<RArray, Error> {
         let module = self.get();
         let imports = module.imports();
-        
+
         let result = RArray::new();
         for import in imports {
             let hash = RHash::new();

@@ -13,7 +13,7 @@ use magnus::{
 use magnus::{Class, RHash};
 use rb_sys::tracking_allocator::{ManuallyTracked, TrackingAllocator};
 use std::borrow::Borrow;
-use std::cell::UnsafeCell;
+use std::cell::{Cell, UnsafeCell};
 use std::convert::TryFrom;
 use wasi_common::{I32Exit, WasiCtx as WasiCtxImpl};
 use wasmtime::{
@@ -89,6 +89,8 @@ impl StoreData {
 #[magnus(class = "Wasmtime::Store", size, mark, compact, free_immediately)]
 pub struct Store {
     inner: UnsafeCell<StoreImpl<StoreData>>,
+    max_linear_memory_consumed: Cell<usize>,
+    linear_memory_limit_hit: Cell<bool>,
 }
 
 impl DataTypeFunctions for Store {
@@ -115,7 +117,7 @@ impl Store {
     /// @param wasi_ctx [Wasmtime::WasiCtxBuilder]
     ///   The WASI context to use in this store.
     /// @param limits [Hash]
-    ///   See the {https://docs.rs/wasmtime/latest/wasmtime/struct.StoreLimitsBuilder.html +StoreLimitsBuilder+‘s Rust doc}
+    ///   See the {https://docs.rs/wasmtime/latest/wasmtime/struct.StoreLimitsBuilder.html +StoreLimitsBuilder+'s Rust doc}
     ///   for detailed description of the different options and the defaults.
     /// @option limits memory_size [Integer]
     ///   The maximum number of bytes a linear memory can grow to.
@@ -164,6 +166,8 @@ impl Store {
         };
         let store = Self {
             inner: UnsafeCell::new(StoreImpl::new(eng, store_data)),
+            max_linear_memory_consumed: Cell::new(0),
+            linear_memory_limit_hit: Cell::new(false),
         };
 
         unsafe { &mut *store.inner.get() }.limiter(|data| &mut data.store_limits);
@@ -203,7 +207,7 @@ impl Store {
     /// Sets the epoch deadline to a certain number of ticks in the future.
     ///
     /// Raises if there isn't enough fuel left in the {Store}, or
-    /// when the {Engine}’s config does not have fuel enabled.
+    /// when the {Engine}'s config does not have fuel enabled.
     ///
     /// @see ttps://docs.rs/wasmtime/latest/wasmtime/struct.Store.html#method.set_epoch_deadline Rust's doc on +set_epoch_deadline_ for more details.
     /// @def set_epoch_deadline(ticks_beyond_current)
@@ -211,6 +215,22 @@ impl Store {
     /// @return [nil]
     pub fn set_epoch_deadline(&self, ticks_beyond_current: u64) {
         unsafe { &mut *self.inner.get() }.set_epoch_deadline(ticks_beyond_current);
+    }
+
+    /// @yard
+    /// Returns the maximum linear memory consumed by the store.
+    ///
+    /// @return [Integer]
+    pub fn max_linear_memory_consumed(&self) -> usize {
+        self.max_linear_memory_consumed.get()
+    }
+
+    /// @yard
+    /// Returns whether the linear memory limit was hit.
+    ///
+    /// @return [Boolean]
+    pub fn linear_memory_limit_hit(&self) -> bool {
+        self.linear_memory_limit_hit.get()
     }
 
     pub fn context(&self) -> StoreContext<StoreData> {
@@ -363,6 +383,8 @@ pub fn init() -> Result<(), Error> {
     class.define_method("get_fuel", method!(Store::get_fuel, 0))?;
     class.define_method("set_fuel", method!(Store::set_fuel, 1))?;
     class.define_method("set_epoch_deadline", method!(Store::set_epoch_deadline, 1))?;
+    class.define_method("max_linear_memory_consumed", method!(Store::max_linear_memory_consumed, 0))?;
+    class.define_method("linear_memory_limit_hit?", method!(Store::linear_memory_limit_hit, 0))?;
 
     Ok(())
 }
@@ -393,6 +415,14 @@ impl ResourceLimiter for TrackingResourceLimiter {
         let res = self.inner.memory_growing(current, desired, maximum);
         if res.is_ok() && maximum.map_or(true, |maximum| desired <= maximum) {
             self.tracker.increase_memory_usage(desired - current);
+            let store = unsafe { &*(self as *const _ as *const Store) };
+            store.max_linear_memory_consumed.set(std::cmp::max(
+                store.max_linear_memory_consumed.get(),
+                desired,
+            ));
+        } else {
+            let store = unsafe { &*(self as *const _ as *const Store) };
+            store.linear_memory_limit_hit.set(true);
         }
         res
     }

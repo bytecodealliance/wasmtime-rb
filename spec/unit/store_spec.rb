@@ -118,6 +118,41 @@ module Wasmtime
           expect { Instance.new(store, table_mod) }.to raise_error(Wasmtime::Error, "resource limit exceeded: table count too high at 2")
         end
       end
+
+      describe "#max_linear_memory_consumed" do
+        it "returns the maximum linear memory consumed" do
+          store = Store.new(engine, limits: { memory_size: 1_000_000 })
+          mod = Module.new(engine, "(module (memory 1) (func (export \"grow\") (param i32) (result i32) (memory.grow (local.get 0))))")
+          instance = Instance.new(store, mod)
+          grow_func = instance.exports.grow
+
+          grow_func.call(1)
+          grow_func.call(2)
+
+          expect(store.max_linear_memory_consumed).to be >= 196608 # 3 pages (64KB each)
+        end
+      end
+
+      describe "#linear_memory_limit_hit?" do
+        it "returns false when the limit is not hit" do
+          store = Store.new(engine, limits: { memory_size: 1_000_000 })
+          mod = Module.new(engine, "(module (memory 1))")
+          Instance.new(store, mod)
+
+          expect(store.linear_memory_limit_hit?).to be false
+        end
+
+        it "returns true when the limit is hit" do
+          store = Store.new(engine, limits: { memory_size: 65536 }) # 1 page
+          mod = Module.new(engine, "(module (memory 1) (func (export \"grow\") (param i32) (result i32) (memory.grow (local.get 0))))")
+          instance = Instance.new(store, mod)
+          grow_func = instance.exports.grow
+
+          grow_func.call(1) # This should hit the limit
+
+          expect(store.linear_memory_limit_hit?).to be true
+        end
+      end
     end
   end
 end

@@ -32,8 +32,6 @@ pub struct StoreData {
     refs: Vec<Value>,
     last_error: Option<Error>,
     store_limits: TrackingResourceLimiter,
-    linear_memory_limit_hit: bool,
-    max_linear_memory_consumed: usize,
 }
 
 impl StoreData {
@@ -81,19 +79,6 @@ impl StoreData {
         for value in self.refs.iter_mut() {
             *value = compactor.location(*value);
         }
-    }
-
-    pub fn linear_memory_limit_hit(&self) -> bool {
-        self.linear_memory_limit_hit
-    }
-
-    pub fn max_linear_memory_consumed(&self) -> usize {
-        self.max_linear_memory_consumed
-    }
-
-    pub fn update_memory_stats(&mut self) {
-        self.linear_memory_limit_hit = self.store_limits.linear_memory_limit_hit();
-        self.max_linear_memory_consumed = self.store_limits.max_linear_memory_consumed();
     }
 }
 
@@ -162,21 +147,12 @@ impl Store {
         let user_data = user_data.unwrap_or_else(|| ().into_value());
         let wasi = kw.optional.0.map(|wasi_ctx| wasi_ctx.get_inner());
 
-        let mut memory_size_limit = None;
         let limiter = match kw.optional.1 {
             None => StoreLimitsBuilder::new(),
-            Some(limits) => {
-                let builder = hash_to_store_limits_builder(limits)?;
-                if let Some(memory_size) =
-                    limits.lookup::<_, Option<u64>>(StaticSymbol::new("memory_size"))?
-                {
-                    memory_size_limit = Some(memory_size as usize);
-                }
-                builder
-            }
+            Some(limits) => hash_to_store_limits_builder(limits)?,
         }
         .build();
-        let limiter = TrackingResourceLimiter::new(limiter, memory_size_limit);
+        let limiter = TrackingResourceLimiter::new(limiter);
 
         let eng = engine.get();
         let store_data = StoreData {
@@ -185,8 +161,6 @@ impl Store {
             refs: Default::default(),
             last_error: Default::default(),
             store_limits: limiter,
-            linear_memory_limit_hit: false,
-            max_linear_memory_consumed: 0,
         };
         let store = Self {
             inner: UnsafeCell::new(StoreImpl::new(eng, store_data)),
@@ -244,10 +218,7 @@ impl Store {
     ///
     /// @return [Boolean]
     pub fn linear_memory_limit_hit(&self) -> bool {
-        let mut context = self.context_mut();
-        let data = context.data_mut();
-        data.update_memory_stats();
-        data.linear_memory_limit_hit
+        self.context().data().store_limits.linear_memory_limit_hit()
     }
 
     /// @yard
@@ -255,17 +226,10 @@ impl Store {
     ///
     /// @return [Integer]
     pub fn max_linear_memory_consumed(&self) -> usize {
-        let mut context = self.context_mut();
-        let data = context.data_mut();
-        data.update_memory_stats();
-        data.max_linear_memory_consumed
-    }
-
-    // Add this new method to update memory stats after any operation
-    pub fn update_memory_stats(&self) {
-        let mut context = self.context_mut();
-        let data = context.data_mut();
-        data.update_memory_stats();
+        self.context()
+            .data()
+            .store_limits
+            .max_linear_memory_consumed()
     }
 
     pub fn context(&self) -> StoreContext<StoreData> {
@@ -436,18 +400,16 @@ struct TrackingResourceLimiter {
     tracker: ManuallyTracked<()>,
     linear_memory_limit_hit: bool,
     max_linear_memory_consumed: usize,
-    memory_size_limit: Option<usize>,
 }
 
 impl TrackingResourceLimiter {
     /// Create a new tracking limiter around an inner limiter.
-    pub fn new(resource_limiter: StoreLimits, memory_size_limit: Option<usize>) -> Self {
+    pub fn new(resource_limiter: StoreLimits) -> Self {
         Self {
             inner: resource_limiter,
             tracker: ManuallyTracked::new(0),
             linear_memory_limit_hit: false,
             max_linear_memory_consumed: 0,
-            memory_size_limit,
         }
     }
 
@@ -467,23 +429,28 @@ impl ResourceLimiter for TrackingResourceLimiter {
         desired: usize,
         maximum: Option<usize>,
     ) -> anyhow::Result<bool> {
-        let res = self.inner.memory_growing(current, desired, maximum);
-
-        // Update max_linear_memory_consumed
-        self.max_linear_memory_consumed = self.max_linear_memory_consumed.max(desired);
-
-        // Check against our stored memory_size limit
-        if let Some(memory_size_limit) = self.memory_size_limit {
-            if desired > memory_size_limit {
+        if let Some(max) = maximum {
+            if desired > max {
                 self.linear_memory_limit_hit = true;
                 return Ok(false);
             }
         }
 
+        let res = self.inner.memory_growing(current, desired, maximum);
+
+        // Update max_linear_memory_consumed
+        self.max_linear_memory_consumed = self.max_linear_memory_consumed.max(desired);
+
         if res.is_ok() {
             self.tracker.increase_memory_usage(desired - current);
         } else {
             self.linear_memory_limit_hit = true;
+        }
+
+        if let Ok(allowed) = res {
+            if !allowed {
+                self.linear_memory_limit_hit = true;
+            }
         }
 
         res

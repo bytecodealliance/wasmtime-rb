@@ -167,7 +167,9 @@ impl Store {
             None => StoreLimitsBuilder::new(),
             Some(limits) => {
                 let builder = hash_to_store_limits_builder(limits)?;
-                if let Some(memory_size) = limits.lookup::<_, Option<u64>>(StaticSymbol::new("memory_size"))? {
+                if let Some(memory_size) =
+                    limits.lookup::<_, Option<u64>>(StaticSymbol::new("memory_size"))?
+                {
                     memory_size_limit = Some(memory_size as usize);
                 }
                 builder
@@ -416,8 +418,14 @@ pub fn init() -> Result<(), Error> {
     class.define_method("get_fuel", method!(Store::get_fuel, 0))?;
     class.define_method("set_fuel", method!(Store::set_fuel, 1))?;
     class.define_method("set_epoch_deadline", method!(Store::set_epoch_deadline, 1))?;
-    class.define_method("linear_memory_limit_hit?", method!(Store::linear_memory_limit_hit, 0))?;
-    class.define_method("max_linear_memory_consumed", method!(Store::max_linear_memory_consumed, 0))?;
+    class.define_method(
+        "linear_memory_limit_hit?",
+        method!(Store::linear_memory_limit_hit, 0),
+    )?;
+    class.define_method(
+        "max_linear_memory_consumed",
+        method!(Store::max_linear_memory_consumed, 0),
+    )?;
 
     Ok(())
 }
@@ -460,10 +468,10 @@ impl ResourceLimiter for TrackingResourceLimiter {
         maximum: Option<usize>,
     ) -> anyhow::Result<bool> {
         let res = self.inner.memory_growing(current, desired, maximum);
-        
+
         // Update max_linear_memory_consumed
         self.max_linear_memory_consumed = self.max_linear_memory_consumed.max(desired);
-        
+
         // Check against our stored memory_size limit
         if let Some(memory_size_limit) = self.memory_size_limit {
             if desired > memory_size_limit {
@@ -471,13 +479,13 @@ impl ResourceLimiter for TrackingResourceLimiter {
                 return Ok(false);
             }
         }
-        
+
         if res.is_ok() {
             self.tracker.increase_memory_usage(desired - current);
         } else {
             self.linear_memory_limit_hit = true;
         }
-        
+
         res
     }
 

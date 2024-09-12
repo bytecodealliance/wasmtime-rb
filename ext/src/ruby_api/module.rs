@@ -117,9 +117,9 @@ impl Module {
         let module = self.get();
         let imports = module.imports();
 
-        let result = RArray::new();
+        let result = RArray::with_capacity(imports.len());
         for import in imports {
-            let hash = RHash::new();
+            let hash = RHash::with_capacity(3);
             hash.aset("module", import.module())?;
             hash.aset("name", import.name())?;
             hash.aset("type", format!("{:?}", import.ty()))?;

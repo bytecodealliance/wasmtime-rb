@@ -115,7 +115,7 @@ impl Store {
     /// @param wasi_ctx [Wasmtime::WasiCtxBuilder]
     ///   The WASI context to use in this store.
     /// @param limits [Hash]
-    ///   See the {https://docs.rs/wasmtime/latest/wasmtime/struct.StoreLimitsBuilder.html +StoreLimitsBuilder+‘s Rust doc}
+    ///   See the {https://docs.rs/wasmtime/latest/wasmtime/struct.StoreLimitsBuilder.html +StoreLimitsBuilder+'s Rust doc}
     ///   for detailed description of the different options and the defaults.
     /// @option limits memory_size [Integer]
     ///   The maximum number of bytes a linear memory can grow to.
@@ -203,7 +203,7 @@ impl Store {
     /// Sets the epoch deadline to a certain number of ticks in the future.
     ///
     /// Raises if there isn't enough fuel left in the {Store}, or
-    /// when the {Engine}’s config does not have fuel enabled.
+    /// when the {Engine}'s config does not have fuel enabled.
     ///
     /// @see ttps://docs.rs/wasmtime/latest/wasmtime/struct.Store.html#method.set_epoch_deadline Rust's doc on +set_epoch_deadline_ for more details.
     /// @def set_epoch_deadline(ticks_beyond_current)
@@ -211,6 +211,25 @@ impl Store {
     /// @return [nil]
     pub fn set_epoch_deadline(&self, ticks_beyond_current: u64) {
         unsafe { &mut *self.inner.get() }.set_epoch_deadline(ticks_beyond_current);
+    }
+
+    /// @yard
+    /// Returns whether the linear memory limit has been hit.
+    ///
+    /// @return [Boolean]
+    pub fn linear_memory_limit_hit(&self) -> bool {
+        self.context().data().store_limits.linear_memory_limit_hit()
+    }
+
+    /// @yard
+    /// Returns the maximum linear memory consumed.
+    ///
+    /// @return [Integer]
+    pub fn max_linear_memory_consumed(&self) -> usize {
+        self.context()
+            .data()
+            .store_limits
+            .max_linear_memory_consumed()
     }
 
     pub fn context(&self) -> StoreContext<StoreData> {
@@ -363,6 +382,14 @@ pub fn init() -> Result<(), Error> {
     class.define_method("get_fuel", method!(Store::get_fuel, 0))?;
     class.define_method("set_fuel", method!(Store::set_fuel, 1))?;
     class.define_method("set_epoch_deadline", method!(Store::set_epoch_deadline, 1))?;
+    class.define_method(
+        "linear_memory_limit_hit?",
+        method!(Store::linear_memory_limit_hit, 0),
+    )?;
+    class.define_method(
+        "max_linear_memory_consumed",
+        method!(Store::max_linear_memory_consumed, 0),
+    )?;
 
     Ok(())
 }
@@ -371,6 +398,8 @@ pub fn init() -> Result<(), Error> {
 struct TrackingResourceLimiter {
     inner: StoreLimits,
     tracker: ManuallyTracked<()>,
+    linear_memory_limit_hit: bool,
+    max_linear_memory_consumed: usize,
 }
 
 impl TrackingResourceLimiter {
@@ -379,7 +408,17 @@ impl TrackingResourceLimiter {
         Self {
             inner: resource_limiter,
             tracker: ManuallyTracked::new(0),
+            linear_memory_limit_hit: false,
+            max_linear_memory_consumed: 0,
         }
+    }
+
+    pub fn linear_memory_limit_hit(&self) -> bool {
+        self.linear_memory_limit_hit
+    }
+
+    pub fn max_linear_memory_consumed(&self) -> usize {
+        self.max_linear_memory_consumed
     }
 }
 
@@ -391,9 +430,22 @@ impl ResourceLimiter for TrackingResourceLimiter {
         maximum: Option<usize>,
     ) -> anyhow::Result<bool> {
         let res = self.inner.memory_growing(current, desired, maximum);
-        if res.is_ok() && maximum.map_or(true, |maximum| desired <= maximum) {
+
+        // Update max_linear_memory_consumed
+        self.max_linear_memory_consumed = self.max_linear_memory_consumed.max(desired);
+
+        if res.is_ok() {
             self.tracker.increase_memory_usage(desired - current);
+        } else {
+            self.linear_memory_limit_hit = true;
         }
+
+        if let Ok(allowed) = res {
+            if !allowed {
+                self.linear_memory_limit_hit = true;
+            }
+        }
+
         res
     }
 
@@ -407,6 +459,7 @@ impl ResourceLimiter for TrackingResourceLimiter {
     }
 
     fn memory_grow_failed(&mut self, error: anyhow::Error) -> anyhow::Result<()> {
+        self.linear_memory_limit_hit = true;
         self.inner.memory_grow_failed(error)
     }
 

@@ -118,6 +118,32 @@ module Wasmtime
           expect { Instance.new(store, table_mod) }.to raise_error(Wasmtime::Error, "resource limit exceeded: table count too high at 2")
         end
       end
+
+      describe "#linear_memory_limit_hit?" do
+        it "returns false when the limit hasn't been hit" do
+          store = Store.new(engine, limits: {memory_size: 1_000_000})
+          Memory.new(store, min_size: 1)
+          expect(store.linear_memory_limit_hit?).to be false
+        end
+
+        it "returns true when the limit has been hit" do
+          store = Store.new(engine, limits: {memory_size: 65536})
+          mem = Memory.new(store, min_size: 1)
+          expect {
+            # Try to grow the memory beyond the limit
+            mem.grow(2)
+          }.to raise_error(Wasmtime::Error, /failed to grow memory/)
+          expect(store.linear_memory_limit_hit?).to be true
+        end
+      end
+
+      describe "#max_linear_memory_consumed" do
+        it "returns the maximum linear memory consumed" do
+          store = Store.new(engine, limits: {memory_size: 1_000_000})
+          Memory.new(store, min_size: 2)
+          expect(store.max_linear_memory_consumed).to be >= 65536 * 2
+        end
+      end
     end
   end
 end

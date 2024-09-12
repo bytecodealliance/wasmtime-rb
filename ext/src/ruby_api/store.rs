@@ -429,13 +429,6 @@ impl ResourceLimiter for TrackingResourceLimiter {
         desired: usize,
         maximum: Option<usize>,
     ) -> anyhow::Result<bool> {
-        if let Some(max) = maximum {
-            if desired > max {
-                self.linear_memory_limit_hit = true;
-                return Ok(false);
-            }
-        }
-
         let res = self.inner.memory_growing(current, desired, maximum);
 
         // Update max_linear_memory_consumed

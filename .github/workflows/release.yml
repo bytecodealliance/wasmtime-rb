@@ -128,3 +128,6 @@ jobs:
           omitNameDuringUpdate: true
           omitPrereleaseDuringUpdate: true
           skipIfReleaseExists: true
+
+      - name: Publish doc
+        uses: ./.github/actions/publish-doc

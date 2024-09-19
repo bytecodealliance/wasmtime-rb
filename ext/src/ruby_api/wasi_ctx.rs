@@ -40,8 +40,8 @@ impl WasiCtx {
 
     /// @yard
     /// Set stdin to read from the specified file.
-    /// @param path [String] The path of the file to read from.
     /// @def set_stdin_file(path)
+    /// @param path [String] The path of the file to read from.
     /// @return [WasiCtxBuilder] +self+
     fn set_stdin_file(rb_self: RbSelf, path: RString) -> RbSelf {
         let inner = rb_self.inner.borrow_mut();
@@ -52,8 +52,8 @@ impl WasiCtx {
 
     /// @yard
     /// Set stdin to the specified String.
-    /// @param content [String]
     /// @def set_stdin_string(content)
+    /// @param content [String]
     /// @return [WasiCtx] +self+
     fn set_stdin_string(rb_self: RbSelf, content: RString) -> RbSelf {
         let inner = rb_self.inner.borrow_mut();
@@ -66,8 +66,8 @@ impl WasiCtx {
     /// @yard
     /// Set stdout to write to a file. Will truncate the file if it exists,
     /// otherwise try to create it.
-    /// @param path [String] The path of the file to write to.
     /// @def set_stdout_file(path)
+    /// @param path [String] The path of the file to write to.
     /// @return [WasiCtx] +self+
     fn set_stdout_file(rb_self: RbSelf, path: RString) -> RbSelf {
         let inner = rb_self.inner.borrow_mut();
@@ -80,9 +80,9 @@ impl WasiCtx {
     /// Set stdout to write to a string buffer.
     /// If the string buffer is frozen, Wasm execution will raise a Wasmtime::Error error.
     /// No encoding checks are done on the resulting string, it is the caller's responsibility to ensure the string contains a valid encoding
+    /// @def set_stdout_buffer(buffer, capacity)
     /// @param buffer [String] The string buffer to write to.
     /// @param capacity [Integer] The maximum number of bytes that can be written to the output buffer.
-    /// @def set_stout_buffer(buffer, capacity)
     /// @return [WasiCtx] +self+
     fn set_stdout_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -> RbSelf {
         let inner = rb_self.inner.borrow_mut();
@@ -94,8 +94,8 @@ impl WasiCtx {
     /// @yard
     /// Set stderr to write to a file. Will truncate the file if it exists,
     /// otherwise try to create it.
-    /// @param path [String] The path of the file to write to.
     /// @def set_stderr_file(path)
+    /// @param path [String] The path of the file to write to.
     /// @return [WasiCtx] +self+
     fn set_stderr_file(rb_self: RbSelf, path: RString) -> RbSelf {
         let inner = rb_self.inner.borrow_mut();
@@ -108,9 +108,9 @@ impl WasiCtx {
     /// Set stderr to write to a string buffer.
     /// If the string buffer is frozen, Wasm execution will raise a Wasmtime::Error error.
     /// No encoding checks are done on the resulting string, it is the caller's responsibility to ensure the string contains a valid encoding
+    /// @def set_stderr_buffer(buffer, capacity)
     /// @param buffer [String] The string buffer to write to.
     /// @param capacity [Integer] The maximum number of bytes that can be written to the output buffer.
-    /// @def set_stout_buffer(buffer, capacity)
     /// @return [WasiCtx] +self+
     fn set_stderr_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -> RbSelf {
         let inner = rb_self.inner.borrow_mut();

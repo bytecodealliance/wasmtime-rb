@@ -11,7 +11,7 @@ group :development do
   gem "standard", "~> 1.40"
   gem "get_process_mem"
   gem "yard", require: false
-  gem "yard-rustdoc", "~> 0.3.2", require: false
+  gem "yard-rustdoc", "~> 0.4.0", require: false
   gem "benchmark-ips", require: false
 end
 

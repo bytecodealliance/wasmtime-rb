@@ -12,6 +12,10 @@ GEM
     bigdecimal (3.1.8)
     diff-lcs (1.5.1)
     ffi (1.17.0)
+    ffi (1.17.0-arm64-darwin)
+    ffi (1.17.0-x64-mingw-ucrt)
+    ffi (1.17.0-x86_64-darwin)
+    ffi (1.17.0-x86_64-linux-gnu)
     get_process_mem (1.0.0)
       bigdecimal (>= 2.0)
       ffi (~> 1.0)
@@ -79,7 +83,7 @@ GEM
       prettier_print (>= 1.2.0)
     unicode-display_width (2.5.0)
     yard (0.9.36)
-    yard-rustdoc (0.3.2)
+    yard-rustdoc (0.4.0)
       syntax_tree (~> 5.0)
       yard (~> 0.9)
 
@@ -101,7 +105,7 @@ DEPENDENCIES
   standard (~> 1.40)
   wasmtime!
   yard
-  yard-rustdoc (~> 0.3.2)
+  yard-rustdoc (~> 0.4.0)
 
 BUNDLED WITH
    2.5.4

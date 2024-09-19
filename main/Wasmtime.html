@@ -78,8 +78,8 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>lib/wasmtime/error.rb<span class="defines">,<br />
-  lib/wasmtime/version.rb</span>
+    <dd>ext/src/ruby_api/mod.rs<span class="defines">,<br />
+  lib/wasmtime/error.rb,<br /> lib/wasmtime/version.rb</span>
 </dd>
   </dl>
   
@@ -91,7 +91,7 @@
     
   
     
-      <strong class="classes">Classes:</strong> <span class='object_link'><a href="Wasmtime/ConversionError.html" title="Wasmtime::ConversionError (class)">ConversionError</a></span>, <span class='object_link'><a href="Wasmtime/Error.html" title="Wasmtime::Error (class)">Error</a></span>, <span class='object_link'><a href="Wasmtime/ResultError.html" title="Wasmtime::ResultError (class)">ResultError</a></span>, <span class='object_link'><a href="Wasmtime/Trap.html" title="Wasmtime::Trap (class)">Trap</a></span>, <span class='object_link'><a href="Wasmtime/WasiExit.html" title="Wasmtime::WasiExit (class)">WasiExit</a></span>
+      <strong class="classes">Classes:</strong> <span class='object_link'><a href="Wasmtime/Caller.html" title="Wasmtime::Caller (class)">Caller</a></span>, <span class='object_link'><a href="Wasmtime/ConversionError.html" title="Wasmtime::ConversionError (class)">ConversionError</a></span>, <span class='object_link'><a href="Wasmtime/Engine.html" title="Wasmtime::Engine (class)">Engine</a></span>, <span class='object_link'><a href="Wasmtime/Error.html" title="Wasmtime::Error (class)">Error</a></span>, <span class='object_link'><a href="Wasmtime/Extern.html" title="Wasmtime::Extern (class)">Extern</a></span>, <span class='object_link'><a href="Wasmtime/Func.html" title="Wasmtime::Func (class)">Func</a></span>, <span class='object_link'><a href="Wasmtime/Global.html" title="Wasmtime::Global (class)">Global</a></span>, <span class='object_link'><a href="Wasmtime/Instance.html" title="Wasmtime::Instance (class)">Instance</a></span>, <span class='object_link'><a href="Wasmtime/Linker.html" title="Wasmtime::Linker (class)">Linker</a></span>, <span class='object_link'><a href="Wasmtime/Memory.html" title="Wasmtime::Memory (class)">Memory</a></span>, <span class='object_link'><a href="Wasmtime/Module.html" title="Wasmtime::Module (class)">Module</a></span>, <span class='object_link'><a href="Wasmtime/PoolingAllocationConfig.html" title="Wasmtime::PoolingAllocationConfig (class)">PoolingAllocationConfig</a></span>, <span class='object_link'><a href="Wasmtime/ResultError.html" title="Wasmtime::ResultError (class)">ResultError</a></span>, <span class='object_link'><a href="Wasmtime/Store.html" title="Wasmtime::Store (class)">Store</a></span>, <span class='object_link'><a href="Wasmtime/Table.html" title="Wasmtime::Table (class)">Table</a></span>, <span class='object_link'><a href="Wasmtime/Trap.html" title="Wasmtime::Trap (class)">Trap</a></span>, <span class='object_link'><a href="Wasmtime/WasiCtx.html" title="Wasmtime::WasiCtx (class)">WasiCtx</a></span>, <span class='object_link'><a href="Wasmtime/WasiCtxBuilder.html" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span>, <span class='object_link'><a href="Wasmtime/WasiExit.html" title="Wasmtime::WasiExit (class)">WasiExit</a></span>
     
   
 </p>
@@ -118,12 +118,133 @@
 
 
 
+  
+    <h2>
+      Class Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
 
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#wat2wasm-class_method" title="wat2wasm (class method)">.<strong>wat2wasm</strong>(wat)  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Converts a WAT <code>String</code> into Wasm.</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+
+
+  <div id="class_method_details" class="method_details_list">
+    <h2>Class Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="wat2wasm-class_method">
+  
+    .<strong>wat2wasm</strong>(wat)  &#x21d2; <tt>String</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Converts a WAT <code>String</code> into Wasm.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>wat</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The Wasm represented as a binary <code>String</code>.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+64
+65
+66
+67
+68
+69</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/mod.rs', line 64</span>
+
+pub fn wat2wasm(wat: RString) -&gt; Result&lt;RString, Error&gt; {
+        wat::parse_str(unsafe { wat.as_str()? })
+            .map(|bytes| RString::from_slice(bytes.as_slice()))
+            .map_err(|e| crate::error!(&quot;{}&quot;, e))
+    }
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
 
 </div>
 
       <div id="footer">
-  Generated on Thu Sep 12 15:06:52 2024 by
+  Generated on Thu Sep 19 16:51:08 2024 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.3.5).
 </div>

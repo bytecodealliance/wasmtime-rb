@@ -39,7 +39,7 @@ impl PoolingAllocationConfig {
     }
 
     /// @yard
-    /// @def total_memories=
+    /// @def total_memories=(total_memories)
     /// @param total_memories [Integer]
     /// @return [Wasmtime::PoolingAllocationConfig]
     pub fn set_total_memories(rb_self: Obj<Self>, total_memories: u32) -> Result<Obj<Self>, Error> {
@@ -49,7 +49,7 @@ impl PoolingAllocationConfig {
     }
 
     /// @yard
-    /// @def total_tables=
+    /// @def total_tables=(total_tables)
     /// @param total_tables [Integer]
     /// @return [Wasmtime::PoolingAllocationConfig]
     pub fn set_total_tables(rb_self: Obj<Self>, total_tables: u32) -> Result<Obj<Self>, Error> {
@@ -58,7 +58,7 @@ impl PoolingAllocationConfig {
     }
 
     /// @yard
-    /// @def max_memories_per_module=
+    /// @def max_memories_per_module=(max_memories)
     /// @param max_memories [Integer]
     /// @return [Wasmtime::PoolingAllocationConfig]
     pub fn set_max_memories_per_module(
@@ -70,7 +70,7 @@ impl PoolingAllocationConfig {
     }
 
     /// @yard
-    /// @def max_tables_per_module=
+    /// @def max_tables_per_module=(max_tables)
     /// @param max_tables [Integer]
     /// @return [Wasmtime::PoolingAllocationConfig]
     pub fn set_max_tables_per_component(
@@ -82,14 +82,14 @@ impl PoolingAllocationConfig {
     }
 
     /// @yard
-    /// @def are_memory_protection_keys_available
+    /// @def memory_protection_keys_available?
     /// @return [Boolean]
     pub fn are_memory_protection_keys_available() -> Result<bool, Error> {
         Ok(wasmtime::PoolingAllocationConfig::are_memory_protection_keys_available())
     }
 
     /// @yard
-    /// @def async_stack_keep_resident=
+    /// @def async_stack_keep_resident=(amount)
     /// @param amount [Integer]
     /// @return [Wasmtime::PoolingAllocationConfig]
     pub fn set_async_stack_keep_resident(
@@ -100,7 +100,7 @@ impl PoolingAllocationConfig {
         Ok(rb_self)
     }
 
-    /// @def async_stack_zeroing=
+    /// @def async_stack_zeroing=(enable)
     /// @param enable [Boolean]
     /// @return [Wasmtime::PoolingAllocationConfig]
     pub fn set_async_stack_zeroing(rb_self: Obj<Self>, enable: Value) -> Result<Obj<Self>, Error> {

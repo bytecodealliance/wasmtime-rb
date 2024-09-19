@@ -107,7 +107,7 @@ unsafe impl Send for StoreData {}
 impl Store {
     /// @yard
     ///
-    /// @def new(engine, data = nil, wasi_ctx: nil)
+    /// @def new(engine, data = nil, wasi_ctx: nil, limits: nil)
     /// @param engine [Wasmtime::Engine]
     ///   The engine for this store.
     /// @param data [Object]
@@ -214,6 +214,7 @@ impl Store {
     }
 
     /// @yard
+    /// @def linear_memory_limit_hit?
     /// Returns whether the linear memory limit has been hit.
     ///
     /// @return [Boolean]

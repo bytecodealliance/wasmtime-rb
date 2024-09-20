@@ -177,6 +177,23 @@ impl Engine {
     }
 
     /// @yard
+    /// AoT compile a WebAssembly text or WebAssembly binary component for later use.
+    ///
+    /// The compiled component can be instantiated using {Component::Component.deserialize}.
+    ///
+    /// @def precompile_component(wat_or_wasm)
+    /// @param wat_or_wasm [String] The String of WAT or Wasm component.
+    /// @return [String] Binary String of the compiled component.
+    /// @see Component::Component.deserialize
+    pub fn precompile_component(&self, wat_or_wasm: RString) -> Result<RString, Error> {
+        let (wat_or_wasm, _guard) = wat_or_wasm.as_locked_slice()?;
+
+        nogvl(|| self.inner.precompile_component(wat_or_wasm))
+            .map(|bytes| RString::from_slice(&bytes))
+            .map_err(|e| error!("{}", e.to_string()))
+    }
+
+    /// @yard
     /// If two engines have a matching {Engine.precompile_compatibility_key},
     /// then serialized modules from one engine can be deserialized by the
     /// other.
@@ -225,6 +242,10 @@ pub fn init() -> Result<(), Error> {
     class.define_method("increment_epoch", method!(Engine::increment_epoch, 0))?;
     class.define_method("==", method!(Engine::is_equal, 1))?;
     class.define_method("precompile_module", method!(Engine::precompile_module, 1))?;
+    class.define_method(
+        "precompile_component",
+        method!(Engine::precompile_component, 1),
+    )?;
     class.define_method(
         "precompile_compatibility_key",
         method!(Engine::precompile_compatibility_key, 0),

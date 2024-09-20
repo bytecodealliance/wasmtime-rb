@@ -10,6 +10,7 @@
 use magnus::{function, value::Lazy, Error, RModule, RString, Ruby};
 
 mod caller;
+mod component;
 mod config;
 mod convert;
 mod engine;
@@ -89,6 +90,7 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
     global::init()?;
     wasi_ctx::init()?;
     pooling_allocation_config::init()?;
+    component::init(ruby)?;
 
     Ok(())
 }

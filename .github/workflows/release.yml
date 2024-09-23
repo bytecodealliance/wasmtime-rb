@@ -43,7 +43,7 @@ jobs:
       - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
         with:
           ruby-version: "3.3"
-          bundler-cache: false
+          bundler-cache: true
           cargo-cache: true
           cargo-vendor: true
           cache-version: v1-${{ matrix.ruby-platform }}
@@ -128,6 +128,3 @@ jobs:
           omitNameDuringUpdate: true
           omitPrereleaseDuringUpdate: true
           skipIfReleaseExists: true
-
-      - name: Publish doc
-        uses: ./.github/actions/publish-doc

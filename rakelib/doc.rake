@@ -94,4 +94,4 @@ namespace :doc do
   end
 end
 
-task doc: ["compile", "doc:default"]
+task doc: ["env:dev", "compile", "doc:default"]

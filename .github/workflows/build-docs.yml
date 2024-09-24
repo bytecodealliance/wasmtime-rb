@@ -1,0 +1,48 @@
+---
+name: Build documentation
+
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_doc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Derive nightly version
+        run: |
+          version="$(cat ./NIGHTLY_VERSION)"
+          echo "NIGHTLY_VERSION=$version" >> $GITHUB_ENV
+
+      - name: Remove Gemfile.lock
+        run: rm Gemfile.lock
+
+      - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
+        with:
+          ruby-version: "3.3"
+          rustup-toolchain: "${{ env.NIGHTLY_VERSION }}"
+          bundler-cache: true
+          cargo-cache: true
+          cache-version: docs-v1
+
+      - name: Generate doc
+        run: bundle exec rake doc
+
+      - name: Upload generated doc
+        uses: actions/upload-artifact@v4
+        with:
+          name: doc
+          path: doc
+          retention-days: 1
+
+      - name: Publish doc
+        if: contains(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
+        uses: ./.github/actions/publish-doc
+

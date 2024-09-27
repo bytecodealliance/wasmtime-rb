@@ -11,7 +11,12 @@ use magnus::{
 use wasmtime::{Extern, Global as GlobalImpl, Mutability};
 
 #[derive(TypedData)]
-#[magnus(class = "Wasmtime::GlobalType", free_immediately, mark, unsafe_generics)]
+#[magnus(
+    class = "Wasmtime::GlobalType",
+    free_immediately,
+    mark,
+    unsafe_generics
+)]
 pub struct GlobalType {
     inner: wasmtime::GlobalType,
 }
@@ -23,6 +28,27 @@ impl DataTypeFunctions for GlobalType {
 impl GlobalType {
     pub fn from_inner(inner: wasmtime::GlobalType) -> Self {
         Self { inner }
+    }
+
+    /// @yard
+    /// @def const?
+    /// @return [Boolean]
+    pub fn is_const(&self) -> bool {
+        self.inner.mutability() == Mutability::Const
+    }
+
+    /// @yard
+    /// @def var?
+    /// @return [Boolean]
+    pub fn is_var(&self) -> bool {
+        self.inner.mutability() == Mutability::Var
+    }
+
+    /// @yard
+    /// @def type
+    /// @return [Symbol] The Wasm type of the global‘s content.
+    pub fn type_(&self) -> Result<Symbol, Error> {
+        self.inner.content().to_sym()
     }
 }
 
@@ -173,7 +199,10 @@ impl From<&Global<'_>> for Extern {
 }
 
 pub fn init() -> Result<(), Error> {
-    root().define_class("GlobalType", class::object())?;
+    let type_class = root().define_class("GlobalType", class::object())?;
+    type_class.define_method("const?", method!(GlobalType::is_const, 0))?;
+    type_class.define_method("var?", method!(GlobalType::is_var, 0))?;
+    type_class.define_method("type", method!(GlobalType::type_, 0))?;
 
     let class = root().define_class("Global", class::object())?;
     class.define_singleton_method("var", function!(Global::var, 3))?;

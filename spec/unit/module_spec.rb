@@ -89,17 +89,31 @@ module Wasmtime
 
     describe "#imports" do
       it "returns an array of import information" do
-        wat = "(module (import \"env\" \"func\" (func)))"
+        wat = <<~WAT
+          (module
+            (import "env" "func" (func (param i32) (result i32)))
+            (global (import "env" "global") (mut i32))
+          )
+        WAT
+
         mod = Module.new(engine, wat)
         imports = mod.imports
 
         expect(imports).to be_an(Array)
-        expect(imports.length).to eq(1)
+        expect(imports.length).to eq(2)
+
         expect(imports[0]).to be_a(Hash)
         expect(imports[0]["module"]).to eq("env")
         expect(imports[0]["name"]).to eq("func")
-        expect(imports[0]["type"].to_func.params).to eq([])
-        expect(imports[0]["type"].to_func.results).to eq([])
+        expect(imports[0]["type"].to_func_type.params).to eq([:i32])
+        expect(imports[0]["type"].to_func_type.results).to eq([:i32])
+
+        expect(imports[1]).to be_a(Hash)
+        expect(imports[1]["module"]).to eq("env")
+        expect(imports[1]["name"]).to eq("global")
+        expect(imports[1]["type"].to_global_type.const?).to be false
+        expect(imports[1]["type"].to_global_type.var?).to be true
+        expect(imports[1]["type"].to_global_type.type).to be :i32
       end
 
       it "returns an empty array for a module with no imports" do

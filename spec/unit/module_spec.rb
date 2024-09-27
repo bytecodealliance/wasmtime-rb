@@ -93,6 +93,8 @@ module Wasmtime
           (module
             (import "env" "func" (func (param i32) (result i32)))
             (global (import "env" "global") (mut i32))
+            (import "env" "mem" (memory 1))
+            (import "env" "table" (table 1 funcref))
           )
         WAT
 
@@ -100,7 +102,7 @@ module Wasmtime
         imports = mod.imports
 
         expect(imports).to be_an(Array)
-        expect(imports.length).to eq(2)
+        expect(imports.length).to eq(4)
 
         expect(imports[0]).to be_a(Hash)
         expect(imports[0]["module"]).to eq("env")
@@ -114,6 +116,16 @@ module Wasmtime
         expect(imports[1]["type"].to_global_type.const?).to be false
         expect(imports[1]["type"].to_global_type.var?).to be true
         expect(imports[1]["type"].to_global_type.type).to be :i32
+
+        expect(imports[2]).to be_a(Hash)
+        expect(imports[2]["module"]).to eq("env")
+        expect(imports[2]["name"]).to eq("mem")
+        expect(imports[2]["type"].to_memory_type)
+
+        expect(imports[3]).to be_a(Hash)
+        expect(imports[3]["module"]).to eq("env")
+        expect(imports[3]["name"]).to eq("table")
+        expect(imports[3]["type"].to_table_type)
       end
 
       it "returns an empty array for a module with no imports" do

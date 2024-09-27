@@ -4,7 +4,7 @@ use std::{
     os::raw::c_void,
 };
 
-use super::{engine::Engine, root};
+use super::{convert::{WrapWasmtimeType, WrapWasmtimeTypeExternType}, engine::Engine, root};
 use crate::{
     error,
     helpers::{nogvl, Tmplock},
@@ -122,7 +122,7 @@ impl Module {
             let hash = RHash::new();
             hash.aset("module", import.module())?;
             hash.aset("name", import.name())?;
-            hash.aset("type", format!("{:?}", import.ty()))?;
+            hash.aset("type", import.ty().wrap_wasmtime_type()?)?;
             result.push(hash)?;
         }
         Ok(result)

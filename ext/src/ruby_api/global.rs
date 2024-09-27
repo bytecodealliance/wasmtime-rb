@@ -8,7 +8,29 @@ use magnus::{
     class, function, gc::Marker, method, prelude::*, typed_data::Obj, DataTypeFunctions, Error,
     Object, Symbol, TypedData, Value,
 };
-use wasmtime::{Extern, Global as GlobalImpl, GlobalType, Mutability};
+use wasmtime::{Extern, Global as GlobalImpl, Mutability};
+
+#[derive(TypedData)]
+#[magnus(class = "Wasmtime::GlobalType", free_immediately, mark, unsafe_generics)]
+pub struct GlobalType {
+    inner: wasmtime::GlobalType,
+}
+
+impl DataTypeFunctions for GlobalType {
+    fn mark(&self, _marker: &Marker) {}
+}
+
+impl GlobalType {
+    pub fn from_inner(inner: wasmtime::GlobalType) -> Self {
+        Self { inner }
+    }
+}
+
+impl From<&GlobalType> for wasmtime::ExternType {
+    fn from(global_type: &GlobalType) -> Self {
+        Self::Global(global_type.inner.clone())
+    }
+}
 
 /// @yard
 /// @rename Wasmtime::Global
@@ -58,7 +80,7 @@ impl<'a> Global<'a> {
         let wasm_default = default.to_wasm_val(&store.into(), wasm_type.clone())?;
         let inner = GlobalImpl::new(
             store.context_mut(),
-            GlobalType::new(wasm_type, mutability),
+            wasmtime::GlobalType::new(wasm_type, mutability),
             wasm_default,
         )
         .map_err(|e| error!("{}", e))?;
@@ -124,7 +146,7 @@ impl<'a> Global<'a> {
             })
     }
 
-    fn ty(&self) -> Result<GlobalType, Error> {
+    fn ty(&self) -> Result<wasmtime::GlobalType, Error> {
         Ok(self.inner.ty(self.store.context()?))
     }
 
@@ -151,6 +173,8 @@ impl From<&Global<'_>> for Extern {
 }
 
 pub fn init() -> Result<(), Error> {
+    root().define_class("GlobalType", class::object())?;
+
     let class = root().define_class("Global", class::object())?;
     class.define_singleton_method("var", function!(Global::var, 3))?;
     class.define_singleton_method("const", function!(Global::const_, 3))?;

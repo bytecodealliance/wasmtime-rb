@@ -11,12 +11,34 @@ use magnus::{
     class, function, gc::Marker, method, prelude::*, scan_args, typed_data::Obj, DataTypeFunctions,
     Error, IntoValue, Object, Symbol, TypedData, Value,
 };
-use wasmtime::{Extern, Table as TableImpl, TableType, Val};
+use wasmtime::{Extern, Table as TableImpl, Val};
 
 define_rb_intern!(
     MIN_SIZE => "min_size",
     MAX_SIZE => "max_size",
 );
+
+#[derive(TypedData)]
+#[magnus(class = "Wasmtime::TableType", free_immediately, mark, unsafe_generics)]
+pub struct TableType {
+    inner: wasmtime::TableType,
+}
+
+impl DataTypeFunctions for TableType {
+    fn mark(&self, _marker: &Marker) {}
+}
+
+impl TableType {
+    pub fn from_inner(inner: wasmtime::TableType) -> Self {
+        Self { inner }
+    }
+}
+
+impl From<&TableType> for wasmtime::ExternType {
+    fn from(table_type: &TableType) -> Self {
+        Self::Table(table_type.inner.clone())
+    }
+}
 
 /// @yard
 /// @rename Wasmtime::Table
@@ -66,7 +88,7 @@ impl<'a> Table<'a> {
 
         let inner = TableImpl::new(
             store.context_mut(),
-            TableType::new(table_type, min, max),
+            wasmtime::TableType::new(table_type, min, max),
             ref_,
         )
         .map_err(|e| error!("{}", e))?;
@@ -172,7 +194,7 @@ impl<'a> Table<'a> {
         Ok(self.inner.size(self.store.context()?))
     }
 
-    fn ty(&self) -> Result<TableType, Error> {
+    fn ty(&self) -> Result<wasmtime::TableType, Error> {
         Ok(self.inner.ty(self.store.context()?))
     }
 
@@ -202,6 +224,8 @@ impl From<&Table<'_>> for Extern {
 }
 
 pub fn init() -> Result<(), Error> {
+    root().define_class("TableType", class::object())?;
+    
     let class = root().define_class("Table", class::object())?;
     class.define_singleton_method("new", function!(Table::new, -1))?;
 

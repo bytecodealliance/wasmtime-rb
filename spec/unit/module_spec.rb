@@ -98,9 +98,8 @@ module Wasmtime
         expect(imports[0]).to be_a(Hash)
         expect(imports[0]["module"]).to eq("env")
         expect(imports[0]["name"]).to eq("func")
-        expect(imports[0]["type"]).to start_with("Func(FuncType")
-        expect(imports[0]["type"]).to include("params: []")
-        expect(imports[0]["type"]).to include("returns: []")
+        expect(imports[0]["type"].to_func.params).to eq([])
+        expect(imports[0]["type"].to_func.results).to eq([])
       end
 
       it "returns an empty array for a module with no imports" do

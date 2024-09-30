@@ -8,7 +8,6 @@ linker = Wasmtime::Linker.new(engine, wasi: true)
 
 mod1 = Wasmtime::Module.from_file(engine, "examples/linking1.wat")
 mod2 = Wasmtime::Module.from_file(engine, "examples/linking2.wat")
-puts mod2.imports[0].name
 
 wasi_ctx_builder = Wasmtime::WasiCtxBuilder.new
   .inherit_stdin

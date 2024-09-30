@@ -1,5 +1,5 @@
 use super::{
-    convert::{WrapWasmtimeType, WrapWasmtimeTypeExternType},
+    convert::{WrapWasmtimeExternType, WrapWasmtimeType},
     func::{Func, FuncType},
     global::{Global, GlobalType},
     memory::{Memory, MemoryType},
@@ -212,7 +212,7 @@ impl<'a> WrapWasmtimeType<'a, Extern<'a>> for wasmtime::Extern {
     }
 }
 
-impl WrapWasmtimeTypeExternType<ExternType> for wasmtime::ExternType {
+impl WrapWasmtimeExternType<ExternType> for wasmtime::ExternType {
     fn wrap_wasmtime_type(&self) -> Result<ExternType, Error> {
         match self {
             wasmtime::ExternType::Func(ft) => Ok(ExternType::Func(Obj::wrap(

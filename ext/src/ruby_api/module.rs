@@ -5,7 +5,7 @@ use std::{
 };
 
 use super::{
-    convert::{WrapWasmtimeType, WrapWasmtimeTypeExternType},
+    convert::{WrapWasmtimeType, WrapWasmtimeExternType},
     engine::Engine,
     root,
 };

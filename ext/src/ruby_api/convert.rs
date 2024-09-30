@@ -215,7 +215,7 @@ where
     fn wrap_wasmtime_type(&self, store: StoreContextValue<'a>) -> Result<T, Error>;
 }
 
-pub trait WrapWasmtimeTypeExternType<T>
+pub trait WrapWasmtimeExternType<T>
 where
     T: TypedData,
 {

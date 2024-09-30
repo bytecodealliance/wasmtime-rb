@@ -405,12 +405,12 @@
       <pre class="lines">
 
 
-37
-38
-39</pre>
+85
+86
+87</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 37</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 85</span>
 
 pub fn const_(store: Obj&lt;Store&gt;, value_type: Symbol, default: Value) -&gt; Result&lt;Self, Error&gt; {
     Self::new(store, value_type, default, Mutability::Const)
@@ -511,12 +511,12 @@ pub fn const_(store: Obj&lt;Store&gt;, value_type: Symbol, default: Value) -&gt;
       <pre class="lines">
 
 
-47
-48
-49</pre>
+95
+96
+97</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 47</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 95</span>
 
 pub fn var(store: Obj&lt;Store&gt;, value_type: Symbol, default: Value) -&gt; Result&lt;Self, Error&gt; {
     Self::new(store, value_type, default, Mutability::Var)
@@ -569,12 +569,12 @@ pub fn var(store: Obj&lt;Store&gt;, value_type: Symbol, default: Value) -&gt; Re
       <pre class="lines">
 
 
-83
-84
-85</pre>
+131
+132
+133</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 83</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 131</span>
 
 pub fn is_const(&amp;self) -&gt; Result&lt;bool, Error&gt; {
     self.ty().map(|ty| ty.mutability() == Mutability::Const)
@@ -628,14 +628,14 @@ pub fn is_const(&amp;self) -&gt; Result&lt;bool, Error&gt; {
       <pre class="lines">
 
 
-103
-104
-105
-106
-107</pre>
+151
+152
+153
+154
+155</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 103</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 151</span>
 
 pub fn get(&amp;self) -&gt; Result&lt;Value, Error&gt; {
     self.inner
@@ -706,21 +706,21 @@ pub fn get(&amp;self) -&gt; Result&lt;Value, Error&gt; {
       <pre class="lines">
 
 
-114
-115
-116
-117
-118
-119
-120
-121
-122
-123
-124
-125</pre>
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 114</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 162</span>
 
 pub fn set(&amp;self, value: Value) -&gt; Result&lt;(), Error&gt; {
     self.inner
@@ -783,12 +783,12 @@ pub fn set(&amp;self, value: Value) -&gt; Result&lt;(), Error&gt; {
       <pre class="lines">
 
 
-97
-98
-99</pre>
+145
+146
+147</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 97</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 145</span>
 
 pub fn type_(&amp;self) -&gt; Result&lt;Symbol, Error&gt; {
     self.ty()?.content().to_sym()
@@ -835,12 +835,12 @@ pub fn type_(&amp;self) -&gt; Result&lt;Symbol, Error&gt; {
       <pre class="lines">
 
 
-90
-91
-92</pre>
+138
+139
+140</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 90</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 138</span>
 
 pub fn is_var(&amp;self) -&gt; Result&lt;bool, Error&gt; {
     self.ty().map(|ty| ty.mutability() == Mutability::Var)
@@ -855,7 +855,7 @@ pub fn is_var(&amp;self) -&gt; Result&lt;bool, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Sep 24 21:12:26 2024 by
+  Generated on Mon Sep 30 20:47:31 2024 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.3.5).
 </div>

@@ -445,46 +445,46 @@
       <pre class="lines">
 
 
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-82</pre>
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 46</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 87</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let args = scan_args::scan_args::&lt;(Obj&lt;Store&gt;, Symbol, Value), (), (), (), _, ()&gt;(args)?;
@@ -509,7 +509,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
 
     let inner = TableImpl::new(
         store.context_mut(),
-        TableType::new(table_type, min, max),
+        wasmtime::TableType::new(table_type, min, max),
         ref_,
     )
     .map_err(|e| error!(&quot;{}&quot;, e))?;
@@ -588,15 +588,15 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-113
-114
-115
-116
-117
-118</pre>
+154
+155
+156
+157
+158
+159</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 113</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 154</span>
 
 pub fn get(&amp;self, index: u32) -&gt; Result&lt;Value, Error&gt; {
     match self.inner.get(self.store.context_mut()?, index) {
@@ -671,25 +671,25 @@ pub fn get(&amp;self, index: u32) -&gt; Result&lt;Value, Error&gt; {
       <pre class="lines">
 
 
-152
-153
-154
-155
-156
-157
-158
-159
-160
-161
-162
-163
-164
-165
-166
-167</pre>
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 152</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 193</span>
 
 pub fn grow(&amp;self, delta: u32, initial: Value) -&gt; Result&lt;u32, Error&gt; {
     self.inner
@@ -756,12 +756,12 @@ pub fn grow(&amp;self, delta: u32, initial: Value) -&gt; Result&lt;u32, Error&gt
       <pre class="lines">
 
 
-103
-104
-105</pre>
+144
+145
+146</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 103</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 144</span>
 
 pub fn max_size(&amp;self) -&gt; Result&lt;Option&lt;u32&gt;, Error&gt; {
     self.ty().map(|ty| ty.maximum())
@@ -815,12 +815,12 @@ pub fn max_size(&amp;self) -&gt; Result&lt;Option&lt;u32&gt;, Error&gt; {
       <pre class="lines">
 
 
-97
-98
-99</pre>
+138
+139
+140</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 97</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 138</span>
 
 pub fn min_size(&amp;self) -&gt; Result&lt;u32, Error&gt; {
     self.ty().map(|ty| ty.minimum())
@@ -882,25 +882,25 @@ pub fn min_size(&amp;self) -&gt; Result&lt;u32, Error&gt; {
       <pre class="lines">
 
 
-127
-128
-129
-130
-131
-132
-133
-134
-135
-136
-137
-138
-139
-140
-141
-142</pre>
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 127</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 168</span>
 
 pub fn set(&amp;self, index: u32, value: Value) -&gt; Result&lt;(), Error&gt; {
     self.inner
@@ -967,12 +967,12 @@ pub fn set(&amp;self, index: u32, value: Value) -&gt; Result&lt;(), Error&gt; {
       <pre class="lines">
 
 
-171
-172
-173</pre>
+212
+213
+214</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 171</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 212</span>
 
 pub fn size(&amp;self) -&gt; Result&lt;u32, Error&gt; {
     Ok(self.inner.size(self.store.context()?))
@@ -1026,12 +1026,12 @@ pub fn size(&amp;self) -&gt; Result&lt;u32, Error&gt; {
       <pre class="lines">
 
 
-91
-92
-93</pre>
+132
+133
+134</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 91</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 132</span>
 
 pub fn type_(&amp;self) -&gt; Result&lt;Symbol, Error&gt; {
     self.ty()?.element().to_sym()
@@ -1046,7 +1046,7 @@ pub fn type_(&amp;self) -&gt; Result&lt;Symbol, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Sep 24 21:12:27 2024 by
+  Generated on Mon Sep 30 20:47:31 2024 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.3.5).
 </div>

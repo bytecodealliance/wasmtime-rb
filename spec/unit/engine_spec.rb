@@ -41,6 +41,7 @@ module Wasmtime
 
       # enum options represented as symbols
       [
+        [:strategy, [:auto, :cranelift, :winch]],
         [:cranelift_opt_level, [:none, :speed, :speed_and_size]],
         [:profiler, profiler_options]
       ].each do |option, valid|

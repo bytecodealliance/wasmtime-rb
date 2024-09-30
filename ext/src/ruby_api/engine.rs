@@ -81,7 +81,7 @@ impl Engine {
     /// @option config [Boolean] :generate_address_map Configures whether compiled artifacts will contain information to map native program addresses back to the original wasm module. This configuration option is `true` by default. Disabling this feature can result in considerably smaller serialized modules.
     /// @option config [Symbol] :cranelift_opt_level One of +none+, +speed+, +speed_and_size+.
     /// @option config [Symbol] :profiler One of +none+, +jitdump+, +vtune+.
-    /// @option config [Symbol] :strategy One of +auto+, +cranelift+, +winch+ (requires crate feature `winch` to be enabled)
+    /// @option config [Symbol] :strategy One of +auto+, +cranelift+, +winch+
     /// @option config [String] :target
     ///
     /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Engine.html

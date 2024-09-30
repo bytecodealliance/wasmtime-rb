@@ -88,53 +88,72 @@ module Wasmtime
     end
 
     describe "#imports" do
-      it "returns an array of import information" do
-        wat = <<~WAT
-          (module
-            (import "env" "func" (func (param i32) (result i32)))
-            (global (import "env" "global") (mut i32))
-            (import "env" "mem" (memory 1))
-            (import "env" "table" (table 1 funcref))
-          )
-        WAT
+      cases = {
+        f: [:to_func_type, FuncType, {params: [:i32], results: [:i32]}],
+        m: [:to_memory_type, MemoryType, {}],
+        t: [:to_table_type, TableType, {}],
+        g: [:to_global_type, GlobalType, {const?: false, var?: true, type: :i32}]
+      }
 
-        mod = Module.new(engine, wat)
-        imports = mod.imports
+      cases.each do |name, (meth, klass, calls)|
+        describe "##{meth}" do
+          it "returns a type that is an instance of #{klass}" do
+            import = get_import_by_name(name)
+            expect(import["type"].public_send(meth)).to be_instance_of(klass)
+          end
 
-        expect(imports).to be_an(Array)
-        expect(imports.length).to eq(4)
+          it "raises an error when extern type is not a #{klass}" do
+            import = get_import_by_name(name)
+            invalid_methods = cases.values.map(&:first) - [meth]
 
-        expect(imports[0]).to be_a(Hash)
-        expect(imports[0]["module"]).to eq("env")
-        expect(imports[0]["name"]).to eq("func")
-        expect(imports[0]["type"].to_func_type.params).to eq([:i32])
-        expect(imports[0]["type"].to_func_type.results).to eq([:i32])
+            invalid_methods.each do |invalid_method|
+              expect { import["type"].public_send(invalid_method) }.to raise_error(Wasmtime::ConversionError)
+            end
+          end
 
-        expect(imports[1]).to be_a(Hash)
-        expect(imports[1]["module"]).to eq("env")
-        expect(imports[1]["name"]).to eq("global")
-        expect(imports[1]["type"].to_global_type.const?).to be false
-        expect(imports[1]["type"].to_global_type.var?).to be true
-        expect(imports[1]["type"].to_global_type.type).to be :i32
+          it "has a type that responds to the expected methods for #{klass}" do
+            import = get_import_by_name(name)
+            extern_type = import["type"].public_send(meth)
 
-        expect(imports[2]).to be_a(Hash)
-        expect(imports[2]["module"]).to eq("env")
-        expect(imports[2]["name"]).to eq("mem")
-        expect(imports[2]["type"].to_memory_type)
+            calls.each do |(meth_name, expected_return)|
+              expect(extern_type.public_send(meth_name)).to eq(expected_return)
+            end
+          end
+        end
+      end
 
-        expect(imports[3]).to be_a(Hash)
-        expect(imports[3]["module"]).to eq("env")
-        expect(imports[3]["name"]).to eq("table")
-        expect(imports[3]["type"].to_table_type)
+      it "has a module name" do
+        mod_with_imports = new_import_module
+        imports = mod_with_imports.imports
+
+        imports.each do |import|
+          expect(import["module"]).to eq("env")
+        end
       end
 
       it "returns an empty array for a module with no imports" do
-        wat = "(module)"
-        mod = Module.new(engine, wat)
-        imports = mod.imports
+        mod = Module.new(engine, "(module)")
 
-        expect(imports).to be_an(Array)
-        expect(imports).to be_empty
+        expect(mod.imports).to be_an(Array)
+        expect(mod.imports).to be_empty
+      end
+
+      def get_import_by_name(name)
+        mod_with_imports = new_import_module
+        imports = mod_with_imports.imports
+        imports.find { _1["name"] == name.to_s }
+      end
+
+      def new_import_module
+        Module.new(engine, <<~WAT
+          (module
+            (import "env" "f" (func (param i32) (result i32)))
+            (import "env" "m" (memory 1))
+            (import "env" "t" (table 1 funcref))
+            (global (import "env" "g") (mut i32))
+          )
+        WAT
+        )
       end
     end
   end

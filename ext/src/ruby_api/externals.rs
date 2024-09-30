@@ -42,7 +42,7 @@ unsafe impl Send for ExternType {}
 
 impl ExternType {
     /// @yard
-    /// Returns the exported function or raises a `{ConversionError}` when the export is not a
+    /// Returns the exported function's FuncType or raises a `{ConversionError}` when the export is not a
     /// function.
     /// @return [Func] The exported function.
     pub fn to_func_type(ruby: &Ruby, rb_self: Obj<Self>) -> Result<Value, Error> {
@@ -53,7 +53,7 @@ impl ExternType {
     }
 
     /// @yard
-    /// Returns the exported global or raises a `{ConversionError}` when the export is not a global.
+    /// Returns the exported global's GlobalType or raises a `{ConversionError}` when the export is not a global.
     /// @return [Global] The exported global.
     pub fn to_global_type(ruby: &Ruby, rb_self: Obj<Self>) -> Result<Value, Error> {
         match *rb_self {
@@ -63,7 +63,7 @@ impl ExternType {
     }
 
     /// @yard
-    /// Returns the exported memory or raises a `{ConversionError}` when the export is not a
+    /// Returns the exported memory's MemoryType or raises a `{ConversionError}` when the export is not a
     /// memory.
     /// @return [Memory] The exported memory.
     pub fn to_memory_type(ruby: &Ruby, rb_self: Obj<Self>) -> Result<Value, Error> {
@@ -74,7 +74,7 @@ impl ExternType {
     }
 
     /// @yard
-    /// Returns the exported table or raises a `{ConversionError}` when the export is not a table.
+    /// Returns the exported table's TableType or raises a `{ConversionError}` when the export is not a table.
     /// @return [Table] The exported table.
     pub fn to_table_type(ruby: &Ruby, rb_self: Obj<Self>) -> Result<Value, Error> {
         match *rb_self {

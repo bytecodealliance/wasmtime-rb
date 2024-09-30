@@ -44,7 +44,7 @@ impl ExternType {
     /// @yard
     /// Returns the exported function's FuncType or raises a `{ConversionError}` when the export is not a
     /// function.
-    /// @return [Func] The exported function.
+    /// @return [FuncType] The exported function's type.
     pub fn to_func_type(ruby: &Ruby, rb_self: Obj<Self>) -> Result<Value, Error> {
         match *rb_self {
             ExternType::Func(f) => Ok(f.as_value()),
@@ -54,7 +54,7 @@ impl ExternType {
 
     /// @yard
     /// Returns the exported global's GlobalType or raises a `{ConversionError}` when the export is not a global.
-    /// @return [Global] The exported global.
+    /// @return [GlobalType] The exported global's type.
     pub fn to_global_type(ruby: &Ruby, rb_self: Obj<Self>) -> Result<Value, Error> {
         match *rb_self {
             ExternType::Global(g) => Ok(g.as_value()),
@@ -65,7 +65,7 @@ impl ExternType {
     /// @yard
     /// Returns the exported memory's MemoryType or raises a `{ConversionError}` when the export is not a
     /// memory.
-    /// @return [Memory] The exported memory.
+    /// @return [MemoryType] The exported memory's type.
     pub fn to_memory_type(ruby: &Ruby, rb_self: Obj<Self>) -> Result<Value, Error> {
         match *rb_self {
             ExternType::Memory(m) => Ok(m.as_value()),
@@ -75,7 +75,7 @@ impl ExternType {
 
     /// @yard
     /// Returns the exported table's TableType or raises a `{ConversionError}` when the export is not a table.
-    /// @return [Table] The exported table.
+    /// @return [TableType] The exported table's type.
     pub fn to_table_type(ruby: &Ruby, rb_self: Obj<Self>) -> Result<Value, Error> {
         match *rb_self {
             ExternType::Table(t) => Ok(t.as_value()),

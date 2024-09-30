@@ -1,5 +1,10 @@
 use super::{
-    convert::{ToRubyValue, ToSym, ToValTypeVec, ToWasmVal}, engine, errors::result_error, params::Params, root, store::{Store, StoreContextValue, StoreData}
+    convert::{ToRubyValue, ToSym, ToValTypeVec, ToWasmVal},
+    engine,
+    errors::result_error,
+    params::Params,
+    root,
+    store::{Store, StoreContextValue, StoreData},
 };
 use crate::{error, Caller};
 use magnus::{

@@ -32,6 +32,25 @@ impl TableType {
     pub fn from_inner(inner: wasmtime::TableType) -> Self {
         Self { inner }
     }
+
+    /// @yard
+    /// @def type
+    /// @return [Symbol] The Wasm type of the elements of this table.
+    pub fn type_(&self) -> Result<Symbol, Error> {
+        self.inner.element().to_sym()
+    }
+
+    /// @yard
+    /// @return [Integer] The minimum size of this table.
+    pub fn min_size(&self) -> u32 {
+        self.inner.minimum()
+    }
+
+    /// @yard
+    /// @return [Integer, nil] The maximum size of this table.
+    pub fn max_size(&self) -> Option<u32> {
+        self.inner.maximum()
+    }
 }
 
 impl From<&TableType> for wasmtime::ExternType {
@@ -224,8 +243,11 @@ impl From<&Table<'_>> for Extern {
 }
 
 pub fn init() -> Result<(), Error> {
-    root().define_class("TableType", class::object())?;
-    
+    let type_class = root().define_class("TableType", class::object())?;
+    type_class.define_method("type", method!(TableType::type_, 0))?;
+    type_class.define_method("min_size", method!(TableType::min_size, 0))?;
+    type_class.define_method("max_size", method!(TableType::max_size, 0))?;
+
     let class = root().define_class("Table", class::object())?;
     class.define_singleton_method("new", function!(Table::new, -1))?;
 

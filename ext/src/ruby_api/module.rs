@@ -4,7 +4,11 @@ use std::{
     os::raw::c_void,
 };
 
-use super::{convert::{WrapWasmtimeType, WrapWasmtimeTypeExternType}, engine::Engine, root};
+use super::{
+    convert::{WrapWasmtimeType, WrapWasmtimeTypeExternType},
+    engine::Engine,
+    root,
+};
 use crate::{
     error,
     helpers::{nogvl, Tmplock},

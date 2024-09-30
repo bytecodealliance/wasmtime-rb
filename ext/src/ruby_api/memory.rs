@@ -22,7 +22,12 @@ define_rb_intern!(
 );
 
 #[derive(TypedData)]
-#[magnus(class = "Wasmtime::MemoryType", free_immediately, mark, unsafe_generics)]
+#[magnus(
+    class = "Wasmtime::MemoryType",
+    free_immediately,
+    mark,
+    unsafe_generics
+)]
 pub struct MemoryType {
     inner: wasmtime::MemoryType,
 }
@@ -34,6 +39,18 @@ impl DataTypeFunctions for MemoryType {
 impl MemoryType {
     pub fn from_inner(inner: wasmtime::MemoryType) -> Self {
         Self { inner }
+    }
+
+    /// @yard
+    /// @return [Integer] The minimum number of memory pages.
+    pub fn min_size(&self) -> u64 {
+        self.inner.minimum()
+    }
+
+    /// @yard
+    /// @return [Integer, nil] The maximum number of memory pages.
+    pub fn max_size(&self) -> Option<u64> {
+        self.inner.maximum()
     }
 }
 
@@ -246,7 +263,9 @@ impl From<&Memory<'_>> for Extern {
 }
 
 pub fn init(ruby: &Ruby) -> Result<(), Error> {
-    root().define_class("MemoryType", class::object())?;
+    let type_class = root().define_class("MemoryType", class::object())?;
+    type_class.define_method("min_size", method!(MemoryType::min_size, 0))?;
+    type_class.define_method("max_size", method!(MemoryType::max_size, 0))?;
 
     let class = root().define_class("Memory", class::object())?;
     class.define_singleton_method("new", function!(Memory::new, -1))?;

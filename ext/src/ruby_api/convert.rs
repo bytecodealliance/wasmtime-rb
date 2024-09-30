@@ -1,9 +1,17 @@
 use crate::{define_rb_intern, err, error, helpers::SymbolEnum};
 use lazy_static::lazy_static;
-use magnus::{prelude::*, try_convert, Error, IntoValue, RArray, Ruby, Symbol, TryConvert, TypedData, Value};
+use magnus::{
+    prelude::*, try_convert, Error, IntoValue, RArray, Ruby, Symbol, TryConvert, TypedData, Value,
+};
 use wasmtime::{ExternRef, RefType, Val, ValType};
 
-use super::{func::{Func, FuncType}, global::{Global, GlobalType}, memory::{Memory, MemoryType}, store::StoreContextValue, table::{Table, TableType}};
+use super::{
+    func::{Func, FuncType},
+    global::{Global, GlobalType},
+    memory::{Memory, MemoryType},
+    store::StoreContextValue,
+    table::{Table, TableType},
+};
 
 define_rb_intern!(
     I32 => "i32",

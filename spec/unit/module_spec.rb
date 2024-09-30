@@ -90,8 +90,8 @@ module Wasmtime
     describe "#imports" do
       cases = {
         f: [:to_func_type, FuncType, {params: [:i32], results: [:i32]}],
-        m: [:to_memory_type, MemoryType, {}],
-        t: [:to_table_type, TableType, {}],
+        m: [:to_memory_type, MemoryType, {min_size: 1, max_size: nil}],
+        t: [:to_table_type, TableType, {type: :funcref, min_size: 1, max_size: nil}],
         g: [:to_global_type, GlobalType, {const?: false, var?: true, type: :i32}]
       }
 

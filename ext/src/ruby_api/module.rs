@@ -4,16 +4,23 @@ use std::{
     os::raw::c_void,
 };
 
-use super::{engine::Engine, root};
+use super::{
+    convert::{WrapWasmtimeExternType, WrapWasmtimeType},
+    engine::Engine,
+    root,
+};
 use crate::{
     error,
     helpers::{nogvl, Tmplock},
 };
-use magnus::{class, function, method, rb_sys::AsRawValue, Error, Module as _, Object, RString};
+use magnus::{
+    class, function, method, rb_sys::AsRawValue, Error, Module as _, Object, RArray, RHash,
+    RString, Ruby,
+};
 use rb_sys::{
     rb_str_locktmp, rb_str_unlocktmp, tracking_allocator::ManuallyTracked, RSTRING_LEN, RSTRING_PTR,
 };
-use wasmtime::Module as ModuleImpl;
+use wasmtime::{ImportType, Module as ModuleImpl};
 
 /// @yard
 /// Represents a WebAssembly module.
@@ -106,6 +113,24 @@ impl Module {
     pub fn get(&self) -> &ModuleImpl {
         &self.inner
     }
+
+    /// @yard
+    /// Returns the list of imports that this Module has and must be satisfied.
+    /// @return [Array<Hash>] An array of hashes containing import information
+    pub fn imports(&self) -> Result<RArray, Error> {
+        let module = self.get();
+        let imports = module.imports();
+
+        let result = RArray::with_capacity(imports.len());
+        for import in imports {
+            let hash = RHash::new();
+            hash.aset("module", import.module())?;
+            hash.aset("name", import.name())?;
+            hash.aset("type", import.ty().wrap_wasmtime_type()?)?;
+            result.push(hash)?;
+        }
+        Ok(result)
+    }
 }
 
 impl From<ModuleImpl> for Module {
@@ -137,6 +162,7 @@ pub fn init() -> Result<(), Error> {
     class.define_singleton_method("deserialize", function!(Module::deserialize, 2))?;
     class.define_singleton_method("deserialize_file", function!(Module::deserialize_file, 2))?;
     class.define_method("serialize", method!(Module::serialize, 0))?;
+    class.define_method("imports", method!(Module::imports, 0))?;
 
     Ok(())
 }

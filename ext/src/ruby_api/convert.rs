@@ -1,9 +1,17 @@
 use crate::{define_rb_intern, err, error, helpers::SymbolEnum};
 use lazy_static::lazy_static;
-use magnus::{prelude::*, Error, IntoValue, RArray, Ruby, Symbol, TryConvert, TypedData, Value};
+use magnus::{
+    prelude::*, try_convert, Error, IntoValue, RArray, Ruby, Symbol, TryConvert, TypedData, Value,
+};
 use wasmtime::{ExternRef, RefType, Val, ValType};
 
-use super::{func::Func, global::Global, memory::Memory, store::StoreContextValue, table::Table};
+use super::{
+    func::{Func, FuncType},
+    global::{Global, GlobalType},
+    memory::{Memory, MemoryType},
+    store::StoreContextValue,
+    table::{Table, TableType},
+};
 
 define_rb_intern!(
     I32 => "i32",
@@ -205,4 +213,11 @@ where
     T: TypedData,
 {
     fn wrap_wasmtime_type(&self, store: StoreContextValue<'a>) -> Result<T, Error>;
+}
+
+pub trait WrapWasmtimeExternType<T>
+where
+    T: TypedData,
+{
+    fn wrap_wasmtime_type(&self) -> Result<T, Error>;
 }

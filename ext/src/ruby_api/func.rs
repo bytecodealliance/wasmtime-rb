@@ -1,5 +1,6 @@
 use super::{
     convert::{ToRubyValue, ToSym, ToValTypeVec, ToWasmVal},
+    engine,
     errors::result_error,
     params::Params,
     root,
@@ -12,6 +13,58 @@ use magnus::{
     TypedData, Value,
 };
 use wasmtime::{Caller as CallerImpl, Func as FuncImpl, Val};
+
+/// @yard
+/// @rename Wasmtime::FuncType
+/// Represents a WebAssembly Function Type
+/// @see https://docs.rs/wasmtime/latest/wasmtime/struct.FuncType.html Wasmtime's Rust doc
+#[derive(TypedData)]
+#[magnus(
+    class = "Wasmtime::FuncType",
+    size,
+    mark,
+    free_immediately,
+    unsafe_generics
+)]
+pub struct FuncType {
+    inner: wasmtime::FuncType,
+}
+
+impl DataTypeFunctions for FuncType {}
+
+impl FuncType {
+    pub fn from_inner(inner: wasmtime::FuncType) -> Self {
+        Self { inner }
+    }
+
+    /// @yard
+    /// @return [Array<Symbol>] The function's parameter types.
+    pub fn params(&self) -> Result<RArray, Error> {
+        let len = self.inner.params().len();
+        let mut params = self.inner.params();
+        params.try_fold(RArray::with_capacity(len), |array, p| {
+            array.push(p.to_sym()?)?;
+            Ok(array)
+        })
+    }
+
+    /// @yard
+    /// @return [Array<Symbol>] The function's result types.
+    pub fn results(&self) -> Result<RArray, Error> {
+        let len = self.inner.results().len();
+        let mut results = self.inner.results();
+        results.try_fold(RArray::with_capacity(len), |array, r| {
+            array.push(r.to_sym()?)?;
+            Ok(array)
+        })
+    }
+}
+
+impl From<&FuncType> for wasmtime::ExternType {
+    fn from(func: &FuncType) -> Self {
+        Self::Func(func.inner.clone())
+    }
+}
 
 /// @yard
 /// @rename Wasmtime::Func
@@ -287,6 +340,10 @@ pub fn make_func_closure(
 }
 
 pub fn init() -> Result<(), Error> {
+    let func_type = root().define_class("FuncType", class::object())?;
+    func_type.define_method("params", method!(FuncType::params, 0))?;
+    func_type.define_method("results", method!(FuncType::results, 0))?;
+
     let func = root().define_class("Func", class::object())?;
     func.define_singleton_method("new", function!(Func::new, -1))?;
     func.define_method("call", method!(Func::call, -1))?;

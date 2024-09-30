@@ -21,6 +21,45 @@ define_rb_intern!(
     MAX_SIZE => "max_size",
 );
 
+#[derive(TypedData)]
+#[magnus(
+    class = "Wasmtime::MemoryType",
+    free_immediately,
+    mark,
+    unsafe_generics
+)]
+pub struct MemoryType {
+    inner: wasmtime::MemoryType,
+}
+
+impl DataTypeFunctions for MemoryType {
+    fn mark(&self, _marker: &Marker) {}
+}
+
+impl MemoryType {
+    pub fn from_inner(inner: wasmtime::MemoryType) -> Self {
+        Self { inner }
+    }
+
+    /// @yard
+    /// @return [Integer] The minimum number of memory pages.
+    pub fn min_size(&self) -> u64 {
+        self.inner.minimum()
+    }
+
+    /// @yard
+    /// @return [Integer, nil] The maximum number of memory pages.
+    pub fn max_size(&self) -> Option<u64> {
+        self.inner.maximum()
+    }
+}
+
+impl From<&MemoryType> for wasmtime::ExternType {
+    fn from(memory_type: &MemoryType) -> Self {
+        Self::Memory(memory_type.inner.clone())
+    }
+}
+
 /// @yard
 /// @rename Wasmtime::Memory
 /// Represents a WebAssembly memory.
@@ -224,6 +263,10 @@ impl From<&Memory<'_>> for Extern {
 }
 
 pub fn init(ruby: &Ruby) -> Result<(), Error> {
+    let type_class = root().define_class("MemoryType", class::object())?;
+    type_class.define_method("min_size", method!(MemoryType::min_size, 0))?;
+    type_class.define_method("max_size", method!(MemoryType::max_size, 0))?;
+
     let class = root().define_class("Memory", class::object())?;
     class.define_singleton_method("new", function!(Memory::new, -1))?;
     class.define_method("min_size", method!(Memory::min_size, 0))?;

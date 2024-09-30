@@ -11,12 +11,53 @@ use magnus::{
     class, function, gc::Marker, method, prelude::*, scan_args, typed_data::Obj, DataTypeFunctions,
     Error, IntoValue, Object, Symbol, TypedData, Value,
 };
-use wasmtime::{Extern, Table as TableImpl, TableType, Val};
+use wasmtime::{Extern, Table as TableImpl, Val};
 
 define_rb_intern!(
     MIN_SIZE => "min_size",
     MAX_SIZE => "max_size",
 );
+
+#[derive(TypedData)]
+#[magnus(class = "Wasmtime::TableType", free_immediately, mark, unsafe_generics)]
+pub struct TableType {
+    inner: wasmtime::TableType,
+}
+
+impl DataTypeFunctions for TableType {
+    fn mark(&self, _marker: &Marker) {}
+}
+
+impl TableType {
+    pub fn from_inner(inner: wasmtime::TableType) -> Self {
+        Self { inner }
+    }
+
+    /// @yard
+    /// @def type
+    /// @return [Symbol] The Wasm type of the elements of this table.
+    pub fn type_(&self) -> Result<Symbol, Error> {
+        self.inner.element().to_sym()
+    }
+
+    /// @yard
+    /// @return [Integer] The minimum size of this table.
+    pub fn min_size(&self) -> u32 {
+        self.inner.minimum()
+    }
+
+    /// @yard
+    /// @return [Integer, nil] The maximum size of this table.
+    pub fn max_size(&self) -> Option<u32> {
+        self.inner.maximum()
+    }
+}
+
+impl From<&TableType> for wasmtime::ExternType {
+    fn from(table_type: &TableType) -> Self {
+        Self::Table(table_type.inner.clone())
+    }
+}
 
 /// @yard
 /// @rename Wasmtime::Table
@@ -66,7 +107,7 @@ impl<'a> Table<'a> {
 
         let inner = TableImpl::new(
             store.context_mut(),
-            TableType::new(table_type, min, max),
+            wasmtime::TableType::new(table_type, min, max),
             ref_,
         )
         .map_err(|e| error!("{}", e))?;
@@ -172,7 +213,7 @@ impl<'a> Table<'a> {
         Ok(self.inner.size(self.store.context()?))
     }
 
-    fn ty(&self) -> Result<TableType, Error> {
+    fn ty(&self) -> Result<wasmtime::TableType, Error> {
         Ok(self.inner.ty(self.store.context()?))
     }
 
@@ -202,6 +243,11 @@ impl From<&Table<'_>> for Extern {
 }
 
 pub fn init() -> Result<(), Error> {
+    let type_class = root().define_class("TableType", class::object())?;
+    type_class.define_method("type", method!(TableType::type_, 0))?;
+    type_class.define_method("min_size", method!(TableType::min_size, 0))?;
+    type_class.define_method("max_size", method!(TableType::max_size, 0))?;
+
     let class = root().define_class("Table", class::object())?;
     class.define_singleton_method("new", function!(Table::new, -1))?;
 

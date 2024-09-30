@@ -1,6 +1,11 @@
 use super::{
-    convert::{WrapWasmtimeType, WrapWasmtimeTypeExternType}, func::{Func, FuncType}, global::{Global, GlobalType}, memory::{Memory, MemoryType}, root,
-    store::StoreContextValue, table::{Table, TableType},
+    convert::{WrapWasmtimeType, WrapWasmtimeTypeExternType},
+    func::{Func, FuncType},
+    global::{Global, GlobalType},
+    memory::{Memory, MemoryType},
+    root,
+    store::StoreContextValue,
+    table::{Table, TableType},
 };
 use crate::{conversion_err, not_implemented};
 use magnus::{
@@ -17,19 +22,19 @@ use magnus::{
     unsafe_generics
 )]
 pub enum ExternType {
-    FuncType(Obj<FuncType>),
-    GlobalType(Obj<GlobalType>),
-    MemoryType(Obj<MemoryType>),
-    TableType(Obj<TableType>),
+    Func(Obj<FuncType>),
+    Global(Obj<GlobalType>),
+    Memory(Obj<MemoryType>),
+    Table(Obj<TableType>),
 }
 
 impl DataTypeFunctions for ExternType {
     fn mark(&self, marker: &Marker) {
         match self {
-            ExternType::FuncType(f) => marker.mark(*f),
-            ExternType::GlobalType(g) => marker.mark(*g),
-            ExternType::MemoryType(m) => marker.mark(*m),
-            ExternType::TableType(t) => marker.mark(*t),
+            ExternType::Func(f) => marker.mark(*f),
+            ExternType::Global(g) => marker.mark(*g),
+            ExternType::Memory(m) => marker.mark(*m),
+            ExternType::Table(t) => marker.mark(*t),
         }
     }
 }
@@ -42,7 +47,7 @@ impl ExternType {
     /// @return [Func] The exported function.
     pub fn to_func_type(ruby: &Ruby, rb_self: Obj<Self>) -> Result<Value, Error> {
         match *rb_self {
-            ExternType::FuncType(f) => Ok(f.as_value()),
+            ExternType::Func(f) => Ok(f.as_value()),
             _ => conversion_err!(Self::inner_class(rb_self), Func::class(ruby)),
         }
     }
@@ -52,7 +57,7 @@ impl ExternType {
     /// @return [Global] The exported global.
     pub fn to_global_type(ruby: &Ruby, rb_self: Obj<Self>) -> Result<Value, Error> {
         match *rb_self {
-            ExternType::GlobalType(g) => Ok(g.as_value()),
+            ExternType::Global(g) => Ok(g.as_value()),
             _ => conversion_err!(Self::inner_class(rb_self), Global::class(ruby)),
         }
     }
@@ -63,7 +68,7 @@ impl ExternType {
     /// @return [Memory] The exported memory.
     pub fn to_memory_type(ruby: &Ruby, rb_self: Obj<Self>) -> Result<Value, Error> {
         match *rb_self {
-            ExternType::MemoryType(m) => Ok(m.as_value()),
+            ExternType::Memory(m) => Ok(m.as_value()),
             _ => conversion_err!(Self::inner_class(rb_self), Memory::class(ruby)),
         }
     }
@@ -73,17 +78,17 @@ impl ExternType {
     /// @return [Table] The exported table.
     pub fn to_table_type(ruby: &Ruby, rb_self: Obj<Self>) -> Result<Value, Error> {
         match *rb_self {
-            ExternType::TableType(t) => Ok(t.as_value()),
+            ExternType::Table(t) => Ok(t.as_value()),
             _ => conversion_err!(Self::inner_class(rb_self), Table::class(ruby)),
         }
     }
 
     fn inner_class(rb_self: Obj<Self>) -> RClass {
         match *rb_self {
-            ExternType::FuncType(f) => f.class(),
-            ExternType::GlobalType(g) => g.class(),
-            ExternType::MemoryType(m) => m.class(),
-            ExternType::TableType(t) => t.class(),
+            ExternType::Func(f) => f.class(),
+            ExternType::Global(g) => g.class(),
+            ExternType::Memory(m) => m.class(),
+            ExternType::Table(t) => t.class(),
         }
     }
 }
@@ -210,18 +215,18 @@ impl<'a> WrapWasmtimeType<'a, Extern<'a>> for wasmtime::Extern {
 impl WrapWasmtimeTypeExternType<ExternType> for wasmtime::ExternType {
     fn wrap_wasmtime_type(&self) -> Result<ExternType, Error> {
         match self {
-            wasmtime::ExternType::Func(ft) => {
-                Ok(ExternType::FuncType(Obj::wrap(FuncType::from_inner(ft.clone()))))
-            },
-            wasmtime::ExternType::Global(gt) => {
-                Ok(ExternType::GlobalType(Obj::wrap(GlobalType::from_inner(gt.clone()))))
-            },
-            wasmtime::ExternType::Memory(mt) => {
-                Ok(ExternType::MemoryType(Obj::wrap(MemoryType::from_inner(mt.clone()))))
-            },
-            wasmtime::ExternType::Table(tt) => {
-                Ok(ExternType::TableType(Obj::wrap(TableType::from_inner(tt.clone()))))
-            },
+            wasmtime::ExternType::Func(ft) => Ok(ExternType::Func(Obj::wrap(
+                FuncType::from_inner(ft.clone()),
+            ))),
+            wasmtime::ExternType::Global(gt) => Ok(ExternType::Global(Obj::wrap(
+                GlobalType::from_inner(gt.clone()),
+            ))),
+            wasmtime::ExternType::Memory(mt) => Ok(ExternType::Memory(Obj::wrap(
+                MemoryType::from_inner(mt.clone()),
+            ))),
+            wasmtime::ExternType::Table(tt) => Ok(ExternType::Table(Obj::wrap(
+                TableType::from_inner(tt.clone()),
+            ))),
         }
     }
 }

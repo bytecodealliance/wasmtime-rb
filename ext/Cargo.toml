@@ -30,7 +30,7 @@ wasi-common = "=25.0.1"
 cap-std = "3.1.0"
 anyhow = "*" # Use whatever Wasmtime uses
 wat = "1.218.0"
-tokio = { version = "1.36.0", features = [
+tokio = { version = "1.40.0", features = [
   "rt",
   "rt-multi-thread",
   "time",

@@ -1,3 +1,5 @@
+mod linker;
+
 use super::root;
 use magnus::{class, function, method, r_string::RString, Error, Module, Object, Ruby};
 use rb_sys::tracking_allocator::ManuallyTracked;
@@ -130,7 +132,7 @@ impl From<ComponentImpl> for Component {
     }
 }
 
-pub fn init(_ruby: &Ruby) -> Result<(), Error> {
+pub fn init(ruby: &Ruby) -> Result<(), Error> {
     let namespace = root().define_module("Component")?;
 
     let class = namespace.define_class("Component", class::object())?;
@@ -142,6 +144,8 @@ pub fn init(_ruby: &Ruby) -> Result<(), Error> {
         function!(Component::deserialize_file, 2),
     )?;
     class.define_method("serialize", method!(Component::serialize, 0))?;
+
+    linker::init(ruby, &namespace)?;
 
     Ok(())
 }

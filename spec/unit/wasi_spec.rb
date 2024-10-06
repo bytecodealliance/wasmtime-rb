@@ -11,7 +11,7 @@ module Wasmtime
 
       # Compile module only once for speed
       @compiled_wasi_module = @engine.precompile_module(IO.binread("spec/fixtures/wasi-debug.wasm"))
-      @compiled_wasi_deterministic_module = @engine.precompile_module(IO.binread("spec/fixtures/deterministic.wasm"))
+      @compiled_wasi_deterministic_module = @engine.precompile_module(IO.binread("spec/fixtures/wasi-deterministic.wasm"))
     end
 
     describe "Linker.new" do

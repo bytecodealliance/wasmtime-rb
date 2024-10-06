@@ -1,7 +1,10 @@
 [workspace]
 resolver = "2"
 members = ["ext"]
-exclude = ["examples/rust-crate"]
+exclude = [
+    "examples/rust-crate",
+    "spec/fixtures/wasi-deterministic",
+]
 
 [profile.release]
 codegen-units = 1 # more llvm optimizations

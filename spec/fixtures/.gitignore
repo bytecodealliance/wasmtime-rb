@@ -1,0 +1,2 @@
+# Ignore lockfile for fixtures to avoid irrelevant GitHub security alerts
+Cargo.lock

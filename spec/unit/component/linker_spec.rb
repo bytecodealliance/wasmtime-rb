@@ -26,6 +26,15 @@ module Wasmtime
         expect { leaked_instance.instance("foo") {} }
           .to raise_error(Wasmtime::Error, /LinkerInstance went out of scope/)
       end
+
+      describe "#instantiate" do
+        it "returns a Component::Instance" do
+          component = Component.new(engine, "(component)")
+          store = Store.new(engine)
+          expect(linker.instantiate(store, component))
+            .to be_instance_of(Wasmtime::Component::Instance)
+        end
+      end
     end
   end
 end

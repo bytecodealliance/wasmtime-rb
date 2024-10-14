@@ -1,9 +1,12 @@
+mod instance;
 mod linker;
 
 use super::root;
 use magnus::{class, function, method, r_string::RString, Error, Module, Object, Ruby};
 use rb_sys::tracking_allocator::ManuallyTracked;
 use wasmtime::component::Component as ComponentImpl;
+
+pub use instance::Instance;
 
 use crate::{
     error,
@@ -139,6 +142,7 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
     class.define_method("serialize", method!(Component::serialize, 0))?;
 
     linker::init(ruby, &namespace)?;
+    instance::init(ruby, &namespace)?;
 
     Ok(())
 }

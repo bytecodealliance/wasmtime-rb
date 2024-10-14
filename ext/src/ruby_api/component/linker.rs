@@ -1,4 +1,4 @@
-use super::root;
+use super::{Component, Instance};
 use crate::{
     err,
     ruby_api::{
@@ -10,8 +10,8 @@ use std::{borrow::BorrowMut, cell::RefCell};
 
 use crate::error;
 use magnus::{
+    class, function, gc::Marker, method, r_string::RString, scan_args, typed_data::Obj,
     DataTypeFunctions, Error, Module as _, Object, RModule, Ruby, TryConvert, TypedData, Value,
-    DataTypeFunctions, Error, Module as _, Object, Ruby, TypedData, Value,
 };
 use wasmtime::component::{Linker as LinkerImpl, LinkerInstance as LinkerInstanceImpl};
 
@@ -91,6 +91,33 @@ impl Linker {
             Ok(_) => Ok(rb_self),
             Err(e) => Err(e),
         }
+    }
+
+    /// @yard
+    /// Instantiates a {Component} in a {Store} using the defined imports in the linker.
+    /// @def instantiate(store, component)
+    /// @param store [Store]
+    /// @param component [Component]
+    /// @return [Instance]
+    fn instantiate(
+        _ruby: &Ruby,
+        rb_self: Obj<Self>,
+        store: Obj<Store>,
+        component: &Component,
+    ) -> Result<Instance, Error> {
+        let inner = rb_self.inner.borrow();
+        inner
+            .instantiate(store.context_mut(), component.get())
+            .map(|instance| {
+                rb_self
+                    .refs
+                    .borrow()
+                    .iter()
+                    .for_each(|value| store.retain(*value));
+
+                Instance::from_inner(store, instance)
+            })
+            .map_err(|e| error!("{}", e))
     }
 }
 
@@ -207,6 +234,7 @@ pub fn init(_ruby: &Ruby, namespace: &RModule) -> Result<(), Error> {
     linker.define_singleton_method("new", function!(Linker::new, 1))?;
     linker.define_method("root", method!(Linker::root, 0))?;
     linker.define_method("instance", method!(Linker::instance, 1))?;
+    linker.define_method("instantiate", method!(Linker::instantiate, 2))?;
 
     let linker_instance = namespace.define_class("LinkerInstance", class::object())?;
     linker_instance.define_method("module", method!(LinkerInstance::module, 2))?;

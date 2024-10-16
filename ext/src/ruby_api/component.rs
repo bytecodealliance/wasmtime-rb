@@ -1,3 +1,5 @@
+mod convert;
+mod func;
 mod instance;
 mod linker;
 
@@ -6,6 +8,7 @@ use magnus::{class, function, method, r_string::RString, Error, Module, Object, 
 use rb_sys::tracking_allocator::ManuallyTracked;
 use wasmtime::component::Component as ComponentImpl;
 
+pub use func::Func;
 pub use instance::Instance;
 
 use crate::{

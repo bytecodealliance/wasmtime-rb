@@ -5,10 +5,12 @@ module Wasmtime
     RSpec.describe Instance do
       before(:all) do
         @adder_component = Component.from_file(GLOBAL_ENGINE, "spec/fixtures/component_adder.wat")
+        @trap_component = Component.from_file(GLOBAL_ENGINE, "spec/fixtures/component_trap.wat")
       end
 
       let(:linker) { Linker.new(engine) }
       let(:adder_instance) { linker.instantiate(store, @adder_component) }
+      let(:trap_instance) { linker.instantiate(store, @trap_component) }
 
       describe "#invoke" do
         it "calls the export" do
@@ -33,6 +35,12 @@ module Wasmtime
         it "raises on invalid arg type" do
           expect { adder_instance.invoke("add", nil, nil) }
             .to raise_error(TypeError, "no implicit conversion of nil into Integer (param at index 0)")
+        end
+
+        it "raises trap when component traps" do
+          expect { trap_instance.invoke("unreachable") }.to raise_error(Trap) do |trap|
+            expect(trap.code).to eq(Trap::UNREACHABLE_CODE_REACHED)
+          end
         end
       end
     end

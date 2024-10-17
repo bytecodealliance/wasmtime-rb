@@ -1,4 +1,4 @@
-use super::{convert::ToWasmVal, store::StoreContextValue};
+use super::{convert::ToWasmVal, errors::ExceptionMessage, store::StoreContextValue};
 use magnus::{error::ErrorType, exception::arg_error, Error, Value};
 use static_assertions::assert_eq_size;
 use wasmtime::{FuncType, ValType};
@@ -19,16 +19,7 @@ impl Param {
     fn to_wasmtime_val(&self, store: &StoreContextValue) -> Result<wasmtime::Val, Error> {
         self.val
             .to_wasm_val(store, self.ty.clone())
-            .map_err(|error| match error.error_type() {
-                ErrorType::Error(class, msg) => {
-                    Error::new(*class, format!("{} (param at index {})", msg, self.index))
-                }
-                ErrorType::Exception(exception) => Error::new(
-                    exception.exception_class(),
-                    format!("{} (param at index {})", exception, self.index),
-                ),
-                _ => error,
-            })
+            .map_err(|error| error.append(format!(" (param at index {})", self.index)))
     }
 }
 

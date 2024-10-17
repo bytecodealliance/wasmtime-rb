@@ -78,6 +78,19 @@ module Wasmtime
       end
     end
 
+    describe ".precompile_component" do
+      it "returns a String" do
+        serialized = engine.precompile_component("(component)")
+        expect(serialized).to be_instance_of(String)
+      end
+
+      it "can be used by Component.deserialize" do
+        serialized = engine.precompile_component("(component)")
+        component = Component::Component.deserialize(engine, serialized)
+        expect(component).to be_instance_of(Component::Component)
+      end
+    end
+
     describe "#precompile_compatibility_key" do
       it "is the same amongst similar engines" do
         engine_one = Engine.new(target: "x86_64-unknown-linux-gnu", parallel_compilation: true)

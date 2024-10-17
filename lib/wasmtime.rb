@@ -2,6 +2,12 @@
 
 require_relative "wasmtime/version"
 
+module Wasmtime
+  module Component
+    # Defining the `Component` module in Ruby ensures YARD pick it up.
+  end
+end
+
 # Tries to require the extension for the given Ruby version first
 begin
   RUBY_VERSION =~ /(\d+\.\d+)/

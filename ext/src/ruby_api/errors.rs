@@ -1,5 +1,6 @@
 use crate::ruby_api::root;
-use magnus::{value::Lazy, Error, ExceptionClass, Module, Ruby};
+use magnus::{error::ErrorType, value::Lazy, Error, ExceptionClass, Module, Ruby};
+use std::borrow::Cow;
 
 /// Base error class for all Wasmtime errors.
 pub fn base_error() -> ExceptionClass {
@@ -56,6 +57,30 @@ macro_rules! conversion_err {
     ($($arg:expr),*) => {
         Err(Error::new($crate::ruby_api::errors::conversion_error(), format!("cannot convert {} to {}", $($arg),*)))
     };
+}
+
+/// Utilities for reformatting error messages
+pub trait ExceptionMessage {
+    /// Append a message to an exception
+    fn append<T>(self, extra: T) -> Self
+    where
+        T: Into<Cow<'static, str>>;
+}
+
+impl ExceptionMessage for magnus::Error {
+    fn append<T>(self, extra: T) -> Self
+    where
+        T: Into<Cow<'static, str>>,
+    {
+        match self.error_type() {
+            ErrorType::Error(class, msg) => Error::new(*class, format!("{}{}", msg, extra.into())),
+            ErrorType::Exception(exception) => Error::new(
+                exception.exception_class(),
+                format!("{}{}", exception, extra.into()),
+            ),
+            _ => self,
+        }
+    }
 }
 
 mod bundled {

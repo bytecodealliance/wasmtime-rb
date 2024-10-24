@@ -241,6 +241,30 @@
         <li class="public ">
   <span class="summary_signature">
     
+      <a href="#precompile_component-instance_method" title="#precompile_component (instance method)">#<strong>precompile_component</strong>(wat_or_wasm)  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>AoT compile a WebAssembly text or WebAssembly binary component for later use.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
       <a href="#precompile_module-instance_method" title="#precompile_module (instance method)">#<strong>precompile_module</strong>(wat_or_wasm)  &#x21d2; String </a>
     
 
@@ -699,28 +723,28 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-184
-185
-186
-187
-188
-189
-190
-191
-192
-193
-194
-195
-196
-197
-198
-199
-200
 201
-202</pre>
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 184</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 201</span>
 
 pub fn precompile_compatibility_key(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RString, Error&gt; {
     static ID: LazyId = LazyId::new(&quot;precompile_compatibility_key&quot;);
@@ -740,6 +764,102 @@ pub fn precompile_compatibility_key(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -
     rb_self.ivar_set(ivar_id, key)?;
 
     Ok(key)
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="precompile_component-instance_method">
+  
+    #<strong>precompile_component</strong>(wat_or_wasm)  &#x21d2; <tt>String</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>AoT compile a WebAssembly text or WebAssembly binary component for later use.</p>
+
+<p>The compiled component can be instantiated using <span class='object_link'><a href="Component/Component.html#deserialize-class_method" title="Wasmtime::Component::Component.deserialize (method)">Component::Component.deserialize</a></span>.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>wat_or_wasm</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The String of WAT or Wasm component.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>Binary String of the compiled component.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+  <p class="tag_title">See Also:</p>
+  <ul class="see">
+    
+      <li><span class='object_link'><a href="Component/Component.html#deserialize-class_method" title="Wasmtime::Component::Component.deserialize (method)">Component::Component.deserialize</a></span></li>
+    
+  </ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+188
+189
+190
+191
+192
+193
+194</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 188</span>
+
+pub fn precompile_component(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RString, Error&gt; {
+    let (wat_or_wasm, _guard) = wat_or_wasm.as_locked_slice()?;
+
+    nogvl(|| self.inner.precompile_component(wat_or_wasm))
+        .map(|bytes| RString::from_slice(&amp;bytes))
+        .map_err(|e| error!(&quot;{}&quot;, e.to_string()))
 }</pre>
     </td>
   </tr>
@@ -1006,7 +1126,7 @@ pub fn stop_epoch_interval(&amp;self) {
 </div>
 
       <div id="footer">
-  Generated on Thu Oct 24 17:15:20 2024 by
+  Generated on Thu Oct 24 19:06:10 2024 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.3.5).
 </div>

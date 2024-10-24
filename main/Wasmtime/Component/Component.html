@@ -4,31 +4,31 @@
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>
-  Class: Wasmtime::Module
+  Class: Wasmtime::Component::Component
   
     &mdash; Documentation by YARD 0.9.37
   
 </title>
 
-  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
 
-  <link rel="stylesheet" href="../css/common.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/common.css" type="text/css" />
 
 <script type="text/javascript">
-  pathId = "Wasmtime::Module";
-  relpath = '../';
+  pathId = "Wasmtime::Component::Component";
+  relpath = '../../';
 </script>
 
 
-  <script type="text/javascript" charset="utf-8" src="../js/jquery.js"></script>
+  <script type="text/javascript" charset="utf-8" src="../../js/jquery.js"></script>
 
-  <script type="text/javascript" charset="utf-8" src="../js/app.js"></script>
+  <script type="text/javascript" charset="utf-8" src="../../js/app.js"></script>
 
 
   </head>
   <body>
     <div class="nav_wrap">
-      <iframe id="nav" src="../class_list.html?1"></iframe>
+      <iframe id="nav" src="../../class_list.html?1"></iframe>
       <div id="resizer"></div>
     </div>
 
@@ -36,17 +36,17 @@
       <div id="header">
         <div id="menu">
   
-    <a href="../_index.html">Index (M)</a> &raquo;
-    <span class='title'><span class='object_link'><a href="../Wasmtime.html" title="Wasmtime (module)">Wasmtime</a></span></span>
+    <a href="../../_index.html">Index (C)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../../Wasmtime.html" title="Wasmtime (module)">Wasmtime</a></span></span> &raquo; <span class='title'><span class='object_link'><a href="../Component.html" title="Wasmtime::Component (module)">Component</a></span></span>
      &raquo; 
-    <span class="title">Module</span>
+    <span class="title">Component</span>
   
 </div>
 
         <div id="search">
   
     <a class="full_list_link" id="class_list_link"
-        href="../class_list.html">
+        href="../../class_list.html">
 
         <svg width="24" height="24">
           <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
@@ -59,7 +59,7 @@
         <div class="clear"></div>
       </div>
 
-      <div id="content"><h1>Class: Wasmtime::Module
+      <div id="content"><h1>Class: Wasmtime::Component::Component
   
   
   
@@ -74,7 +74,7 @@
         <ul class="fullTree">
           <li>Object</li>
           
-            <li class="next">Wasmtime::Module</li>
+            <li class="next">Wasmtime::Component::Component</li>
           
         </ul>
         <a href="#" class="inheritanceTree">show all</a>
@@ -94,7 +94,7 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>ext/src/ruby_api/module.rs</dd>
+    <dd>ext/src/ruby_api/component.rs</dd>
   </dl>
   
 </div>
@@ -102,7 +102,15 @@
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
     
-<p>Represents a WebAssembly module.</p>
+  <div class="note notetag">
+    <strong>Note:</strong>
+    <div class='inline'>
+<p>Support for Wasm components in the Ruby bindings is experimental. APIs may change in the future.</p>
+</div>
+  </div>
+
+
+<p>Represents a WebAssembly component.</p>
 
 
   </div>
@@ -113,7 +121,7 @@
   <p class="tag_title">See Also:</p>
   <ul class="see">
     
-      <li><a href="https://docs.rs/wasmtime/latest/wasmtime/struct.Module.html" target="_parent" title="Wasmtime&#39;s Rust doc">Wasmtime's Rust doc</a></li>
+      <li><a href="https://docs.rs/wasmtime/latest/wasmtime/component/struct.Component.html" target="_parent" title="Wasmtime&#39;s Rust doc">Wasmtime's Rust doc</a></li>
     
   </ul>
 
@@ -135,7 +143,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#deserialize-class_method" title="deserialize (class method)">.<strong>deserialize</strong>(engine, compiled)  &#x21d2; Wasmtime::Module </a>
+      <a href="#deserialize-class_method" title="deserialize (class method)">.<strong>deserialize</strong>(engine, compiled)  &#x21d2; Wasmtime::Component::Component </a>
     
 
     
@@ -150,7 +158,7 @@
 
   
     <span class="summary_desc"><div class='inline'>
-<p>Instantiates a serialized module coming from either <span class='object_link'><a href="#serialize-instance_method" title="Wasmtime::Module#serialize (method)">#serialize</a></span> or <span class='object_link'><a href="Engine.html#precompile_module-instance_method" title="Wasmtime::Engine#precompile_module (method)">Engine#precompile_module</a></span>.</p>
+<p>Instantiates a serialized component coming from either <span class='object_link'><a href="#serialize-instance_method" title="Wasmtime::Component::Component#serialize (method)">#serialize</a></span> or <span class='object_link'><a href="../Engine.html#precompile_component-instance_method" title="Wasmtime::Engine#precompile_component (method)">Engine#precompile_component</a></span>.</p>
 </div></span>
   
 </li>
@@ -159,7 +167,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#deserialize_file-class_method" title="deserialize_file (class method)">.<strong>deserialize_file</strong>(engine, path)  &#x21d2; Wasmtime::Module </a>
+      <a href="#deserialize_file-class_method" title="deserialize_file (class method)">.<strong>deserialize_file</strong>(engine, path)  &#x21d2; Wasmtime::Component::Component </a>
     
 
     
@@ -174,7 +182,7 @@
 
   
     <span class="summary_desc"><div class='inline'>
-<p>Instantiates a serialized module from a file.</p>
+<p>Instantiates a serialized component from a file.</p>
 </div></span>
   
 </li>
@@ -183,7 +191,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#from_file-class_method" title="from_file (class method)">.<strong>from_file</strong>(engine, path)  &#x21d2; Wasmtime::Module </a>
+      <a href="#from_file-class_method" title="from_file (class method)">.<strong>from_file</strong>(engine, path)  &#x21d2; Wasmtime::Component::Component </a>
     
 
     
@@ -205,7 +213,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#new-class_method" title="new (class method)">.<strong>new</strong>(engine, wat_or_wasm)  &#x21d2; Wasmtime::Module </a>
+      <a href="#new-class_method" title="new (class method)">.<strong>new</strong>(engine, wat_or_wasm)  &#x21d2; Wasmtime::Component::Component </a>
     
 
     
@@ -219,7 +227,9 @@
   
 
   
-    <span class="summary_desc"><div class='inline'></div></span>
+    <span class="summary_desc"><div class='inline'>
+<p>Creates a new component from the given binary data.</p>
+</div></span>
   
 </li>
 
@@ -232,30 +242,6 @@
     </h2>
 
     <ul class="summary">
-      
-        <li class="public ">
-  <span class="summary_signature">
-    
-      <a href="#imports-instance_method" title="#imports (instance method)">#<strong>imports</strong>  &#x21d2; Array&lt;Hash&gt; </a>
-    
-
-    
-  </span>
-  
-  
-  
-  
-  
-  
-  
-
-  
-    <span class="summary_desc"><div class='inline'>
-<p>Returns the list of imports that this Module has and must be satisfied.</p>
-</div></span>
-  
-</li>
-
       
         <li class="public ">
   <span class="summary_signature">
@@ -275,7 +261,7 @@
 
   
     <span class="summary_desc"><div class='inline'>
-<p>Serialize the module.</p>
+<p>Serialize the component.</p>
 </div></span>
   
 </li>
@@ -293,7 +279,7 @@
       <div class="method_details first">
   <h3 class="signature first" id="deserialize-class_method">
   
-    .<strong>deserialize</strong>(engine, compiled)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::Module (class)">Wasmtime::Module</a></span></tt> 
+    .<strong>deserialize</strong>(engine, compiled)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::Component::Component (class)">Wasmtime::Component::Component</a></span></tt> 
   
 
   
@@ -302,7 +288,7 @@
 </h3><div class="docstring">
   <div class="discussion">
     
-<p>Instantiates a serialized module coming from either <span class='object_link'><a href="#serialize-instance_method" title="Wasmtime::Module#serialize (method)">#serialize</a></span> or <span class='object_link'><a href="Engine.html#precompile_module-instance_method" title="Wasmtime::Engine#precompile_module (method)">Engine#precompile_module</a></span>.</p>
+<p>Instantiates a serialized component coming from either <span class='object_link'><a href="#serialize-instance_method" title="Wasmtime::Component::Component#serialize (method)">#serialize</a></span> or <span class='object_link'><a href="../Engine.html#precompile_component-instance_method" title="Wasmtime::Engine#precompile_component (method)">Engine#precompile_component</a></span>.</p>
 
 <p>The engine serializing and the engine deserializing must:</p>
 <ul><li>
@@ -323,7 +309,7 @@
         <span class='name'>engine</span>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="Engine.html" title="Wasmtime::Engine (class)">Wasmtime::Engine</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="../Engine.html" title="Wasmtime::Engine (class)">Wasmtime::Engine</a></span></tt>)</span>
       
       
       
@@ -340,7 +326,7 @@
       
         &mdash;
         <div class='inline'>
-<p>String obtained with either <span class='object_link'><a href="Engine.html#precompile_module-instance_method" title="Wasmtime::Engine#precompile_module (method)">Engine#precompile_module</a></span> or <span class='object_link'><a href="#serialize-instance_method" title="Wasmtime::Module#serialize (method)">#serialize</a></span>.</p>
+<p>String obtained with either <span class='object_link'><a href="../Engine.html#precompile_component-instance_method" title="Wasmtime::Engine#precompile_component (method)">Engine#precompile_component</a></span> or <span class='object_link'><a href="#serialize-instance_method" title="Wasmtime::Component::Component#serialize (method)">#serialize</a></span>.</p>
 </div>
       
     </li>
@@ -353,7 +339,7 @@
     <li>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::Module (class)">Wasmtime::Module</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::Component::Component (class)">Wasmtime::Component::Component</a></span></tt>)</span>
       
       
       
@@ -367,21 +353,21 @@
       <pre class="lines">
 
 
-79
 80
 81
 82
 83
-84</pre>
+84
+85</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 79</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component.rs', line 80</span>
 
 pub fn deserialize(engine: &amp;Engine, compiled: RString) -&gt; Result&lt;Self, Error&gt; {
     // SAFETY: this string is immediately copied and never moved off the stack
-    unsafe { ModuleImpl::deserialize(engine.get(), compiled.as_slice()) }
+    unsafe { ComponentImpl::deserialize(engine.get(), compiled.as_slice()) }
         .map(Into::into)
-        .map_err(|e| error!(&quot;Could not deserialize module: {}&quot;, e))
+        .map_err(|e| error!(&quot;Could not deserialize component: {}&quot;, e))
 }</pre>
     </td>
   </tr>
@@ -391,7 +377,7 @@ pub fn deserialize(engine: &amp;Engine, compiled: RString) -&gt; Result&lt;Self,
       <div class="method_details ">
   <h3 class="signature " id="deserialize_file-class_method">
   
-    .<strong>deserialize_file</strong>(engine, path)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::Module (class)">Wasmtime::Module</a></span></tt> 
+    .<strong>deserialize_file</strong>(engine, path)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::Component::Component (class)">Wasmtime::Component::Component</a></span></tt> 
   
 
   
@@ -400,7 +386,7 @@ pub fn deserialize(engine: &amp;Engine, compiled: RString) -&gt; Result&lt;Self,
 </h3><div class="docstring">
   <div class="discussion">
     
-<p>Instantiates a serialized module from a file.</p>
+<p>Instantiates a serialized component from a file.</p>
 
 
   </div>
@@ -414,7 +400,7 @@ pub fn deserialize(engine: &amp;Engine, compiled: RString) -&gt; Result&lt;Self,
         <span class='name'>engine</span>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="Engine.html" title="Wasmtime::Engine (class)">Wasmtime::Engine</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="../Engine.html" title="Wasmtime::Engine (class)">Wasmtime::Engine</a></span></tt>)</span>
       
       
       
@@ -439,7 +425,7 @@ pub fn deserialize(engine: &amp;Engine, compiled: RString) -&gt; Result&lt;Self,
     <li>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::Module (class)">Wasmtime::Module</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::Component::Component (class)">Wasmtime::Component::Component</a></span></tt>)</span>
       
       
       
@@ -450,7 +436,7 @@ pub fn deserialize(engine: &amp;Engine, compiled: RString) -&gt; Result&lt;Self,
   <p class="tag_title">See Also:</p>
   <ul class="see">
     
-      <li><span class='object_link'><a href="#deserialize-class_method" title="Wasmtime::Module.deserialize (method)">deserialize</a></span></li>
+      <li><span class='object_link'><a href="#deserialize-class_method" title="Wasmtime::Component::Component.deserialize (method)">deserialize</a></span></li>
     
   </ul>
 
@@ -460,19 +446,19 @@ pub fn deserialize(engine: &amp;Engine, compiled: RString) -&gt; Result&lt;Self,
       <pre class="lines">
 
 
-94
 95
 96
 97
-98</pre>
+98
+99</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 94</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component.rs', line 95</span>
 
 pub fn deserialize_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error&gt; {
-    unsafe { ModuleImpl::deserialize_file(engine.get(), path.as_str()?) }
+    unsafe { ComponentImpl::deserialize_file(engine.get(), path.as_str()?) }
         .map(Into::into)
-        .map_err(|e| error!(&quot;Could not deserialize module from file: {}&quot;, e))
+        .map_err(|e| error!(&quot;Could not deserialize component from file: {}&quot;, e))
 }</pre>
     </td>
   </tr>
@@ -482,7 +468,7 @@ pub fn deserialize_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self
       <div class="method_details ">
   <h3 class="signature " id="from_file-class_method">
   
-    .<strong>from_file</strong>(engine, path)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::Module (class)">Wasmtime::Module</a></span></tt> 
+    .<strong>from_file</strong>(engine, path)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::Component::Component (class)">Wasmtime::Component::Component</a></span></tt> 
   
 
   
@@ -503,7 +489,7 @@ pub fn deserialize_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self
         <span class='name'>engine</span>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="Engine.html" title="Wasmtime::Engine (class)">Wasmtime::Engine</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="../Engine.html" title="Wasmtime::Engine (class)">Wasmtime::Engine</a></span></tt>)</span>
       
       
       
@@ -528,7 +514,7 @@ pub fn deserialize_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self
     <li>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::Module (class)">Wasmtime::Module</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::Component::Component (class)">Wasmtime::Component::Component</a></span></tt>)</span>
       
       
       
@@ -542,7 +528,6 @@ pub fn deserialize_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self
       <pre class="lines">
 
 
-58
 59
 60
 61
@@ -550,19 +535,20 @@ pub fn deserialize_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self
 63
 64
 65
-66</pre>
+66
+67</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 58</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component.rs', line 59</span>
 
 pub fn from_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error&gt; {
     let eng = engine.get();
     let (path, _locked_str_guard) = path.as_locked_str()?;
     // SAFETY: this string is immediately copied and never moved off the stack
-    let module = nogvl(|| ModuleImpl::from_file(eng, path))
-        .map_err(|e| error!(&quot;Could not build module from file: {}&quot;, e))?;
+    let component = nogvl(|| ComponentImpl::from_file(eng, path))
+        .map_err(|e| error!(&quot;Could not build component from file: {}&quot;, e))?;
 
-    Ok(module.into())
+    Ok(component.into())
 }</pre>
     </td>
   </tr>
@@ -572,7 +558,7 @@ pub fn from_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error
       <div class="method_details ">
   <h3 class="signature " id="new-class_method">
   
-    .<strong>new</strong>(engine, wat_or_wasm)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::Module (class)">Wasmtime::Module</a></span></tt> 
+    .<strong>new</strong>(engine, wat_or_wasm)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::Component::Component (class)">Wasmtime::Component::Component</a></span></tt> 
   
 
   
@@ -581,6 +567,8 @@ pub fn from_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error
 </h3><div class="docstring">
   <div class="discussion">
     
+<p>Creates a new component from the given binary data.</p>
+
 
   </div>
 </div>
@@ -593,7 +581,7 @@ pub fn from_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error
         <span class='name'>engine</span>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="Engine.html" title="Wasmtime::Engine (class)">Wasmtime::Engine</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="../Engine.html" title="Wasmtime::Engine (class)">Wasmtime::Engine</a></span></tt>)</span>
       
       
       
@@ -623,7 +611,7 @@ pub fn from_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error
     <li>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::Module (class)">Wasmtime::Module</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::Component::Component (class)">Wasmtime::Component::Component</a></span></tt>)</span>
       
       
       
@@ -637,25 +625,25 @@ pub fn from_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error
       <pre class="lines">
 
 
-44
 45
 46
 47
 48
 49
 50
-51</pre>
+51
+52</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 44</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component.rs', line 45</span>
 
 pub fn new(engine: &amp;Engine, wat_or_wasm: RString) -&gt; Result&lt;Self, Error&gt; {
     let eng = engine.get();
     let (locked_slice, _locked_slice_guard) = wat_or_wasm.as_locked_slice()?;
-    let module = nogvl(|| ModuleImpl::new(eng, locked_slice))
-        .map_err(|e| error!(&quot;Could not build module: {}&quot;, e))?;
+    let component = nogvl(|| ComponentImpl::new(eng, locked_slice))
+        .map_err(|e| error!(&quot;Could not build component: {}&quot;, e))?;
 
-    Ok(module.into())
+    Ok(component.into())
 }</pre>
     </td>
   </tr>
@@ -669,90 +657,7 @@ pub fn new(engine: &amp;Engine, wat_or_wasm: RString) -&gt; Result&lt;Self, Erro
 
     
       <div class="method_details first">
-  <h3 class="signature first" id="imports-instance_method">
-  
-    #<strong>imports</strong>  &#x21d2; <tt>Array&lt;Hash&gt;</tt> 
-  
-
-  
-
-  
-</h3><div class="docstring">
-  <div class="discussion">
-    
-<p>Returns the list of imports that this Module has and must be satisfied.</p>
-
-
-  </div>
-</div>
-<div class="tags">
-  
-<p class="tag_title">Returns:</p>
-<ul class="return">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt>Array&lt;Hash&gt;</tt>)</span>
-      
-      
-      
-        &mdash;
-        <div class='inline'>
-<p>An array of hashes containing import information</p>
-</div>
-      
-    </li>
-  
-</ul>
-
-</div><table class="source_code">
-  <tr>
-    <td>
-      <pre class="lines">
-
-
-120
-121
-122
-123
-124
-125
-126
-127
-128
-129
-130
-131
-132
-133
-134</pre>
-    </td>
-    <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 120</span>
-
-pub fn imports(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
-        let module = self.get();
-        let imports = module.imports();
-
-        let result = RArray::with_capacity(imports.len());
-        for import in imports {
-            let hash = RHash::new();
-            hash.aset(&quot;module&quot;, import.module())?;
-            hash.aset(&quot;name&quot;, import.name())?;
-            hash.aset(&quot;type&quot;, import.ty().wrap_wasmtime_type()?)?;
-            result.push(hash)?;
-        }
-        Ok(result)
-    }
-}</pre>
-    </td>
-  </tr>
-</table>
-</div>
-    
-      <div class="method_details ">
-  <h3 class="signature " id="serialize-instance_method">
+  <h3 class="signature first" id="serialize-instance_method">
   
     #<strong>serialize</strong>  &#x21d2; <tt>String</tt> 
   
@@ -763,7 +668,7 @@ pub fn imports(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
 </h3><div class="docstring">
   <div class="discussion">
     
-<p>Serialize the module.</p>
+<p>Serialize the component.</p>
 
 
   </div>
@@ -787,7 +692,7 @@ pub fn imports(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
   <p class="tag_title">See Also:</p>
   <ul class="see">
     
-      <li><span class='object_link'><a href="#deserialize-class_method" title="Wasmtime::Module.deserialize (method)">deserialize</a></span></li>
+      <li><span class='object_link'><a href="#deserialize-class_method" title="Wasmtime::Component::Component.deserialize (method)">deserialize</a></span></li>
     
   </ul>
 
@@ -797,7 +702,6 @@ pub fn imports(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
       <pre class="lines">
 
 
-104
 105
 106
 107
@@ -807,11 +711,10 @@ pub fn imports(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
 111</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 104</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component.rs', line 105</span>
 
 pub fn serialize(&amp;self) -&gt; Result&lt;RString, Error&gt; {
-    let module = self.get();
-    let bytes = module.serialize();
+    let bytes = self.get().serialize();
 
     bytes
         .map(|bytes| RString::from_slice(&amp;bytes))
@@ -827,7 +730,7 @@ pub fn serialize(&amp;self) -&gt; Result&lt;RString, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Thu Oct 24 19:06:11 2024 by
+  Generated on Thu Oct 24 19:06:10 2024 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.3.5).
 </div>

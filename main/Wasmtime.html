@@ -79,7 +79,7 @@
   <dl>
     <dt>Defined in:</dt>
     <dd>ext/src/ruby_api/mod.rs<span class="defines">,<br />
-  lib/wasmtime/error.rb,<br /> lib/wasmtime/version.rb</span>
+  lib/wasmtime.rb,<br /> lib/wasmtime/error.rb,<br /> lib/wasmtime/version.rb</span>
 </dd>
   </dl>
   
@@ -88,6 +88,8 @@
 <h2>Defined Under Namespace</h2>
 <p class="children">
   
+    
+      <strong class="modules">Modules:</strong> <span class='object_link'><a href="Wasmtime/Component.html" title="Wasmtime::Component (module)">Component</a></span>
     
   
     
@@ -218,15 +220,15 @@
       <pre class="lines">
 
 
-64
 65
 66
 67
 68
-69</pre>
+69
+70</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/mod.rs', line 64</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/mod.rs', line 65</span>
 
 pub fn wat2wasm(wat: RString) -&gt; Result&lt;RString, Error&gt; {
         wat::parse_str(unsafe { wat.as_str()? })
@@ -244,7 +246,7 @@ pub fn wat2wasm(wat: RString) -&gt; Result&lt;RString, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Thu Oct 24 17:15:20 2024 by
+  Generated on Thu Oct 24 19:06:10 2024 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.3.5).
 </div>

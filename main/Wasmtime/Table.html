@@ -598,7 +598,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 154</span>
 
-pub fn get(&amp;self, index: u32) -&gt; Result&lt;Value, Error&gt; {
+pub fn get(&amp;self, index: u64) -&gt; Result&lt;Value, Error&gt; {
     match self.inner.get(self.store.context_mut()?, index) {
         Some(wasm_val) =&gt; Val::from(wasm_val).to_ruby_value(&amp;self.store),
         None =&gt; Ok(().into_value()),
@@ -691,7 +691,7 @@ pub fn get(&amp;self, index: u32) -&gt; Result&lt;Value, Error&gt; {
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 193</span>
 
-pub fn grow(&amp;self, delta: u32, initial: Value) -&gt; Result&lt;u32, Error&gt; {
+pub fn grow(&amp;self, delta: u64, initial: Value) -&gt; Result&lt;u64, Error&gt; {
     self.inner
         .grow(
             self.store.context_mut()?,
@@ -763,7 +763,7 @@ pub fn grow(&amp;self, delta: u32, initial: Value) -&gt; Result&lt;u32, Error&gt
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 144</span>
 
-pub fn max_size(&amp;self) -&gt; Result&lt;Option&lt;u32&gt;, Error&gt; {
+pub fn max_size(&amp;self) -&gt; Result&lt;Option&lt;u64&gt;, Error&gt; {
     self.ty().map(|ty| ty.maximum())
 }</pre>
     </td>
@@ -822,7 +822,7 @@ pub fn max_size(&amp;self) -&gt; Result&lt;Option&lt;u32&gt;, Error&gt; {
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 138</span>
 
-pub fn min_size(&amp;self) -&gt; Result&lt;u32, Error&gt; {
+pub fn min_size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
     self.ty().map(|ty| ty.minimum())
 }</pre>
     </td>
@@ -902,7 +902,7 @@ pub fn min_size(&amp;self) -&gt; Result&lt;u32, Error&gt; {
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 168</span>
 
-pub fn set(&amp;self, index: u32, value: Value) -&gt; Result&lt;(), Error&gt; {
+pub fn set(&amp;self, index: u64, value: Value) -&gt; Result&lt;(), Error&gt; {
     self.inner
         .set(
             self.store.context_mut()?,
@@ -974,7 +974,7 @@ pub fn set(&amp;self, index: u32, value: Value) -&gt; Result&lt;(), Error&gt; {
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 212</span>
 
-pub fn size(&amp;self) -&gt; Result&lt;u32, Error&gt; {
+pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
     Ok(self.inner.size(self.store.context()?))
 }</pre>
     </td>
@@ -1046,7 +1046,7 @@ pub fn type_(&amp;self) -&gt; Result&lt;Symbol, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Wed Oct 23 17:15:10 2024 by
+  Generated on Thu Oct 24 17:15:20 2024 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.3.5).
 </div>

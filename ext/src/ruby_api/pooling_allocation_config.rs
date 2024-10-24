@@ -198,7 +198,7 @@ impl PoolingAllocationConfig {
     /// @def table_elements=
     /// @param elements [Integer]
     /// @return [Wasmtime::PoolingAllocationConfig]
-    pub fn set_table_elements(rb_self: Obj<Self>, elements: u32) -> Result<Obj<Self>, Error> {
+    pub fn set_table_elements(rb_self: Obj<Self>, elements: usize) -> Result<Obj<Self>, Error> {
         rb_self.borrow_mut()?.table_elements(elements);
         Ok(rb_self)
     }

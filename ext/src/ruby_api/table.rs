@@ -42,13 +42,13 @@ impl TableType {
 
     /// @yard
     /// @return [Integer] The minimum size of this table.
-    pub fn min_size(&self) -> u32 {
+    pub fn min_size(&self) -> u64 {
         self.inner.minimum()
     }
 
     /// @yard
     /// @return [Integer, nil] The maximum size of this table.
-    pub fn max_size(&self) -> Option<u32> {
+    pub fn max_size(&self) -> Option<u64> {
         self.inner.maximum()
     }
 }
@@ -135,13 +135,13 @@ impl<'a> Table<'a> {
 
     /// @yard
     /// @return [Integer] The minimum size of this table.
-    pub fn min_size(&self) -> Result<u32, Error> {
+    pub fn min_size(&self) -> Result<u64, Error> {
         self.ty().map(|ty| ty.minimum())
     }
 
     /// @yard
     /// @return [Integer, nil] The maximum size of this table.
-    pub fn max_size(&self) -> Result<Option<u32>, Error> {
+    pub fn max_size(&self) -> Result<Option<u64>, Error> {
         self.ty().map(|ty| ty.maximum())
     }
 
@@ -151,7 +151,7 @@ impl<'a> Table<'a> {
     /// @def get(index)
     /// @param index [Integer]
     /// @return [Object, nil]
-    pub fn get(&self, index: u32) -> Result<Value, Error> {
+    pub fn get(&self, index: u64) -> Result<Value, Error> {
         match self.inner.get(self.store.context_mut()?, index) {
             Some(wasm_val) => Val::from(wasm_val).to_ruby_value(&self.store),
             None => Ok(().into_value()),
@@ -165,7 +165,7 @@ impl<'a> Table<'a> {
     /// @param index [Integer]
     /// @param value [Object]
     /// @return [void]
-    pub fn set(&self, index: u32, value: Value) -> Result<(), Error> {
+    pub fn set(&self, index: u64, value: Value) -> Result<(), Error> {
         self.inner
             .set(
                 self.store.context_mut()?,
@@ -190,7 +190,7 @@ impl<'a> Table<'a> {
     /// @param delta [Integer] The number of elements to add to the table.
     /// @param initial [Object] The initial value for newly added table slots.
     /// @return [void]
-    pub fn grow(&self, delta: u32, initial: Value) -> Result<u32, Error> {
+    pub fn grow(&self, delta: u64, initial: Value) -> Result<u64, Error> {
         self.inner
             .grow(
                 self.store.context_mut()?,
@@ -209,7 +209,7 @@ impl<'a> Table<'a> {
 
     /// @yard
     /// @return [Integer] The size of the table.
-    pub fn size(&self) -> Result<u32, Error> {
+    pub fn size(&self) -> Result<u64, Error> {
         Ok(self.inner.size(self.store.context()?))
     }
 

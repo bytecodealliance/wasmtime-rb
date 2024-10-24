@@ -350,14 +350,16 @@ impl<'a> StoreContextValue<'a> {
 fn hash_to_store_limits_builder(limits: RHash) -> Result<StoreLimitsBuilder, Error> {
     let mut limiter: StoreLimitsBuilder = StoreLimitsBuilder::new();
 
-    if let Some(memory_size) = limits.lookup::<_, Option<u64>>(StaticSymbol::new("memory_size"))? {
-        limiter = limiter.memory_size(memory_size as usize);
+    if let Some(memory_size) =
+        limits.lookup::<_, Option<usize>>(StaticSymbol::new("memory_size"))?
+    {
+        limiter = limiter.memory_size(memory_size);
     }
 
     if let Some(table_elements) =
-        limits.lookup::<_, Option<u64>>(StaticSymbol::new("table_elements"))?
+        limits.lookup::<_, Option<usize>>(StaticSymbol::new("table_elements"))?
     {
-        limiter = limiter.table_elements(table_elements as u32);
+        limiter = limiter.table_elements(table_elements);
     }
 
     if let Some(instances) = limits.lookup::<_, Option<u64>>(StaticSymbol::new("instances"))? {
@@ -452,9 +454,9 @@ impl ResourceLimiter for TrackingResourceLimiter {
 
     fn table_growing(
         &mut self,
-        current: u32,
-        desired: u32,
-        maximum: Option<u32>,
+        current: usize,
+        desired: usize,
+        maximum: Option<usize>,
     ) -> anyhow::Result<bool> {
         self.inner.table_growing(current, desired, maximum)
     }

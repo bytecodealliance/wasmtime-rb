@@ -1,5 +1,61 @@
 # Changelog
 
+## [v26.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v26.0.0) (2024-10-24)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v25.0.2...v26.0.0)
+
+**Merged pull requests:**
+
+- Revamp Rust project fixtures [\#387](https://github.com/bytecodealliance/wasmtime-rb/pull/387) ([jbourassa](https://github.com/jbourassa))
+- chore\(deps\): bump magnus from 0.6.4 to 0.7.1 [\#370](https://github.com/bytecodealliance/wasmtime-rb/pull/370) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+## [v25.0.2](https://github.com/bytecodealliance/wasmtime-rb/tree/v25.0.2) (2024-10-09)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v25.0.1...v25.0.2)
+
+**Merged pull requests:**
+
+- Update to wasmtime v25.0.2 [\#386](https://github.com/bytecodealliance/wasmtime-rb/pull/386) ([saulecabrera](https://github.com/saulecabrera))
+- chore\(deps-dev\): bump benchmark-ips from 2.13.0 to 2.14.0 [\#385](https://github.com/bytecodealliance/wasmtime-rb/pull/385) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump yard from 0.9.36 to 0.9.37 [\#384](https://github.com/bytecodealliance/wasmtime-rb/pull/384) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump wat from 1.217.0 to 1.218.0 [\#383](https://github.com/bytecodealliance/wasmtime-rb/pull/383) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump anyhow from 1.0.86 to 1.0.89 [\#382](https://github.com/bytecodealliance/wasmtime-rb/pull/382) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump async-timer from 1.0.0-beta.14 to 1.0.0-beta.15 [\#381](https://github.com/bytecodealliance/wasmtime-rb/pull/381) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump tokio from 1.39.3 to 1.40.0 [\#369](https://github.com/bytecodealliance/wasmtime-rb/pull/369) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+## [v25.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v25.0.1) (2024-09-30)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v25.0.0...v25.0.1)
+
+**Closed issues:**
+
+- `Publish doc` and `Post Publish doc` actions consistently failing [\#377](https://github.com/bytecodealliance/wasmtime-rb/issues/377)
+
+**Merged pull requests:**
+
+- chore: Update to `wasmtime` v25.0.1 [\#380](https://github.com/bytecodealliance/wasmtime-rb/pull/380) ([saulecabrera](https://github.com/saulecabrera))
+- enable winch by default [\#379](https://github.com/bytecodealliance/wasmtime-rb/pull/379) ([mkcny](https://github.com/mkcny))
+- Build docs action [\#378](https://github.com/bytecodealliance/wasmtime-rb/pull/378) ([jbourassa](https://github.com/jbourassa))
+- Support fetching imports from a Module [\#372](https://github.com/bytecodealliance/wasmtime-rb/pull/372) ([davejcameron](https://github.com/davejcameron))
+
+## [v25.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v25.0.0) (2024-09-20)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v24.0.0...v25.0.0)
+
+**Fixed bugs:**
+
+- `data_size` not rendered through YARD [\#342](https://github.com/bytecodealliance/wasmtime-rb/issues/342)
+
+**Merged pull requests:**
+
+- chore: Update to `wasmtime` v25 [\#376](https://github.com/bytecodealliance/wasmtime-rb/pull/376) ([saulecabrera](https://github.com/saulecabrera))
+- Fix YARD documentation [\#375](https://github.com/bytecodealliance/wasmtime-rb/pull/375) ([jbourassa](https://github.com/jbourassa))
+- Add memory usage and memory limit hit [\#374](https://github.com/bytecodealliance/wasmtime-rb/pull/374) ([davejcameron](https://github.com/davejcameron))
+- Add support to enable/disable wasm reference types [\#371](https://github.com/bytecodealliance/wasmtime-rb/pull/371) ([davejcameron](https://github.com/davejcameron))
+- chore\(deps\): bump rb\_sys from 0.9.100 to 0.9.102 [\#368](https://github.com/bytecodealliance/wasmtime-rb/pull/368) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump standard from 1.39.2 to 1.40.0 [\#367](https://github.com/bytecodealliance/wasmtime-rb/pull/367) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Document how to fix examples Rust crate not compiling [\#366](https://github.com/bytecodealliance/wasmtime-rb/pull/366) ([jeffcharles](https://github.com/jeffcharles))
+
 ## [v24.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v24.0.0) (2024-08-23)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v23.0.2...v24.0.0)

@@ -55,6 +55,7 @@ impl Guest for Component {
     id_function!(option, Option<u32>);
     id_function!(result, Result<u32, u32>);
     id_function!(flags, bindings::Permission);
+    id_function!(result_unit, Result<(), ()>);
 }
 
 bindings::export!(Component with_types_in bindings);

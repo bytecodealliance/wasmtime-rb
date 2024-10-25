@@ -11,6 +11,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let _ = rb_sys_env::activate()?;
 
     bundle_ruby_file("lib/wasmtime/error.rb")?;
+    bundle_ruby_file("lib/wasmtime/component.rb")?;
 
     Ok(())
 }

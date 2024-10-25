@@ -80,8 +80,10 @@ module Wasmtime
           ["string", 1, TypeError, /conversion of Integer into String/],
           ["string", "\xFF\xFF", EncodingError, /invalid utf-8 sequence/],
           ["char", "ab", TypeError, /too many characters in string/],
+          ["list", nil, /no implicit conversion of NilClass into Array/],
           ["record", {"x" => 1}, /struct field missing: y/],
           ["record", nil, /no implicit conversion of NilClass into Hash/],
+          ["tuple", nil, /no implicit conversion of NilClass into Array/],
           ["result", nil, /undefined method `ok\?/],
           ["result-unit", Result.ok(""), /expected nil for result<_, E> ok branch/],
           ["result-unit", Result.error(""), /expected nil for result<O, _> error branch/]

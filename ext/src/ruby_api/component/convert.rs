@@ -126,14 +126,13 @@ pub(crate) fn rb_to_component_val(
             Ok(Val::List(vals))
         }
         Type::Record(record) => {
-            let hash = RHash::try_convert(value)
-                .map_err(|_| error!("invalid value for record: {}", value.inspect()))?;
+            let hash = RHash::try_convert(value)?;
 
             let mut kv = Vec::with_capacity(record.fields().len());
             for field in record.fields() {
                 let value = hash
-                    .aref::<_, Value>(field.name)
-                    .map_err(|_| error!("struct field missing: {}", field.name))
+                    .get(field.name)
+                    .ok_or_else(|| error!("struct field missing: {}", field.name))
                     .and_then(|v| {
                         rb_to_component_val(v, _store, &field.ty)
                             .map_err(|e| e.append(format!(" (struct field \"{}\")", field.name)))

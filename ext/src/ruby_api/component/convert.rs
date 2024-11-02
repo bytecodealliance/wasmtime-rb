@@ -169,7 +169,10 @@ pub(crate) fn rb_to_component_val(
             Ok(Val::Tuple(vals))
         }
         Type::Variant(_variant) => not_implemented!("Variant not implemented"),
-        Type::Enum(_enum) => not_implemented!("Enum not implementend"),
+        Type::Enum(_) => {
+            let rstring = RString::try_convert(value)?;
+            rstring.to_string().map(Val::Enum)
+        }
         Type::Option(option_type) => {
             if value.is_nil() {
                 Ok(Val::Option(None))

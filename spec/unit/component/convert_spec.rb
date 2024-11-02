@@ -29,7 +29,7 @@ module Wasmtime
           ["record", {"x" => 1, "y" => 2}],
           ["tuple", [1, "foo"]], # tuple<u32, string>
           # TODO variant
-          # TODO enum
+          ["enum", "l"],
           ["option", 0, nil], # option<u32>
           ["result", Result.ok(1), Result.error(2)], # result<u32, u32>
           ["result-unit", Result.ok(nil), Result.error(nil)]
@@ -84,6 +84,7 @@ module Wasmtime
           ["record", {"x" => 1}, /struct field missing: y/],
           ["record", nil, /no implicit conversion of NilClass into Hash/],
           ["tuple", nil, /no implicit conversion of NilClass into Array/],
+          ["enum", "no", /enum variant name `no` is not valid/],
           ["result", nil, /undefined method `ok\?/],
           ["result-unit", Result.ok(""), /expected nil for result<_, E> ok branch/],
           ["result-unit", Result.error(""), /expected nil for result<O, _> error branch/]

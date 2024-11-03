@@ -9,10 +9,16 @@ use magnus::{prelude::*, value, Error, IntoValue, RArray, RClass, RHash, RString
 use wasmtime::component::{Type, Val};
 
 define_rb_intern!(
+    // For Component::Result
     OK => "ok",
     ERROR => "error",
     IS_ERROR => "error?",
     IS_OK => "ok?",
+
+    // For Component::Variant
+    NEW => "new",
+    NAME => "name",
+    VALUE => "value",
 );
 
 pub(crate) fn component_val_to_rb(val: Val, _store: &StoreContextValue) -> Result<Value, Error> {
@@ -54,7 +60,18 @@ pub(crate) fn component_val_to_rb(val: Val, _store: &StoreContextValue) -> Resul
             }
             Ok(array.into_value())
         }
-        Val::Variant(_kind, _val) => not_implemented!("Variant not implemented"),
+        Val::Variant(kind, val) => {
+            let ruby = Ruby::get().unwrap();
+            let payload = match val {
+                Some(val) => component_val_to_rb(*val, _store)?,
+                None => ruby.qnil().into_value(),
+            };
+
+            variant_class(&ruby).funcall(
+                NEW.into_id_with(&ruby),
+                (kind.into_value_with(&ruby), payload),
+            )
+        }
         Val::Enum(kind) => Ok(kind.as_str().into_value()),
         Val::Option(val) => match val {
             Some(val) => Ok(component_val_to_rb(*val, _store)?),
@@ -168,7 +185,42 @@ pub(crate) fn rb_to_component_val(
 
             Ok(Val::Tuple(vals))
         }
-        Type::Variant(_variant) => not_implemented!("Variant not implemented"),
+        Type::Variant(variant) => {
+            let ruby = Ruby::get().unwrap();
+
+            let name: RString = value.funcall(NAME.into_id_with(&ruby), ())?;
+            let name = name.to_string()?;
+
+            let case = variant
+                .cases()
+                .find(|case| case.name == name.as_str())
+                .ok_or_else(|| {
+                    error!(
+                        "invalid variant case \"{}\", valid cases: {:?}",
+                        name,
+                        RArray::from_iter(variant.cases().map(|c| c.name))
+                    )
+                })?;
+
+            let payload_rb: Value = value.funcall(VALUE.into_id_with(&ruby), ())?;
+            let payload_val = match (&case.ty, payload_rb.is_nil()) {
+                (Some(ty), _) => rb_to_component_val(payload_rb, _store, ty)
+                    .map(|val| Some(Box::new(val)))
+                    .map_err(|e| e.append(format!(" (variant value for \"{}\")", &name))),
+
+                // case doesn't have payload and Variant#value *is nil*
+                (None, true) => Ok(None),
+
+                // case doesn't have payload and Variant#value *is not nil*
+                (None, false) => err!(
+                    "expected no value for variant case \"{}\", got {}",
+                    &name,
+                    payload_rb.inspect()
+                ),
+            }?;
+
+            Ok(Val::Variant(name, payload_val))
+        }
         Type::Enum(_) => {
             let rstring = RString::try_convert(value)?;
             rstring.to_string().map(Val::Enum)
@@ -235,6 +287,12 @@ fn result_class(ruby: &Ruby) -> RClass {
     ruby.get_inner(&RESULT_CLASS)
 }
 
+fn variant_class(ruby: &Ruby) -> RClass {
+    static VARIANT_CLASS: Lazy<RClass> =
+        Lazy::new(|ruby| component_namespace(ruby).const_get("Variant").unwrap());
+    ruby.get_inner(&VARIANT_CLASS)
+}
+
 pub fn init(ruby: &Ruby) -> Result<(), Error> {
     // Warm up
     let _ = result_class(ruby);
@@ -242,6 +300,11 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
     let _ = ERROR;
     let _ = IS_ERROR;
     let _ = IS_OK;
+
+    let _ = result_class(ruby);
+    let _ = NEW;
+    let _ = NAME;
+    let _ = VALUE;
 
     Ok(())
 }

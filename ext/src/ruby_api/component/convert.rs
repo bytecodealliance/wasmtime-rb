@@ -5,7 +5,9 @@ use crate::{define_rb_intern, err, error, not_implemented};
 use magnus::exception::type_error;
 use magnus::rb_sys::AsRawValue;
 use magnus::value::{IntoId, Lazy, ReprValue};
-use magnus::{prelude::*, value, Error, IntoValue, RArray, RClass, RHash, RString, Ruby, Value};
+use magnus::{
+    prelude::*, try_convert, value, Error, IntoValue, RArray, RClass, RHash, RString, Ruby, Value,
+};
 use wasmtime::component::{Type, Val};
 
 define_rb_intern!(
@@ -89,7 +91,7 @@ pub(crate) fn component_val_to_rb(val: Val, _store: &StoreContextValue) -> Resul
             };
             result_class(&ruby).funcall(ruby_method, (ruby_argument,))
         }
-        Val::Flags(_vec) => not_implemented!("Flags not implemented"),
+        Val::Flags(vec) => Ok(vec.into_value()),
         Val::Resource(_resource_any) => not_implemented!("Resource not implemented"),
     }
 }
@@ -275,7 +277,7 @@ pub(crate) fn rb_to_component_val(
                 }
             }
         }
-        Type::Flags(_flags) => not_implemented!("Flags not implemented"),
+        Type::Flags(_) => Vec::<String>::try_convert(value).map(Val::Flags),
         Type::Own(_resource_type) => not_implemented!("Resource not implemented"),
         Type::Borrow(_resource_type) => not_implemented!("Resource not implemented"),
     }

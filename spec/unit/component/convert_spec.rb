@@ -32,8 +32,8 @@ module Wasmtime
           ["enum", "l"],
           ["option", 0, nil], # option<u32>
           ["result", Result.ok(1), Result.error(2)], # result<u32, u32>
-          ["result-unit", Result.ok(nil), Result.error(nil)]
-          # TODO flags
+          ["result-unit", Result.ok(nil), Result.error(nil)],
+          ["flags", [], ["read"], ["read", "write", "exec"]]
         ].each do |type, *values|
           values.each do |v|
             it "#{type} #{v.inspect}" do
@@ -89,7 +89,10 @@ module Wasmtime
           ["enum", "no", /enum variant name `no` is not valid/],
           ["result", nil, /undefined method `ok\?/],
           ["result-unit", Result.ok(""), /expected nil for result<_, E> ok branch/],
-          ["result-unit", Result.error(""), /expected nil for result<O, _> error branch/]
+          ["result-unit", Result.error(""), /expected nil for result<O, _> error branch/],
+          ["flags", ["no"], /unknown flag: `no`/],
+          ["flags", [1], /no implicit conversion of Integer into String/],
+          ["flags", 1, /no implicit conversion of Integer into Array/]
         ].each do |type, value, klass, msg|
           it "fails on #{type} #{value.inspect}" do
             expect { instance.invoke("id-#{type}", value) }.to raise_error(klass, msg)

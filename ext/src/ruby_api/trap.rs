@@ -96,10 +96,10 @@ impl From<Trap> for Error {
     }
 }
 
-impl TryFrom<anyhow::Error> for Trap {
-    type Error = anyhow::Error;
+impl TryFrom<wasmtime::Error> for Trap {
+    type Error = wasmtime::Error;
 
-    fn try_from(value: anyhow::Error) -> Result<Self, Self::Error> {
+    fn try_from(value: wasmtime::Error) -> Result<Self, Self::Error> {
         match value.downcast_ref::<wasmtime::Trap>() {
             Some(trap) => {
                 let trap = trap.to_owned();

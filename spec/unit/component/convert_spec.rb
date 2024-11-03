@@ -30,12 +30,13 @@ module Wasmtime
           ["tuple", [1, "foo"]], # tuple<u32, string>
           # TODO variant
           # TODO enum
-          ["option", 0, nil] # option<u32>
-          # TODO result
+          ["option", 0, nil], # option<u32>
+          ["result", Result.ok(1), Result.error(2)], # result<u32, u32>
+          ["result-unit", Result.ok(nil), Result.error(nil)]
           # TODO flags
         ].each do |type, *values|
           values.each do |v|
-            it "round-trips #{type} #{v.inspect}" do
+            it "#{type} #{v.inspect}" do
               expect(instance.invoke("id-#{type}", v)).to eq(v)
             end
           end
@@ -78,7 +79,14 @@ module Wasmtime
           ["s64", 2**64, RangeError, /too big/],
           ["string", 1, TypeError, /conversion of Integer into String/],
           ["string", "\xFF\xFF", EncodingError, /invalid utf-8 sequence/],
-          ["char", "ab", TypeError, /too many characters in string/]
+          ["char", "ab", TypeError, /too many characters in string/],
+          ["list", nil, /no implicit conversion of NilClass into Array/],
+          ["record", {"x" => 1}, /struct field missing: y/],
+          ["record", nil, /no implicit conversion of NilClass into Hash/],
+          ["tuple", nil, /no implicit conversion of NilClass into Array/],
+          ["result", nil, /undefined method `ok\?/],
+          ["result-unit", Result.ok(""), /expected nil for result<_, E> ok branch/],
+          ["result-unit", Result.error(""), /expected nil for result<O, _> error branch/]
         ].each do |type, value, klass, msg|
           it "fails on #{type} #{value.inspect}" do
             expect { instance.invoke("id-#{type}", value) }.to raise_error(klass, msg)
@@ -96,7 +104,7 @@ module Wasmtime
         end
 
         it "has field name in record conversion error" do
-          expect { instance.invoke("id-record", {"y" => 1}) }
+          expect { instance.invoke("id-record", {"y" => 1, "x" => nil}) }
             .to raise_error(TypeError, /struct field "x"/)
         end
       end

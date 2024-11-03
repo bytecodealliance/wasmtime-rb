@@ -1,12 +1,19 @@
-use crate::error;
-use crate::not_implemented;
+use crate::ruby_api::component::component_namespace;
 use crate::ruby_api::errors::ExceptionMessage;
 use crate::ruby_api::store::StoreContextValue;
+use crate::{define_rb_intern, err, error, not_implemented};
 use magnus::exception::type_error;
 use magnus::rb_sys::AsRawValue;
-use magnus::value::ReprValue;
-use magnus::{prelude::*, value, Error, IntoValue, RArray, RHash, RString, Ruby, Value};
+use magnus::value::{IntoId, Lazy, ReprValue};
+use magnus::{prelude::*, value, Error, IntoValue, RArray, RClass, RHash, RString, Ruby, Value};
 use wasmtime::component::{Type, Val};
+
+define_rb_intern!(
+    OK => "ok",
+    ERROR => "error",
+    IS_ERROR => "error?",
+    IS_OK => "ok?",
+);
 
 pub(crate) fn component_val_to_rb(val: Val, _store: &StoreContextValue) -> Result<Value, Error> {
     match val {
@@ -53,7 +60,18 @@ pub(crate) fn component_val_to_rb(val: Val, _store: &StoreContextValue) -> Resul
             Some(val) => Ok(component_val_to_rb(*val, _store)?),
             None => Ok(value::qnil().as_value()),
         },
-        Val::Result(_val) => not_implemented!("Result not implemented"),
+        Val::Result(val) => {
+            let ruby = Ruby::get().unwrap();
+            let (ruby_method, val) = match val {
+                Ok(val) => (OK.into_id_with(&ruby), val),
+                Err(val) => (ERROR.into_id_with(&ruby), val),
+            };
+            let ruby_argument = match val {
+                Some(val) => component_val_to_rb(*val, _store)?,
+                None => ruby.qnil().as_value(),
+            };
+            result_class(&ruby).funcall(ruby_method, (ruby_argument,))
+        }
         Val::Flags(_vec) => not_implemented!("Flags not implemented"),
         Val::Resource(_resource_any) => not_implemented!("Resource not implemented"),
     }
@@ -108,14 +126,13 @@ pub(crate) fn rb_to_component_val(
             Ok(Val::List(vals))
         }
         Type::Record(record) => {
-            let hash = RHash::try_convert(value)
-                .map_err(|_| error!("invalid value for record: {}", value.inspect()))?;
+            let hash = RHash::try_convert(value)?;
 
             let mut kv = Vec::with_capacity(record.fields().len());
             for field in record.fields() {
                 let value = hash
-                    .aref::<_, Value>(field.name)
-                    .map_err(|_| error!("struct field missing: {}", field.name))
+                    .get(field.name)
+                    .ok_or_else(|| error!("struct field missing: {}", field.name))
                     .and_then(|v| {
                         rb_to_component_val(v, _store, &field.ty)
                             .map_err(|e| e.append(format!(" (struct field \"{}\")", field.name)))
@@ -164,9 +181,64 @@ pub(crate) fn rb_to_component_val(
                 )?))))
             }
         }
-        Type::Result(_result_type) => not_implemented!("Result not implemented"),
+        Type::Result(result_type) => {
+            // Expect value to conform to `Wasmtime::Component::Value`'s interface
+            let ruby = Ruby::get().unwrap();
+            let is_ok = value.funcall::<_, (), bool>(IS_OK.into_id_with(&ruby), ())?;
+
+            if is_ok {
+                let ok_value = value.funcall::<_, (), Value>(OK.into_id_with(&ruby), ())?;
+                match result_type.ok() {
+                    Some(ty) => rb_to_component_val(ok_value, _store, &ty)
+                        .map(|val| Val::Result(Result::Ok(Some(Box::new(val))))),
+                    None => {
+                        if ok_value.is_nil() {
+                            Ok(Val::Result(Ok(None)))
+                        } else {
+                            err!(
+                                "expected nil for result<_, E> ok branch, got {}",
+                                ok_value.inspect()
+                            )
+                        }
+                    }
+                }
+            } else {
+                let err_value = value.funcall::<_, (), Value>(ERROR.into_id_with(&ruby), ())?;
+                match result_type.err() {
+                    Some(ty) => rb_to_component_val(err_value, _store, &ty)
+                        .map(|val| Val::Result(Result::Err(Some(Box::new(val))))),
+                    None => {
+                        if err_value.is_nil() {
+                            Ok(Val::Result(Err(None)))
+                        } else {
+                            err!(
+                                "expected nil for result<O, _> error branch, got {}",
+                                err_value.inspect()
+                            )
+                        }
+                    }
+                }
+            }
+        }
         Type::Flags(_flags) => not_implemented!("Flags not implemented"),
         Type::Own(_resource_type) => not_implemented!("Resource not implemented"),
         Type::Borrow(_resource_type) => not_implemented!("Resource not implemented"),
     }
+}
+
+fn result_class(ruby: &Ruby) -> RClass {
+    static RESULT_CLASS: Lazy<RClass> =
+        Lazy::new(|ruby| component_namespace(ruby).const_get("Result").unwrap());
+    ruby.get_inner(&RESULT_CLASS)
+}
+
+pub fn init(ruby: &Ruby) -> Result<(), Error> {
+    // Warm up
+    let _ = result_class(ruby);
+    let _ = OK;
+    let _ = ERROR;
+    let _ = IS_ERROR;
+    let _ = IS_OK;
+
+    Ok(())
 }

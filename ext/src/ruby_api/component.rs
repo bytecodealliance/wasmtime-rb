@@ -4,12 +4,21 @@ mod instance;
 mod linker;
 
 use super::root;
-use magnus::{class, function, method, r_string::RString, Error, Module, Object, Ruby};
+use magnus::{
+    class, class::RClass, function, method, prelude::*, r_string::RString, value::Lazy, Error,
+    Module, Object, RModule, Ruby,
+};
 use rb_sys::tracking_allocator::ManuallyTracked;
 use wasmtime::component::Component as ComponentImpl;
 
 pub use func::Func;
 pub use instance::Instance;
+
+pub fn component_namespace(ruby: &Ruby) -> RModule {
+    static COMPONENT_NAMESPACE: Lazy<RModule> =
+        Lazy::new(|_| root().define_module("Component").unwrap());
+    ruby.get_inner(&COMPONENT_NAMESPACE)
+}
 
 use crate::{
     error,
@@ -131,8 +140,14 @@ impl From<ComponentImpl> for Component {
     }
 }
 
+mod bundled {
+    include!(concat!(env!("OUT_DIR"), "/bundled/component.rs"));
+}
+
 pub fn init(ruby: &Ruby) -> Result<(), Error> {
-    let namespace = root().define_module("Component")?;
+    bundled::init()?;
+
+    let namespace = component_namespace(ruby);
 
     let class = namespace.define_class("Component", class::object())?;
     class.define_singleton_method("new", function!(Component::new, 2))?;
@@ -146,6 +161,7 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
 
     linker::init(ruby, &namespace)?;
     instance::init(ruby, &namespace)?;
+    convert::init(ruby)?;
 
     Ok(())
 }

@@ -317,7 +317,7 @@ impl<'a> StoreContextValue<'a> {
         };
     }
 
-    pub fn handle_wasm_error(&self, error: anyhow::Error) -> Error {
+    pub fn handle_wasm_error(&self, error: wasmtime::Error) -> Error {
         if let Ok(Some(error)) = self.take_last_error() {
             error
         } else if let Some(exit) = error.downcast_ref::<I32Exit>() {
@@ -431,7 +431,7 @@ impl ResourceLimiter for TrackingResourceLimiter {
         current: usize,
         desired: usize,
         maximum: Option<usize>,
-    ) -> anyhow::Result<bool> {
+    ) -> wasmtime::Result<bool> {
         let res = self.inner.memory_growing(current, desired, maximum);
 
         // Update max_linear_memory_consumed
@@ -457,16 +457,16 @@ impl ResourceLimiter for TrackingResourceLimiter {
         current: usize,
         desired: usize,
         maximum: Option<usize>,
-    ) -> anyhow::Result<bool> {
+    ) -> wasmtime::Result<bool> {
         self.inner.table_growing(current, desired, maximum)
     }
 
-    fn memory_grow_failed(&mut self, error: anyhow::Error) -> anyhow::Result<()> {
+    fn memory_grow_failed(&mut self, error: wasmtime::Error) -> wasmtime::Result<()> {
         self.linear_memory_limit_hit = true;
         self.inner.memory_grow_failed(error)
     }
 
-    fn table_grow_failed(&mut self, error: anyhow::Error) -> anyhow::Result<()> {
+    fn table_grow_failed(&mut self, error: wasmtime::Error) -> wasmtime::Result<()> {
         self.inner.table_grow_failed(error)
     }
 

@@ -2035,7 +2035,6 @@ dependencies = [
 name = "wasmtime-rb"
 version = "9.0.4"
 dependencies = [
- "anyhow",
  "async-timer",
  "cap-std",
  "deterministic-wasi-ctx",

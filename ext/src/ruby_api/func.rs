@@ -243,7 +243,7 @@ macro_rules! caller_error {
     ($store:expr, $caller:expr, $error:expr) => {{
         $store.set_last_error($error);
         $caller.expire();
-        Err(anyhow::anyhow!(""))
+        Err(wasmtime::Error::msg(""))
     }};
 }
 
@@ -257,7 +257,7 @@ macro_rules! result_error {
 pub fn make_func_closure(
     ty: &wasmtime::FuncType,
     callable: Opaque<Proc>,
-) -> impl Fn(CallerImpl<'_, StoreData>, &[Val], &mut [Val]) -> anyhow::Result<()> + Send + Sync + 'static
+) -> impl Fn(CallerImpl<'_, StoreData>, &[Val], &mut [Val]) -> wasmtime::Result<()> + Send + Sync + 'static
 {
     let ty = ty.to_owned();
 
@@ -276,7 +276,7 @@ pub fn make_func_closure(
         for (i, param) in params.iter().enumerate() {
             let rparam = param
                 .to_ruby_value(&store_context)
-                .map_err(|e| anyhow::anyhow!(format!("invalid argument at index {i}: {e}")))?;
+                .map_err(|e| wasmtime::Error::msg(format!("invalid argument at index {i}: {e}")))?;
             rparams.push(rparam).unwrap();
         }
 

@@ -4,8 +4,6 @@ use super::{
     store::{Store, StoreContextValue},
 };
 
-use anyhow::anyhow;
-
 use crate::{define_rb_intern, error};
 use magnus::{
     class, function, gc::Marker, method, prelude::*, scan_args, typed_data::Obj, DataTypeFunctions,

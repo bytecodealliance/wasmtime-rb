@@ -189,9 +189,9 @@ dependencies = [
 
 [[package]]
 name = "cap-primitives"
-version = "3.3.0"
+version = "3.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff5bcbaf57897c8f14098cc9ad48a78052930a9948119eea01b80ca224070fa6"
+checksum = "f40756d6f89f74c94bec88f05f699144f8437194c71933f4f5bccfc3799afcd2"
 dependencies = [
  "ambient-authority",
  "fs-set-times",
@@ -216,9 +216,9 @@ dependencies = [
 
 [[package]]
 name = "cap-std"
-version = "3.3.0"
+version = "3.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6cf1a22e6eab501e025a9953532b1e95efb8a18d6364bf8a4a7547b30c49186"
+checksum = "af6647a5e437dd776eb6afddd576f81875be203364f02cded18d9c90d8793938"
 dependencies = [
  "cap-primitives",
  "io-extras",
@@ -828,9 +828,9 @@ dependencies = [
 
 [[package]]
 name = "io-extras"
-version = "0.18.2"
+version = "0.18.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9f046b9af244f13b3bd939f55d16830ac3a201e8a9ba9661bfcb03e2be72b9b"
+checksum = "7d45fd7584f9b67ac37bc041212d06bfac0700b36456b05890d36a3b626260eb"
 dependencies = [
  "io-lifetimes",
  "windows-sys 0.52.0",
@@ -1322,9 +1322,9 @@ checksum = "583034fd73374156e66797ed8e5b0d5690409c9226b22d87cb7f19821c05d152"
 
 [[package]]
 name = "rustix"
-version = "0.38.37"
+version = "0.38.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8acb788b847c24f28525660c4d7758620a7210875711f79e7f663cc152726811"
+checksum = "aa260229e6538e52293eeb577aabd09945a09d6d9cc0fc550ed7529056c2e32a"
 dependencies = [
  "bitflags",
  "errno",

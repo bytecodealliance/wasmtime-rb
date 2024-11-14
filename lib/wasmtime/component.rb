@@ -82,5 +82,51 @@ module Wasmtime
       # `.error` is used over `.new`.
       private :initialize
     end
+
+    # Represents a value for component model's variant case.
+    # A variant case has a name that uniquely identify the case within the
+    # variant and optionally a value.
+    #
+    # @example Constructing variants
+    #   # Given the following variant:
+    #   # variant filter {
+    #   #     all,
+    #   #     none,
+    #   #     lt(u32),
+    #   # }
+    #
+    #   Variant.new("all")
+    #   Variant.new("none")
+    #   Variant.new("lt", 100)
+    class Variant
+      # The name of the variant case
+      # @return [String]
+      attr_reader :name
+
+      # The optional payload of the variant case
+      # @return [Object]
+      attr_reader :value
+
+      # @param name [String] the name of variant case
+      # @param value [Object] the optional payload of the variant case
+      def initialize(name, value = nil)
+        @name = name
+        @value = value
+      end
+
+      def ==(other)
+        eql?(other)
+      end
+
+      def eql?(other)
+        self.class == other.class &&
+          name == other.name &&
+          value == other.value
+      end
+
+      def hash
+        [self.class, @name, @value].hash
+      end
+    end
   end
 end

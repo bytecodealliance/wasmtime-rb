@@ -5,7 +5,7 @@ use crate::error;
 use magnus::{
     class,
     error::ErrorType,
-    exception::arg_error,
+    exception::{arg_error, type_error},
     function,
     gc::Marker,
     method,
@@ -17,7 +17,7 @@ use magnus::{
     DataTypeFunctions, Error, RArray, Ruby, TryConvert, TypedData, Value,
 };
 use magnus::{IntoValue, RModule};
-use wasmtime::component::{Instance as InstanceImpl, Type, Val};
+use wasmtime::component::{ComponentExportIndex, Instance as InstanceImpl, Type, Val};
 
 /// @yard
 /// Represents a WebAssembly component instance.
@@ -43,33 +43,63 @@ impl Instance {
     }
 
     /// @yard
-    /// Retrieves a Wasm function from the component instance and calls it.
+    /// Retrieves a Wasm function from the component instance.
     ///
-    /// @def invoke(name, *args)
-    /// @param name [String] The name of function  to run.
-    /// @param (see Component::Func#call)
-    /// @return (see Component::Func#call)
-    /// @see Component::Func#call
-    pub fn invoke(&self, args: &[Value]) -> Result<Value, Error> {
-        let name = RString::try_convert(*args.first().ok_or_else(|| {
+    /// @def get_func(handle)
+    /// @param handle [String, Array<String>] The path of the function to retrieve
+    /// @return [Func, nil] The function if it exists, nil otherwise
+    ///
+    /// @example Retrieve a top-level +add+ export:
+    ///   instance.get_func("add")
+    ///
+    /// @example Retrieve an +add+ export nested under an +adder+ instance top-level export:
+    ///   instance.get_func(["adder", "add"])
+    pub fn get_func(rb_self: Obj<Self>, handle: Value) -> Result<Option<Func>, Error> {
+        let func = rb_self
+            .export_index(handle)?
+            .and_then(|index| rb_self.inner.get_func(rb_self.store.context_mut(), index))
+            .map(|inner| Func::from_inner(inner, rb_self, rb_self.store));
+
+        Ok(func)
+    }
+
+    fn export_index(&self, handle: Value) -> Result<Option<ComponentExportIndex>, Error> {
+        let invalid_arg = || {
             Error::new(
-                magnus::exception::type_error(),
-                "wrong number of arguments (given 0, expected 1+)",
+                type_error(),
+                format!(
+                    "invalid argument for component index, expected String | Array<String>, got {}",
+                    handle.inspect()
+                ),
             )
-        })?)?;
+        };
 
-        let func = self
-            .inner
-            .get_func(self.store.context_mut(), unsafe { name.as_str()? })
-            .ok_or_else(|| error!("function \"{}\" not found", name))?;
+        let index = if let Some(name) = RString::from_value(handle) {
+            self.inner
+                .get_export(self.store.context_mut(), None, unsafe { name.as_str()? })
+        } else if let Some(names) = RArray::from_value(handle) {
+            unsafe { names.as_slice() }
+                .iter()
+                .try_fold::<_, _, Result<_, Error>>(None, |index, name| {
+                    let name = RString::from_value(*name).ok_or_else(invalid_arg)?;
 
-        Func::invoke(&self.store.into(), &func, &args[1..])
+                    Ok(self
+                        .inner
+                        .get_export(self.store.context_mut(), index.as_ref(), unsafe {
+                            name.as_str()?
+                        }))
+                })?
+        } else {
+            return Err(invalid_arg());
+        };
+
+        Ok(index)
     }
 }
 
 pub fn init(_ruby: &Ruby, namespace: &RModule) -> Result<(), Error> {
     let instance = namespace.define_class("Instance", class::object())?;
-    instance.define_method("invoke", method!(Instance::invoke, -1))?;
+    instance.define_method("get_func", method!(Instance::get_func, 1))?;
 
     Ok(())
 }

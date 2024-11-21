@@ -124,7 +124,8 @@ pub fn hash_to_config(hash: RHash) -> Result<Config, Error> {
         } else if *GENERATE_ADDRESS_MAP == id {
             config.generate_address_map(entry.try_into()?);
         } else if *ALLOCATION_STRATEGY == id {
-            config.allocation_strategy(entry.try_into()?);
+            let strategy: InstanceAllocationStrategy = entry.try_into()?;
+            config.allocation_strategy(strategy);
         } else {
             return Err(Error::new(
                 arg_error(),

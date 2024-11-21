@@ -52,12 +52,16 @@ impl ToRubyValue for Val {
             Val::F64(f) => Ok(f64::from_bits(*f).into_value()),
             Val::ExternRef(eref) => match eref {
                 None => Ok(().into_value()),
-                Some(eref) => eref
-                    .data(store.context()?)
-                    .map_err(|e| error!("{e}"))?
-                    .downcast_ref::<ExternRefValue>()
-                    .map(|v| v.0)
-                    .ok_or_else(|| error!("failed to extract externref")),
+                Some(eref) => {
+                    let inner = eref.data(store.context()?).map_err(|e| error!("{e}"))?;
+                    match inner {
+                        Some(v) => v
+                            .downcast_ref::<ExternRefValue>()
+                            .map(|v| v.0)
+                            .ok_or_else(|| error!("failed to extract externref")),
+                        None => Ok(().into_value()),
+                    }
+                }
             },
             Val::FuncRef(funcref) => match funcref {
                 None => Ok(().into_value()),

@@ -46,11 +46,12 @@ pub(crate) fn component_val_to_rb(val: Val, _store: &StoreContextValue) -> Resul
             Ok(array.into_value())
         }
         Val::Record(fields) => {
+            let ruby = Ruby::get().unwrap();
             let hash = RHash::new();
             for (name, val) in fields {
                 let rb_value = component_val_to_rb(val, _store)
                     .map_err(|e| e.append(format!(" (struct field \"{}\")", name)))?;
-                hash.aset(name.as_str(), rb_value)?
+                hash.aset(ruby.to_symbol(name.as_str()), rb_value)?
             }
 
             Ok(hash.into_value())
@@ -145,12 +146,13 @@ pub(crate) fn rb_to_component_val(
             Ok(Val::List(vals))
         }
         Type::Record(record) => {
+            let ruby = Ruby::get_with(value);
             let hash = RHash::try_convert(value)?;
 
             let mut kv = Vec::with_capacity(record.fields().len());
             for field in record.fields() {
                 let value = hash
-                    .get(field.name)
+                    .get(ruby.to_symbol(field.name))
                     .ok_or_else(|| error!("struct field missing: {}", field.name))
                     .and_then(|v| {
                         rb_to_component_val(v, _store, &field.ty)

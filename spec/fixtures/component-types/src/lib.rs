@@ -49,6 +49,7 @@ impl Guest for Component {
     id_function!(string, String);
     id_function!(list, Vec<u32>);
     id_function!(record, bindings::Point);
+    id_function!(large_record, bindings::LargeRecord);
     id_function!(tuple, (u32, String));
     id_function!(variant, bindings::Filter);
     id_function!(enum, bindings::Size);

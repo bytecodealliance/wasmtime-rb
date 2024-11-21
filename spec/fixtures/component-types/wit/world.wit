@@ -1,6 +1,28 @@
 package fixtures:component-types;
 
 world fixtures {
+    record large-record {
+        field1: u32,
+        field2: u32,
+        field3: u32,
+        field4: u32,
+        field5: u32,
+        field6: u32,
+        field7: u32,
+        field8: u32,
+        field9: u32,
+        field10: u32,
+        field11: u32,
+        field12: u32,
+        field13: u32,
+        field14: u32,
+        field15: u32,
+        field16: u32,
+        field17: u32,
+        field18: u32,
+        field19: u32,
+        field20: u32,
+    }
     record point {
         x: u32,
         y: u32,
@@ -43,6 +65,7 @@ world fixtures {
     export id-result: func(v: result<u32, u32>) -> result<u32, u32>;
     export id-result-unit: func(v: result) -> result;
     export id-flags: func(v: permission) -> permission;
+    export id-large-record: func(v: large-record) -> large-record;
 
     export %resource: interface {
         resource wrapped-string {

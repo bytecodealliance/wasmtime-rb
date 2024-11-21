@@ -10,6 +10,13 @@ module Wasmtime
       let(:linker) { Linker.new(GLOBAL_ENGINE) }
       let(:instance) { linker.instantiate(Store.new(GLOBAL_ENGINE), @types_component) }
 
+      def call_func(name, *args)
+        func = instance.get_func(name)
+        raise "Unknown func: #{name}" if func.nil?
+
+        func.call(*args)
+      end
+
       describe "successful round-trips" do
         [
           ["bool", true, false],
@@ -37,17 +44,17 @@ module Wasmtime
         ].each do |type, *values|
           values.each do |v|
             it "#{type} #{v.inspect}" do
-              expect(instance.invoke("id-#{type}", v)).to eq(v)
+              expect(call_func("id-#{type}", v)).to eq(v)
             end
           end
         end
 
         it "returns FLOAT::INFINITY on f32 overflow" do
-          expect(instance.invoke("id-f32", 5 * 10**40)).to eq(Float::INFINITY)
+          expect(call_func("id-f32", 5 * 10**40)).to eq(Float::INFINITY)
         end
 
         it "returns FLOAT::INFINITY on f64 overflow" do
-          expect(instance.invoke("id-f64", 2 * 10**310)).to eq(Float::INFINITY)
+          expect(call_func("id-f64", 2 * 10**310)).to eq(Float::INFINITY)
         end
       end
 
@@ -95,22 +102,22 @@ module Wasmtime
           ["flags", 1, /no implicit conversion of Integer into Array/]
         ].each do |type, value, klass, msg|
           it "fails on #{type} #{value.inspect}" do
-            expect { instance.invoke("id-#{type}", value) }.to raise_error(klass, msg)
+            expect { call_func("id-#{type}", value) }.to raise_error(klass, msg)
           end
         end
 
         it "has item index in list conversion error" do
-          expect { instance.invoke("id-list", [1, "foo"]) }
+          expect { call_func("id-list", [1, "foo"]) }
             .to raise_error(TypeError, /list item at index 1/)
         end
 
         it "has tuple index in tuple conversion error" do
-          expect { instance.invoke("id-tuple", ["foo", 1]) }
+          expect { call_func("id-tuple", ["foo", 1]) }
             .to raise_error(TypeError, /tuple value at index 0/)
         end
 
         it "has field name in record conversion error" do
-          expect { instance.invoke("id-record", {"y" => 1, "x" => nil}) }
+          expect { call_func("id-record", {"y" => 1, "x" => nil}) }
             .to raise_error(TypeError, /struct field "x"/)
         end
       end

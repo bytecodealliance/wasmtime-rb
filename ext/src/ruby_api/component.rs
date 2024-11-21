@@ -161,6 +161,7 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
 
     linker::init(ruby, &namespace)?;
     instance::init(ruby, &namespace)?;
+    func::init(ruby, &namespace)?;
     convert::init(ruby)?;
 
     Ok(())

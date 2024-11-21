@@ -5,42 +5,31 @@ module Wasmtime
     RSpec.describe Instance do
       before(:all) do
         @adder_component = Component.from_file(GLOBAL_ENGINE, "spec/fixtures/component_adder.wat")
-        @trap_component = Component.from_file(GLOBAL_ENGINE, "spec/fixtures/component_trap.wat")
       end
 
       let(:linker) { Linker.new(engine) }
       let(:adder_instance) { linker.instantiate(store, @adder_component) }
-      let(:trap_instance) { linker.instantiate(store, @trap_component) }
 
-      describe "#invoke" do
-        it "calls the export" do
-          expect(adder_instance.invoke("add", 1, 2)).to eq(3)
+      describe "#get_func" do
+        it "returns a root func" do
+          expect(adder_instance.get_func("add")).to be_instance_of(Wasmtime::Component::Func)
         end
 
-        it "allows multiple calls into the same component instance" do
-          expect(adder_instance.invoke("add", 1, 2)).to eq(3)
-          expect(adder_instance.invoke("add", 1, 2)).to eq(3)
+        it "returns a nested func" do
+          expect(adder_instance.get_func(["adder", "add"])).to be_instance_of(Wasmtime::Component::Func)
         end
 
-        it "raises on unknown exports" do
-          expect { adder_instance.invoke("nope") }
-            .to raise_error(Wasmtime::Error, /function "nope" not found/)
+        it "returns nil for invalid func" do
+          expect(adder_instance.get_func("no")).to be_nil
+          expect(adder_instance.get_func(["add", "no"])).to be_nil
         end
 
-        it "raises on invalid arg count" do
-          expect { adder_instance.invoke("add", 1) }
-            .to raise_error(ArgumentError, /(given 1, expected 2)/)
-        end
+        it "raises for invalid arg" do
+          expect { adder_instance.get_func(3) }
+            .to raise_error(TypeError, /invalid argument for component index/)
 
-        it "raises on invalid arg type" do
-          expect { adder_instance.invoke("add", nil, nil) }
-            .to raise_error(TypeError, "no implicit conversion of nil into Integer (param at index 0)")
-        end
-
-        it "raises trap when component traps" do
-          expect { trap_instance.invoke("unreachable") }.to raise_error(Trap) do |trap|
-            expect(trap.code).to eq(Trap::UNREACHABLE_CODE_REACHED)
-          end
+          expect { adder_instance.get_func([nil]) }
+            .to raise_error(TypeError, /invalid argument for component index/)
         end
       end
     end

@@ -1,11 +1,29 @@
 # Changelog
 
+## [v27.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v27.0.0) (2024-11-22)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v26.0.0...v27.0.0)
+
+**Merged pull requests:**
+
+- Update to wasmtime v27 [\#401](https://github.com/bytecodealliance/wasmtime-rb/pull/401) ([saulecabrera](https://github.com/saulecabrera))
+- Replace `Instance#invoke` with `Func#call` [\#399](https://github.com/bytecodealliance/wasmtime-rb/pull/399) ([jbourassa](https://github.com/jbourassa))
+- Remove anyhow dependency [\#398](https://github.com/bytecodealliance/wasmtime-rb/pull/398) ([jbourassa](https://github.com/jbourassa))
+- Support component `enum`, `variant`, `flags` types [\#397](https://github.com/bytecodealliance/wasmtime-rb/pull/397) ([jbourassa](https://github.com/jbourassa))
+- Bump all gems [\#396](https://github.com/bytecodealliance/wasmtime-rb/pull/396) ([jbourassa](https://github.com/jbourassa))
+- chore\(deps\): bump anyhow from 1.0.91 to 1.0.92 [\#395](https://github.com/bytecodealliance/wasmtime-rb/pull/395) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump cap-std from 3.3.0 to 3.4.0 [\#394](https://github.com/bytecodealliance/wasmtime-rb/pull/394) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Support components `result` types [\#391](https://github.com/bytecodealliance/wasmtime-rb/pull/391) ([jbourassa](https://github.com/jbourassa))
+- docs: Update contributing docs [\#390](https://github.com/bytecodealliance/wasmtime-rb/pull/390) ([saulecabrera](https://github.com/saulecabrera))
+- Initial support for components [\#388](https://github.com/bytecodealliance/wasmtime-rb/pull/388) ([jbourassa](https://github.com/jbourassa))
+
 ## [v26.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v26.0.0) (2024-10-24)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v25.0.2...v26.0.0)
 
 **Merged pull requests:**
 
+- Bump wasmtime to v26 [\#389](https://github.com/bytecodealliance/wasmtime-rb/pull/389) ([jbourassa](https://github.com/jbourassa))
 - Revamp Rust project fixtures [\#387](https://github.com/bytecodealliance/wasmtime-rb/pull/387) ([jbourassa](https://github.com/jbourassa))
 - chore\(deps\): bump magnus from 0.6.4 to 0.7.1 [\#370](https://github.com/bytecodealliance/wasmtime-rb/pull/370) ([dependabot[bot]](https://github.com/apps/dependabot))
 

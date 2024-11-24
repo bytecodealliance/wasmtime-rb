@@ -34,7 +34,8 @@ use wasmtime::component::{Func as FuncImpl, Type, Val};
 /// tuple::
 ///     Ruby +Array+ of the same size of tuple. Example: +tuple<T, U>+ would be converted to +[T, U]+.
 /// record::
-///     Ruby +Hash+ where field names are +String+s.
+///     Ruby +Hash+ where field names are +String+s
+///     (for performance, see {this benchmark}[https://github.com/bytecodealliance/wasmtime-rb/issues/400#issuecomment-2496097993]).
 /// result<O, E>::
 ///     {Result} instance. When converting a result branch of the none
 ///     type, the {Result}’s value MUST be +nil+.

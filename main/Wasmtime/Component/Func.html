@@ -127,7 +127,7 @@
 <p>Ruby <code>Array</code> of the same size of tuple. Example: <tt>tuple&lt;T, U&gt;</tt> would be converted to <tt>[T, U]</tt>.</p>
 </dd><dt>record
 <dd>
-<p>Ruby <code>Hash</code> where field names are <tt>String</tt>s.</p>
+<p>Ruby <code>Hash</code> where field names are <tt>String</tt>s (for performance, see <a href="https://github.com/bytecodealliance/wasmtime-rb/issues/400#issuecomment-2496097993">this benchmark</a>).</p>
 </dd><dt>result&lt;O, E&gt;
 <dd>
 <p><span class='object_link'><a href="Result.html" title="Wasmtime::Component::Result (class)">Result</a></span> instance. When converting a result branch of the none type, the <span class='object_link'><a href="Result.html" title="Wasmtime::Component::Result (class)">Result</a></span>’s value MUST be <code>nil</code>.</p>
@@ -287,12 +287,12 @@
       <pre class="lines">
 
 
-79
 80
-81</pre>
+81
+82</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/func.rs', line 79</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/func.rs', line 80</span>
 
 pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
     Func::invoke(self.store, &amp;self.inner, args)
@@ -307,7 +307,7 @@ pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Fri Nov 22 00:08:29 2024 by
+  Generated on Mon Nov 25 18:20:08 2024 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.3.6).
 </div>

@@ -135,7 +135,6 @@ impl Linker {
     free_immediately,
     unsafe_generics
 )]
-
 pub struct LinkerInstance<'a> {
     inner: RefCell<MaybeInstanceImpl<'a>>,
     refs: RefCell<Vec<Value>>,

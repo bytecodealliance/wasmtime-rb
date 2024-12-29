@@ -94,7 +94,7 @@ module Wasmtime
           ["variant", Variant.new("no"), /invalid variant case "no", valid cases: \["all", "none", "lt"\]/],
           ["variant", Variant.new("lt", "nah"), /(variant value for "lt")/],
           ["enum", "no", /enum variant name `no` is not valid/],
-          ["result", nil, /undefined method `ok\?/],
+          ["result", nil, /undefined method [`']ok\?/], # [`']: various ruby version
           ["result-unit", Result.ok(""), /expected nil for result<_, E> ok branch/],
           ["result-unit", Result.error(""), /expected nil for result<O, _> error branch/],
           ["flags", ["no"], /unknown flag: `no`/],

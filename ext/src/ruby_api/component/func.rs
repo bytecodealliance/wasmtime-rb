@@ -121,7 +121,7 @@ impl Func {
 
 fn convert_params(
     store: &StoreContextValue,
-    ty: &[Type],
+    ty: &[(String, Type)],
     params_slice: &[Value],
 ) -> Result<Vec<Val>, Error> {
     if ty.len() != params_slice.len() {
@@ -141,7 +141,7 @@ fn convert_params(
             .try_into()
             .map_err(|_| Error::new(arg_error(), "too many params"))?;
 
-        let component_val = rb_to_component_val(*value, store, ty)
+        let component_val = rb_to_component_val(*value, store, &ty.1)
             .map_err(|error| error.append(format!(" (param at index {})", i)))?;
 
         params.push(component_val);

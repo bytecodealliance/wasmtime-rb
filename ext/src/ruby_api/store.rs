@@ -262,7 +262,7 @@ pub enum StoreContextValue<'a> {
     Caller(Opaque<Obj<Caller<'a>>>),
 }
 
-impl<'a> From<Obj<Store>> for StoreContextValue<'a> {
+impl From<Obj<Store>> for StoreContextValue<'_> {
     fn from(store: Obj<Store>) -> Self {
         StoreContextValue::Store(store.into())
     }
@@ -274,7 +274,7 @@ impl<'a> From<Obj<Caller<'a>>> for StoreContextValue<'a> {
     }
 }
 
-impl<'a> StoreContextValue<'a> {
+impl StoreContextValue<'_> {
     pub fn mark(&self, marker: &Marker) {
         match self {
             Self::Store(store) => marker.mark(*store),

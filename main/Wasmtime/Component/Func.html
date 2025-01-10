@@ -107,42 +107,42 @@
 <h2 id="label-Component+model+types+conversion">Component model types conversion</h2>
 
 <p>Here’s how component model types map to Ruby objects:</p>
-<dl class="rdoc-list note-list"><dt>bool
+<dl class="rdoc-list note-list"><dt>bool</dt>
 <dd>
 <p>Ruby <code>true</code> or <code>false</code>, no automatic conversion happens.</p>
-</dd><dt>s8, u8, s16, u16, etc.
+</dd><dt>s8, u8, s16, u16, etc.</dt>
 <dd>
 <p>Ruby <code>Integer</code>. Overflows raise.</p>
-</dd><dt>f32, f64
+</dd><dt>f32, f64</dt>
 <dd>
 <p>Ruby <code>Float</code>.</p>
-</dd><dt>string
+</dd><dt>string</dt>
 <dd>
 <p>Ruby <code>String</code>. Exception will be raised if the string is not valid UTF-8.</p>
-</dd><dt>list&lt;T&gt;
+</dd><dt>list&lt;T&gt;</dt>
 <dd>
 <p>Ruby <code>Array</code>.</p>
-</dd><dt>tuple
+</dd><dt>tuple</dt>
 <dd>
 <p>Ruby <code>Array</code> of the same size of tuple. Example: <tt>tuple&lt;T, U&gt;</tt> would be converted to <tt>[T, U]</tt>.</p>
-</dd><dt>record
+</dd><dt>record</dt>
 <dd>
 <p>Ruby <code>Hash</code> where field names are <tt>String</tt>s (for performance, see <a href="https://github.com/bytecodealliance/wasmtime-rb/issues/400#issuecomment-2496097993">this benchmark</a>).</p>
-</dd><dt>result&lt;O, E&gt;
+</dd><dt>result&lt;O, E&gt;</dt>
 <dd>
 <p><span class='object_link'><a href="Result.html" title="Wasmtime::Component::Result (class)">Result</a></span> instance. When converting a result branch of the none type, the <span class='object_link'><a href="Result.html" title="Wasmtime::Component::Result (class)">Result</a></span>’s value MUST be <code>nil</code>.</p>
 
 <p>Examples of none type in a result: unparametrized <code>result</code>, <tt>result&lt;O&gt;</tt>, <tt>result&lt;_, E&gt;</tt>.</p>
-</dd><dt>option&lt;T&gt;
+</dd><dt>option&lt;T&gt;</dt>
 <dd>
 <p><code>nil</code> is mapped to <code>None</code>, anything else is mapped to <tt>Some(T)</tt>.</p>
-</dd><dt>flags
+</dd><dt>flags</dt>
 <dd>
 <p>Ruby <code>Array</code> of <tt>String</tt>s.</p>
-</dd><dt>enum
+</dd><dt>enum</dt>
 <dd>
 <p>Ruby <code>String</code>. Exception will be raised of the <code>String</code> is not a valid enum value.</p>
-</dd><dt>variant
+</dd><dt>variant</dt>
 <dd>
 <p><span class='object_link'><a href="Variant.html" title="Wasmtime::Component::Variant (class)">Variant</a></span> instance wrapping the variant’s name and optionally its value. Exception will be raised for:</p>
 <ul><li>
@@ -150,7 +150,7 @@
 </li><li>
 <p>unparametrized variant and not nil <span class='object_link'><a href="Variant.html#value-instance_method" title="Wasmtime::Component::Variant#value (method)">Variant#value</a></span>.</p>
 </li></ul>
-</dd><dt>resource (own&lt;T&gt; or borrow&lt;T&gt;)
+</dd><dt>resource (own&lt;T&gt; or borrow&lt;T&gt;)</dt>
 <dd>
 <p>Not yet supported.</p>
 </dd></dl>
@@ -307,9 +307,9 @@ pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Mon Nov 25 18:20:08 2024 by
+  Generated on Fri Jan 10 11:56:01 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.37 (ruby-3.3.6).
+  0.9.37 (ruby-3.4.1).
 </div>
 
     </div>

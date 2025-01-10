@@ -671,9 +671,9 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 154</span>
 
-<span class='id identifier rubyid_pub'>pub</span> <span class='id identifier rubyid_fn'>fn</span> <span class='id identifier rubyid_increment_epoch'>increment_epoch</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='kw'>self</span><span class='rparen'>)</span> <span class='lbrace'>{</span>
-    <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_inner'>inner</span><span class='period'>.</span><span class='id identifier rubyid_increment_epoch'>increment_epoch</span><span class='lparen'>(</span><span class='rparen'>)</span><span class='semicolon'>;</span>
-<span class='rbrace'>}</span></pre>
+pub fn increment_epoch(&amp;self) {
+    self.inner.increment_epoch();
+}</pre>
     </td>
   </tr>
 </table>
@@ -1126,9 +1126,9 @@ pub fn stop_epoch_interval(&amp;self) {
 </div>
 
       <div id="footer">
-  Generated on Mon Nov 25 18:20:08 2024 by
+  Generated on Fri Jan 10 11:56:01 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.37 (ruby-3.3.6).
+  0.9.37 (ruby-3.4.1).
 </div>
 
     </div>

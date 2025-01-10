@@ -279,6 +279,7 @@
       <pre class="lines">
 
 
+202
 203
 204
 205
@@ -296,11 +297,10 @@
 217
 218
 219
-220
-221</pre>
+220</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 203</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 202</span>
 
 fn instance(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, name: RString) -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
     let Ok(mut maybe_instance) = rb_self.inner.try_borrow_mut() else {
@@ -376,6 +376,7 @@ fn instance(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, name: RString) -&gt; Resu
       <pre class="lines">
 
 
+181
 182
 183
 184
@@ -386,11 +387,10 @@ fn instance(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, name: RString) -&gt; Resu
 189
 190
 191
-192
-193</pre>
+192</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 182</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 181</span>
 
 fn module(rb_self: Obj&lt;Self&gt;, name: RString, module: &amp;Module) -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
     let Ok(mut maybe_instance) = rb_self.inner.try_borrow_mut() else {
@@ -414,9 +414,9 @@ fn module(rb_self: Obj&lt;Self&gt;, name: RString, module: &amp;Module) -&gt; Re
 </div>
 
       <div id="footer">
-  Generated on Mon Nov 25 18:20:08 2024 by
+  Generated on Fri Jan 10 11:56:01 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.37 (ruby-3.3.6).
+  0.9.37 (ruby-3.4.1).
 </div>
 
     </div>

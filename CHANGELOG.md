@@ -1,5 +1,19 @@
 # Changelog
 
+## [v28.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v28.0.0) (2025-01-11)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v27.0.0...v28.0.0)
+
+**Closed issues:**
+
+- Benchmark String vs Symbol keys in for records [\#400](https://github.com/bytecodealliance/wasmtime-rb/issues/400)
+
+**Merged pull requests:**
+
+- Update to wasmtime v28 [\#416](https://github.com/bytecodealliance/wasmtime-rb/pull/416) ([saulecabrera](https://github.com/saulecabrera))
+- Ruby 3.4 update [\#408](https://github.com/bytecodealliance/wasmtime-rb/pull/408) ([jbourassa](https://github.com/jbourassa))
+- Document reasoning behind using String keys in component records [\#403](https://github.com/bytecodealliance/wasmtime-rb/pull/403) ([jbourassa](https://github.com/jbourassa))
+
 ## [v27.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v27.0.0) (2024-11-22)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v26.0.0...v27.0.0)

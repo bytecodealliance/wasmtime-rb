@@ -1,6 +1,18 @@
 # Changelog
 
-## [v28.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v28.0.0) (2025-01-11)
+## [v29.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v29.0.0) (2025-01-27)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v28.0.0...v29.0.0)
+
+**Closed issues:**
+
+- No precompiled gem for Ruby 3.3 [\#418](https://github.com/bytecodealliance/wasmtime-rb/issues/418)
+
+**Merged pull requests:**
+
+- Wasmtime v29 [\#421](https://github.com/bytecodealliance/wasmtime-rb/pull/421) ([saulecabrera](https://github.com/saulecabrera))
+
+## [v28.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v28.0.0) (2025-01-14)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v27.0.0...v28.0.0)
 
@@ -10,11 +22,13 @@
 
 **Merged pull requests:**
 
+- Update cross-gem action [\#420](https://github.com/bytecodealliance/wasmtime-rb/pull/420) ([jbourassa](https://github.com/jbourassa))
+- Bump rb-sys in gemspec [\#417](https://github.com/bytecodealliance/wasmtime-rb/pull/417) ([jbourassa](https://github.com/jbourassa))
 - Update to wasmtime v28 [\#416](https://github.com/bytecodealliance/wasmtime-rb/pull/416) ([saulecabrera](https://github.com/saulecabrera))
 - Ruby 3.4 update [\#408](https://github.com/bytecodealliance/wasmtime-rb/pull/408) ([jbourassa](https://github.com/jbourassa))
 - Document reasoning behind using String keys in component records [\#403](https://github.com/bytecodealliance/wasmtime-rb/pull/403) ([jbourassa](https://github.com/jbourassa))
 
-## [v27.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v27.0.0) (2024-11-22)
+## [v27.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v27.0.0) (2024-11-21)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v26.0.0...v27.0.0)
 

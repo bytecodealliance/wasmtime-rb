@@ -3,14 +3,17 @@ use crate::error;
 use crate::helpers::OutputLimitedBuffer;
 use magnus::{
     class, function, gc::Marker, method, typed_data::Obj, value::Opaque, DataTypeFunctions, Error,
-    Module, Object, RArray, RHash, RString, Ruby, TryConvert, TypedData,
+    Module, Object, RArray, RHash, RString, Ruby, Symbol, TryConvert, TypedData,
 };
+use rb_sys::ruby_rarray_flags::RARRAY_EMBED_FLAG;
 use std::cell::RefCell;
 use std::fs;
+use std::path::Path;
 use std::{fs::File, path::PathBuf};
 use wasmtime_wasi::p2::pipe::MemoryInputPipe;
 use wasmtime_wasi::p2::{OutputFile, WasiCtx, WasiCtxBuilder};
 use wasmtime_wasi::preview1::WasiP1Ctx;
+use wasmtime_wasi::{DirPerms, FilePerms};
 
 enum ReadStream {
     Inherit,
@@ -51,6 +54,7 @@ struct WasiConfigInner {
     env: Option<Opaque<RHash>>,
     args: Option<Opaque<RArray>>,
     deterministic: bool,
+    mapped_directories: Option<Opaque<RArray>>,
 }
 
 impl WasiConfigInner {
@@ -68,6 +72,9 @@ impl WasiConfigInner {
             marker.mark(*v);
         }
         if let Some(v) = self.args.as_ref() {
+            marker.mark(*v);
+        }
+        if let Some(v) = self.mapped_directories.as_ref() {
             marker.mark(*v);
         }
     }
@@ -233,6 +240,40 @@ impl WasiConfig {
         rb_self
     }
 
+    /// @yard
+    /// Set mapped directory for host path and guest path.
+    /// @param host_path [String]
+    /// @param guest_path [String]
+    /// @param dir_perms [Symbol] Directory permissions, one of :read, :mutate, or :all
+    /// @param file_perms [Symbol] File permissions, one of :read, :write, or :all
+    /// @def set_mapped_directory(host_path, guest_path, dir_perms, file_perms)
+    /// @return [WasiConfig] +self+
+    pub fn set_mapped_directory(
+        rb_self: RbSelf,
+        host_path: RString,
+        guest_path: RString,
+        dir_perms: Symbol,
+        file_perms: Symbol,
+    ) -> RbSelf {
+        let mapped_directory = RArray::new();
+        mapped_directory.push(host_path).unwrap();
+        mapped_directory.push(guest_path).unwrap();
+        mapped_directory.push(dir_perms).unwrap();
+        mapped_directory.push(file_perms).unwrap();
+
+        let init_directory = RArray::new();
+
+        let mut inner = rb_self.inner.borrow_mut();
+        if inner.mapped_directories.is_none() {
+            inner.mapped_directories = Some(init_directory.into());
+        }
+
+        let ruby = Ruby::get().unwrap();
+        let mapped_directories = ruby.get_inner(inner.mapped_directories.unwrap());
+        mapped_directories.push(mapped_directory).unwrap();
+        rb_self
+    }
+
     pub fn build_p1(&self, ruby: &Ruby) -> Result<WasiP1Ctx, Error> {
         let mut builder = self.build_impl(ruby)?;
         let ctx = builder.build_p1();
@@ -317,6 +358,63 @@ impl WasiConfig {
             deterministic_wasi_ctx::add_determinism_to_wasi_ctx_builder(&mut builder);
         }
 
+        if let Some(mapped_directories) = inner.mapped_directories.as_ref() {
+            for item in unsafe { ruby.get_inner(*mapped_directories).as_slice() } {
+                let mapped_directory = RArray::try_convert(*item)?;
+                if mapped_directory.len() == 4 {
+                    let host_path =
+                        RString::try_convert(mapped_directory.entry(0)?)?.to_string()?;
+                    let guest_path =
+                        RString::try_convert(mapped_directory.entry(1)?)?.to_string()?;
+                    let dir_perms = Symbol::from_value(mapped_directory.entry(2)?)
+                        .unwrap()
+                        .name()?;
+                    let file_perms = Symbol::from_value(mapped_directory.entry(3)?)
+                        .unwrap()
+                        .name()?;
+
+                    let host_path_dir = Path::new(&host_path);
+                    let guest_path_path = guest_path.as_str();
+
+                    // Convert to FilePerms and DirPerms enums
+                    let dir_perms_flags;
+                    match dir_perms {
+                        std::borrow::Cow::Borrowed("read") => dir_perms_flags = DirPerms::READ,
+                        std::borrow::Cow::Borrowed("mutate") => dir_perms_flags = DirPerms::MUTATE,
+                        std::borrow::Cow::Borrowed("all") => dir_perms_flags = DirPerms::all(),
+                        _ => {
+                            return Err(error!(
+                                "Invalid dir_perms: {}. Use one of :read, :mutate, or :all",
+                                dir_perms
+                            ))
+                        }
+                    }
+
+                    let file_perms_flags;
+                    match file_perms {
+                        std::borrow::Cow::Borrowed("read") => file_perms_flags = FilePerms::READ,
+                        std::borrow::Cow::Borrowed("write") => file_perms_flags = FilePerms::WRITE,
+                        std::borrow::Cow::Borrowed("all") => file_perms_flags = FilePerms::all(),
+                        _ => {
+                            return Err(error!(
+                                "Invalid file_perms: {}. Use one of :read, :write, or :all",
+                                file_perms
+                            ))
+                        }
+                    }
+
+                    builder
+                        .preopened_dir(
+                            host_path_dir,
+                            guest_path_path,
+                            dir_perms_flags,
+                            file_perms_flags,
+                        )
+                        .map_err(|e| error!("{}", e))?;
+                }
+            }
+        }
+
         Ok(builder)
     }
 }
@@ -354,6 +452,11 @@ pub fn init() -> Result<(), Error> {
     class.define_method("set_env", method!(WasiConfig::set_env, 1))?;
 
     class.define_method("set_argv", method!(WasiConfig::set_argv, 1))?;
+
+    class.define_method(
+        "set_mapped_directory",
+        method!(WasiConfig::set_mapped_directory, 4),
+    )?;
 
     Ok(())
 }

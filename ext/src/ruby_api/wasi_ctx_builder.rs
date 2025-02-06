@@ -6,6 +6,7 @@ use magnus::{
     class, function, gc::Marker, method, typed_data::Obj, value::Opaque, DataTypeFunctions, Error,
     Module, Object, RArray, RHash, RString, Ruby, TryConvert, TypedData,
 };
+use rb_sys::ruby_rarray_flags::RARRAY_EMBED_FLAG;
 use std::cell::RefCell;
 use std::path::Path;
 use std::{fs::File, path::PathBuf};
@@ -67,6 +68,9 @@ impl WasiCtxBuilderInner {
             marker.mark(*v);
         }
         if let Some(v) = self.args.as_ref() {
+            marker.mark(*v);
+        }
+        if let Some(v) = self.mapped_directories.as_ref() {
             marker.mark(*v);
         }
     }
@@ -226,13 +230,27 @@ impl WasiCtxBuilder {
     }
 
     /// @yard
-    /// Set mapped directories to the specified +Array+.
-    /// @param mapped_directories [Array<Array<String>>]
-    /// @def set_mapped_directories(mapped_directories)
+    /// Set mapped directory for host path and guest path.
+    /// @param host_path [String]
+    /// @param guest_path [String]
+    /// @def set_mapped_directory(host_path, guest_path)
     /// @return [WasiCtxBuilder] +self+
-    pub fn set_mapped_directories(rb_self: RbSelf, mapped_directories: RArray) -> RbSelf {
+    pub fn set_mapped_directory(
+        rb_self: RbSelf,
+        host_path: RString,
+        guest_path: RString,
+    ) -> RbSelf {
         let mut inner = rb_self.inner.borrow_mut();
-        inner.mapped_directories = Some(mapped_directories.into());
+        if inner.mapped_directories.is_none() {
+            inner.mapped_directories = Some(RArray::new().into());
+        }
+        let mapped_directory = RArray::new();
+        mapped_directory.push(host_path).unwrap();
+        mapped_directory.push(guest_path).unwrap();
+
+        let ruby = Ruby::get().unwrap();
+        let mapped_directories = ruby.get_inner(inner.mapped_directories.unwrap());
+        mapped_directories.push(mapped_directory).unwrap();
         rb_self
     }
 
@@ -373,8 +391,8 @@ pub fn init() -> Result<(), Error> {
     class.define_method("set_argv", method!(WasiCtxBuilder::set_argv, 1))?;
 
     class.define_method(
-        "set_mapped_directories",
-        method!(WasiCtxBuilder::set_mapped_directories, 1),
+        "set_mapped_directory",
+        method!(WasiCtxBuilder::set_mapped_directory, 2),
     )?;
 
     class.define_method("build", method!(WasiCtxBuilder::build, 0))?;

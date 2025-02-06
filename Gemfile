@@ -13,6 +13,7 @@ group :development do
   gem "yard", require: false
   gem "yard-rustdoc", "~> 0.4.0", require: false
   gem "benchmark-ips", require: false
+  gem "fiddle"
 end
 
 group :test do

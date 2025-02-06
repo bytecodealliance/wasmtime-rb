@@ -4,7 +4,7 @@ use crate::helpers::OutputLimitedBuffer;
 use cap_std::fs::Dir;
 use magnus::{
     class, function, gc::Marker, method, typed_data::Obj, value::Opaque, DataTypeFunctions, Error,
-    Integer, Module, Object, RArray, RHash, RString, Ruby, TryConvert, TypedData,
+    Module, Object, RArray, RHash, RString, Ruby, TryConvert, TypedData,
 };
 use std::cell::RefCell;
 use std::path::Path;

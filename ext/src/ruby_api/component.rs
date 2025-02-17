@@ -28,7 +28,6 @@ use crate::{
 /// @yard
 /// @rename Wasmtime::Component::Component
 /// Represents a WebAssembly component.
-/// @note Support for Wasm components in the Ruby bindings is experimental. APIs may change in the future.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/component/struct.Component.html Wasmtime's Rust doc
 #[magnus::wrap(
     class = "Wasmtime::Component::Component",

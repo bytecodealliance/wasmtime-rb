@@ -2,7 +2,6 @@
 return if defined?(Wasmtime::Component::Result)
 
 module Wasmtime
-  # @note Support for Wasm components in the Ruby bindings is experimental. APIs may change in the future.
   module Component
     # Represents a component model's +result<O, E>+ type.
     class Result

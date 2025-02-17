@@ -422,12 +422,12 @@
       <pre class="lines">
 
 
+19
 20
-21
-22</pre>
+21</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/wasmtime/component.rb', line 20</span>
+      <pre class="code"><span class="info file"># File 'lib/wasmtime/component.rb', line 19</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_error'>error</span><span class='lparen'>(</span><span class='id identifier rubyid_error'>error</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='kw'>false</span><span class='comma'>,</span> <span class='id identifier rubyid_error'>error</span><span class='rparen'>)</span>
@@ -496,12 +496,12 @@
       <pre class="lines">
 
 
+12
 13
-14
-15</pre>
+14</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/wasmtime/component.rb', line 13</span>
+      <pre class="code"><span class="info file"># File 'lib/wasmtime/component.rb', line 12</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_ok'>ok</span><span class='lparen'>(</span><span class='id identifier rubyid_ok'>ok</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='kw'>true</span><span class='comma'>,</span> <span class='id identifier rubyid_ok'>ok</span><span class='rparen'>)</span>
@@ -532,12 +532,12 @@
       <pre class="lines">
 
 
+54
 55
-56
-57</pre>
+56</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/wasmtime/component.rb', line 55</span>
+      <pre class="code"><span class="info file"># File 'lib/wasmtime/component.rb', line 54</span>
 
 <span class='kw'>def</span> <span class='op'>==</span><span class='lparen'>(</span><span class='id identifier rubyid_other'>other</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_eql?'>eql?</span><span class='lparen'>(</span><span class='id identifier rubyid_other'>other</span><span class='rparen'>)</span>
@@ -584,6 +584,7 @@
       <pre class="lines">
 
 
+58
 59
 60
 61
@@ -592,11 +593,10 @@
 64
 65
 66
-67
-68</pre>
+67</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/wasmtime/component.rb', line 59</span>
+      <pre class="code"><span class="info file"># File 'lib/wasmtime/component.rb', line 58</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_eql?'>eql?</span><span class='lparen'>(</span><span class='id identifier rubyid_other'>other</span><span class='rparen'>)</span>
   <span class='kw'>return</span> <span class='kw'>false</span> <span class='kw'>unless</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span> <span class='op'>==</span> <span class='id identifier rubyid_other'>other</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span>
@@ -670,14 +670,14 @@
       <pre class="lines">
 
 
+38
 39
 40
 41
-42
-43</pre>
+42</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/wasmtime/component.rb', line 39</span>
+      <pre class="code"><span class="info file"># File 'lib/wasmtime/component.rb', line 38</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_error'>error</span>
   <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="Result/UncheckedResult.html" title="Wasmtime::Component::Result::UncheckedResult (class)">UncheckedResult</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>expected error, was ok</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>unless</span> <span class='id identifier rubyid_error?'>error?</span>
@@ -733,12 +733,12 @@
       <pre class="lines">
 
 
+50
 51
-52
-53</pre>
+52</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/wasmtime/component.rb', line 51</span>
+      <pre class="code"><span class="info file"># File 'lib/wasmtime/component.rb', line 50</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_error?'>error?</span>
   <span class='op'>!</span><span class='ivar'>@ok</span>
@@ -763,12 +763,12 @@
       <pre class="lines">
 
 
+69
 70
-71
-72</pre>
+71</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/wasmtime/component.rb', line 70</span>
+      <pre class="code"><span class="info file"># File 'lib/wasmtime/component.rb', line 69</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_hash'>hash</span>
   <span class='lbracket'>[</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='comma'>,</span> <span class='ivar'>@ok</span><span class='comma'>,</span> <span class='ivar'>@value</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_hash'>hash</span>
@@ -835,14 +835,14 @@
       <pre class="lines">
 
 
+29
 30
 31
 32
-33
-34</pre>
+33</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/wasmtime/component.rb', line 30</span>
+      <pre class="code"><span class="info file"># File 'lib/wasmtime/component.rb', line 29</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_ok'>ok</span>
   <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="Result/UncheckedResult.html" title="Wasmtime::Component::Result::UncheckedResult (class)">UncheckedResult</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>expected ok, was error</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>unless</span> <span class='id identifier rubyid_ok?'>ok?</span>
@@ -898,12 +898,12 @@
       <pre class="lines">
 
 
+45
 46
-47
-48</pre>
+47</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/wasmtime/component.rb', line 46</span>
+      <pre class="code"><span class="info file"># File 'lib/wasmtime/component.rb', line 45</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_ok?'>ok?</span>
   <span class='ivar'>@ok</span>
@@ -918,9 +918,9 @@
 </div>
 
       <div id="footer">
-  Generated on Thu Feb 13 12:36:30 2025 by
+  Generated on Mon Feb 17 16:02:27 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.37 (ruby-3.4.1).
+  0.9.37 (ruby-3.4.2).
 </div>
 
     </div>

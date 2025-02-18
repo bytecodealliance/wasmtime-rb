@@ -222,13 +222,11 @@ impl<'a> Func<'a> {
         match results.as_slice() {
             [] => Ok(().into_value()),
             [result] => result.to_ruby_value(store),
-            _ => {
-                let array = RArray::with_capacity(results.len());
-                for result in results {
-                    array.push(result.to_ruby_value(store)?)?;
-                }
-                Ok(array.as_value())
-            }
+            _ => results
+                .into_iter()
+                .map(|result| result.to_ruby_value(store))
+                .collect::<Result<RArray, _>>()
+                .map(|ary| ary.as_value()),
         }
     }
 }
@@ -270,15 +268,15 @@ pub fn make_func_closure(
         let wrapped_caller = Obj::wrap(Caller::new(caller_impl));
         let store_context = StoreContextValue::from(wrapped_caller);
 
-        let rparams = RArray::with_capacity(params.len() + 1);
-        rparams.push(wrapped_caller.as_value()).unwrap();
-
-        for (i, param) in params.iter().enumerate() {
-            let rparam = param
+        let params_iter = params.iter().enumerate().map(|(i, param)| {
+            param
                 .to_ruby_value(&store_context)
-                .map_err(|e| wasmtime::Error::msg(format!("invalid argument at index {i}: {e}")))?;
-            rparams.push(rparam).unwrap();
-        }
+                .map_err(|e| wasmtime::Error::msg(format!("invalid argument at index {i}: {e}")))
+        });
+
+        let rparams = std::iter::once(Ok(wrapped_caller.as_value()))
+            .chain(params_iter)
+            .collect::<Result<RArray, _>>()?;
 
         let ruby = Ruby::get().unwrap();
         let callable = ruby.get_inner(callable);

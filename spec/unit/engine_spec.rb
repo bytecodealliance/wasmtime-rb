@@ -28,7 +28,8 @@ module Wasmtime
         [:wasm_multi_memory, true],
         [:wasm_memory64, true],
         [:parallel_compilation, true],
-        [:wasm_reference_types, true]
+        [:wasm_reference_types, true],
+        [:async_stack_zeroing, true]
       ].each do |option, valid, invalid = nil|
         it "supports #{option}" do
           Engine.new(option => valid)

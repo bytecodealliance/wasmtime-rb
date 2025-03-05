@@ -1,5 +1,26 @@
 # Changelog
 
+## [v30.0.2](https://github.com/bytecodealliance/wasmtime-rb/tree/v30.0.2) (2025-03-05)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v29.0.0...v30.0.2)
+
+**Closed issues:**
+
+- Speed up `Func#call` by optimizing arg buffer initialization [\#169](https://github.com/bytecodealliance/wasmtime-rb/issues/169)
+- WASM components [\#128](https://github.com/bytecodealliance/wasmtime-rb/issues/128)
+
+**Merged pull requests:**
+
+- Bump wasmtime to v30.0.2 [\#440](https://github.com/bytecodealliance/wasmtime-rb/pull/440) ([saulecabrera](https://github.com/saulecabrera))
+- Remove note on experimental component support [\#431](https://github.com/bytecodealliance/wasmtime-rb/pull/431) ([jbourassa](https://github.com/jbourassa))
+- Improve perf when building Ruby arrays from Rust [\#430](https://github.com/bytecodealliance/wasmtime-rb/pull/430) ([jbourassa](https://github.com/jbourassa))
+- Stop running CI on push [\#429](https://github.com/bytecodealliance/wasmtime-rb/pull/429) ([jbourassa](https://github.com/jbourassa))
+- Add Fiddle to the development group [\#428](https://github.com/bytecodealliance/wasmtime-rb/pull/428) ([jbourassa](https://github.com/jbourassa))
+- chore\(deps\): bump rb\_sys from 0.9.108 to 0.9.110 [\#425](https://github.com/bytecodealliance/wasmtime-rb/pull/425) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump standard from 1.43.0 to 1.44.0 [\#424](https://github.com/bytecodealliance/wasmtime-rb/pull/424) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump rb-sys-env from 0.1.2 to 0.2.2 [\#423](https://github.com/bytecodealliance/wasmtime-rb/pull/423) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump rb-sys from 0.9.108 to 0.9.110 [\#422](https://github.com/bytecodealliance/wasmtime-rb/pull/422) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v29.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v29.0.0) (2025-01-27)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v28.0.0...v29.0.0)

@@ -67,6 +67,7 @@ impl Engine {
     /// @param config [Hash] The engine's config.
     ///   See the {https://docs.rs/wasmtime/latest/wasmtime/struct.Engine.html +Config+‘s Rust doc} for detailed description of
     ///   the different options and the defaults.
+    /// @option config [Boolean] :async_stack_zeroing Configures whether or not stacks used for async futures are zeroed before (re)use.
     /// @option config [Boolean] :debug_info
     /// @option config [Boolean] :wasm_backtrace_details
     /// @option config [Boolean] :native_unwind_info

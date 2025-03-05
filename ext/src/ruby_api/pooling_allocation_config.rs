@@ -100,16 +100,6 @@ impl PoolingAllocationConfig {
         Ok(rb_self)
     }
 
-    /// @def async_stack_zeroing=(enable)
-    /// @param enable [Boolean]
-    /// @return [Wasmtime::PoolingAllocationConfig]
-    pub fn set_async_stack_zeroing(rb_self: Obj<Self>, enable: Value) -> Result<Obj<Self>, Error> {
-        rb_self
-            .borrow_mut()?
-            .async_stack_zeroing(enable.as_raw() == RUBY_Qtrue as VALUE);
-        Ok(rb_self)
-    }
-
     /// @def linear_memory_keep_resident=
     /// @param size [Integer]
     /// @return [Wasmtime::PoolingAllocationConfig]
@@ -323,10 +313,6 @@ pub fn init() -> Result<(), Error> {
     class.define_method(
         "async_stack_keep_resident=",
         method!(PoolingAllocationConfig::set_async_stack_keep_resident, 1),
-    )?;
-    class.define_method(
-        "async_stack_zeroing=",
-        method!(PoolingAllocationConfig::set_async_stack_zeroing, 1),
     )?;
     class.define_method(
         "linear_memory_keep_resident=",

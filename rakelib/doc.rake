@@ -81,7 +81,7 @@ namespace :doc do
 
   desc "Generate Rust documentation as JSON"
   task :rustdoc do
-    nightly = File.readlines("NIGHTLY_VERSION").first
+    nightly = File.readlines("NIGHTLY_VERSION").first.strip
     sh <<~CMD
       cargo +#{nightly} rustdoc \
         --target-dir tmp/doc/target \

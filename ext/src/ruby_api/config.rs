@@ -46,6 +46,7 @@ define_rb_intern!(
     POOLING => "pooling",
     ON_DEMAND => "on_demand",
     WASM_REFERENCE_TYPES => "wasm_reference_types",
+    ASYNC_STACK_ZEROING => "async_stack_zeroing",
 );
 
 lazy_static! {
@@ -126,6 +127,8 @@ pub fn hash_to_config(hash: RHash) -> Result<Config, Error> {
         } else if *ALLOCATION_STRATEGY == id {
             let strategy: InstanceAllocationStrategy = entry.try_into()?;
             config.allocation_strategy(strategy);
+        } else if *ASYNC_STACK_ZEROING == id {
+            config.async_stack_zeroing(entry.try_into()?);
         } else {
             return Err(Error::new(
                 arg_error(),

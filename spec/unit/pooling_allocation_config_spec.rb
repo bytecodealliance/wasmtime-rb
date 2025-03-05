@@ -29,11 +29,6 @@ module Wasmtime
       expect(config.inspect).to include("async_stack_keep_resident: 1,")
     end
 
-    it "allows async_stack_zeroing configuration" do
-      config.async_stack_zeroing = false
-      expect(config.inspect).to include("async_stack_zeroing: false,")
-    end
-
     it "allows linear_memory_keep_resident configuration" do
       config.linear_memory_keep_resident = 1
       expect(config.inspect).to include("linear_memory_keep_resident: 1,")

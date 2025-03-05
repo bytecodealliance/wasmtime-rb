@@ -389,6 +389,19 @@
     <ul class="option">
       
         <li>
+          <span class="name">:async_stack_zeroing</span>
+          <span class="type">(<tt>Boolean</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+            &mdash; <div class='inline'>
+<p>Configures whether or not stacks used for async futures are zeroed before (re)use.</p>
+</div>
+          
+        </li>
+      
+        <li>
           <span class="name">:debug_info</span>
           <span class="type">(<tt>Boolean</tt>)</span>
           <span class="default">
@@ -572,7 +585,6 @@
       <pre class="lines">
 
 
-89
 90
 91
 92
@@ -590,10 +602,11 @@
 104
 105
 106
-107</pre>
+107
+108</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 89</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 90</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let args = scan_args::scan_args::&lt;(), (Option&lt;Value&gt;,), (), (), (), ()&gt;(args)?;
@@ -664,12 +677,12 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-154
 155
-156</pre>
+156
+157</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 154</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 155</span>
 
 pub fn increment_epoch(&amp;self) {
     self.inner.increment_epoch();
@@ -723,7 +736,6 @@ pub fn increment_epoch(&amp;self) {
       <pre class="lines">
 
 
-201
 202
 203
 204
@@ -741,10 +753,11 @@ pub fn increment_epoch(&amp;self) {
 216
 217
 218
-219</pre>
+219
+220</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 201</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 202</span>
 
 pub fn precompile_compatibility_key(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RString, Error&gt; {
     static ID: LazyId = LazyId::new(&quot;precompile_compatibility_key&quot;);
@@ -843,16 +856,16 @@ pub fn precompile_compatibility_key(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -
       <pre class="lines">
 
 
-188
 189
 190
 191
 192
 193
-194</pre>
+194
+195</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 188</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 189</span>
 
 pub fn precompile_component(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RString, Error&gt; {
     let (wat_or_wasm, _guard) = wat_or_wasm.as_locked_slice()?;
@@ -939,16 +952,16 @@ pub fn precompile_component(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RSt
       <pre class="lines">
 
 
-171
 172
 173
 174
 175
 176
-177</pre>
+177
+178</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 171</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 172</span>
 
 pub fn precompile_module(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RString, Error&gt; {
     let (wat_or_wasm, _guard) = wat_or_wasm.as_locked_slice()?;
@@ -1018,7 +1031,6 @@ pub fn precompile_module(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RStrin
       <pre class="lines">
 
 
-118
 119
 120
 121
@@ -1033,10 +1045,11 @@ pub fn precompile_module(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RStrin
 130
 131
 132
-133</pre>
+133
+134</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 118</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 119</span>
 
 pub fn start_epoch_interval(&amp;self, milliseconds: u64) {
     self.stop_epoch_interval();
@@ -1098,16 +1111,16 @@ pub fn start_epoch_interval(&amp;self, milliseconds: u64) {
       <pre class="lines">
 
 
-140
 141
 142
 143
 144
 145
-146</pre>
+146
+147</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 140</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 141</span>
 
 pub fn stop_epoch_interval(&amp;self) {
     let maybe_handle = self.timer_task.lock().unwrap().take();
@@ -1126,7 +1139,7 @@ pub fn stop_epoch_interval(&amp;self) {
 </div>
 
       <div id="footer">
-  Generated on Fri Feb 21 21:01:49 2025 by
+  Generated on Wed Mar  5 15:56:40 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.2).
 </div>

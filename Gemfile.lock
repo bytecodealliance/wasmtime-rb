@@ -84,14 +84,14 @@ GEM
     standard-performance (1.6.0)
       lint_roller (~> 1.1)
       rubocop-performance (~> 1.23.0)
-    syntax_tree (5.3.0)
+    syntax_tree (6.2.0)
       prettier_print (>= 1.2.0)
     unicode-display_width (3.1.4)
       unicode-emoji (~> 4.0, >= 4.0.4)
     unicode-emoji (4.0.4)
     yard (0.9.37)
-    yard-rustdoc (0.4.0)
-      syntax_tree (~> 5.0)
+    yard-rustdoc (0.4.1)
+      syntax_tree (~> 6.0)
       yard (~> 0.9)
 
 PLATFORMS

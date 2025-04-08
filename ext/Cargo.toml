@@ -24,9 +24,9 @@ magnus = { version = "0.7", features = ["rb-sys"] }
 rb-sys = { version = "*", default-features = false, features = [
   "stable-api-compiled-fallback",
 ] }
-wasmtime = { version = "=30.0.2", features = ["memory-protection-keys"] }
-wasmtime-wasi = "=30.0.2"
-wasi-common = "=30.0.2"
+wasmtime = { version = "=31.0.0", features = ["memory-protection-keys"] }
+wasmtime-wasi = "=31.0.0"
+wasi-common = "=31.0.0"
 cap-std = "3.4.0"
 wat = "1.227.1"
 tokio = { version = "1.40.0", features = [
@@ -39,8 +39,8 @@ async-timer = { version = "1.0.0-beta.15", features = [
   "tokio1",
 ], optional = true }
 static_assertions = "1.1.0"
-wasmtime-environ = "=30.0.2"
-deterministic-wasi-ctx = "=0.1.30"
+wasmtime-environ = "=31.0.0"
+deterministic-wasi-ctx = "=0.1.34"
 
 [build-dependencies]
 rb-sys-env = "0.2.2"

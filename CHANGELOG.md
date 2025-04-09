@@ -1,5 +1,17 @@
 # Changelog
 
+## [v31.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v31.0.0) (2025-04-09)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v30.0.2...v31.0.0)
+
+**Merged pull requests:**
+
+- Update to `wasmtime` v31 [\#447](https://github.com/bytecodealliance/wasmtime-rb/pull/447) ([saulecabrera](https://github.com/saulecabrera))
+- chore\(deps\): bump wat from 1.226.0 to 1.227.1 [\#445](https://github.com/bytecodealliance/wasmtime-rb/pull/445) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump standard from 1.44.0 to 1.47.0 [\#442](https://github.com/bytecodealliance/wasmtime-rb/pull/442) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump rb\_sys from 0.9.110 to 0.9.111 [\#441](https://github.com/bytecodealliance/wasmtime-rb/pull/441) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump rb-sys from 0.9.110 to 0.9.111 [\#437](https://github.com/bytecodealliance/wasmtime-rb/pull/437) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v30.0.2](https://github.com/bytecodealliance/wasmtime-rb/tree/v30.0.2) (2025-03-05)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v29.0.0...v30.0.2)

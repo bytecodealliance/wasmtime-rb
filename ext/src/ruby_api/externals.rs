@@ -208,6 +208,7 @@ impl<'a> WrapWasmtimeType<'a, Extern<'a>> for wasmtime::Extern {
                 Ok(Extern::Table(Obj::wrap(Table::from_inner(store, *table))))
             }
             wasmtime::Extern::SharedMemory(_) => not_implemented!("shared memory not supported"),
+            wasmtime::Extern::Tag(_) => not_implemented!("exception handling not yet implemented"),
         }
     }
 }
@@ -227,6 +228,9 @@ impl WrapWasmtimeExternType<ExternType> for wasmtime::ExternType {
             wasmtime::ExternType::Table(tt) => Ok(ExternType::Table(Obj::wrap(
                 TableType::from_inner(tt.clone()),
             ))),
+            wasmtime::ExternType::Tag(_) => {
+                not_implemented!("exception handling not yet implemented")
+            }
         }
     }
 }

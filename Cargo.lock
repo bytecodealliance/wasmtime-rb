@@ -485,9 +485,9 @@ dependencies = [
 
 [[package]]
 name = "deterministic-wasi-ctx"
-version = "0.1.34"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "318454bf8047a401ed1d3b276e74c1f2d4ac3e228a52bd4bba6a9dfcd220540f"
+checksum = "5a9ed6b310beac1ae654381707d2c060a4c107cc3fe4ae14e498413c522678ee"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -495,7 +495,6 @@ dependencies = [
  "rand_core",
  "rand_pcg",
  "wasi 0.11.0+wasi-snapshot-preview1",
- "wasi-common",
  "wasmtime",
  "wasmtime-wasi",
 ]
@@ -2275,6 +2274,8 @@ name = "wasmtime-rb"
 version = "9.0.4"
 dependencies = [
  "async-timer",
+ "async-trait",
+ "bytes",
  "cap-std",
  "deterministic-wasi-ctx",
  "lazy_static",

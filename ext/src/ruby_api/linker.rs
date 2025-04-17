@@ -54,8 +54,10 @@ impl Linker {
 
         let mut inner: LinkerImpl<StoreData> = LinkerImpl::new(engine.get());
         if wasi {
-            wasi_common::sync::add_to_linker(&mut inner, |s| s.wasi_ctx_mut())
-                .map_err(|e| error!("{}", e))?
+            wasmtime_wasi::preview0::add_to_linker_sync(&mut inner, |s| s.wasi_ctx_mut())
+                .map_err(|e| error!("{}", e))?;
+            wasmtime_wasi::preview1::add_to_linker_sync(&mut inner, |s| s.wasi_ctx_mut())
+                .map_err(|e| error!("{}", e))?;
         }
         Ok(Self {
             inner: RefCell::new(inner),

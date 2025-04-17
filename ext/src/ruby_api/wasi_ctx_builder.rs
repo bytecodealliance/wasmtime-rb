@@ -1,13 +1,15 @@
 use super::{root, WasiCtx};
 use crate::error;
-use crate::helpers::OutputLimitedBuffer;
+use crate::helpers::{FileStdinStream, OutputLimitedBuffer, WritePipe};
 use magnus::{
     class, function, gc::Marker, method, typed_data::Obj, value::Opaque, DataTypeFunctions, Error,
     Module, Object, RArray, RHash, RString, Ruby, TryConvert, TypedData,
 };
 use std::cell::RefCell;
 use std::{fs::File, path::PathBuf};
-use wasi_common::pipe::{ReadPipe, WritePipe};
+use wasmtime_wasi::pipe::MemoryInputPipe;
+use wasmtime_wasi::preview1::WasiP1Ctx;
+use wasmtime_wasi::FileInputStream;
 
 enum ReadStream {
     Inherit,
@@ -47,6 +49,7 @@ struct WasiCtxBuilderInner {
     stderr: Option<WriteStream>,
     env: Option<Opaque<RHash>>,
     args: Option<Opaque<RArray>>,
+    deterministic: bool,
 }
 
 impl WasiCtxBuilderInner {
@@ -222,20 +225,32 @@ impl WasiCtxBuilder {
         rb_self
     }
 
+    /// @yard
+    /// Make the context deterministic. See See https://github.com/Shopify/deterministic-wasi-ctx for more details
+    /// @def add_determinism()
+    /// @return [WasiCtxBuilder] +self+
+    pub fn add_determinism(rb_self: RbSelf) -> RbSelf {
+        let mut inner = rb_self.inner.borrow_mut();
+        inner.deterministic = true;
+        rb_self
+    }
+
     pub fn build(ruby: &Ruby, rb_self: RbSelf) -> Result<WasiCtx, Error> {
-        let mut builder = wasi_common::sync::WasiCtxBuilder::new();
+        let mut builder = wasmtime_wasi::WasiCtxBuilder::new();
         let inner = rb_self.inner.borrow();
 
         if let Some(stdin) = inner.stdin.as_ref() {
             match stdin {
                 ReadStream::Inherit => builder.inherit_stdin(),
-                ReadStream::Path(path) => {
-                    builder.stdin(file_r(ruby.get_inner(*path)).map(wasi_file)?)
-                }
+                ReadStream::Path(path) => builder.stdin(
+                    file_r(ruby.get_inner(*path))
+                        .map(|path| FileStdinStream::new(FileInputStream::new(&path, 0)))?,
+                ),
                 ReadStream::String(input) => {
                     // SAFETY: &[u8] copied before calling in to Ruby, no GC can happen before.
-                    let pipe = ReadPipe::from(unsafe { ruby.get_inner(*input).as_slice() });
-                    builder.stdin(Box::new(pipe))
+                    // TODO is this still safe?
+                    let pipe = MemoryInputPipe::new(unsafe { ruby.get_inner(*input).as_slice() });
+                    builder.stdin(pipe)
                 }
             };
         }
@@ -248,7 +263,7 @@ impl WasiCtxBuilder {
                 }
                 WriteStream::Buffer(buffer, capacity) => {
                     let buf = OutputLimitedBuffer::new(*buffer, *capacity);
-                    builder.stdout(Box::new(WritePipe::new(buf)))
+                    builder.stdout(WritePipe::new(buf))
                 }
             };
         }
@@ -261,7 +276,7 @@ impl WasiCtxBuilder {
                 }
                 WriteStream::Buffer(buffer, capacity) => {
                     let buf = OutputLimitedBuffer::new(*buffer, *capacity);
-                    builder.stderr(Box::new(WritePipe::new(buf)))
+                    builder.stderr(WritePipe::new(buf))
                 }
             };
         }
@@ -272,16 +287,20 @@ impl WasiCtxBuilder {
                 let arg = RString::try_convert(*item)?;
                 // SAFETY: &str copied before calling in to Ruby, no GC can happen before.
                 let arg = unsafe { arg.as_str() }?;
-                builder.arg(arg).map_err(|e| error!("{}", e))?;
+                builder.arg(arg);
             }
         }
 
         if let Some(env_hash) = inner.env.as_ref() {
             let env_vec: Vec<(String, String)> = ruby.get_inner(*env_hash).to_vec()?;
-            builder.envs(&env_vec).map_err(|e| error!("{}", e))?;
+            builder.envs(&env_vec);
         }
 
-        let ctx = WasiCtx::from_inner(builder.build());
+        if inner.deterministic {
+            deterministic_wasi_ctx::add_determinism_to_wasi_ctx_builder(&mut builder);
+        }
+
+        let ctx = WasiCtx::from_inner(builder.build_p1());
         Ok(ctx)
     }
 }
@@ -298,10 +317,8 @@ pub fn file_w(path: RString) -> Result<File, Error> {
         .map_err(|e| error!("Failed to write to file {}\n{}", path, e))
 }
 
-pub fn wasi_file(file: File) -> Box<wasi_common::sync::file::File> {
-    let file = cap_std::fs::File::from_std(file);
-    let file = wasi_common::sync::file::File::from_cap_std(file);
-    Box::new(file)
+pub fn wasi_file(file: File) -> wasmtime_wasi::OutputFile {
+    wasmtime_wasi::OutputFile::new(file)
 }
 
 pub fn init() -> Result<(), Error> {
@@ -338,6 +355,11 @@ pub fn init() -> Result<(), Error> {
     class.define_method("set_env", method!(WasiCtxBuilder::set_env, 1))?;
 
     class.define_method("set_argv", method!(WasiCtxBuilder::set_argv, 1))?;
+
+    class.define_method(
+        "add_determinism",
+        method!(WasiCtxBuilder::add_determinism, 0),
+    )?;
 
     class.define_method("build", method!(WasiCtxBuilder::build, 0))?;
 

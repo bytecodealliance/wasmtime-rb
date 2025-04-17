@@ -15,11 +15,12 @@ use rb_sys::tracking_allocator::{ManuallyTracked, TrackingAllocator};
 use std::borrow::Borrow;
 use std::cell::UnsafeCell;
 use std::convert::TryFrom;
-use wasi_common::{I32Exit, WasiCtx as WasiCtxImpl};
 use wasmtime::{
     AsContext, AsContextMut, ResourceLimiter, Store as StoreImpl, StoreContext, StoreContextMut,
     StoreLimits, StoreLimitsBuilder,
 };
+use wasmtime_wasi::preview1::WasiP1Ctx as WasiCtxImpl;
+use wasmtime_wasi::I32Exit;
 
 define_rb_intern!(
     WASI_CTX => "wasi_ctx",

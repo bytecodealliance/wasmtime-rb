@@ -19,6 +19,8 @@ ruby-api = []
 winch = ["wasmtime/winch"]
 
 [dependencies]
+async-trait = "*"
+bytes = "*"
 lazy_static = "1.5.0"
 magnus = { version = "0.7", features = ["rb-sys"] }
 rb-sys = { version = "*", default-features = false, features = [
@@ -40,7 +42,7 @@ async-timer = { version = "1.0.0-beta.15", features = [
 ], optional = true }
 static_assertions = "1.1.0"
 wasmtime-environ = "=31.0.0"
-deterministic-wasi-ctx = "=0.1.34"
+deterministic-wasi-ctx = "=1.0.0"
 
 [build-dependencies]
 rb-sys-env = "0.2.2"

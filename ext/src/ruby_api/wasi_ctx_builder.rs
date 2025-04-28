@@ -1,11 +1,14 @@
 use super::{root, WasiCtx};
 use crate::error;
 use crate::helpers::OutputLimitedBuffer;
+use cap_std::fs::Dir;
 use magnus::{
     class, function, gc::Marker, method, typed_data::Obj, value::Opaque, DataTypeFunctions, Error,
     Module, Object, RArray, RHash, RString, Ruby, TryConvert, TypedData,
 };
+use rb_sys::ruby_rarray_flags::RARRAY_EMBED_FLAG;
 use std::cell::RefCell;
+use std::path::Path;
 use std::{fs::File, path::PathBuf};
 use wasi_common::pipe::{ReadPipe, WritePipe};
 
@@ -47,6 +50,7 @@ struct WasiCtxBuilderInner {
     stderr: Option<WriteStream>,
     env: Option<Opaque<RHash>>,
     args: Option<Opaque<RArray>>,
+    mapped_directories: Option<Opaque<RArray>>,
 }
 
 impl WasiCtxBuilderInner {
@@ -64,6 +68,9 @@ impl WasiCtxBuilderInner {
             marker.mark(*v);
         }
         if let Some(v) = self.args.as_ref() {
+            marker.mark(*v);
+        }
+        if let Some(v) = self.mapped_directories.as_ref() {
             marker.mark(*v);
         }
     }
@@ -222,6 +229,31 @@ impl WasiCtxBuilder {
         rb_self
     }
 
+    /// @yard
+    /// Set mapped directory for host path and guest path.
+    /// @param host_path [String]
+    /// @param guest_path [String]
+    /// @def set_mapped_directory(host_path, guest_path)
+    /// @return [WasiCtxBuilder] +self+
+    pub fn set_mapped_directory(
+        rb_self: RbSelf,
+        host_path: RString,
+        guest_path: RString,
+    ) -> RbSelf {
+        let mut inner = rb_self.inner.borrow_mut();
+        if inner.mapped_directories.is_none() {
+            inner.mapped_directories = Some(RArray::new().into());
+        }
+        let mapped_directory = RArray::new();
+        mapped_directory.push(host_path).unwrap();
+        mapped_directory.push(guest_path).unwrap();
+
+        let ruby = Ruby::get().unwrap();
+        let mapped_directories = ruby.get_inner(inner.mapped_directories.unwrap());
+        mapped_directories.push(mapped_directory).unwrap();
+        rb_self
+    }
+
     pub fn build(ruby: &Ruby, rb_self: RbSelf) -> Result<WasiCtx, Error> {
         let mut builder = wasi_common::sync::WasiCtxBuilder::new();
         let inner = rb_self.inner.borrow();
@@ -281,6 +313,25 @@ impl WasiCtxBuilder {
             builder.envs(&env_vec).map_err(|e| error!("{}", e))?;
         }
 
+        if let Some(mapped_directories) = inner.mapped_directories.as_ref() {
+            for item in unsafe { ruby.get_inner(*mapped_directories).as_slice() } {
+                let mapped_directory = RArray::try_convert(*item)?;
+                if mapped_directory.len() == 2 {
+                    let host_path =
+                        RString::try_convert(mapped_directory.entry(0)?)?.to_string()?;
+                    let guest_path =
+                        RString::try_convert(mapped_directory.entry(1)?)?.to_string()?;
+
+                    let host_path_dir = Dir::from_std_file(File::open(host_path).unwrap());
+                    let guest_path_path = PathBuf::from(guest_path.as_str());
+
+                    builder
+                        .preopened_dir(host_path_dir, guest_path_path)
+                        .map_err(|e| error!("{}", e))?;
+                }
+            }
+        }
+
         let ctx = WasiCtx::from_inner(builder.build());
         Ok(ctx)
     }
@@ -338,6 +389,11 @@ pub fn init() -> Result<(), Error> {
     class.define_method("set_env", method!(WasiCtxBuilder::set_env, 1))?;
 
     class.define_method("set_argv", method!(WasiCtxBuilder::set_argv, 1))?;
+
+    class.define_method(
+        "set_mapped_directory",
+        method!(WasiCtxBuilder::set_mapped_directory, 2),
+    )?;
 
     class.define_method("build", method!(WasiCtxBuilder::build, 0))?;
 

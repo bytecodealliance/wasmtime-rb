@@ -24,7 +24,7 @@ magnus = { version = "0.7", features = ["rb-sys"] }
 rb-sys = { version = "*", default-features = false, features = [
   "stable-api-compiled-fallback",
 ] }
-wasmtime = { version = "=31.0.0", features = ["memory-protection-keys"] }
+wasmtime = { version = "=32.0.0", features = ["memory-protection-keys"] }
 wasmtime-wasi = "=31.0.0"
 wasi-common = "=31.0.0"
 cap-std = "3.4.0"

@@ -1,5 +1,13 @@
 # Changelog
 
+## [v32.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v32.0.0) (2025-06-03)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v31.0.0...v32.0.0)
+
+**Merged pull requests:**
+
+- Bump `wasmtime` to version 32 [\#457](https://github.com/bytecodealliance/wasmtime-rb/pull/457) ([saulecabrera](https://github.com/saulecabrera))
+
 ## [v31.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v31.0.0) (2025-04-09)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v30.0.2...v31.0.0)

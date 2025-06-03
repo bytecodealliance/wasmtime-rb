@@ -38,7 +38,7 @@ module Wasmtime
       end
 
       profiler_options = [:none]
-      profiler_options.push(:jitdump, :vtune) if Gem::Platform.local.os == "linux"
+      profiler_options.push(:vtune) # :jitdump, :vtune) if Gem::Platform.local.os == "linux"
 
       # enum options represented as symbols
       [

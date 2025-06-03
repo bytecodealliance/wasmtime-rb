@@ -18,7 +18,7 @@ module Wasmtime
       it "includes the backtrace" do
         expect(trap.wasm_backtrace_message).to eq(<<~MSG.rstrip)
           error while executing at wasm backtrace:
-              0:   0x1a - <unknown>!<wasm function 0>
+              0:     0x1a - <unknown>!<wasm function 0>
         MSG
       end
     end

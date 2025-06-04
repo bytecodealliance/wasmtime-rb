@@ -1,6 +1,6 @@
 use super::errors::wasi_exit_error;
-use super::{caller::Caller, engine::Engine, root, trap::Trap, wasi_ctx::WasiCtx};
-use crate::{define_rb_intern, error};
+use super::{caller::Caller, engine::Engine, root, trap::Trap};
+use crate::{define_rb_intern, error, WasiConfig};
 use magnus::value::StaticSymbol;
 use magnus::{
     class, function,
@@ -15,20 +15,21 @@ use rb_sys::tracking_allocator::{ManuallyTracked, TrackingAllocator};
 use std::borrow::Borrow;
 use std::cell::UnsafeCell;
 use std::convert::TryFrom;
-use wasi_common::{I32Exit, WasiCtx as WasiCtxImpl};
 use wasmtime::{
     AsContext, AsContextMut, ResourceLimiter, Store as StoreImpl, StoreContext, StoreContextMut,
     StoreLimits, StoreLimitsBuilder,
 };
+use wasmtime_wasi::preview1::WasiP1Ctx;
+use wasmtime_wasi::I32Exit;
 
 define_rb_intern!(
-    WASI_CTX => "wasi_ctx",
+    WASI_CONFIG => "wasi_config",
     LIMITS => "limits",
 );
 
 pub struct StoreData {
     user_data: Value,
-    wasi: Option<WasiCtxImpl>,
+    wasi: Option<WasiP1Ctx>,
     refs: Vec<Value>,
     last_error: Option<Error>,
     store_limits: TrackingResourceLimiter,
@@ -43,7 +44,7 @@ impl StoreData {
         self.wasi.is_some()
     }
 
-    pub fn wasi_ctx_mut(&mut self) -> &mut WasiCtxImpl {
+    pub fn wasi_ctx_mut(&mut self) -> &mut WasiP1Ctx {
         self.wasi.as_mut().expect("Store must have a WASI context")
     }
 
@@ -107,13 +108,13 @@ unsafe impl Send for StoreData {}
 impl Store {
     /// @yard
     ///
-    /// @def new(engine, data = nil, wasi_ctx: nil, limits: nil)
+    /// @def new(engine, data = nil, wasi_config: nil, limits: nil)
     /// @param engine [Wasmtime::Engine]
     ///   The engine for this store.
     /// @param data [Object]
     ///   The data attached to the store. Can be retrieved through {Wasmtime::Store#data} and {Wasmtime::Caller#data}.
-    /// @param wasi_ctx [Wasmtime::WasiCtxBuilder]
-    ///   The WASI context to use in this store.
+    /// @param wasi_config [Wasmtime::WasiConfig]
+    ///   The WASI config to use in this store.
     /// @param limits [Hash]
     ///   See the {https://docs.rs/wasmtime/latest/wasmtime/struct.StoreLimitsBuilder.html +StoreLimitsBuilder+'s Rust doc}
     ///   for detailed description of the different options and the defaults.
@@ -135,17 +136,19 @@ impl Store {
     /// @example
     ///   store = Wasmtime::Store.new(Wasmtime::Engine.new, {})
     pub fn new(args: &[Value]) -> Result<Self, Error> {
+        let ruby = Ruby::get().unwrap();
         let args = scan_args::scan_args::<(&Engine,), (Option<Value>,), (), (), _, ()>(args)?;
-        let kw = scan_args::get_kwargs::<_, (), (Option<&WasiCtx>, Option<RHash>), ()>(
+        let kw = scan_args::get_kwargs::<_, (), (Option<&WasiConfig>, Option<RHash>), ()>(
             args.keywords,
             &[],
-            &[*WASI_CTX, *LIMITS],
+            &[*WASI_CONFIG, *LIMITS],
         )?;
 
         let (engine,) = args.required;
         let (user_data,) = args.optional;
         let user_data = user_data.unwrap_or_else(|| ().into_value());
-        let wasi = kw.optional.0.map(|wasi_ctx| wasi_ctx.get_inner());
+        let wasi_config = kw.optional.0;
+        let wasi = wasi_config.map(|config| config.build(&ruby)).transpose()?;
 
         let limiter = match kw.optional.1 {
             None => StoreLimitsBuilder::new(),

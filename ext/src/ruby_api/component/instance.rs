@@ -77,6 +77,7 @@ impl Instance {
         let index = if let Some(name) = RString::from_value(handle) {
             self.inner
                 .get_export(self.store.context_mut(), None, unsafe { name.as_str()? })
+                .map(|(_, index)| index)
         } else if let Some(names) = RArray::from_value(handle) {
             unsafe { names.as_slice() }
                 .iter()
@@ -87,7 +88,8 @@ impl Instance {
                         .inner
                         .get_export(self.store.context_mut(), index.as_ref(), unsafe {
                             name.as_str()?
-                        }))
+                        })
+                        .map(|(_, index)| index))
                 })?
         } else {
             return Err(invalid_arg());

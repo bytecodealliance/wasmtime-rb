@@ -1,5 +1,17 @@
 # Changelog
 
+## [v33.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v33.0.0) (2025-06-04)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v32.0.0...v33.0.0)
+
+**Merged pull requests:**
+
+- Bump Wasmtime to version 33 [\#465](https://github.com/bytecodealliance/wasmtime-rb/pull/465) ([jeffcharles](https://github.com/jeffcharles))
+- chore\(deps-dev\): bump standard from 1.47.0 to 1.50.0 [\#464](https://github.com/bytecodealliance/wasmtime-rb/pull/464) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump rspec from 3.13.0 to 3.13.1 [\#463](https://github.com/bytecodealliance/wasmtime-rb/pull/463) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump fiddle from 1.1.6 to 1.1.8 [\#456](https://github.com/bytecodealliance/wasmtime-rb/pull/456) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump rake-compiler from 1.2.9 to 1.3.0 [\#454](https://github.com/bytecodealliance/wasmtime-rb/pull/454) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v32.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v32.0.0) (2025-06-03)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v31.0.0...v32.0.0)

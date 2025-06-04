@@ -54,11 +54,8 @@ impl Linker {
 
         let mut inner: LinkerImpl<StoreData> = LinkerImpl::new(engine.get());
         if wasi {
-            wasi_common::sync::snapshots::preview_1::add_wasi_snapshot_preview1_to_linker(
-                &mut inner,
-                |s| s.wasi_ctx_mut(),
-            )
-            .map_err(|e| error!("{}", e))?
+            wasmtime_wasi::preview1::add_to_linker_sync(&mut inner, |s| s.wasi_ctx_mut())
+                .map_err(|e| error!("{}", e))?
         }
         Ok(Self {
             inner: RefCell::new(inner),
@@ -288,8 +285,8 @@ impl Linker {
                 "Store is missing WASI configuration.\n\n\
                 When using `wasi: true`, the Store given to\n\
                 `Linker#instantiate` must have a WASI configuration.\n\
-                To fix this, provide the `wasi_ctx` when creating the Store:\n\
-                    Wasmtime::Store.new(engine, wasi_ctx: WasiCtxBuilder.new)"
+                To fix this, provide the `wasi_config` when creating the Store:\n\
+                    Wasmtime::Store.new(engine, wasi_config: WasiConfig.new)"
             );
         }
 
@@ -316,6 +313,15 @@ impl Linker {
             .map(|func| Func::from_inner(store.into(), func))
             .map_err(|e| error!("{}", e))
     }
+
+    /// @yard
+    /// Replaces the `poll_oneoff` and `sched_yield` function implementations
+    /// with deterministic ones.
+    /// @return [void]
+    pub fn use_deterministic_scheduling_functions(&self) -> Result<(), Error> {
+        let mut inner = self.inner.borrow_mut();
+        deterministic_wasi_ctx::replace_scheduling_functions(&mut inner).map_err(|e| error!("{e}"))
+    }
 }
 
 pub fn init() -> Result<(), Error> {
@@ -339,6 +345,10 @@ pub fn init() -> Result<(), Error> {
     class.define_method("alias_module", method!(Linker::alias_module, 2))?;
     class.define_method("instantiate", method!(Linker::instantiate, 2))?;
     class.define_method("get_default", method!(Linker::get_default, 2))?;
+    class.define_method(
+        "use_deterministic_scheduling_functions",
+        method!(Linker::use_deterministic_scheduling_functions, 0),
+    )?;
 
     Ok(())
 }

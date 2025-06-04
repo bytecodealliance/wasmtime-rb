@@ -1,6 +1,6 @@
 [package]
 name = "wasmtime-rb"
-version = "9.0.4"
+version = "10.0.0"
 edition = "2021"
 authors = ["The Wasmtime Project Developers"]
 license = "Apache-2.0"
@@ -17,6 +17,8 @@ all-arch = ["wasmtime/all-arch"]
 winch = ["wasmtime/winch"]
 
 [dependencies]
+async-trait = "*" # Needed for `OutputLimitedBuffer`. Use wasmtime's version.
+bytes = "*" # Needed for `OutputLimitedBuffer`. Use wasmtime's version.
 lazy_static = "1.5.0"
 magnus = { version = "0.7", features = ["rb-sys"] }
 rb-sys = { version = "*", default-features = false, features = [
@@ -24,7 +26,6 @@ rb-sys = { version = "*", default-features = false, features = [
 ] }
 wasmtime = { version = "=33.0.0", features = ["memory-protection-keys"] }
 wasmtime-wasi = "=33.0.0"
-wasi-common = "=33.0.0"
 cap-std = "3.4.0"
 wat = "1.227.1"
 tokio = { version = "1.40.0", features = [
@@ -38,7 +39,7 @@ async-timer = { version = "1.0.0-beta.15", features = [
 ], optional = true }
 static_assertions = "1.1.0"
 wasmtime-environ = "=33.0.0"
-deterministic-wasi-ctx = { version = "=1.2.1", features = ["wasi-common"] }
+deterministic-wasi-ctx = { version = "=1.2.1" }
 
 [build-dependencies]
 rb-sys-env = "0.2.2"

@@ -9,12 +9,11 @@ linker = Wasmtime::Linker.new(engine, wasi: true)
 mod1 = Wasmtime::Module.from_file(engine, "examples/linking1.wat")
 mod2 = Wasmtime::Module.from_file(engine, "examples/linking2.wat")
 
-wasi_ctx_builder = Wasmtime::WasiCtxBuilder.new
+wasi_config = Wasmtime::WasiConfig.new
   .inherit_stdin
   .inherit_stdout
-  .build
 
-store = Wasmtime::Store.new(engine, wasi_ctx: wasi_ctx_builder)
+store = Wasmtime::Store.new(engine, wasi_config: wasi_config)
 
 # Instantiate `mod2` which only uses WASI, then register
 # that instance with the linker so `mod1` can use it.

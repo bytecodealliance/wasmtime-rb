@@ -65,9 +65,6 @@ jobs:
 
       - name: Run examples
         run: bundle exec rake examples
-        # The example is failing with dyld errors, it's unlikely that this is
-        # something related to wasmtime-rb itself. Disabling for now.
-        if: matrix.os != 'macos-latest' && matrix.ruby != '3.1'
 
       - name: Run benchmarks
         run: bundle exec rake bench:all

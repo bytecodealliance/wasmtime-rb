@@ -27,8 +27,7 @@ mod pooling_allocation_config;
 mod store;
 mod table;
 mod trap;
-mod wasi_ctx;
-mod wasi_ctx_builder;
+mod wasi_config;
 
 pub use caller::Caller;
 pub use engine::Engine;
@@ -41,8 +40,7 @@ pub use params::Params;
 pub use pooling_allocation_config::PoolingAllocationConfig;
 pub use store::Store;
 pub use trap::Trap;
-pub use wasi_ctx::WasiCtx;
-pub use wasi_ctx_builder::WasiCtxBuilder;
+pub use wasi_config::WasiConfig;
 
 /// The "Wasmtime" Ruby module.
 pub fn root() -> RModule {
@@ -85,10 +83,9 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
     memory::init(ruby)?;
     linker::init()?;
     externals::init()?;
-    wasi_ctx_builder::init()?;
+    wasi_config::init()?;
     table::init()?;
     global::init()?;
-    wasi_ctx::init()?;
     pooling_allocation_config::init()?;
     component::init(ruby)?;
 

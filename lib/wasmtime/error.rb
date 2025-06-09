@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-# To prevent double loading of this file when `ruby-api` is enabled
-return if defined?(Wasmtime::Error)
-
 module Wasmtime
   class Error < StandardError; end
 

@@ -12,10 +12,8 @@ unexpected_cfgs = { level = "warn", check-cfg = ['cfg(ruby_gte_3_0)'] }
 
 [features]
 default = ["tokio", "all-arch", "winch"]
-embed = ["magnus/embed"]
 tokio = ["dep:tokio", "dep:async-timer"]
 all-arch = ["wasmtime/all-arch"]
-ruby-api = []
 winch = ["wasmtime/winch"]
 
 [dependencies]

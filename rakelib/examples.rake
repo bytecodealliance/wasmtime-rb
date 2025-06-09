@@ -12,15 +12,6 @@ namespace :examples do
 
     task all: task_name
   end
-
-  desc "Run rust-crate/"
-  task :rust_crate do
-    Dir.chdir("examples/rust-crate") do
-      sh "cargo test"
-    end
-  end
-
-  task all: :rust_crate
 end
 
 desc "Run all the examples"

@@ -1,6 +1,3 @@
-# To prevent double loading of this file when `ruby-api` is enabled
-return if defined?(Wasmtime::Component::Result)
-
 module Wasmtime
   module Component
     # Represents a component model's +result<O, E>+ type.

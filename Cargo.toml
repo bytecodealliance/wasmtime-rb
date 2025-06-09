@@ -2,7 +2,6 @@
 resolver = "2"
 members = ["ext"]
 exclude = [
-    "examples/rust-crate",
     "spec/fixtures/component-types",
     "spec/fixtures/wasi-debug",
     "spec/fixtures/wasi-deterministic",
@@ -10,5 +9,5 @@ exclude = [
 
 [profile.release]
 codegen-units = 1 # more llvm optimizations
-debug = 2 # make perfomance engineers happy
-lto = "thin" # cross-crate inlining
+debug = 2         # make perfomance engineers happy
+lto = "thin"      # cross-crate inlining

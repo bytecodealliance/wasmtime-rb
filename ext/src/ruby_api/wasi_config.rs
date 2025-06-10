@@ -1,4 +1,4 @@
-use super::{root, WasiCtx};
+use super::root;
 use crate::error;
 use crate::helpers::OutputLimitedBuffer;
 use magnus::{
@@ -6,8 +6,11 @@ use magnus::{
     Module, Object, RArray, RHash, RString, Ruby, TryConvert, TypedData,
 };
 use std::cell::RefCell;
+use std::fs;
 use std::{fs::File, path::PathBuf};
-use wasi_common::pipe::{ReadPipe, WritePipe};
+use wasmtime_wasi::p2::pipe::MemoryInputPipe;
+use wasmtime_wasi::p2::{OutputFile, WasiCtxBuilder};
+use wasmtime_wasi::preview1::WasiP1Ctx;
 
 enum ReadStream {
     Inherit,
@@ -41,15 +44,16 @@ impl WriteStream {
 }
 
 #[derive(Default)]
-struct WasiCtxBuilderInner {
+struct WasiConfigInner {
     stdin: Option<ReadStream>,
     stdout: Option<WriteStream>,
     stderr: Option<WriteStream>,
     env: Option<Opaque<RHash>>,
     args: Option<Opaque<RArray>>,
+    deterministic: bool,
 }
 
-impl WasiCtxBuilderInner {
+impl WasiConfigInner {
     pub fn mark(&self, marker: &Marker) {
         if let Some(v) = self.stdin.as_ref() {
             v.mark(marker);
@@ -70,39 +74,46 @@ impl WasiCtxBuilderInner {
 }
 
 /// @yard
-/// WASI context builder to be sent as {Store#new}’s +wasi_ctx+ keyword argument.
+/// WASI config to be sent as {Store#new}’s +wasi_config+ keyword argument.
 ///
 /// Instance methods mutate the current object and return +self+.
 ///
-/// @see https://docs.rs/wasmtime-wasi/latest/wasmtime_wasi/sync/struct.WasiCtxBuilder.html
-///   Wasmtime's Rust doc
 // #[derive(Debug)]
 #[derive(Default, TypedData)]
-#[magnus(class = "Wasmtime::WasiCtxBuilder", size, mark, free_immediately)]
-pub struct WasiCtxBuilder {
-    inner: RefCell<WasiCtxBuilderInner>,
+#[magnus(class = "Wasmtime::WasiConfig", size, mark, free_immediately)]
+pub struct WasiConfig {
+    inner: RefCell<WasiConfigInner>,
 }
 
-impl DataTypeFunctions for WasiCtxBuilder {
+impl DataTypeFunctions for WasiConfig {
     fn mark(&self, marker: &Marker) {
         self.inner.borrow().mark(marker);
     }
 }
 
-type RbSelf = Obj<WasiCtxBuilder>;
+type RbSelf = Obj<WasiConfig>;
 
-impl WasiCtxBuilder {
+impl WasiConfig {
     /// @yard
-    /// Create a new {WasiCtxBuilder}. By default, it has nothing: no stdin/out/err,
+    /// Create a new {WasiConfig}. By default, it has nothing: no stdin/out/err,
     /// no env, no argv, no file access.
-    /// @return [WasiCtxBuilder]
+    /// @return [WasiConfig]
     pub fn new() -> Self {
         Self::default()
     }
 
     /// @yard
+    /// Use deterministic implementations for clocks and random methods.
+    /// @return [WasiConfig] +self+
+    pub fn add_determinism(rb_self: RbSelf) -> RbSelf {
+        let mut inner = rb_self.inner.borrow_mut();
+        inner.deterministic = true;
+        rb_self
+    }
+
+    /// @yard
     /// Inherit stdin from the current Ruby process.
-    /// @return [WasiCtxBuilder] +self+
+    /// @return [WasiConfig] +self+
     pub fn inherit_stdin(rb_self: RbSelf) -> RbSelf {
         let mut inner = rb_self.inner.borrow_mut();
         inner.stdin = Some(ReadStream::Inherit);
@@ -113,7 +124,7 @@ impl WasiCtxBuilder {
     /// Set stdin to read from the specified file.
     /// @param path [String] The path of the file to read from.
     /// @def set_stdin_file(path)
-    /// @return [WasiCtxBuilder] +self+
+    /// @return [WasiConfig] +self+
     pub fn set_stdin_file(rb_self: RbSelf, path: RString) -> RbSelf {
         let mut inner = rb_self.inner.borrow_mut();
         inner.stdin = Some(ReadStream::Path(path.into()));
@@ -124,7 +135,7 @@ impl WasiCtxBuilder {
     /// Set stdin to the specified String.
     /// @param content [String]
     /// @def set_stdin_string(content)
-    /// @return [WasiCtxBuilder] +self+
+    /// @return [WasiConfig] +self+
     pub fn set_stdin_string(rb_self: RbSelf, content: RString) -> RbSelf {
         let mut inner = rb_self.inner.borrow_mut();
         inner.stdin = Some(ReadStream::String(content.into()));
@@ -133,7 +144,7 @@ impl WasiCtxBuilder {
 
     /// @yard
     /// Inherit stdout from the current Ruby process.
-    /// @return [WasiCtxBuilder] +self+
+    /// @return [WasiConfig] +self+
     pub fn inherit_stdout(rb_self: RbSelf) -> RbSelf {
         let mut inner = rb_self.inner.borrow_mut();
         inner.stdout = Some(WriteStream::Inherit);
@@ -145,7 +156,7 @@ impl WasiCtxBuilder {
     /// otherwise try to create it.
     /// @param path [String] The path of the file to write to.
     /// @def set_stdout_file(path)
-    /// @return [WasiCtxBuilder] +self+
+    /// @return [WasiConfig] +self+
     pub fn set_stdout_file(rb_self: RbSelf, path: RString) -> RbSelf {
         let mut inner = rb_self.inner.borrow_mut();
         inner.stdout = Some(WriteStream::Path(path.into()));
@@ -159,7 +170,7 @@ impl WasiCtxBuilder {
     /// @param buffer [String] The string buffer to write to.
     /// @param capacity [Integer] The maximum number of bytes that can be written to the output buffer.
     /// @def set_stdout_buffer(buffer, capacity)
-    /// @return [WasiCtxBuilder] +self+
+    /// @return [WasiConfig] +self+
     pub fn set_stdout_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -> RbSelf {
         let mut inner = rb_self.inner.borrow_mut();
         inner.stdout = Some(WriteStream::Buffer(buffer.into(), capacity));
@@ -168,7 +179,7 @@ impl WasiCtxBuilder {
 
     /// @yard
     /// Inherit stderr from the current Ruby process.
-    /// @return [WasiCtxBuilder] +self+
+    /// @return [WasiConfig] +self+
     pub fn inherit_stderr(rb_self: RbSelf) -> RbSelf {
         let mut inner = rb_self.inner.borrow_mut();
         inner.stderr = Some(WriteStream::Inherit);
@@ -180,7 +191,7 @@ impl WasiCtxBuilder {
     /// otherwise try to create it.
     /// @param path [String] The path of the file to write to.
     /// @def set_stderr_file(path)
-    /// @return [WasiCtxBuilder] +self+
+    /// @return [WasiConfig] +self+
     pub fn set_stderr_file(rb_self: RbSelf, path: RString) -> RbSelf {
         let mut inner = rb_self.inner.borrow_mut();
         inner.stderr = Some(WriteStream::Path(path.into()));
@@ -194,7 +205,7 @@ impl WasiCtxBuilder {
     /// @param buffer [String] The string buffer to write to.
     /// @param capacity [Integer] The maximum number of bytes that can be written to the output buffer.
     /// @def set_stderr_buffer(buffer, capacity)
-    /// @return [WasiCtxBuilder] +self+
+    /// @return [WasiConfig] +self+
     pub fn set_stderr_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -> RbSelf {
         let mut inner = rb_self.inner.borrow_mut();
         inner.stderr = Some(WriteStream::Buffer(buffer.into(), capacity));
@@ -204,7 +215,7 @@ impl WasiCtxBuilder {
     /// Set env to the specified +Hash+.
     /// @param env [Hash<String, String>]
     /// @def set_env(env)
-    /// @return [WasiCtxBuilder] +self+
+    /// @return [WasiConfig] +self+
     pub fn set_env(rb_self: RbSelf, env: RHash) -> RbSelf {
         let mut inner = rb_self.inner.borrow_mut();
         inner.env = Some(env.into());
@@ -215,27 +226,38 @@ impl WasiCtxBuilder {
     /// Set the arguments (argv) to the specified +Array+.
     /// @param args [Array<String>]
     /// @def set_argv(args)
-    /// @return [WasiCtxBuilder] +self+
+    /// @return [WasiConfig] +self+
     pub fn set_argv(rb_self: RbSelf, argv: RArray) -> RbSelf {
         let mut inner = rb_self.inner.borrow_mut();
         inner.args = Some(argv.into());
         rb_self
     }
 
-    pub fn build(ruby: &Ruby, rb_self: RbSelf) -> Result<WasiCtx, Error> {
-        let mut builder = wasi_common::sync::WasiCtxBuilder::new();
-        let inner = rb_self.inner.borrow();
+    pub fn build(&self, ruby: &Ruby) -> Result<WasiP1Ctx, Error> {
+        let mut builder = WasiCtxBuilder::new();
+        let inner = self.inner.borrow();
 
         if let Some(stdin) = inner.stdin.as_ref() {
             match stdin {
                 ReadStream::Inherit => builder.inherit_stdin(),
                 ReadStream::Path(path) => {
-                    builder.stdin(file_r(ruby.get_inner(*path)).map(wasi_file)?)
+                    // Reading the whole file into memory and passing it as an
+                    // in-memory buffer because I cannot find a public struct
+                    // to use a file as an input that implements `StdinStream`
+                    // and the implementation would not be trivial.
+                    // TODO: Use
+                    // https://github.com/bytecodealliance/wasmtime/pull/10968
+                    // when it's in a published version.
+                    // SAFETY: &[u8] copied before calling in to Ruby, no GC can happen before.
+                    let inner = ruby.get_inner(*path);
+                    let path = PathBuf::from(unsafe { inner.as_str() }?);
+                    let contents = fs::read(path).map_err(|e| error!("{e}"))?;
+                    builder.stdin(MemoryInputPipe::new(contents))
                 }
                 ReadStream::String(input) => {
                     // SAFETY: &[u8] copied before calling in to Ruby, no GC can happen before.
-                    let pipe = ReadPipe::from(unsafe { ruby.get_inner(*input).as_slice() });
-                    builder.stdin(Box::new(pipe))
+                    let inner = ruby.get_inner(*input);
+                    builder.stdin(MemoryInputPipe::new(unsafe { inner.as_slice() }.to_vec()))
                 }
             };
         }
@@ -244,11 +266,10 @@ impl WasiCtxBuilder {
             match stdout {
                 WriteStream::Inherit => builder.inherit_stdout(),
                 WriteStream::Path(path) => {
-                    builder.stdout(file_w(ruby.get_inner(*path)).map(wasi_file)?)
+                    builder.stdout(file_w(ruby.get_inner(*path)).map(OutputFile::new)?)
                 }
                 WriteStream::Buffer(buffer, capacity) => {
-                    let buf = OutputLimitedBuffer::new(*buffer, *capacity);
-                    builder.stdout(Box::new(WritePipe::new(buf)))
+                    builder.stdout(OutputLimitedBuffer::new(*buffer, *capacity))
                 }
             };
         }
@@ -257,11 +278,10 @@ impl WasiCtxBuilder {
             match stderr {
                 WriteStream::Inherit => builder.inherit_stderr(),
                 WriteStream::Path(path) => {
-                    builder.stderr(file_w(ruby.get_inner(*path)).map(wasi_file)?)
+                    builder.stderr(file_w(ruby.get_inner(*path)).map(OutputFile::new)?)
                 }
                 WriteStream::Buffer(buffer, capacity) => {
-                    let buf = OutputLimitedBuffer::new(*buffer, *capacity);
-                    builder.stderr(Box::new(WritePipe::new(buf)))
+                    builder.stderr(OutputLimitedBuffer::new(*buffer, *capacity))
                 }
             };
         }
@@ -272,24 +292,22 @@ impl WasiCtxBuilder {
                 let arg = RString::try_convert(*item)?;
                 // SAFETY: &str copied before calling in to Ruby, no GC can happen before.
                 let arg = unsafe { arg.as_str() }?;
-                builder.arg(arg).map_err(|e| error!("{}", e))?;
+                builder.arg(arg);
             }
         }
 
         if let Some(env_hash) = inner.env.as_ref() {
             let env_vec: Vec<(String, String)> = ruby.get_inner(*env_hash).to_vec()?;
-            builder.envs(&env_vec).map_err(|e| error!("{}", e))?;
+            builder.envs(&env_vec);
         }
 
-        let ctx = WasiCtx::from_inner(builder.build());
+        if inner.deterministic {
+            deterministic_wasi_ctx::add_determinism_to_wasi_ctx_builder(&mut builder);
+        }
+
+        let ctx = builder.build_p1();
         Ok(ctx)
     }
-}
-
-pub fn file_r(path: RString) -> Result<File, Error> {
-    // SAFETY: &str copied before calling in to Ruby, no GC can happen before.
-    File::open(PathBuf::from(unsafe { path.as_str()? }))
-        .map_err(|e| error!("Failed to open file {}\n{}", path, e))
 }
 
 pub fn file_w(path: RString) -> Result<File, Error> {
@@ -298,48 +316,33 @@ pub fn file_w(path: RString) -> Result<File, Error> {
         .map_err(|e| error!("Failed to write to file {}\n{}", path, e))
 }
 
-pub fn wasi_file(file: File) -> Box<wasi_common::sync::file::File> {
-    let file = cap_std::fs::File::from_std(file);
-    let file = wasi_common::sync::file::File::from_cap_std(file);
-    Box::new(file)
-}
-
 pub fn init() -> Result<(), Error> {
-    let class = root().define_class("WasiCtxBuilder", class::object())?;
-    class.define_singleton_method("new", function!(WasiCtxBuilder::new, 0))?;
+    let class = root().define_class("WasiConfig", class::object())?;
+    class.define_singleton_method("new", function!(WasiConfig::new, 0))?;
 
-    class.define_method("inherit_stdin", method!(WasiCtxBuilder::inherit_stdin, 0))?;
-    class.define_method("set_stdin_file", method!(WasiCtxBuilder::set_stdin_file, 1))?;
-    class.define_method(
-        "set_stdin_string",
-        method!(WasiCtxBuilder::set_stdin_string, 1),
-    )?;
+    class.define_method("add_determinism", method!(WasiConfig::add_determinism, 0))?;
 
-    class.define_method("inherit_stdout", method!(WasiCtxBuilder::inherit_stdout, 0))?;
-    class.define_method(
-        "set_stdout_file",
-        method!(WasiCtxBuilder::set_stdout_file, 1),
-    )?;
+    class.define_method("inherit_stdin", method!(WasiConfig::inherit_stdin, 0))?;
+    class.define_method("set_stdin_file", method!(WasiConfig::set_stdin_file, 1))?;
+    class.define_method("set_stdin_string", method!(WasiConfig::set_stdin_string, 1))?;
+
+    class.define_method("inherit_stdout", method!(WasiConfig::inherit_stdout, 0))?;
+    class.define_method("set_stdout_file", method!(WasiConfig::set_stdout_file, 1))?;
     class.define_method(
         "set_stdout_buffer",
-        method!(WasiCtxBuilder::set_stdout_buffer, 2),
+        method!(WasiConfig::set_stdout_buffer, 2),
     )?;
 
-    class.define_method("inherit_stderr", method!(WasiCtxBuilder::inherit_stderr, 0))?;
-    class.define_method(
-        "set_stderr_file",
-        method!(WasiCtxBuilder::set_stderr_file, 1),
-    )?;
+    class.define_method("inherit_stderr", method!(WasiConfig::inherit_stderr, 0))?;
+    class.define_method("set_stderr_file", method!(WasiConfig::set_stderr_file, 1))?;
     class.define_method(
         "set_stderr_buffer",
-        method!(WasiCtxBuilder::set_stderr_buffer, 2),
+        method!(WasiConfig::set_stderr_buffer, 2),
     )?;
 
-    class.define_method("set_env", method!(WasiCtxBuilder::set_env, 1))?;
+    class.define_method("set_env", method!(WasiConfig::set_env, 1))?;
 
-    class.define_method("set_argv", method!(WasiCtxBuilder::set_argv, 1))?;
-
-    class.define_method("build", method!(WasiCtxBuilder::build, 0))?;
+    class.define_method("set_argv", method!(WasiConfig::set_argv, 1))?;
 
     Ok(())
 }

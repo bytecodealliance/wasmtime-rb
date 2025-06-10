@@ -155,6 +155,14 @@ module Wasmtime
       expect { linker.get_default(store, "mod2") }.to raise_error(Wasmtime::Error, /not a function/)
     end
 
+    it "#use_deterministic_scheduling_functions" do
+      linker = new_linker
+      # The call should succeed as opposed to raising an error
+      # Can't really test this without relying on internal details of
+      # `deterministic-wasi-ctx`
+      linker.use_deterministic_scheduling_functions
+    end
+
     it "GC stresses instance and func" do
       calls = 0
       linker = new_linker

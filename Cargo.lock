@@ -506,7 +506,6 @@ dependencies = [
  "rand_core",
  "rand_pcg",
  "wasi 0.11.0+wasi-snapshot-preview1",
- "wasi-common",
  "wasmtime",
  "wasmtime-wasi",
 ]
@@ -1809,7 +1808,6 @@ version = "0.1.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "784e0ac535deb450455cbfa28a6f0df145ea1bb7ae51b821cf5e7927fdcfbdd0"
 dependencies = [
- "log",
  "pin-project-lite",
  "tracing-attributes",
  "tracing-core",
@@ -1916,31 +1914,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9683f9a5a998d873c0d21fcbe3c083009670149a8fab228644b8bd36b2c48cb3"
 dependencies = [
  "wit-bindgen-rt",
-]
-
-[[package]]
-name = "wasi-common"
-version = "33.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ea808762aaf125e85905f0a47ec7b4bbc9b7c0854f4f5fcfc42615371027938"
-dependencies = [
- "anyhow",
- "bitflags",
- "cap-fs-ext",
- "cap-rand",
- "cap-std",
- "cap-time-ext",
- "fs-set-times",
- "io-extras",
- "io-lifetimes",
- "log",
- "rustix 1.0.7",
- "system-interface",
- "thiserror 2.0.12",
- "tracing",
- "wasmtime",
- "wiggle",
- "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2266,9 +2239,11 @@ dependencies = [
 
 [[package]]
 name = "wasmtime-rb"
-version = "9.0.4"
+version = "33.0.0"
 dependencies = [
  "async-timer",
+ "async-trait",
+ "bytes",
  "cap-std",
  "deterministic-wasi-ctx",
  "lazy_static",
@@ -2277,7 +2252,6 @@ dependencies = [
  "rb-sys-env 0.2.2",
  "static_assertions",
  "tokio",
- "wasi-common",
  "wasmtime",
  "wasmtime-environ",
  "wasmtime-wasi",

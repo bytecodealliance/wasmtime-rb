@@ -4,7 +4,7 @@
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>
-  Class: Wasmtime::WasiCtxBuilder
+  Class: Wasmtime::WasiConfig
   
     &mdash; Documentation by YARD 0.9.37
   
@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="../css/common.css" type="text/css" />
 
 <script type="text/javascript">
-  pathId = "Wasmtime::WasiCtxBuilder";
+  pathId = "Wasmtime::WasiConfig";
   relpath = '../';
 </script>
 
@@ -39,7 +39,7 @@
     <a href="../_index.html">Index (W)</a> &raquo;
     <span class='title'><span class='object_link'><a href="../Wasmtime.html" title="Wasmtime (module)">Wasmtime</a></span></span>
      &raquo; 
-    <span class="title">WasiCtxBuilder</span>
+    <span class="title">WasiConfig</span>
   
 </div>
 
@@ -59,7 +59,7 @@
         <div class="clear"></div>
       </div>
 
-      <div id="content"><h1>Class: Wasmtime::WasiCtxBuilder
+      <div id="content"><h1>Class: Wasmtime::WasiConfig
   
   
   
@@ -74,7 +74,7 @@
         <ul class="fullTree">
           <li>Object</li>
           
-            <li class="next">Wasmtime::WasiCtxBuilder</li>
+            <li class="next">Wasmtime::WasiConfig</li>
           
         </ul>
         <a href="#" class="inheritanceTree">show all</a>
@@ -94,7 +94,7 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>ext/src/ruby_api/wasi_ctx_builder.rs</dd>
+    <dd>ext/src/ruby_api/wasi_config.rs</dd>
   </dl>
   
 </div>
@@ -102,7 +102,7 @@
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
     
-<p>WASI context builder to be sent as <span class='object_link'><a href="Store.html#new-class_method" title="Wasmtime::Store.new (method)">Store.new</a></span>’s <code>wasi_ctx</code> keyword argument.</p>
+<p>WASI config to be sent as <span class='object_link'><a href="Store.html#new-class_method" title="Wasmtime::Store.new (method)">Store.new</a></span>’s <code>wasi_config</code> keyword argument.</p>
 
 <p>Instance methods mutate the current object and return <code>self</code>.</p>
 
@@ -111,13 +111,6 @@
 </div>
 <div class="tags">
   
-
-  <p class="tag_title">See Also:</p>
-  <ul class="see">
-    
-      <li><a href="https://docs.rs/wasmtime-wasi/latest/wasmtime_wasi/sync/struct.WasiCtxBuilder.html" target="_parent" title="Wasmtime&#39;s Rust doc">Wasmtime's Rust doc</a></li>
-    
-  </ul>
 
 </div>
 
@@ -137,7 +130,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#new-class_method" title="new (class method)">.<strong>new</strong>  &#x21d2; WasiCtxBuilder </a>
+      <a href="#new-class_method" title="new (class method)">.<strong>new</strong>  &#x21d2; WasiConfig </a>
     
 
     
@@ -152,7 +145,7 @@
 
   
     <span class="summary_desc"><div class='inline'>
-<p>Create a new <span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span>.</p>
+<p>Create a new <span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span>.</p>
 </div></span>
   
 </li>
@@ -170,7 +163,31 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#inherit_stderr-instance_method" title="#inherit_stderr (instance method)">#<strong>inherit_stderr</strong>  &#x21d2; WasiCtxBuilder </a>
+      <a href="#add_determinism-instance_method" title="#add_determinism (instance method)">#<strong>add_determinism</strong>  &#x21d2; WasiConfig </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Use deterministic implementations for clocks and random methods.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#inherit_stderr-instance_method" title="#inherit_stderr (instance method)">#<strong>inherit_stderr</strong>  &#x21d2; WasiConfig </a>
     
 
     
@@ -194,7 +211,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#inherit_stdin-instance_method" title="#inherit_stdin (instance method)">#<strong>inherit_stdin</strong>  &#x21d2; WasiCtxBuilder </a>
+      <a href="#inherit_stdin-instance_method" title="#inherit_stdin (instance method)">#<strong>inherit_stdin</strong>  &#x21d2; WasiConfig </a>
     
 
     
@@ -218,7 +235,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#inherit_stdout-instance_method" title="#inherit_stdout (instance method)">#<strong>inherit_stdout</strong>  &#x21d2; WasiCtxBuilder </a>
+      <a href="#inherit_stdout-instance_method" title="#inherit_stdout (instance method)">#<strong>inherit_stdout</strong>  &#x21d2; WasiConfig </a>
     
 
     
@@ -242,7 +259,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#set_argv-instance_method" title="#set_argv (instance method)">#<strong>set_argv</strong>(args)  &#x21d2; WasiCtxBuilder </a>
+      <a href="#set_argv-instance_method" title="#set_argv (instance method)">#<strong>set_argv</strong>(args)  &#x21d2; WasiConfig </a>
     
 
     
@@ -266,7 +283,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#set_env-instance_method" title="#set_env (instance method)">#<strong>set_env</strong>(env)  &#x21d2; WasiCtxBuilder </a>
+      <a href="#set_env-instance_method" title="#set_env (instance method)">#<strong>set_env</strong>(env)  &#x21d2; WasiConfig </a>
     
 
     
@@ -290,7 +307,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#set_stderr_buffer-instance_method" title="#set_stderr_buffer (instance method)">#<strong>set_stderr_buffer</strong>(buffer, capacity)  &#x21d2; WasiCtxBuilder </a>
+      <a href="#set_stderr_buffer-instance_method" title="#set_stderr_buffer (instance method)">#<strong>set_stderr_buffer</strong>(buffer, capacity)  &#x21d2; WasiConfig </a>
     
 
     
@@ -314,7 +331,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#set_stderr_file-instance_method" title="#set_stderr_file (instance method)">#<strong>set_stderr_file</strong>(path)  &#x21d2; WasiCtxBuilder </a>
+      <a href="#set_stderr_file-instance_method" title="#set_stderr_file (instance method)">#<strong>set_stderr_file</strong>(path)  &#x21d2; WasiConfig </a>
     
 
     
@@ -338,7 +355,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#set_stdin_file-instance_method" title="#set_stdin_file (instance method)">#<strong>set_stdin_file</strong>(path)  &#x21d2; WasiCtxBuilder </a>
+      <a href="#set_stdin_file-instance_method" title="#set_stdin_file (instance method)">#<strong>set_stdin_file</strong>(path)  &#x21d2; WasiConfig </a>
     
 
     
@@ -362,7 +379,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#set_stdin_string-instance_method" title="#set_stdin_string (instance method)">#<strong>set_stdin_string</strong>(content)  &#x21d2; WasiCtxBuilder </a>
+      <a href="#set_stdin_string-instance_method" title="#set_stdin_string (instance method)">#<strong>set_stdin_string</strong>(content)  &#x21d2; WasiConfig </a>
     
 
     
@@ -386,7 +403,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#set_stdout_buffer-instance_method" title="#set_stdout_buffer (instance method)">#<strong>set_stdout_buffer</strong>(buffer, capacity)  &#x21d2; WasiCtxBuilder </a>
+      <a href="#set_stdout_buffer-instance_method" title="#set_stdout_buffer (instance method)">#<strong>set_stdout_buffer</strong>(buffer, capacity)  &#x21d2; WasiConfig </a>
     
 
     
@@ -410,7 +427,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#set_stdout_file-instance_method" title="#set_stdout_file (instance method)">#<strong>set_stdout_file</strong>(path)  &#x21d2; WasiCtxBuilder </a>
+      <a href="#set_stdout_file-instance_method" title="#set_stdout_file (instance method)">#<strong>set_stdout_file</strong>(path)  &#x21d2; WasiConfig </a>
     
 
     
@@ -443,7 +460,7 @@
       <div class="method_details first">
   <h3 class="signature first" id="new-class_method">
   
-    .<strong>new</strong>  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt> 
+    .<strong>new</strong>  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt> 
   
 
   
@@ -452,7 +469,7 @@
 </h3><div class="docstring">
   <div class="discussion">
     
-<p>Create a new <span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">Wasmtime::WasiCtxBuilder</a></span>. By default, it has nothing: no stdin/out/err, no env, no argv, no file access.</p>
+<p>Create a new <span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">Wasmtime::WasiConfig</a></span>. By default, it has nothing: no stdin/out/err, no env, no argv, no file access.</p>
 
 
   </div>
@@ -465,7 +482,7 @@
     <li>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt>)</span>
       
       
       
@@ -479,12 +496,12 @@
       <pre class="lines">
 
 
-99
-100
-101</pre>
+101
+102
+103</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_ctx_builder.rs', line 99</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 101</span>
 
 pub fn new() -&gt; Self {
     Self::default()
@@ -501,9 +518,72 @@ pub fn new() -&gt; Self {
 
     
       <div class="method_details first">
-  <h3 class="signature first" id="inherit_stderr-instance_method">
+  <h3 class="signature first" id="add_determinism-instance_method">
   
-    #<strong>inherit_stderr</strong>  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt> 
+    #<strong>add_determinism</strong>  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Use deterministic implementations for clocks and random methods.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p><code>self</code></p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+108
+109
+110
+111
+112</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 108</span>
+
+pub fn add_determinism(rb_self: RbSelf) -&gt; RbSelf {
+    let mut inner = rb_self.inner.borrow_mut();
+    inner.deterministic = true;
+    rb_self
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="inherit_stderr-instance_method">
+  
+    #<strong>inherit_stderr</strong>  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt> 
   
 
   
@@ -525,7 +605,7 @@ pub fn new() -&gt; Self {
     <li>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt>)</span>
       
       
       
@@ -544,14 +624,14 @@ pub fn new() -&gt; Self {
       <pre class="lines">
 
 
-172
-173
-174
-175
-176</pre>
+183
+184
+185
+186
+187</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_ctx_builder.rs', line 172</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 183</span>
 
 pub fn inherit_stderr(rb_self: RbSelf) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -566,7 +646,7 @@ pub fn inherit_stderr(rb_self: RbSelf) -&gt; RbSelf {
       <div class="method_details ">
   <h3 class="signature " id="inherit_stdin-instance_method">
   
-    #<strong>inherit_stdin</strong>  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt> 
+    #<strong>inherit_stdin</strong>  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt> 
   
 
   
@@ -588,7 +668,7 @@ pub fn inherit_stderr(rb_self: RbSelf) -&gt; RbSelf {
     <li>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt>)</span>
       
       
       
@@ -607,14 +687,14 @@ pub fn inherit_stderr(rb_self: RbSelf) -&gt; RbSelf {
       <pre class="lines">
 
 
-106
-107
-108
-109
-110</pre>
+117
+118
+119
+120
+121</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_ctx_builder.rs', line 106</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 117</span>
 
 pub fn inherit_stdin(rb_self: RbSelf) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -629,7 +709,7 @@ pub fn inherit_stdin(rb_self: RbSelf) -&gt; RbSelf {
       <div class="method_details ">
   <h3 class="signature " id="inherit_stdout-instance_method">
   
-    #<strong>inherit_stdout</strong>  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt> 
+    #<strong>inherit_stdout</strong>  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt> 
   
 
   
@@ -651,7 +731,7 @@ pub fn inherit_stdin(rb_self: RbSelf) -&gt; RbSelf {
     <li>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt>)</span>
       
       
       
@@ -670,14 +750,14 @@ pub fn inherit_stdin(rb_self: RbSelf) -&gt; RbSelf {
       <pre class="lines">
 
 
-137
-138
-139
-140
-141</pre>
+148
+149
+150
+151
+152</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_ctx_builder.rs', line 137</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 148</span>
 
 pub fn inherit_stdout(rb_self: RbSelf) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -692,7 +772,7 @@ pub fn inherit_stdout(rb_self: RbSelf) -&gt; RbSelf {
       <div class="method_details ">
   <h3 class="signature " id="set_argv-instance_method">
   
-    #<strong>set_argv</strong>(args)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt> 
+    #<strong>set_argv</strong>(args)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt> 
   
 
   
@@ -729,7 +809,7 @@ pub fn inherit_stdout(rb_self: RbSelf) -&gt; RbSelf {
     <li>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt>)</span>
       
       
       
@@ -748,14 +828,14 @@ pub fn inherit_stdout(rb_self: RbSelf) -&gt; RbSelf {
       <pre class="lines">
 
 
-219
-220
-221
-222
-223</pre>
+230
+231
+232
+233
+234</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_ctx_builder.rs', line 219</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 230</span>
 
 pub fn set_argv(rb_self: RbSelf, argv: RArray) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -770,7 +850,7 @@ pub fn set_argv(rb_self: RbSelf, argv: RArray) -&gt; RbSelf {
       <div class="method_details ">
   <h3 class="signature " id="set_env-instance_method">
   
-    #<strong>set_env</strong>(env)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt> 
+    #<strong>set_env</strong>(env)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt> 
   
 
   
@@ -807,7 +887,7 @@ pub fn set_argv(rb_self: RbSelf, argv: RArray) -&gt; RbSelf {
     <li>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt>)</span>
       
       
       
@@ -826,14 +906,14 @@ pub fn set_argv(rb_self: RbSelf, argv: RArray) -&gt; RbSelf {
       <pre class="lines">
 
 
-208
-209
-210
-211
-212</pre>
+219
+220
+221
+222
+223</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_ctx_builder.rs', line 208</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 219</span>
 
 pub fn set_env(rb_self: RbSelf, env: RHash) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -848,7 +928,7 @@ pub fn set_env(rb_self: RbSelf, env: RHash) -&gt; RbSelf {
       <div class="method_details ">
   <h3 class="signature " id="set_stderr_buffer-instance_method">
   
-    #<strong>set_stderr_buffer</strong>(buffer, capacity)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt> 
+    #<strong>set_stderr_buffer</strong>(buffer, capacity)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt> 
   
 
   
@@ -906,7 +986,7 @@ pub fn set_env(rb_self: RbSelf, env: RHash) -&gt; RbSelf {
     <li>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt>)</span>
       
       
       
@@ -925,15 +1005,15 @@ pub fn set_env(rb_self: RbSelf, env: RHash) -&gt; RbSelf {
       <pre class="lines">
 
 
-198
-199
-200
-201
-202
-203</pre>
+209
+210
+211
+212
+213
+214</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_ctx_builder.rs', line 198</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 209</span>
 
 pub fn set_stderr_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -949,7 +1029,7 @@ pub fn set_stderr_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -&gt
       <div class="method_details ">
   <h3 class="signature " id="set_stderr_file-instance_method">
   
-    #<strong>set_stderr_file</strong>(path)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt> 
+    #<strong>set_stderr_file</strong>(path)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt> 
   
 
   
@@ -991,7 +1071,7 @@ pub fn set_stderr_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -&gt
     <li>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt>)</span>
       
       
       
@@ -1010,14 +1090,14 @@ pub fn set_stderr_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -&gt
       <pre class="lines">
 
 
-184
-185
-186
-187
-188</pre>
+195
+196
+197
+198
+199</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_ctx_builder.rs', line 184</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 195</span>
 
 pub fn set_stderr_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1032,7 +1112,7 @@ pub fn set_stderr_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
       <div class="method_details ">
   <h3 class="signature " id="set_stdin_file-instance_method">
   
-    #<strong>set_stdin_file</strong>(path)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt> 
+    #<strong>set_stdin_file</strong>(path)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt> 
   
 
   
@@ -1074,7 +1154,7 @@ pub fn set_stderr_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
     <li>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt>)</span>
       
       
       
@@ -1093,14 +1173,14 @@ pub fn set_stderr_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
       <pre class="lines">
 
 
-117
-118
-119
-120
-121</pre>
+128
+129
+130
+131
+132</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_ctx_builder.rs', line 117</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 128</span>
 
 pub fn set_stdin_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1115,7 +1195,7 @@ pub fn set_stdin_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
       <div class="method_details ">
   <h3 class="signature " id="set_stdin_string-instance_method">
   
-    #<strong>set_stdin_string</strong>(content)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt> 
+    #<strong>set_stdin_string</strong>(content)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt> 
   
 
   
@@ -1152,7 +1232,7 @@ pub fn set_stdin_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
     <li>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt>)</span>
       
       
       
@@ -1171,14 +1251,14 @@ pub fn set_stdin_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
       <pre class="lines">
 
 
-128
-129
-130
-131
-132</pre>
+139
+140
+141
+142
+143</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_ctx_builder.rs', line 128</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 139</span>
 
 pub fn set_stdin_string(rb_self: RbSelf, content: RString) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1193,7 +1273,7 @@ pub fn set_stdin_string(rb_self: RbSelf, content: RString) -&gt; RbSelf {
       <div class="method_details ">
   <h3 class="signature " id="set_stdout_buffer-instance_method">
   
-    #<strong>set_stdout_buffer</strong>(buffer, capacity)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt> 
+    #<strong>set_stdout_buffer</strong>(buffer, capacity)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt> 
   
 
   
@@ -1251,7 +1331,7 @@ pub fn set_stdin_string(rb_self: RbSelf, content: RString) -&gt; RbSelf {
     <li>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt>)</span>
       
       
       
@@ -1270,14 +1350,14 @@ pub fn set_stdin_string(rb_self: RbSelf, content: RString) -&gt; RbSelf {
       <pre class="lines">
 
 
-163
-164
-165
-166
-167</pre>
+174
+175
+176
+177
+178</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_ctx_builder.rs', line 163</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 174</span>
 
 pub fn set_stdout_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1292,7 +1372,7 @@ pub fn set_stdout_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -&gt
       <div class="method_details ">
   <h3 class="signature " id="set_stdout_file-instance_method">
   
-    #<strong>set_stdout_file</strong>(path)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt> 
+    #<strong>set_stdout_file</strong>(path)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt> 
   
 
   
@@ -1334,7 +1414,7 @@ pub fn set_stdout_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -&gt
     <li>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiCtxBuilder (class)">WasiCtxBuilder</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt>)</span>
       
       
       
@@ -1353,14 +1433,14 @@ pub fn set_stdout_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -&gt
       <pre class="lines">
 
 
-149
-150
-151
-152
-153</pre>
+160
+161
+162
+163
+164</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_ctx_builder.rs', line 149</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 160</span>
 
 pub fn set_stdout_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1377,7 +1457,7 @@ pub fn set_stdout_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
 </div>
 
       <div id="footer">
-  Generated on Mon Jun  9 20:26:42 2025 by
+  Generated on Tue Jun 10 19:54:44 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.4).
 </div>

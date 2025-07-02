@@ -49,7 +49,7 @@ pub(crate) fn component_val_to_rb(val: Val, _store: &StoreContextValue) -> Resul
             let hash = RHash::new();
             for (name, val) in fields {
                 let rb_value = component_val_to_rb(val, _store)
-                    .map_err(|e| e.append(format!(" (struct field \"{}\")", name)))?;
+                    .map_err(|e| e.append(format!(" (struct field \"{name}\")")))?;
                 hash.aset(name.as_str(), rb_value)?
             }
 
@@ -138,7 +138,7 @@ pub(crate) fn rb_to_component_val(
             // user code so user code can't mutate it either.
             for (i, value) in unsafe { rarray.as_slice() }.iter().enumerate() {
                 let component_val = rb_to_component_val(*value, _store, &ty)
-                    .map_err(|e| e.append(format!(" (list item at index {})", i)))?;
+                    .map_err(|e| e.append(format!(" (list item at index {i})")))?;
 
                 vals.push(component_val);
             }
@@ -180,7 +180,7 @@ pub(crate) fn rb_to_component_val(
 
             for (i, (ty, value)) in types.zip(unsafe { rarray.as_slice() }.iter()).enumerate() {
                 let component_val = rb_to_component_val(*value, _store, &ty)
-                    .map_err(|error| error.append(format!(" (tuple value at index {})", i)))?;
+                    .map_err(|error| error.append(format!(" (tuple value at index {i})")))?;
 
                 vals.push(component_val);
             }

@@ -235,8 +235,7 @@ impl PoolingAllocationConfig {
         let inner = format!("{:?}", rb_self.borrow_mut()?);
 
         Ok(format!(
-            "#<Wasmtime::PoolingAllocationConfig inner={}>",
-            inner
+            "#<Wasmtime::PoolingAllocationConfig inner={inner}>"
         ))
     }
 

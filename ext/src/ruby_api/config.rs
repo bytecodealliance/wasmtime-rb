@@ -119,7 +119,7 @@ pub fn hash_to_config(hash: RHash) -> Result<Config, Error> {
 
             if let Some(target) = target {
                 config.target(&target).map_err(|e| {
-                    Error::new(arg_error(), format!("Invalid target: {}: {}", target, e))
+                    Error::new(arg_error(), format!("Invalid target: {target}: {e}"))
                 })?;
             }
         } else if *GENERATE_ADDRESS_MAP == id {

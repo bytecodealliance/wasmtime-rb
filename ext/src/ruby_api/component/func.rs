@@ -142,7 +142,7 @@ fn convert_params(
             .map_err(|_| Error::new(arg_error(), "too many params"))?;
 
         let component_val = rb_to_component_val(*value, store, &ty.1)
-            .map_err(|error| error.append(format!(" (param at index {})", i)))?;
+            .map_err(|error| error.append(format!(" (param at index {i})")))?;
 
         params.push(component_val);
     }

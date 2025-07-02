@@ -20,6 +20,10 @@ impl<'a> CallerHandle<'a> {
         }
     }
 
+    // Note that the underlying implemenation relies on `UnsafeCell`, which
+    // provides some gurantees around interior mutability, therefore we're
+    // opting to allow this lint.
+    #[allow(clippy::mut_from_ref)]
     pub fn get_mut(&self) -> Result<&mut CallerImpl<'a, StoreData>, Error> {
         unsafe { &mut *self.caller.get() }
             .as_mut()

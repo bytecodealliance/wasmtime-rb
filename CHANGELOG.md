@@ -1,5 +1,17 @@
 # Changelog
 
+## [v34.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v34.0.0) (2025-07-02)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v33.0.0...v34.0.0)
+
+**Merged pull requests:**
+
+- Update to wasmtime 34 [\#471](https://github.com/bytecodealliance/wasmtime-rb/pull/471) ([saulecabrera](https://github.com/saulecabrera))
+- Remove Rust crate from examples [\#469](https://github.com/bytecodealliance/wasmtime-rb/pull/469) ([jeffcharles](https://github.com/jeffcharles))
+- Re-enable examples on MacOS [\#468](https://github.com/bytecodealliance/wasmtime-rb/pull/468) ([jeffcharles](https://github.com/jeffcharles))
+- Change API to work with wasmtime-wasi [\#467](https://github.com/bytecodealliance/wasmtime-rb/pull/467) ([jeffcharles](https://github.com/jeffcharles))
+- Drop support for WASI preview 0 [\#466](https://github.com/bytecodealliance/wasmtime-rb/pull/466) ([jeffcharles](https://github.com/jeffcharles))
+
 ## [v33.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v33.0.0) (2025-06-04)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v32.0.0...v33.0.0)

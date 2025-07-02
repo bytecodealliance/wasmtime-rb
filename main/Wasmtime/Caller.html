@@ -266,18 +266,18 @@
       <pre class="lines">
 
 
-68
-69
-70
-71
 72
 73
 74
 75
-76</pre>
+76
+77
+78
+79
+80</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 68</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 72</span>
 
 pub fn export(rb_self: Obj&lt;Caller&lt;&#39;a&gt;&gt;, name: RString) -&gt; Result&lt;Option&lt;Extern&lt;&#39;a&gt;&gt;, Error&gt; {
     let inner = rb_self.handle.get_mut()?;
@@ -350,15 +350,15 @@ pub fn export(rb_self: Obj&lt;Caller&lt;&#39;a&gt;&gt;, name: RString) -&gt; Res
       <pre class="lines">
 
 
-81
-82
-83
-84
 85
-86</pre>
+86
+87
+88
+89
+90</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 81</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 85</span>
 
 pub fn get_fuel(&amp;self) -&gt; Result&lt;u64, Error&gt; {
     self.handle
@@ -435,16 +435,16 @@ pub fn get_fuel(&amp;self) -&gt; Result&lt;u64, Error&gt; {
       <pre class="lines">
 
 
-91
-92
-93
-94
 95
 96
-97</pre>
+97
+98
+99
+100
+101</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 91</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 95</span>
 
 pub fn set_fuel(&amp;self, fuel: u64) -&gt; Result&lt;(), Error&gt; {
     self.handle
@@ -502,12 +502,12 @@ pub fn set_fuel(&amp;self, fuel: u64) -&gt; Result&lt;(), Error&gt; {
       <pre class="lines">
 
 
-61
-62
-63</pre>
+65
+66
+67</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 61</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 65</span>
 
 pub fn store_data(&amp;self) -&gt; Result&lt;Value, Error&gt; {
     self.context().map(|ctx| ctx.data().user_data())
@@ -522,7 +522,7 @@ pub fn store_data(&amp;self) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Jun 10 19:54:43 2025 by
+  Generated on Wed Jul  2 11:58:09 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.4).
 </div>

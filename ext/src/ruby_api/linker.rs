@@ -54,7 +54,7 @@ impl Linker {
 
         let mut inner: LinkerImpl<StoreData> = LinkerImpl::new(engine.get());
         if wasi {
-            wasmtime_wasi::preview1::add_to_linker_sync(&mut inner, |s| s.wasi_ctx_mut())
+            wasmtime_wasi::preview1::add_to_linker_sync(&mut inner, |s| s.wasi_p1_ctx_mut())
                 .map_err(|e| error!("{}", e))?
         }
         Ok(Self {
@@ -280,7 +280,7 @@ impl Linker {
     /// @param mod [Module]
     /// @return [Instance]
     pub fn instantiate(&self, store: Obj<Store>, module: &Module) -> Result<Instance, Error> {
-        if self.has_wasi && !store.context().data().has_wasi_ctx() {
+        if self.has_wasi && !store.context().data().has_wasi_p1_ctx() {
             return err!(
                 "Store is missing WASI configuration.\n\n\
                 When using `wasi: true`, the Store given to\n\

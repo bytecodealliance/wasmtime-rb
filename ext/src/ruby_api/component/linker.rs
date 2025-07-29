@@ -1,12 +1,15 @@
 use super::{Component, Instance};
 use crate::{
-    err,
+    define_rb_intern, err,
     ruby_api::{
         store::{StoreContextValue, StoreData},
         Engine, Module, Store,
     },
 };
-use std::{borrow::BorrowMut, cell::RefCell};
+use std::{
+    borrow::BorrowMut,
+    cell::{RefCell, RefMut},
+};
 
 use crate::error;
 use magnus::{
@@ -14,6 +17,14 @@ use magnus::{
     DataTypeFunctions, Error, Module as _, Object, RModule, Ruby, TryConvert, TypedData, Value,
 };
 use wasmtime::component::{Linker as LinkerImpl, LinkerInstance as LinkerInstanceImpl};
+use wasmtime_wasi::{
+    p2::{IoView, WasiCtx, WasiView},
+    ResourceTable,
+};
+
+define_rb_intern!(
+    WASI => "wasi",
+);
 
 /// @yard
 /// @rename Wasmtime::Component::Linker
@@ -23,6 +34,7 @@ use wasmtime::component::{Linker as LinkerImpl, LinkerInstance as LinkerInstance
 pub struct Linker {
     inner: RefCell<LinkerImpl<StoreData>>,
     refs: RefCell<Vec<Value>>,
+    has_wasi: bool,
 }
 unsafe impl Send for Linker {}
 
@@ -34,15 +46,34 @@ impl DataTypeFunctions for Linker {
 
 impl Linker {
     /// @yard
-    /// @def new(engine)
+    /// @def new(engine, wasi: false)
     /// @param engine [Engine]
+    /// @param wasi [Boolean] Whether WASI should be defined in this Linker. Defaults to false.
     /// @return [Linker]
-    pub fn new(engine: &Engine) -> Result<Self, Error> {
-        let linker = LinkerImpl::new(engine.get());
+    pub fn new(args: &[Value]) -> Result<Self, Error> {
+        let args = scan_args::scan_args::<(&Engine,), (), (), (), _, ()>(args)?;
+        let kw = scan_args::get_kwargs::<_, (), (Option<bool>,), ()>(args.keywords, &[], &[*WASI])?;
+        let (engine,) = args.required;
+        let wasi = kw.optional.0.unwrap_or(false);
+
+        let mut linker: LinkerImpl<StoreData> = LinkerImpl::new(engine.get());
+        if wasi {
+            wasmtime_wasi::p2::add_to_linker_sync(&mut linker).map_err(|e| error!("{}", e))?
+        }
+
         Ok(Linker {
             inner: RefCell::new(linker),
             refs: RefCell::new(Vec::new()),
+            has_wasi: wasi,
         })
+    }
+
+    pub(crate) fn inner_mut(&self) -> RefMut<LinkerImpl<StoreData>> {
+        self.inner.borrow_mut()
+    }
+
+    pub(crate) fn has_wasi(&self) -> bool {
+        self.has_wasi
     }
 
     /// @yard
@@ -105,6 +136,16 @@ impl Linker {
         store: Obj<Store>,
         component: &Component,
     ) -> Result<Instance, Error> {
+        if rb_self.has_wasi && !store.context().data().has_wasi_p2_ctx() {
+            return err!(
+                "Store is missing WASI p2 configuration.\n\n\
+                When using `wasi: true`, the Store given to\n\
+                `Linker#instantiate` must have a WASI p2 configuration.\n\
+                To fix this, provide the `wasi_config` when creating the Store:\n\
+                    Wasmtime::Store.new(engine, wasi_config: WasiConfig.new.use_p2)"
+            );
+        }
+
         let inner = rb_self.inner.borrow();
         inner
             .instantiate(store.context_mut(), component.get())
@@ -230,7 +271,7 @@ impl<'a> LinkerInstance<'a> {
 
 pub fn init(_ruby: &Ruby, namespace: &RModule) -> Result<(), Error> {
     let linker = namespace.define_class("Linker", class::object())?;
-    linker.define_singleton_method("new", function!(Linker::new, 1))?;
+    linker.define_singleton_method("new", function!(Linker::new, -1))?;
     linker.define_method("root", method!(Linker::root, 0))?;
     linker.define_method("instance", method!(Linker::instance, 1))?;
     linker.define_method("instantiate", method!(Linker::instantiate, 2))?;

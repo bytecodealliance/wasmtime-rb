@@ -9,7 +9,7 @@ use std::cell::RefCell;
 use std::fs;
 use std::{fs::File, path::PathBuf};
 use wasmtime_wasi::p2::pipe::MemoryInputPipe;
-use wasmtime_wasi::p2::{OutputFile, WasiCtxBuilder};
+use wasmtime_wasi::p2::{OutputFile, WasiCtx, WasiCtxBuilder};
 use wasmtime_wasi::preview1::WasiP1Ctx;
 
 enum ReadStream {
@@ -43,6 +43,13 @@ impl WriteStream {
     }
 }
 
+#[derive(Debug, Default, Clone, Copy)]
+pub(crate) enum WasiVersion {
+    #[default]
+    P1,
+    P2,
+}
+
 #[derive(Default)]
 struct WasiConfigInner {
     stdin: Option<ReadStream>,
@@ -51,6 +58,7 @@ struct WasiConfigInner {
     env: Option<Opaque<RHash>>,
     args: Option<Opaque<RArray>>,
     deterministic: bool,
+    version: WasiVersion,
 }
 
 impl WasiConfigInner {
@@ -100,6 +108,19 @@ impl WasiConfig {
     /// @return [WasiConfig]
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// @yard
+    /// Make this a WASI preview 2 config instead of a preview 1 config.
+    /// @return [WasiConfig] +self+
+    pub fn use_p2(rb_self: RbSelf) -> RbSelf {
+        let mut inner = rb_self.inner.borrow_mut();
+        inner.version = WasiVersion::P2;
+        rb_self
+    }
+
+    pub fn wasi_version(&self) -> WasiVersion {
+        self.inner.borrow().version
     }
 
     /// @yard
@@ -233,7 +254,19 @@ impl WasiConfig {
         rb_self
     }
 
-    pub fn build(&self, ruby: &Ruby) -> Result<WasiP1Ctx, Error> {
+    pub fn build_p1(&self, ruby: &Ruby) -> Result<WasiP1Ctx, Error> {
+        let mut builder = self.build_impl(ruby)?;
+        let ctx = builder.build_p1();
+        Ok(ctx)
+    }
+
+    pub fn build_p2(&self, ruby: &Ruby) -> Result<WasiCtx, Error> {
+        let mut builder = self.build_impl(ruby)?;
+        let ctx = builder.build();
+        Ok(ctx)
+    }
+
+    fn build_impl(&self, ruby: &Ruby) -> Result<WasiCtxBuilder, Error> {
         let mut builder = WasiCtxBuilder::new();
         let inner = self.inner.borrow();
 
@@ -305,8 +338,7 @@ impl WasiConfig {
             deterministic_wasi_ctx::add_determinism_to_wasi_ctx_builder(&mut builder);
         }
 
-        let ctx = builder.build_p1();
-        Ok(ctx)
+        Ok(builder)
     }
 }
 
@@ -319,6 +351,8 @@ pub fn file_w(path: RString) -> Result<File, Error> {
 pub fn init() -> Result<(), Error> {
     let class = root().define_class("WasiConfig", class::object())?;
     class.define_singleton_method("new", function!(WasiConfig::new, 0))?;
+
+    class.define_method("use_p2", method!(WasiConfig::use_p2, 0))?;
 
     class.define_method("add_determinism", method!(WasiConfig::add_determinism, 0))?;
 

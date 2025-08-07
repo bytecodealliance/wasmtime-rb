@@ -32,16 +32,9 @@ module Wasmtime
           .to raise_error(Wasmtime::Error, /Store is missing WASI configuration/)
       end
 
-      it "prevents panic when Store has the wrong WASI config" do
-        linker = Linker.new(@engine, wasi: true)
-        store = Store.new(@engine, wasi_config: WasiConfig.new.use_p2.set_stdin_string("some str"))
-        expect { linker.instantiate(store, wasi_module).invoke("_start") }
-          .to raise_error(Wasmtime::Error, /Store is missing WASI configuration/)
-      end
-
       it "returns an instance that can run when store is properly configured" do
         linker = Linker.new(@engine, wasi: true)
-        store = Store.new(@engine, wasi_config: WasiConfig.new.set_stdin_string("some str"))
+        store = Store.new(@engine, wasi_p1_config: WasiConfig.new.set_stdin_string("some str"))
         linker.instantiate(store, wasi_module).invoke("_start")
       end
     end
@@ -53,16 +46,9 @@ module Wasmtime
           .to raise_error(Wasmtime::Error, /Store is missing WASI p2 configuration/)
       end
 
-      it "prevents panic when Store has the wrong WASI config" do
-        linker = Component::Linker.new(@engine, wasi: true)
-        store = Store.new(@engine, wasi_config: WasiConfig.new.set_stdin_string("some str"))
-        expect { linker.instantiate(store, wasi_component) }
-          .to raise_error(Wasmtime::Error, /Store is missing WASI p2 configuration/)
-      end
-
       it "returns an instance that can run when store is properly configured" do
         linker = Component::Linker.new(@engine, wasi: true)
-        store = Store.new(@engine, wasi_config: WasiConfig.new.use_p2.set_stdin_string("some str"))
+        store = Store.new(@engine, wasi_config: WasiConfig.new.set_stdin_string("some str"))
         Component::WasiCommand.new(store, wasi_component, linker).call_run(store)
       end
     end
@@ -74,16 +60,9 @@ module Wasmtime
           .to raise_error(Wasmtime::Error, /Store is missing WASI p2 configuration/)
       end
 
-      it "prevents panic when store has the wrong WASI config" do
-        linker = Component::Linker.new(@engine, wasi: true)
-        store = Store.new(@engine, wasi_config: WasiConfig.new.set_stdin_string("some str"))
-        expect { Component::WasiCommand.new(store, wasi_component, linker) }
-          .to raise_error(Wasmtime::Error, /Store is missing WASI p2 configuration/)
-      end
-
       it "returns an instance that can run when store is properly configured" do
         linker = Component::Linker.new(@engine, wasi: true)
-        store = Store.new(@engine, wasi_config: WasiConfig.new.use_p2.set_stdin_string("some str"))
+        store = Store.new(@engine, wasi_config: WasiConfig.new.set_stdin_string("some str"))
         Component::WasiCommand.new(store, wasi_component, linker).call_run(store)
       end
     end
@@ -91,7 +70,7 @@ module Wasmtime
     shared_examples WasiConfig do
       it "writes std streams to files" do
         File.write(tempfile_path("stdin"), "stdin content")
-        wasi_config
+        wasi_config = WasiConfig.new
           .set_stdin_file(tempfile_path("stdin"))
           .set_stdout_file(tempfile_path("stdout"))
           .set_stderr_file(tempfile_path("stderr"))
@@ -110,7 +89,7 @@ module Wasmtime
 
         stdout_str = ""
         stderr_str = ""
-        wasi_config
+        wasi_config = WasiConfig.new
           .set_stdin_file(tempfile_path("stdin"))
           .set_stdout_buffer(stdout_str, 40000)
           .set_stderr_buffer(stderr_str, 40000)
@@ -128,7 +107,7 @@ module Wasmtime
 
         stdout_str = ""
         stderr_str = ""
-        wasi_config
+        wasi_config = WasiConfig.new
           .set_stdin_file(tempfile_path("stdin"))
           .set_stdout_buffer(stdout_str, 5)
           .set_stderr_buffer(stderr_str, 10)
@@ -144,7 +123,7 @@ module Wasmtime
 
         stdout_str = ""
         stderr_str = ""
-        wasi_config
+        wasi_config = WasiConfig.new
           .set_stdin_file(tempfile_path("stdin"))
           .set_stdout_buffer(stdout_str, 40000)
           .set_stderr_buffer(stderr_str, 40000)
@@ -164,7 +143,7 @@ module Wasmtime
 
         stderr_str = ""
         stdout_str = ""
-        wasi_config
+        wasi_config = WasiConfig.new
           .set_stdin_file(tempfile_path("stdin"))
           .set_stderr_buffer(stderr_str, 40000)
           .set_stdout_buffer(stdout_str, 40000)
@@ -208,7 +187,7 @@ module Wasmtime
         before do
           2.times do |t|
             t += 1
-            wasi_config
+            wasi_config = WasiConfig.new
               .add_determinism
               .set_stdout_file(tempfile_path("stdout-deterministic-#{t}"))
               .set_stderr_file(tempfile_path("stderr-deterministic-#{t}"))
@@ -261,7 +240,6 @@ module Wasmtime
         let(:run) { method(:run_wasi_module) }
         let(:wasi_env) { method(:wasi_module_env) }
         let(:run_deterministic) { method(:run_wasi_module_deterministic) }
-        let(:wasi_config) { WasiConfig.new }
       end
     end
 
@@ -270,7 +248,6 @@ module Wasmtime
         let(:run) { method(:run_wasi_component) }
         let(:wasi_env) { method(:wasi_component_env) }
         let(:run_deterministic) { method(:run_wasi_component_deterministic) }
-        let(:wasi_config) { WasiConfig.new.use_p2 }
       end
     end
 
@@ -280,14 +257,14 @@ module Wasmtime
 
     def run_wasi_module(wasi_config)
       linker = Linker.new(@engine, wasi: true)
-      store = Store.new(@engine, wasi_config: wasi_config)
+      store = Store.new(@engine, wasi_p1_config: wasi_config)
       linker.instantiate(store, wasi_module).invoke("_start")
     end
 
     def run_wasi_module_deterministic(wasi_config)
       linker = Linker.new(@engine, wasi: true)
       linker.use_deterministic_scheduling_functions
-      store = Store.new(@engine, wasi_config: wasi_config)
+      store = Store.new(@engine, wasi_p1_config: wasi_config)
       linker
         .instantiate(store, Module.deserialize(@engine, @compiled_wasi_deterministic_module))
         .invoke("_start")
@@ -318,7 +295,7 @@ module Wasmtime
     def wasi_component_env
       stdout_file = tempfile_path("stdout")
 
-      wasi_config = WasiConfig.new.use_p2
+      wasi_config = WasiConfig.new
       yield(wasi_config)
       wasi_config.set_stdout_file(stdout_file)
 

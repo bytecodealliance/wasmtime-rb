@@ -6,7 +6,6 @@ component = Wasmtime::Component::Component.from_file(engine, "spec/fixtures/wasi
 linker = Wasmtime::Component::Linker.new(engine, wasi: true)
 
 wasi_config = Wasmtime::WasiConfig.new
-  .use_p2
   .set_stdin_string("hi!")
   .inherit_stdout
   .inherit_stderr

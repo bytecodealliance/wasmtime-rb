@@ -23,13 +23,13 @@ impl WasiCommand {
     /// @param linker [Linker]
     /// @return [WasiCommand]
     pub fn new(store: &Store, component: &Component, linker: &Linker) -> Result<Self, Error> {
-        if linker.has_wasi() && !store.context().data().has_wasi_p2_ctx() {
+        if linker.has_wasi() && !store.context().data().has_wasi_ctx() {
             return err!(
-                "Store is missing WASI p2 configuration.\n\n\
+                "Store is missing WASI configuration.\n\n\
                 When using `wasi: true`, the Store given to\n\
-                `Linker#instantiate` must have a WASI p2 configuration.\n\
+                `Linker#instantiate` must have a WASI configuration.\n\
                 To fix this, provide the `wasi_config` when creating the Store:\n\
-                    Wasmtime::Store.new(engine, wasi_config: WasiConfig.new.use_p2)"
+                    Wasmtime::Store.new(engine, wasi_config: WasiConfig.new)"
             );
         }
         let command =

@@ -11,7 +11,7 @@ wasi_config = Wasmtime::WasiConfig.new
   .inherit_stderr
   .set_argv(ARGV)
   .set_env(ENV)
-store = Wasmtime::Store.new(engine, wasi_config: wasi_config)
+store = Wasmtime::Store.new(engine, wasi_p1_config: wasi_config)
 
 instance = linker.instantiate(store, mod)
 instance.invoke("_start")

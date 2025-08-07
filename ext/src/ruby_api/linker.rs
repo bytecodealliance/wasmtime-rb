@@ -284,9 +284,9 @@ impl Linker {
             return err!(
                 "Store is missing WASI configuration.\n\n\
                 When using `wasi: true`, the Store given to\n\
-                `Linker#instantiate` must have a WASI configuration.\n\
-                To fix this, provide the `wasi_config` when creating the Store:\n\
-                    Wasmtime::Store.new(engine, wasi_config: WasiConfig.new)"
+                `Linker#instantiate` must have a WASI P1 configuration.\n\
+                To fix this, provide the `wasi_p1_config` when creating the Store:\n\
+                    Wasmtime::Store.new(engine, wasi_p1_config: WasiConfig.new)"
             );
         }
 

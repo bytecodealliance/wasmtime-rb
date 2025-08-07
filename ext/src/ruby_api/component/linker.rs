@@ -2,6 +2,7 @@ use super::{Component, Instance};
 use crate::{
     define_rb_intern, err,
     ruby_api::{
+        errors,
         store::{StoreContextValue, StoreData},
         Engine, Module, Store,
     },
@@ -137,13 +138,7 @@ impl Linker {
         component: &Component,
     ) -> Result<Instance, Error> {
         if rb_self.has_wasi && !store.context().data().has_wasi_ctx() {
-            return err!(
-                "Store is missing WASI configuration.\n\n\
-                When using `wasi: true`, the Store given to\n\
-                `Linker#instantiate` must have a WASI configuration.\n\
-                To fix this, provide the `wasi_config` when creating the Store:\n\
-                    Wasmtime::Store.new(engine, wasi_config: WasiConfig.new)"
-            );
+            return err!("{}", errors::missing_wasi_ctx_error());
         }
 
         let inner = rb_self.inner.borrow();

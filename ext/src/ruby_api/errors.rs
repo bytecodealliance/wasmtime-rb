@@ -83,6 +83,24 @@ impl ExceptionMessage for magnus::Error {
     }
 }
 
+pub(crate) fn missing_wasi_ctx_error() -> String {
+    missing_wasi_error("WASI", "wasi_config")
+}
+
+pub(crate) fn missing_wasi_p1_ctx_error() -> String {
+    missing_wasi_error("WASI p1", "wasi_p1_config")
+}
+
+fn missing_wasi_error(wasi_version: &str, option_name: &str) -> String {
+    format!(
+        "Store is missing {wasi_version} configuration.\n\n\
+        When using `wasi: true`, the Store given to\n\
+        `Linker#instantiate` must have a {wasi_version} configuration.\n\
+        To fix this, provide the `wasi_config` when creating the Store:\n\
+            Wasmtime::Store.new(engine, {option_name}: WasiConfig.new)"
+    )
+}
+
 mod bundled {
     include!(concat!(env!("OUT_DIR"), "/bundled/error.rs"));
 }

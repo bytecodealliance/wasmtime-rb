@@ -29,7 +29,7 @@ module Wasmtime
       it "prevents panic when Store doesn't have a Wasi config" do
         linker = Linker.new(@engine, wasi: true)
         expect { linker.instantiate(Store.new(@engine), wasi_module).invoke("_start") }
-          .to raise_error(Wasmtime::Error, /Store is missing WASI configuration/)
+          .to raise_error(Wasmtime::Error, /Store is missing WASI p1 configuration/)
       end
 
       it "returns an instance that can run when store is properly configured" do
@@ -43,7 +43,7 @@ module Wasmtime
       it "prevents panic when Store doesn't have a WASI config" do
         linker = Component::Linker.new(@engine, wasi: true)
         expect { linker.instantiate(Store.new(@engine), wasi_component) }
-          .to raise_error(Wasmtime::Error, /Store is missing WASI p2 configuration/)
+          .to raise_error(Wasmtime::Error, /Store is missing WASI configuration/)
       end
 
       it "returns an instance that can run when store is properly configured" do
@@ -57,7 +57,7 @@ module Wasmtime
       it "prevents panic when store doesn't have a WASI config" do
         linker = Component::Linker.new(@engine, wasi: true)
         expect { Component::WasiCommand.new(Store.new(@engine), wasi_component, linker) }
-          .to raise_error(Wasmtime::Error, /Store is missing WASI p2 configuration/)
+          .to raise_error(Wasmtime::Error, /Store is missing WASI configuration/)
       end
 
       it "returns an instance that can run when store is properly configured" do

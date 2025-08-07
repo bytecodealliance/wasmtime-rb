@@ -9,7 +9,7 @@ use super::{
     root,
     store::{Store, StoreContextValue, StoreData},
 };
-use crate::{define_rb_intern, err, error};
+use crate::{define_rb_intern, err, error, ruby_api::errors};
 use magnus::{
     block::Proc, class, function, gc::Marker, method, prelude::*, scan_args, scan_args::scan_args,
     typed_data::Obj, DataTypeFunctions, Error, Object, RArray, RHash, RString, Ruby, TypedData,
@@ -281,13 +281,7 @@ impl Linker {
     /// @return [Instance]
     pub fn instantiate(&self, store: Obj<Store>, module: &Module) -> Result<Instance, Error> {
         if self.has_wasi && !store.context().data().has_wasi_p1_ctx() {
-            return err!(
-                "Store is missing WASI configuration.\n\n\
-                When using `wasi: true`, the Store given to\n\
-                `Linker#instantiate` must have a WASI P1 configuration.\n\
-                To fix this, provide the `wasi_p1_config` when creating the Store:\n\
-                    Wasmtime::Store.new(engine, wasi_p1_config: WasiConfig.new)"
-            );
+            return err!("{}", errors::missing_wasi_p1_ctx_error());
         }
 
         self.inner

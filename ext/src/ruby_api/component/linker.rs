@@ -1,6 +1,6 @@
 use super::{Component, Instance};
 use crate::{
-    define_rb_intern, err,
+    err,
     ruby_api::{
         errors,
         store::{StoreContextValue, StoreData},
@@ -22,10 +22,6 @@ use wasmtime_wasi::{
     p2::{IoView, WasiCtx, WasiView},
     ResourceTable,
 };
-
-define_rb_intern!(
-    WASI => "wasi",
-);
 
 /// @yard
 /// @rename Wasmtime::Component::Linker
@@ -60,7 +56,7 @@ impl Linker {
         })
     }
 
-    pub(crate) fn inner_mut(&self) -> RefMut<LinkerImpl<StoreData>> {
+    pub(crate) fn inner_mut(&self) -> RefMut<'_, LinkerImpl<StoreData>> {
         self.inner.borrow_mut()
     }
 

@@ -9,7 +9,7 @@ use super::{
     root,
     store::{Store, StoreContextValue, StoreData},
 };
-use crate::{define_rb_intern, err, error, ruby_api::errors};
+use crate::{err, error, ruby_api::errors};
 use magnus::{
     block::Proc, class, function, gc::Marker, method, prelude::*, scan_args, scan_args::scan_args,
     typed_data::Obj, DataTypeFunctions, Error, Object, RArray, RHash, RString, Ruby, TypedData,
@@ -17,10 +17,6 @@ use magnus::{
 };
 use std::cell::RefCell;
 use wasmtime::Linker as LinkerImpl;
-
-define_rb_intern!(
-    WASI=> "wasi",
-);
 
 /// @yard
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Linker.html Wasmtime's Rust doc

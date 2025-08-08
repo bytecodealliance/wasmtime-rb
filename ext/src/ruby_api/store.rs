@@ -118,7 +118,7 @@ unsafe impl Send for StoreData {}
 impl Store {
     /// @yard
     ///
-    /// @def new(engine, data = nil, wasi_config: nil, limits: nil)
+    /// @def new(engine, data = nil, wasi_config: nil, wasi_p1_config: nil, limits: nil)
     /// @param engine [Wasmtime::Engine]
     ///   The engine for this store.
     /// @param data [Object]

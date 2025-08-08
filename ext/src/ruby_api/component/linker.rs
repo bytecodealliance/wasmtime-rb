@@ -129,7 +129,7 @@ impl Linker {
         component: &Component,
     ) -> Result<Instance, Error> {
         if *rb_self.has_wasi.borrow() && !store.context().data().has_wasi_ctx() {
-            return err!("{}", errors::missing_wasi_ctx_error());
+            return err!("{}", errors::missing_wasi_ctx_error("linker.instantiate"));
         }
 
         let inner = rb_self.inner.borrow();

@@ -83,20 +83,25 @@ impl ExceptionMessage for magnus::Error {
     }
 }
 
-pub(crate) fn missing_wasi_ctx_error() -> String {
-    missing_wasi_error("WASI", "wasi_config")
+pub(crate) fn missing_wasi_ctx_error(callee: &str) -> String {
+    missing_wasi_error(callee, "WASI", "P2", "wasi_config")
 }
 
 pub(crate) fn missing_wasi_p1_ctx_error() -> String {
-    missing_wasi_error("WASI p1", "wasi_p1_config")
+    missing_wasi_error("linker.instantiate", "WASI p1", "P1", "wasi_p1_config")
 }
 
-fn missing_wasi_error(wasi_version: &str, option_name: &str) -> String {
+fn missing_wasi_error(
+    callee: &str,
+    wasi_text: &str,
+    add_wasi_call: &str,
+    option_name: &str,
+) -> String {
     format!(
-        "Store is missing {wasi_version} configuration.\n\n\
-        When using `wasi: true`, the Store given to\n\
-        `Linker#instantiate` must have a {wasi_version} configuration.\n\
-        To fix this, provide the `wasi_config` when creating the Store:\n\
+        "Store is missing {wasi_text} configuration.\n\n\
+        When using `WASI::{add_wasi_call}::add_to_linker_sync(linker)`, the Store given to\n\
+        `{callee}` must have a {wasi_text} configuration.\n\
+        To fix this, provide the `{option_name}` when creating the Store:\n\
             Wasmtime::Store.new(engine, {option_name}: WasiConfig.new)"
     )
 }

@@ -49,13 +49,6 @@ module Wasmtime
         expect { linker.instantiate(Store.new(@engine), wasi_component) }
           .to raise_error(Wasmtime::Error, /Store is missing WASI configuration/)
       end
-
-      it "returns an instance that can run when store is properly configured" do
-        linker = Component::Linker.new(@engine)
-        WASI::P2.add_to_linker_sync(linker)
-        store = Store.new(@engine, wasi_config: WasiConfig.new.set_stdin_string("some str"))
-        Component::WasiCommand.new(store, wasi_component, linker).call_run(store)
-      end
     end
 
     describe "Component::WasiCommand#new" do

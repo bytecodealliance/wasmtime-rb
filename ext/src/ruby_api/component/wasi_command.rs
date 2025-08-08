@@ -27,7 +27,7 @@ impl WasiCommand {
     /// @return [WasiCommand]
     pub fn new(store: &Store, component: &Component, linker: &Linker) -> Result<Self, Error> {
         if linker.has_wasi() && !store.context().data().has_wasi_ctx() {
-            return err!("{}", errors::missing_wasi_ctx_error());
+            return err!("{}", errors::missing_wasi_ctx_error("WasiCommand.new"));
         }
         let command =
             Command::instantiate(store.context_mut(), component.get(), &linker.inner_mut())

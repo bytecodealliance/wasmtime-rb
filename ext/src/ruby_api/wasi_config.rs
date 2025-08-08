@@ -9,7 +9,7 @@ use std::cell::RefCell;
 use std::fs;
 use std::{fs::File, path::PathBuf};
 use wasmtime_wasi::p2::pipe::MemoryInputPipe;
-use wasmtime_wasi::p2::{OutputFile, WasiCtxBuilder};
+use wasmtime_wasi::p2::{OutputFile, WasiCtx, WasiCtxBuilder};
 use wasmtime_wasi::preview1::WasiP1Ctx;
 
 enum ReadStream {
@@ -233,7 +233,19 @@ impl WasiConfig {
         rb_self
     }
 
-    pub fn build(&self, ruby: &Ruby) -> Result<WasiP1Ctx, Error> {
+    pub fn build_p1(&self, ruby: &Ruby) -> Result<WasiP1Ctx, Error> {
+        let mut builder = self.build_impl(ruby)?;
+        let ctx = builder.build_p1();
+        Ok(ctx)
+    }
+
+    pub fn build(&self, ruby: &Ruby) -> Result<WasiCtx, Error> {
+        let mut builder = self.build_impl(ruby)?;
+        let ctx = builder.build();
+        Ok(ctx)
+    }
+
+    fn build_impl(&self, ruby: &Ruby) -> Result<WasiCtxBuilder, Error> {
         let mut builder = WasiCtxBuilder::new();
         let inner = self.inner.borrow();
 
@@ -305,8 +317,7 @@ impl WasiConfig {
             deterministic_wasi_ctx::add_determinism_to_wasi_ctx_builder(&mut builder);
         }
 
-        let ctx = builder.build_p1();
-        Ok(ctx)
+        Ok(builder)
     }
 }
 

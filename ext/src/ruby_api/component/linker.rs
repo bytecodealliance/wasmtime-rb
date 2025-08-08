@@ -2,11 +2,15 @@ use super::{Component, Instance};
 use crate::{
     err,
     ruby_api::{
+        errors,
         store::{StoreContextValue, StoreData},
         Engine, Module, Store,
     },
 };
-use std::{borrow::BorrowMut, cell::RefCell};
+use std::{
+    borrow::BorrowMut,
+    cell::{RefCell, RefMut},
+};
 
 use crate::error;
 use magnus::{
@@ -14,6 +18,10 @@ use magnus::{
     DataTypeFunctions, Error, Module as _, Object, RModule, Ruby, TryConvert, TypedData, Value,
 };
 use wasmtime::component::{Linker as LinkerImpl, LinkerInstance as LinkerInstanceImpl};
+use wasmtime_wasi::{
+    p2::{IoView, WasiCtx, WasiView},
+    ResourceTable,
+};
 
 /// @yard
 /// @rename Wasmtime::Component::Linker
@@ -23,6 +31,7 @@ use wasmtime::component::{Linker as LinkerImpl, LinkerInstance as LinkerInstance
 pub struct Linker {
     inner: RefCell<LinkerImpl<StoreData>>,
     refs: RefCell<Vec<Value>>,
+    has_wasi: RefCell<bool>,
 }
 unsafe impl Send for Linker {}
 
@@ -38,11 +47,21 @@ impl Linker {
     /// @param engine [Engine]
     /// @return [Linker]
     pub fn new(engine: &Engine) -> Result<Self, Error> {
-        let linker = LinkerImpl::new(engine.get());
+        let linker: LinkerImpl<StoreData> = LinkerImpl::new(engine.get());
+
         Ok(Linker {
             inner: RefCell::new(linker),
             refs: RefCell::new(Vec::new()),
+            has_wasi: RefCell::new(false),
         })
+    }
+
+    pub(crate) fn inner_mut(&self) -> RefMut<'_, LinkerImpl<StoreData>> {
+        self.inner.borrow_mut()
+    }
+
+    pub(crate) fn has_wasi(&self) -> bool {
+        *self.has_wasi.borrow()
     }
 
     /// @yard
@@ -105,6 +124,10 @@ impl Linker {
         store: Obj<Store>,
         component: &Component,
     ) -> Result<Instance, Error> {
+        if *rb_self.has_wasi.borrow() && !store.context().data().has_wasi_ctx() {
+            return err!("{}", errors::missing_wasi_ctx_error("linker.instantiate"));
+        }
+
         let inner = rb_self.inner.borrow();
         inner
             .instantiate(store.context_mut(), component.get())
@@ -118,6 +141,12 @@ impl Linker {
                 Instance::from_inner(store, instance)
             })
             .map_err(|e| error!("{}", e))
+    }
+
+    pub(crate) fn add_wasi_p2(&self) -> Result<(), Error> {
+        *self.has_wasi.borrow_mut() = true;
+        let mut inner = self.inner.borrow_mut();
+        wasmtime_wasi::p2::add_to_linker_sync(&mut inner).map_err(|e| error!("{e}"))
     }
 }
 

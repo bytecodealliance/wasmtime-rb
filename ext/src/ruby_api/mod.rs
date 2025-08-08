@@ -27,6 +27,7 @@ mod pooling_allocation_config;
 mod store;
 mod table;
 mod trap;
+mod wasi;
 mod wasi_config;
 
 pub use caller::Caller;
@@ -83,6 +84,7 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
     memory::init(ruby)?;
     linker::init()?;
     externals::init()?;
+    wasi::init()?;
     wasi_config::init()?;
     table::init()?;
     global::init()?;

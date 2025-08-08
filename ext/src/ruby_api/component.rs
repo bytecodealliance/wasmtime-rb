@@ -2,6 +2,7 @@ mod convert;
 mod func;
 mod instance;
 mod linker;
+mod wasi_command;
 
 use super::root;
 use magnus::{
@@ -13,6 +14,8 @@ use wasmtime::component::Component as ComponentImpl;
 
 pub use func::Func;
 pub use instance::Instance;
+pub use linker::Linker;
+pub use wasi_command::WasiCommand;
 
 pub fn component_namespace(ruby: &Ruby) -> RModule {
     static COMPONENT_NAMESPACE: Lazy<RModule> =
@@ -162,6 +165,7 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
     instance::init(ruby, &namespace)?;
     func::init(ruby, &namespace)?;
     convert::init(ruby)?;
+    wasi_command::init(ruby, &namespace)?;
 
     Ok(())
 }

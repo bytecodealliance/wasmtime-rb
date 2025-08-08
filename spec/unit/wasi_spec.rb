@@ -12,11 +12,15 @@ module Wasmtime
       # Compile module only once for speed
       @compiled_wasi_module = @engine.precompile_module(IO.binread("spec/fixtures/wasi-debug.wasm"))
       @compiled_wasi_deterministic_module = @engine.precompile_module(IO.binread("spec/fixtures/wasi-deterministic.wasm"))
+
+      @compiled_wasi_component = @engine.precompile_component(IO.binread("spec/fixtures/wasi-debug-p2.wasm"))
+      @compiled_wasi_deterministic_component = @engine.precompile_component(IO.binread("spec/fixtures/wasi-deterministic-p2.wasm"))
     end
 
     describe "Linker.new" do
       it "accepts a wasi kwarg to define WASI imports" do
-        linker = Linker.new(@engine, wasi: true)
+        linker = Linker.new(@engine)
+        WASI::P1.add_to_linker_sync(linker)
         item = linker.get(Store.new(@engine), "wasi_snapshot_preview1", "environ_get")
         expect(item).not_to be nil
       end
@@ -24,20 +28,46 @@ module Wasmtime
 
     describe "Linker#instantiate" do
       it "prevents panic when Store doesn't have a Wasi config" do
-        linker = Linker.new(@engine, wasi: true)
+        linker = Linker.new(@engine)
+        WASI::P1.add_to_linker_sync(linker)
         expect { linker.instantiate(Store.new(@engine), wasi_module).invoke("_start") }
-          .to raise_error(Wasmtime::Error, /Store is missing WASI configuration/)
+          .to raise_error(Wasmtime::Error, /Store is missing WASI p1 configuration/)
       end
 
       it "returns an instance that can run when store is properly configured" do
-        linker = Linker.new(@engine, wasi: true)
-        store = Store.new(@engine, wasi_config: WasiConfig.new.set_stdin_string("some str"))
+        linker = Linker.new(@engine)
+        WASI::P1.add_to_linker_sync(linker)
+        store = Store.new(@engine, wasi_p1_config: WasiConfig.new.set_stdin_string("some str"))
         linker.instantiate(store, wasi_module).invoke("_start")
       end
     end
 
-    # Uses the program from spec/wasi-debug to test the WASI integration
-    describe WasiConfig do
+    describe "Component::Linker::instantiate" do
+      it "prevents panic when Store doesn't have a WASI config" do
+        linker = Component::Linker.new(@engine)
+        WASI::P2.add_to_linker_sync(linker)
+        expect { linker.instantiate(Store.new(@engine), wasi_component) }
+          .to raise_error(Wasmtime::Error, /Store is missing WASI configuration/)
+      end
+    end
+
+    describe "Component::WasiCommand#new" do
+      it "prevents panic when store doesn't have a WASI config" do
+        linker = Component::Linker.new(@engine)
+        WASI::P2.add_to_linker_sync(linker)
+        expect { Component::WasiCommand.new(Store.new(@engine), wasi_component, linker) }
+          .to raise_error(Wasmtime::Error, /Store is missing WASI configuration/)
+      end
+
+      it "returns an instance that can run when store is properly configured" do
+        linker = Component::Linker.new(@engine)
+        WASI::P2.add_to_linker_sync(linker)
+        store = Store.new(@engine, wasi_config: WasiConfig.new.set_stdin_string("some str"))
+        Component::WasiCommand.new(store, wasi_component, linker).call_run(store)
+      end
+    end
+
+    shared_examples WasiConfig do
       it "writes std streams to files" do
         File.write(tempfile_path("stdin"), "stdin content")
         wasi_config = WasiConfig.new
@@ -45,7 +75,7 @@ module Wasmtime
           .set_stdout_file(tempfile_path("stdout"))
           .set_stderr_file(tempfile_path("stderr"))
 
-        run_wasi_module(wasi_config)
+        run.call(wasi_config)
 
         stdout = JSON.parse(File.read(tempfile_path("stdout")))
         stderr = JSON.parse(File.read(tempfile_path("stderr")))
@@ -64,7 +94,7 @@ module Wasmtime
           .set_stdout_buffer(stdout_str, 40000)
           .set_stderr_buffer(stderr_str, 40000)
 
-        run_wasi_module(wasi_config)
+        run.call(wasi_config)
 
         parsed_stdout = JSON.parse(stdout_str)
         parsed_stderr = JSON.parse(stderr_str)
@@ -82,7 +112,7 @@ module Wasmtime
           .set_stdout_buffer(stdout_str, 5)
           .set_stderr_buffer(stderr_str, 10)
 
-        run_wasi_module(wasi_config)
+        run.call(wasi_config)
 
         expect(stdout_str).to eq("{\"nam")
         expect(stderr_str).to eq("{\"name\":\"s")
@@ -99,7 +129,7 @@ module Wasmtime
           .set_stderr_buffer(stderr_str, 40000)
 
         stdout_str.freeze
-        expect { run_wasi_module(wasi_config) }.to raise_error do |error|
+        expect { run.call(wasi_config) }.to raise_error do |error|
           expect(error).to be_a(Wasmtime::Error)
           expect(error.message).to match(/error while executing at wasm backtrace:/)
         end
@@ -119,7 +149,7 @@ module Wasmtime
           .set_stdout_buffer(stdout_str, 40000)
 
         stderr_str.freeze
-        expect { run_wasi_module(wasi_config) }.to raise_error do |error|
+        expect { run.call(wasi_config) }.to raise_error do |error|
           expect(error).to be_a(Wasmtime::Error)
           expect(error.message).to match(/error while executing at wasm backtrace:/)
         end
@@ -129,27 +159,27 @@ module Wasmtime
       end
 
       it "reads stdin from string" do
-        env = wasi_module_env { |config| config.set_stdin_string("¡UTF-8 from Ruby!") }
+        env = wasi_env.call { |config| config.set_stdin_string("¡UTF-8 from Ruby!") }
         expect(env.fetch("stdin")).to eq("¡UTF-8 from Ruby!")
       end
 
       it "uses specified args" do
-        env = wasi_module_env { |config| config.set_argv(["foo", "bar"]) }
+        env = wasi_env.call { |config| config.set_argv(["foo", "bar"]) }
         expect(env.fetch("args")).to eq(["foo", "bar"])
       end
 
       it "uses ARGV" do
-        env = wasi_module_env { |config| config.set_argv(ARGV) }
+        env = wasi_env.call { |config| config.set_argv(ARGV) }
         expect(env.fetch("args")).to eq(ARGV)
       end
 
       it "uses specified env" do
-        env = wasi_module_env { |config| config.set_env("ENV_VAR" => "VAL") }
+        env = wasi_env.call { |config| config.set_env("ENV_VAR" => "VAL") }
         expect(env.fetch("env").to_h).to eq("ENV_VAR" => "VAL")
       end
 
       it "uses ENV" do
-        env = wasi_module_env { |config| config.set_env(ENV) }
+        env = wasi_env.call { |config| config.set_env(ENV) }
         expect(env.fetch("env").to_h).to eq(ENV.to_h)
       end
 
@@ -157,18 +187,12 @@ module Wasmtime
         before do
           2.times do |t|
             t += 1
-            wasi_config = Wasmtime::WasiConfig
-              .new
+            wasi_config = WasiConfig.new
               .add_determinism
               .set_stdout_file(tempfile_path("stdout-deterministic-#{t}"))
               .set_stderr_file(tempfile_path("stderr-deterministic-#{t}"))
 
-            deterministic_module = Module.deserialize(@engine, @compiled_wasi_deterministic_module)
-
-            linker = Linker.new(@engine, wasi: true)
-            linker.use_deterministic_scheduling_functions
-            store = Store.new(@engine, wasi_config: wasi_config)
-            linker.instantiate(store, deterministic_module).invoke("_start")
+            run_deterministic.call(wasi_config)
           end
         end
 
@@ -211,14 +235,41 @@ module Wasmtime
       end
     end
 
+    describe "WasiConfig preview 1" do
+      it_behaves_like WasiConfig do
+        let(:run) { method(:run_wasi_module) }
+        let(:wasi_env) { method(:wasi_module_env) }
+        let(:run_deterministic) { method(:run_wasi_module_deterministic) }
+      end
+    end
+
+    describe "WasiConfig preview 2" do
+      it_behaves_like WasiConfig do
+        let(:run) { method(:run_wasi_component) }
+        let(:wasi_env) { method(:wasi_component_env) }
+        let(:run_deterministic) { method(:run_wasi_component_deterministic) }
+      end
+    end
+
     def wasi_module
       Module.deserialize(@engine, @compiled_wasi_module)
     end
 
     def run_wasi_module(wasi_config)
-      linker = Linker.new(@engine, wasi: true)
-      store = Store.new(@engine, wasi_config: wasi_config)
+      linker = Linker.new(@engine)
+      WASI::P1.add_to_linker_sync(linker)
+      store = Store.new(@engine, wasi_p1_config: wasi_config)
       linker.instantiate(store, wasi_module).invoke("_start")
+    end
+
+    def run_wasi_module_deterministic(wasi_config)
+      linker = Linker.new(@engine)
+      WASI::P1.add_to_linker_sync(linker)
+      linker.use_deterministic_scheduling_functions
+      store = Store.new(@engine, wasi_p1_config: wasi_config)
+      linker
+        .instantiate(store, Module.deserialize(@engine, @compiled_wasi_deterministic_module))
+        .invoke("_start")
     end
 
     def wasi_module_env
@@ -231,6 +282,40 @@ module Wasmtime
       run_wasi_module(wasi_config)
 
       JSON.parse(File.read(stdout_file)).fetch("wasi")
+    end
+
+    def wasi_component
+      Component::Component.deserialize(@engine, @compiled_wasi_component)
+    end
+
+    def run_wasi_component(wasi_config)
+      linker = Component::Linker.new(@engine)
+      WASI::P2.add_to_linker_sync(linker)
+      store = Store.new(@engine, wasi_config: wasi_config)
+      Component::WasiCommand.new(store, wasi_component, linker).call_run(store)
+    end
+
+    def wasi_component_env
+      stdout_file = tempfile_path("stdout")
+
+      wasi_config = WasiConfig.new
+      yield(wasi_config)
+      wasi_config.set_stdout_file(stdout_file)
+
+      run_wasi_component(wasi_config)
+
+      JSON.parse(File.read(stdout_file)).fetch("wasi")
+    end
+
+    def run_wasi_component_deterministic(wasi_config)
+      linker = Component::Linker.new(@engine)
+      WASI::P2.add_to_linker_sync(linker)
+      store = Store.new(@engine, wasi_config: wasi_config)
+      Component::WasiCommand.new(
+        store,
+        Component::Component.deserialize(@engine, @compiled_wasi_deterministic_component),
+        linker
+      ).call_run(store)
     end
 
     def tempfile_path(name)

@@ -2,9 +2,9 @@ require "wasmtime"
 
 engine = Wasmtime::Engine.new
 
-# Create a linker to link modules together. We want to use WASI with
-# the linker, so we pass in `wasi: true`.
+# Create a linker to link modules together.
 linker = Wasmtime::Linker.new(engine)
+# We want to use WASI with # the linker, so we call add_to_linker_sync.
 Wasmtime::WASI::P1.add_to_linker_sync(linker)
 
 mod1 = Wasmtime::Module.from_file(engine, "examples/linking1.wat")

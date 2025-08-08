@@ -239,7 +239,7 @@ impl PoolingAllocationConfig {
         ))
     }
 
-    fn borrow_mut(&self) -> Result<std::cell::RefMut<PoolingAllocationConfigImpl>, Error> {
+    fn borrow_mut(&self) -> Result<std::cell::RefMut<'_, PoolingAllocationConfigImpl>, Error> {
         if let Ok(inner) = self.inner.try_borrow_mut() {
             Ok(inner)
         } else {

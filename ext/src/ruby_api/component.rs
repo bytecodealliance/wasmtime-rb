@@ -14,6 +14,7 @@ use wasmtime::component::Component as ComponentImpl;
 
 pub use func::Func;
 pub use instance::Instance;
+pub use linker::Linker;
 pub use wasi_command::WasiCommand;
 
 pub fn component_namespace(ruby: &Ruby) -> RModule {

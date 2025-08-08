@@ -35,7 +35,7 @@ define_rb_intern!(
 pub struct Linker {
     inner: RefCell<LinkerImpl<StoreData>>,
     refs: RefCell<Vec<Value>>,
-    has_wasi: bool,
+    has_wasi: RefCell<bool>,
 }
 unsafe impl Send for Linker {}
 
@@ -47,25 +47,16 @@ impl DataTypeFunctions for Linker {
 
 impl Linker {
     /// @yard
-    /// @def new(engine, wasi: false)
+    /// @def new(engine)
     /// @param engine [Engine]
-    /// @param wasi [Boolean] Whether WASI should be defined in this Linker. Defaults to false.
     /// @return [Linker]
-    pub fn new(args: &[Value]) -> Result<Self, Error> {
-        let args = scan_args::scan_args::<(&Engine,), (), (), (), _, ()>(args)?;
-        let kw = scan_args::get_kwargs::<_, (), (Option<bool>,), ()>(args.keywords, &[], &[*WASI])?;
-        let (engine,) = args.required;
-        let wasi = kw.optional.0.unwrap_or(false);
-
-        let mut linker: LinkerImpl<StoreData> = LinkerImpl::new(engine.get());
-        if wasi {
-            wasmtime_wasi::p2::add_to_linker_sync(&mut linker).map_err(|e| error!("{}", e))?
-        }
+    pub fn new(engine: &Engine) -> Result<Self, Error> {
+        let linker: LinkerImpl<StoreData> = LinkerImpl::new(engine.get());
 
         Ok(Linker {
             inner: RefCell::new(linker),
             refs: RefCell::new(Vec::new()),
-            has_wasi: wasi,
+            has_wasi: RefCell::new(false),
         })
     }
 
@@ -74,7 +65,7 @@ impl Linker {
     }
 
     pub(crate) fn has_wasi(&self) -> bool {
-        self.has_wasi
+        *self.has_wasi.borrow()
     }
 
     /// @yard
@@ -137,7 +128,7 @@ impl Linker {
         store: Obj<Store>,
         component: &Component,
     ) -> Result<Instance, Error> {
-        if rb_self.has_wasi && !store.context().data().has_wasi_ctx() {
+        if *rb_self.has_wasi.borrow() && !store.context().data().has_wasi_ctx() {
             return err!("{}", errors::missing_wasi_ctx_error());
         }
 
@@ -154,6 +145,12 @@ impl Linker {
                 Instance::from_inner(store, instance)
             })
             .map_err(|e| error!("{}", e))
+    }
+
+    pub(crate) fn add_wasi_p2(&self) -> Result<(), Error> {
+        *self.has_wasi.borrow_mut() = true;
+        let mut inner = self.inner.borrow_mut();
+        wasmtime_wasi::p2::add_to_linker_sync(&mut inner).map_err(|e| error!("{e}"))
     }
 }
 
@@ -266,7 +263,7 @@ impl<'a> LinkerInstance<'a> {
 
 pub fn init(_ruby: &Ruby, namespace: &RModule) -> Result<(), Error> {
     let linker = namespace.define_class("Linker", class::object())?;
-    linker.define_singleton_method("new", function!(Linker::new, -1))?;
+    linker.define_singleton_method("new", function!(Linker::new, 1))?;
     linker.define_method("root", method!(Linker::root, 0))?;
     linker.define_method("instance", method!(Linker::instance, 1))?;
     linker.define_method("instantiate", method!(Linker::instantiate, 2))?;

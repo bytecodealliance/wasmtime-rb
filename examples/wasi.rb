@@ -3,7 +3,8 @@ require "wasmtime"
 engine = Wasmtime::Engine.new
 mod = Wasmtime::Module.from_file(engine, "spec/fixtures/wasi-debug.wasm")
 
-linker = Wasmtime::Linker.new(engine, wasi: true)
+linker = Wasmtime::Linker.new(engine)
+WASI::P1.add_to_linker_sync(linker)
 
 wasi_config = Wasmtime::WasiConfig.new
   .set_stdin_string("hi!")

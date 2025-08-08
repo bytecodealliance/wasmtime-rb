@@ -19,7 +19,8 @@ module Wasmtime
 
     describe "Linker.new" do
       it "accepts a wasi kwarg to define WASI imports" do
-        linker = Linker.new(@engine, wasi: true)
+        linker = Linker.new(@engine)
+        WASI::P1.add_to_linker_sync(linker)
         item = linker.get(Store.new(@engine), "wasi_snapshot_preview1", "environ_get")
         expect(item).not_to be nil
       end
@@ -27,13 +28,15 @@ module Wasmtime
 
     describe "Linker#instantiate" do
       it "prevents panic when Store doesn't have a Wasi config" do
-        linker = Linker.new(@engine, wasi: true)
+        linker = Linker.new(@engine)
+        WASI::P1.add_to_linker_sync(linker)
         expect { linker.instantiate(Store.new(@engine), wasi_module).invoke("_start") }
           .to raise_error(Wasmtime::Error, /Store is missing WASI p1 configuration/)
       end
 
       it "returns an instance that can run when store is properly configured" do
-        linker = Linker.new(@engine, wasi: true)
+        linker = Linker.new(@engine)
+        WASI::P1.add_to_linker_sync(linker)
         store = Store.new(@engine, wasi_p1_config: WasiConfig.new.set_stdin_string("some str"))
         linker.instantiate(store, wasi_module).invoke("_start")
       end
@@ -41,13 +44,15 @@ module Wasmtime
 
     describe "Component::Linker::instantiate" do
       it "prevents panic when Store doesn't have a WASI config" do
-        linker = Component::Linker.new(@engine, wasi: true)
+        linker = Component::Linker.new(@engine)
+        WASI::P2.add_to_linker_sync(linker)
         expect { linker.instantiate(Store.new(@engine), wasi_component) }
           .to raise_error(Wasmtime::Error, /Store is missing WASI configuration/)
       end
 
       it "returns an instance that can run when store is properly configured" do
-        linker = Component::Linker.new(@engine, wasi: true)
+        linker = Component::Linker.new(@engine)
+        WASI::P2.add_to_linker_sync(linker)
         store = Store.new(@engine, wasi_config: WasiConfig.new.set_stdin_string("some str"))
         Component::WasiCommand.new(store, wasi_component, linker).call_run(store)
       end
@@ -55,13 +60,15 @@ module Wasmtime
 
     describe "Component::WasiCommand#new" do
       it "prevents panic when store doesn't have a WASI config" do
-        linker = Component::Linker.new(@engine, wasi: true)
+        linker = Component::Linker.new(@engine)
+        WASI::P2.add_to_linker_sync(linker)
         expect { Component::WasiCommand.new(Store.new(@engine), wasi_component, linker) }
           .to raise_error(Wasmtime::Error, /Store is missing WASI configuration/)
       end
 
       it "returns an instance that can run when store is properly configured" do
-        linker = Component::Linker.new(@engine, wasi: true)
+        linker = Component::Linker.new(@engine)
+        WASI::P2.add_to_linker_sync(linker)
         store = Store.new(@engine, wasi_config: WasiConfig.new.set_stdin_string("some str"))
         Component::WasiCommand.new(store, wasi_component, linker).call_run(store)
       end
@@ -256,13 +263,15 @@ module Wasmtime
     end
 
     def run_wasi_module(wasi_config)
-      linker = Linker.new(@engine, wasi: true)
+      linker = Linker.new(@engine)
+      WASI::P1.add_to_linker_sync(linker)
       store = Store.new(@engine, wasi_p1_config: wasi_config)
       linker.instantiate(store, wasi_module).invoke("_start")
     end
 
     def run_wasi_module_deterministic(wasi_config)
-      linker = Linker.new(@engine, wasi: true)
+      linker = Linker.new(@engine)
+      WASI::P1.add_to_linker_sync(linker)
       linker.use_deterministic_scheduling_functions
       store = Store.new(@engine, wasi_p1_config: wasi_config)
       linker
@@ -287,7 +296,8 @@ module Wasmtime
     end
 
     def run_wasi_component(wasi_config)
-      linker = Component::Linker.new(@engine, wasi: true)
+      linker = Component::Linker.new(@engine)
+      WASI::P2.add_to_linker_sync(linker)
       store = Store.new(@engine, wasi_config: wasi_config)
       Component::WasiCommand.new(store, wasi_component, linker).call_run(store)
     end
@@ -305,7 +315,8 @@ module Wasmtime
     end
 
     def run_wasi_component_deterministic(wasi_config)
-      linker = Component::Linker.new(@engine, wasi: true)
+      linker = Component::Linker.new(@engine)
+      WASI::P2.add_to_linker_sync(linker)
       store = Store.new(@engine, wasi_config: wasi_config)
       Component::WasiCommand.new(
         store,

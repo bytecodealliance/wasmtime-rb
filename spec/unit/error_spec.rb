@@ -78,7 +78,8 @@ module Wasmtime
     end
 
     it "raises WasiExit on WASI's proc_exit" do
-      linker = Linker.new(engine, wasi: true)
+      linker = Linker.new(engine)
+      WASI::P1.add_to_linker_sync(linker)
       store = Store.new(engine, wasi_p1_config: WasiConfig.new)
       instance = linker.instantiate(store, wasi_module_exiting)
 

@@ -236,11 +236,11 @@ impl Store {
             .max_linear_memory_consumed()
     }
 
-    pub fn context(&self) -> StoreContext<StoreData> {
+    pub fn context(&self) -> StoreContext<'_, StoreData> {
         unsafe { (*self.inner.get()).as_context() }
     }
 
-    pub fn context_mut(&self) -> StoreContextMut<StoreData> {
+    pub fn context_mut(&self) -> StoreContextMut<'_, StoreData> {
         unsafe { (*self.inner.get()).as_context_mut() }
     }
 
@@ -288,7 +288,7 @@ impl StoreContextValue<'_> {
         }
     }
 
-    pub fn context(&self) -> Result<StoreContext<StoreData>, Error> {
+    pub fn context(&self) -> Result<StoreContext<'_, StoreData>, Error> {
         let ruby = Ruby::get().unwrap();
         match self {
             Self::Store(store) => Ok(ruby.get_inner_ref(store).context()),
@@ -296,7 +296,7 @@ impl StoreContextValue<'_> {
         }
     }
 
-    pub fn context_mut(&self) -> Result<StoreContextMut<StoreData>, Error> {
+    pub fn context_mut(&self) -> Result<StoreContextMut<'_, StoreData>, Error> {
         let ruby = Ruby::get().unwrap();
         match self {
             Self::Store(store) => Ok(ruby.get_inner_ref(store).context_mut()),

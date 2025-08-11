@@ -294,22 +294,26 @@
       <pre class="lines">
 
 
-40
-41
-42
-43
-44
-45
-46</pre>
+49
+50
+51
+52
+53
+54
+55
+56
+57</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 40</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 49</span>
 
 pub fn new(engine: &amp;Engine) -&gt; Result&lt;Self, Error&gt; {
-    let linker = LinkerImpl::new(engine.get());
+    let linker: LinkerImpl&lt;StoreData&gt; = LinkerImpl::new(engine.get());
+
     Ok(Linker {
         inner: RefCell::new(linker),
         refs: RefCell::new(Vec::new()),
+        has_wasi: RefCell::new(false),
     })
 }</pre>
     </td>
@@ -415,26 +419,26 @@ pub fn new(engine: &amp;Engine) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-78
-79
-80
-81
-82
-83
-84
-85
-86
-87
-88
-89
-90
-91
-92
-93
-94</pre>
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 78</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 97</span>
 
 pub fn instance(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, name: RString) -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
     let mut inner = rb_self.inner.borrow_mut();
@@ -523,51 +527,57 @@ pub fn instance(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, name: RString) -&gt; 
       <pre class="lines">
 
 
-102
-103
-104
-105
-106
-107
-108
-109
-110
-111
-112
-113
-114
-115
-116
-117
-118
-119
-120
 121
-122</pre>
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 102</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 121</span>
 
 fn instantiate(
-        _ruby: &amp;Ruby,
-        rb_self: Obj&lt;Self&gt;,
-        store: Obj&lt;Store&gt;,
-        component: &amp;Component,
-    ) -&gt; Result&lt;Instance, Error&gt; {
-        let inner = rb_self.inner.borrow();
-        inner
-            .instantiate(store.context_mut(), component.get())
-            .map(|instance| {
-                rb_self
-                    .refs
-                    .borrow()
-                    .iter()
-                    .for_each(|value| store.retain(*value));
-
-                Instance::from_inner(store, instance)
-            })
-            .map_err(|e| error!(&quot;{}&quot;, e))
+    _ruby: &amp;Ruby,
+    rb_self: Obj&lt;Self&gt;,
+    store: Obj&lt;Store&gt;,
+    component: &amp;Component,
+) -&gt; Result&lt;Instance, Error&gt; {
+    if *rb_self.has_wasi.borrow() &amp;&amp; !store.context().data().has_wasi_ctx() {
+        return err!(&quot;{}&quot;, errors::missing_wasi_ctx_error(&quot;linker.instantiate&quot;));
     }
+
+    let inner = rb_self.inner.borrow();
+    inner
+        .instantiate(store.context_mut(), component.get())
+        .map(|instance| {
+            rb_self
+                .refs
+                .borrow()
+                .iter()
+                .for_each(|value| store.retain(*value));
+
+            Instance::from_inner(store, instance)
+        })
+        .map_err(|e| error!(&quot;{}&quot;, e))
 }</pre>
     </td>
   </tr>
@@ -651,23 +661,23 @@ fn instantiate(
       <pre class="lines">
 
 
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68</pre>
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 55</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 74</span>
 
 pub fn root(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
     let Ok(mut inner) = rb_self.inner.try_borrow_mut() else {
@@ -693,7 +703,7 @@ pub fn root(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Obj&lt;Se
 </div>
 
       <div id="footer">
-  Generated on Mon Aug 11 14:03:46 2025 by
+  Generated on Mon Aug 11 15:50:04 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.5).
 </div>

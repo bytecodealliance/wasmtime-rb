@@ -135,7 +135,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#new-class_method" title="new (class method)">.<strong>new</strong>(engine, data = nil, wasi_config: nil, limits: nil)  &#x21d2; Wasmtime::Store </a>
+      <a href="#new-class_method" title="new (class method)">.<strong>new</strong>(engine, data = nil, wasi_config: nil, wasi_p1_config: nil, limits: nil)  &#x21d2; Wasmtime::Store </a>
     
 
     
@@ -319,7 +319,7 @@
       <div class="method_details first">
   <h3 class="signature first" id="new-class_method">
   
-    .<strong>new</strong>(engine, data = nil, wasi_config: nil, limits: nil)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::Store (class)">Wasmtime::Store</a></span></tt> 
+    .<strong>new</strong>(engine, data = nil, wasi_config: nil, wasi_p1_config: nil, limits: nil)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::Store (class)">Wasmtime::Store</a></span></tt> 
   
 
   
@@ -400,6 +400,24 @@
   
     <li>
       
+        <span class='name'>wasi_p1_config</span>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="WasiConfig.html" title="Wasmtime::WasiConfig (class)">Wasmtime::WasiConfig</a></span></tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>The WASI config to use in this store for WASI preview 1.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
         <span class='name'>limits</span>
       
       
@@ -419,6 +437,8 @@
 </ul>
 
   
+    
+    
     
     
     
@@ -518,18 +538,6 @@
       <pre class="lines">
 
 
-138
-139
-140
-141
-142
-143
-144
-145
-146
-147
-148
-149
 150
 151
 152
@@ -555,27 +563,65 @@
 172
 173
 174
-175</pre>
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 138</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 150</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let ruby = Ruby::get().unwrap();
     let args = scan_args::scan_args::&lt;(&amp;Engine,), (Option&lt;Value&gt;,), (), (), _, ()&gt;(args)?;
-    let kw = scan_args::get_kwargs::&lt;_, (), (Option&lt;&amp;WasiConfig&gt;, Option&lt;RHash&gt;), ()&gt;(
+    let kw = scan_args::get_kwargs::&lt;
+        _,
+        (),
+        (Option&lt;&amp;WasiConfig&gt;, Option&lt;&amp;WasiConfig&gt;, Option&lt;RHash&gt;),
+        (),
+    &gt;(
         args.keywords,
         &amp;[],
-        &amp;[*WASI_CONFIG, *LIMITS],
+        &amp;[*WASI_CONFIG, *WASI_P1_CONFIG, *LIMITS],
     )?;
 
     let (engine,) = args.required;
     let (user_data,) = args.optional;
     let user_data = user_data.unwrap_or_else(|| ().into_value());
     let wasi_config = kw.optional.0;
-    let wasi = wasi_config.map(|config| config.build(&amp;ruby)).transpose()?;
+    let wasi_p1_config = kw.optional.1;
 
-    let limiter = match kw.optional.1 {
+    let wasi = wasi_config
+        .map(|wasi_config| wasi_config.build(&amp;ruby))
+        .transpose()?;
+    let wasi_p1 = wasi_p1_config
+        .map(|wasi_config| wasi_config.build_p1(&amp;ruby))
+        .transpose()?;
+
+    let limiter = match kw.optional.2 {
         None =&gt; StoreLimitsBuilder::new(),
         Some(limits) =&gt; hash_to_store_limits_builder(limits)?,
     }
@@ -585,10 +631,12 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let eng = engine.get();
     let store_data = StoreData {
         user_data,
+        wasi_p1,
         wasi,
         refs: Default::default(),
         last_error: Default::default(),
         store_limits: limiter,
+        resource_table: Default::default(),
     };
     let store = Self {
         inner: UnsafeCell::new(StoreImpl::new(eng, store_data)),
@@ -653,12 +701,12 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-179
-180
-181</pre>
+205
+206
+207</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 179</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 205</span>
 
 pub fn data(&amp;self) -&gt; Value {
     self.context().data().user_data()
@@ -725,12 +773,12 @@ pub fn data(&amp;self) -&gt; Value {
       <pre class="lines">
 
 
-188
-189
-190</pre>
+214
+215
+216</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 188</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 214</span>
 
 pub fn get_fuel(&amp;self) -&gt; Result&lt;u64, Error&gt; {
     self.inner_ref().get_fuel().map_err(|e| error!(&quot;{}&quot;, e))
@@ -779,12 +827,12 @@ pub fn get_fuel(&amp;self) -&gt; Result&lt;u64, Error&gt; {
       <pre class="lines">
 
 
-224
-225
-226</pre>
+250
+251
+252</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 224</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 250</span>
 
 pub fn linear_memory_limit_hit(&amp;self) -&gt; bool {
     self.context().data().store_limits.linear_memory_limit_hit()
@@ -833,15 +881,15 @@ pub fn linear_memory_limit_hit(&amp;self) -&gt; bool {
       <pre class="lines">
 
 
-232
-233
-234
-235
-236
-237</pre>
+258
+259
+260
+261
+262
+263</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 232</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 258</span>
 
 pub fn max_linear_memory_consumed(&amp;self) -&gt; usize {
     self.context()
@@ -922,12 +970,12 @@ pub fn max_linear_memory_consumed(&amp;self) -&gt; usize {
       <pre class="lines">
 
 
-215
-216
-217</pre>
+241
+242
+243</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 215</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 241</span>
 
 pub fn set_epoch_deadline(&amp;self, ticks_beyond_current: u64) {
     unsafe { &amp;mut *self.inner.get() }.set_epoch_deadline(ticks_beyond_current);
@@ -1001,16 +1049,16 @@ pub fn set_epoch_deadline(&amp;self, ticks_beyond_current: u64) {
       <pre class="lines">
 
 
-197
-198
-199
-200
-201
-202
-203</pre>
+223
+224
+225
+226
+227
+228
+229</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 197</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 223</span>
 
 pub fn set_fuel(&amp;self, fuel: u64) -&gt; Result&lt;(), Error&gt; {
     unsafe { &amp;mut *self.inner.get() }
@@ -1029,7 +1077,7 @@ pub fn set_fuel(&amp;self, fuel: u64) -&gt; Result&lt;(), Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Mon Aug 11 14:03:47 2025 by
+  Generated on Mon Aug 11 15:50:04 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.5).
 </div>

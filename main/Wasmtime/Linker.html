@@ -133,7 +133,7 @@
         <li class="public ">
   <span class="summary_signature">
     
-      <a href="#new-class_method" title="new (class method)">.<strong>new</strong>(engine, wasi: false)  &#x21d2; Linker </a>
+      <a href="#new-class_method" title="new (class method)">.<strong>new</strong>(engine)  &#x21d2; Linker </a>
     
 
     
@@ -461,7 +461,7 @@
       <div class="method_details first">
   <h3 class="signature first" id="new-class_method">
   
-    .<strong>new</strong>(engine, wasi: false)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::Linker (class)">Linker</a></span></tt> 
+    .<strong>new</strong>(engine)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::Linker (class)">Linker</a></span></tt> 
   
 
   
@@ -488,24 +488,6 @@
       
     </li>
   
-    <li>
-      
-        <span class='name'>wasi</span>
-      
-      
-        <span class='type'>(<tt>Boolean</tt>)</span>
-      
-      
-        <em class="default">(defaults to: <tt>false</tt>)</em>
-      
-      
-        &mdash;
-        <div class='inline'>
-<p>Whether WASI should be defined in this Linker. Defaults to false.</p>
-</div>
-      
-    </li>
-  
 </ul>
 
 <p class="tag_title">Returns:</p>
@@ -528,42 +510,24 @@
       <pre class="lines">
 
 
+44
+45
+46
+47
+48
 49
 50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65</pre>
+51</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 49</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 44</span>
 
-pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
-    let args = scan_args::scan_args::&lt;(&amp;Engine,), (), (), (), _, ()&gt;(args)?;
-    let kw = scan_args::get_kwargs::&lt;_, (), (Option&lt;bool&gt;,), ()&gt;(args.keywords, &amp;[], &amp;[*WASI])?;
-    let (engine,) = args.required;
-    let wasi = kw.optional.0.unwrap_or(false);
-
-    let mut inner: LinkerImpl&lt;StoreData&gt; = LinkerImpl::new(engine.get());
-    if wasi {
-        wasmtime_wasi::preview1::add_to_linker_sync(&amp;mut inner, |s| s.wasi_ctx_mut())
-            .map_err(|e| error!(&quot;{}&quot;, e))?
-    }
+pub fn new(engine: &amp;Engine) -&gt; Result&lt;Self, Error&gt; {
+    let inner: LinkerImpl&lt;StoreData&gt; = LinkerImpl::new(engine.get());
     Ok(Self {
         inner: RefCell::new(inner),
         refs: Default::default(),
-        has_wasi: wasi,
+        has_wasi: RefCell::new(false),
     })
 }</pre>
     </td>
@@ -639,27 +603,27 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
 242
 243
 244
-245
-246
-247
-248
-249
-250
-251
-252
-253
-254
-255
-256
-257
-258
-259</pre>
+245</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 242</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 228</span>
 
 pub fn alias(
     &amp;self,
@@ -725,12 +689,12 @@ pub fn alias(
       <pre class="lines">
 
 
-71
-72
-73</pre>
+57
+58
+59</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 71</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 57</span>
 
 pub fn set_allow_shadowing(&amp;self, val: bool) {
     self.inner.borrow_mut().allow_shadowing(val);
@@ -781,12 +745,12 @@ pub fn set_allow_shadowing(&amp;self, val: bool) {
       <pre class="lines">
 
 
-79
-80
-81</pre>
+65
+66
+67</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 79</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 65</span>
 
 pub fn set_allow_unknown_exports(&amp;self, val: bool) {
     self.inner.borrow_mut().allow_unknown_exports(val);
@@ -885,6 +849,20 @@ pub fn set_allow_unknown_exports(&amp;self, val: bool) {
       <pre class="lines">
 
 
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
 103
 104
 105
@@ -892,24 +870,10 @@ pub fn set_allow_unknown_exports(&amp;self, val: bool) {
 107
 108
 109
-110
-111
-112
-113
-114
-115
-116
-117
-118
-119
-120
-121
-122
-123
-124</pre>
+110</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 103</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 89</span>
 
 pub fn define(
     ruby: &amp;Ruby,
@@ -979,15 +943,15 @@ pub fn define(
       <pre class="lines">
 
 
-88
-89
-90
-91
-92
-93</pre>
+74
+75
+76
+77
+78
+79</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 88</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 74</span>
 
 pub fn define_unknown_imports_as_traps(&amp;self, module: &amp;Module) -&gt; Result&lt;(), Error&gt; {
     self.inner
@@ -1119,6 +1083,20 @@ pub fn define_unknown_imports_as_traps(&amp;self, module: &amp;Module) -&gt; Res
       <pre class="lines">
 
 
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
 139
 140
 141
@@ -1129,24 +1107,10 @@ pub fn define_unknown_imports_as_traps(&amp;self, module: &amp;Module) -&gt; Res
 146
 147
 148
-149
-150
-151
-152
-153
-154
-155
-156
-157
-158
-159
-160
-161
-162
-163</pre>
+149</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 139</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 125</span>
 
 pub fn func_new(&amp;self, args: &amp;[Value]) -&gt; Result&lt;(), Error&gt; {
     let args = scan_args::&lt;(RString, RString, RArray, RArray), (), (), (), RHash, Proc&gt;(args)?;
@@ -1269,27 +1233,27 @@ pub fn func_new(&amp;self, args: &amp;[Value]) -&gt; Result&lt;(), Error&gt; {
       <pre class="lines">
 
 
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
 173
 174
 175
-176
-177
-178
-179
-180
-181
-182
-183
-184
-185
-186
-187
-188
-189
-190</pre>
+176</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 173</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 159</span>
 
 pub fn get(
     &amp;self,
@@ -1384,16 +1348,16 @@ pub fn get(
       <pre class="lines">
 
 
-309
-310
-311
-312
-313
-314
-315</pre>
+289
+290
+291
+292
+293
+294
+295</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 309</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 289</span>
 
 pub fn get_default(&amp;self, store: Obj&lt;Store&gt;, module: RString) -&gt; Result&lt;Func&lt;&#39;_&gt;, Error&gt; {
     self.inner
@@ -1475,25 +1439,25 @@ pub fn get_default(&amp;self, store: Obj&lt;Store&gt;, module: RString) -&gt; Re
       <pre class="lines">
 
 
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
 200
-201
-202
-203
-204
-205
-206
-207
-208
-209
-210
-211
-212
-213
-214
-215</pre>
+201</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 200</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 186</span>
 
 pub fn instance(
     &amp;self,
@@ -1581,39 +1545,27 @@ pub fn instance(
       <pre class="lines">
 
 
-282
-283
-284
-285
-286
-287
-288
-289
-290
-291
-292
-293
-294
-295
-296
-297
-298
-299
-300
-301</pre>
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 282</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 268</span>
 
 pub fn instantiate(&amp;self, store: Obj&lt;Store&gt;, module: &amp;Module) -&gt; Result&lt;Instance, Error&gt; {
-    if self.has_wasi &amp;&amp; !store.context().data().has_wasi_ctx() {
-        return err!(
-            &quot;Store is missing WASI configuration.\n\n\
-            When using `wasi: true`, the Store given to\n\
-            `Linker#instantiate` must have a WASI configuration.\n\
-            To fix this, provide the `wasi_config` when creating the Store:\n\
-                Wasmtime::Store.new(engine, wasi_config: WasiConfig.new)&quot;
-        );
+    if *self.has_wasi.borrow() &amp;&amp; !store.context().data().has_wasi_p1_ctx() {
+        return err!(&quot;{}&quot;, errors::missing_wasi_p1_ctx_error());
     }
 
     self.inner
@@ -1698,16 +1650,16 @@ pub fn instantiate(&amp;self, store: Obj&lt;Store&gt;, module: &amp;Module) -&gt
       <pre class="lines">
 
 
-225
-226
-227
-228
-229
-230
-231</pre>
+211
+212
+213
+214
+215
+216
+217</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 225</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 211</span>
 
 pub fn module(&amp;self, store: &amp;Store, name: RString, module: &amp;Module) -&gt; Result&lt;(), Error&gt; {
     self.inner
@@ -1747,19 +1699,17 @@ pub fn module(&amp;self, store: &amp;Store, name: RString, module: &amp;Module) 
       <pre class="lines">
 
 
-321
-322
-323
-324
-325</pre>
+301
+302
+303
+304</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 321</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 301</span>
 
 pub fn use_deterministic_scheduling_functions(&amp;self) -&gt; Result&lt;(), Error&gt; {
-        let mut inner = self.inner.borrow_mut();
-        deterministic_wasi_ctx::replace_scheduling_functions(&amp;mut inner).map_err(|e| error!(&quot;{e}&quot;))
-    }
+    let mut inner = self.inner.borrow_mut();
+    deterministic_wasi_ctx::replace_scheduling_functions(&amp;mut inner).map_err(|e| error!(&quot;{e}&quot;))
 }</pre>
     </td>
   </tr>
@@ -1771,7 +1721,7 @@ pub fn use_deterministic_scheduling_functions(&amp;self) -&gt; Result&lt;(), Err
 </div>
 
       <div id="footer">
-  Generated on Mon Aug 11 14:03:46 2025 by
+  Generated on Mon Aug 11 15:50:04 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.5).
 </div>

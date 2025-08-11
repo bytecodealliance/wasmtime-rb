@@ -100,11 +100,11 @@ impl<'a> Caller<'a> {
         Ok(())
     }
 
-    pub fn context(&self) -> Result<StoreContext<StoreData>, Error> {
+    pub fn context(&self) -> Result<StoreContext<'_, StoreData>, Error> {
         self.handle.get().map(|c| c.as_context())
     }
 
-    pub fn context_mut(&self) -> Result<StoreContextMut<StoreData>, Error> {
+    pub fn context_mut(&self) -> Result<StoreContextMut<'_, StoreData>, Error> {
         self.handle.get_mut().map(|c| c.as_context_mut())
     }
 

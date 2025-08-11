@@ -108,7 +108,7 @@ impl Instance {
     /// @def export(name)
     /// @param name [String]
     /// @return [Extern, nil] The export if it exists, nil otherwise.
-    pub fn export(&self, str: RString) -> Result<Option<super::externals::Extern>, Error> {
+    pub fn export(&self, str: RString) -> Result<Option<super::externals::Extern<'_>>, Error> {
         let export = self
             .inner
             .get_export(self.store.context_mut(), unsafe { str.as_str()? });

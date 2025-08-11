@@ -9,7 +9,7 @@ use super::{
     root,
     store::{Store, StoreContextValue, StoreData},
 };
-use crate::{define_rb_intern, err, error};
+use crate::{err, error, ruby_api::errors};
 use magnus::{
     block::Proc, class, function, gc::Marker, method, prelude::*, scan_args, scan_args::scan_args,
     typed_data::Obj, DataTypeFunctions, Error, Object, RArray, RHash, RString, Ruby, TypedData,
@@ -18,10 +18,6 @@ use magnus::{
 use std::cell::RefCell;
 use wasmtime::Linker as LinkerImpl;
 
-define_rb_intern!(
-    WASI=> "wasi",
-);
-
 /// @yard
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Linker.html Wasmtime's Rust doc
 #[derive(TypedData)]
@@ -29,7 +25,7 @@ define_rb_intern!(
 pub struct Linker {
     inner: RefCell<LinkerImpl<StoreData>>,
     refs: RefCell<Vec<Value>>,
-    has_wasi: bool,
+    has_wasi: RefCell<bool>,
 }
 
 unsafe impl Send for Linker {}
@@ -42,25 +38,15 @@ impl DataTypeFunctions for Linker {
 
 impl Linker {
     /// @yard
-    /// @def new(engine, wasi: false)
+    /// @def new(engine)
     /// @param engine [Engine]
-    /// @param wasi [Boolean] Whether WASI should be defined in this Linker. Defaults to false.
     /// @return [Linker]
-    pub fn new(args: &[Value]) -> Result<Self, Error> {
-        let args = scan_args::scan_args::<(&Engine,), (), (), (), _, ()>(args)?;
-        let kw = scan_args::get_kwargs::<_, (), (Option<bool>,), ()>(args.keywords, &[], &[*WASI])?;
-        let (engine,) = args.required;
-        let wasi = kw.optional.0.unwrap_or(false);
-
-        let mut inner: LinkerImpl<StoreData> = LinkerImpl::new(engine.get());
-        if wasi {
-            wasmtime_wasi::preview1::add_to_linker_sync(&mut inner, |s| s.wasi_ctx_mut())
-                .map_err(|e| error!("{}", e))?
-        }
+    pub fn new(engine: &Engine) -> Result<Self, Error> {
+        let inner: LinkerImpl<StoreData> = LinkerImpl::new(engine.get());
         Ok(Self {
             inner: RefCell::new(inner),
             refs: Default::default(),
-            has_wasi: wasi,
+            has_wasi: RefCell::new(false),
         })
     }
 
@@ -280,14 +266,8 @@ impl Linker {
     /// @param mod [Module]
     /// @return [Instance]
     pub fn instantiate(&self, store: Obj<Store>, module: &Module) -> Result<Instance, Error> {
-        if self.has_wasi && !store.context().data().has_wasi_ctx() {
-            return err!(
-                "Store is missing WASI configuration.\n\n\
-                When using `wasi: true`, the Store given to\n\
-                `Linker#instantiate` must have a WASI configuration.\n\
-                To fix this, provide the `wasi_config` when creating the Store:\n\
-                    Wasmtime::Store.new(engine, wasi_config: WasiConfig.new)"
-            );
+        if *self.has_wasi.borrow() && !store.context().data().has_wasi_p1_ctx() {
+            return err!("{}", errors::missing_wasi_p1_ctx_error());
         }
 
         self.inner
@@ -322,11 +302,18 @@ impl Linker {
         let mut inner = self.inner.borrow_mut();
         deterministic_wasi_ctx::replace_scheduling_functions(&mut inner).map_err(|e| error!("{e}"))
     }
+
+    pub(crate) fn add_wasi_p1(&self) -> Result<(), Error> {
+        *self.has_wasi.borrow_mut() = true;
+        let mut inner = self.inner.borrow_mut();
+        wasmtime_wasi::preview1::add_to_linker_sync(&mut inner, |s| s.wasi_p1_ctx_mut())
+            .map_err(|e| error!("{e}"))
+    }
 }
 
 pub fn init() -> Result<(), Error> {
     let class = root().define_class("Linker", class::object())?;
-    class.define_singleton_method("new", function!(Linker::new, -1))?;
+    class.define_singleton_method("new", function!(Linker::new, 1))?;
     class.define_method("allow_shadowing=", method!(Linker::set_allow_shadowing, 1))?;
     class.define_method(
         "allow_unknown_exports=",

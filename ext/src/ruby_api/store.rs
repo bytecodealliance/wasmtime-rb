@@ -19,20 +19,24 @@ use wasmtime::{
     AsContext, AsContextMut, ResourceLimiter, Store as StoreImpl, StoreContext, StoreContextMut,
     StoreLimits, StoreLimitsBuilder,
 };
+use wasmtime_wasi::p2::{IoView, WasiCtx, WasiView};
 use wasmtime_wasi::preview1::WasiP1Ctx;
-use wasmtime_wasi::I32Exit;
+use wasmtime_wasi::{I32Exit, ResourceTable};
 
 define_rb_intern!(
     WASI_CONFIG => "wasi_config",
+    WASI_P1_CONFIG => "wasi_p1_config",
     LIMITS => "limits",
 );
 
 pub struct StoreData {
     user_data: Value,
-    wasi: Option<WasiP1Ctx>,
+    wasi_p1: Option<WasiP1Ctx>,
+    wasi: Option<WasiCtx>,
     refs: Vec<Value>,
     last_error: Option<Error>,
     store_limits: TrackingResourceLimiter,
+    resource_table: ResourceTable,
 }
 
 impl StoreData {
@@ -40,12 +44,18 @@ impl StoreData {
         self.user_data
     }
 
+    pub fn has_wasi_p1_ctx(&self) -> bool {
+        self.wasi_p1.is_some()
+    }
+
     pub fn has_wasi_ctx(&self) -> bool {
         self.wasi.is_some()
     }
 
-    pub fn wasi_ctx_mut(&mut self) -> &mut WasiP1Ctx {
-        self.wasi.as_mut().expect("Store must have a WASI context")
+    pub fn wasi_p1_ctx_mut(&mut self) -> &mut WasiP1Ctx {
+        self.wasi_p1
+            .as_mut()
+            .expect("Store must have a WASI context")
     }
 
     pub fn retain(&mut self, value: Value) {
@@ -108,13 +118,15 @@ unsafe impl Send for StoreData {}
 impl Store {
     /// @yard
     ///
-    /// @def new(engine, data = nil, wasi_config: nil, limits: nil)
+    /// @def new(engine, data = nil, wasi_config: nil, wasi_p1_config: nil, limits: nil)
     /// @param engine [Wasmtime::Engine]
     ///   The engine for this store.
     /// @param data [Object]
     ///   The data attached to the store. Can be retrieved through {Wasmtime::Store#data} and {Wasmtime::Caller#data}.
     /// @param wasi_config [Wasmtime::WasiConfig]
     ///   The WASI config to use in this store.
+    /// @param wasi_p1_config [Wasmtime::WasiConfig]
+    ///   The WASI config to use in this store for WASI preview 1.
     /// @param limits [Hash]
     ///   See the {https://docs.rs/wasmtime/latest/wasmtime/struct.StoreLimitsBuilder.html +StoreLimitsBuilder+'s Rust doc}
     ///   for detailed description of the different options and the defaults.
@@ -138,19 +150,31 @@ impl Store {
     pub fn new(args: &[Value]) -> Result<Self, Error> {
         let ruby = Ruby::get().unwrap();
         let args = scan_args::scan_args::<(&Engine,), (Option<Value>,), (), (), _, ()>(args)?;
-        let kw = scan_args::get_kwargs::<_, (), (Option<&WasiConfig>, Option<RHash>), ()>(
+        let kw = scan_args::get_kwargs::<
+            _,
+            (),
+            (Option<&WasiConfig>, Option<&WasiConfig>, Option<RHash>),
+            (),
+        >(
             args.keywords,
             &[],
-            &[*WASI_CONFIG, *LIMITS],
+            &[*WASI_CONFIG, *WASI_P1_CONFIG, *LIMITS],
         )?;
 
         let (engine,) = args.required;
         let (user_data,) = args.optional;
         let user_data = user_data.unwrap_or_else(|| ().into_value());
         let wasi_config = kw.optional.0;
-        let wasi = wasi_config.map(|config| config.build(&ruby)).transpose()?;
+        let wasi_p1_config = kw.optional.1;
 
-        let limiter = match kw.optional.1 {
+        let wasi = wasi_config
+            .map(|wasi_config| wasi_config.build(&ruby))
+            .transpose()?;
+        let wasi_p1 = wasi_p1_config
+            .map(|wasi_config| wasi_config.build_p1(&ruby))
+            .transpose()?;
+
+        let limiter = match kw.optional.2 {
             None => StoreLimitsBuilder::new(),
             Some(limits) => hash_to_store_limits_builder(limits)?,
         }
@@ -160,10 +184,12 @@ impl Store {
         let eng = engine.get();
         let store_data = StoreData {
             user_data,
+            wasi_p1,
             wasi,
             refs: Default::default(),
             last_error: Default::default(),
             store_limits: limiter,
+            resource_table: Default::default(),
         };
         let store = Self {
             inner: UnsafeCell::new(StoreImpl::new(eng, store_data)),
@@ -483,5 +509,19 @@ impl ResourceLimiter for TrackingResourceLimiter {
 
     fn memories(&self) -> usize {
         self.inner.memories()
+    }
+}
+
+impl WasiView for StoreData {
+    fn ctx(&mut self) -> &mut WasiCtx {
+        self.wasi
+            .as_mut()
+            .expect("Should have WASI context defined if using WASI p2")
+    }
+}
+
+impl IoView for StoreData {
+    fn table(&mut self) -> &mut ResourceTable {
+        &mut self.resource_table
     }
 }

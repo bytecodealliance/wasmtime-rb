@@ -1296,7 +1296,7 @@ pub fn get(
     store: Obj&lt;Store&gt;,
     module: RString,
     name: RString,
-) -&gt; Result&lt;Option&lt;Extern&gt;, Error&gt; {
+) -&gt; Result&lt;Option&lt;Extern&lt;&#39;_&gt;&gt;, Error&gt; {
     let ext =
         self.inner
             .borrow()
@@ -1395,7 +1395,7 @@ pub fn get(
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 309</span>
 
-pub fn get_default(&amp;self, store: Obj&lt;Store&gt;, module: RString) -&gt; Result&lt;Func, Error&gt; {
+pub fn get_default(&amp;self, store: Obj&lt;Store&gt;, module: RString) -&gt; Result&lt;Func&lt;&#39;_&gt;, Error&gt; {
     self.inner
         .borrow()
         .get_default(store.context_mut(), unsafe { module.as_str() }?)
@@ -1771,7 +1771,7 @@ pub fn use_deterministic_scheduling_functions(&amp;self) -&gt; Result&lt;(), Err
 </div>
 
       <div id="footer">
-  Generated on Tue Aug  5 17:45:24 2025 by
+  Generated on Mon Aug 11 14:03:46 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.5).
 </div>

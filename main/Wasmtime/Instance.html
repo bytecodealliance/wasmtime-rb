@@ -488,7 +488,7 @@ pub fn new(ruby: &amp;Ruby, args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; 
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 111</span>
 
-pub fn export(&amp;self, str: RString) -&gt; Result&lt;Option&lt;super::externals::Extern&gt;, Error&gt; {
+pub fn export(&amp;self, str: RString) -&gt; Result&lt;Option&lt;super::externals::Extern&lt;&#39;_&gt;&gt;, Error&gt; {
     let export = self
         .inner
         .get_export(self.store.context_mut(), unsafe { str.as_str()? });
@@ -710,7 +710,7 @@ pub fn invoke(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Aug  5 17:45:24 2025 by
+  Generated on Mon Aug 11 14:03:46 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.5).
 </div>

@@ -161,7 +161,7 @@ impl Linker {
         store: Obj<Store>,
         module: RString,
         name: RString,
-    ) -> Result<Option<Extern>, Error> {
+    ) -> Result<Option<Extern<'_>>, Error> {
         let ext =
             self.inner
                 .borrow()
@@ -286,7 +286,7 @@ impl Linker {
     /// @param store [Store]
     /// @param mod [String] Module name
     /// @return [Func]
-    pub fn get_default(&self, store: Obj<Store>, module: RString) -> Result<Func, Error> {
+    pub fn get_default(&self, store: Obj<Store>, module: RString) -> Result<Func<'_>, Error> {
         self.inner
             .borrow()
             .get_default(store.context_mut(), unsafe { module.as_str() }?)

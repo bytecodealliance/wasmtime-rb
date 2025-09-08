@@ -1,12 +1,16 @@
 use super::root;
 use crate::error;
 use crate::helpers::OutputLimitedBuffer;
+use crate::ruby_api::convert::ToValType;
+use crate::{define_rb_intern, helpers::SymbolEnum};
+use lazy_static::lazy_static;
 use magnus::{
     class, function, gc::Marker, method, typed_data::Obj, value::Opaque, DataTypeFunctions, Error,
-    Module, Object, RArray, RHash, RString, Ruby, Symbol, TryConvert, TypedData,
+    IntoValue, Module, Object, RArray, RHash, RString, Ruby, Symbol, TryConvert, TypedData, Value,
 };
 use rb_sys::ruby_rarray_flags::RARRAY_EMBED_FLAG;
 use std::cell::RefCell;
+use std::convert::TryFrom;
 use std::fs;
 use std::path::Path;
 use std::{fs::File, path::PathBuf};
@@ -14,6 +18,36 @@ use wasmtime_wasi::p2::pipe::MemoryInputPipe;
 use wasmtime_wasi::p2::{OutputFile, WasiCtx, WasiCtxBuilder};
 use wasmtime_wasi::preview1::WasiP1Ctx;
 use wasmtime_wasi::{DirPerms, FilePerms};
+
+define_rb_intern!(
+    READ => "read",
+    WRITE => "write",
+    MUTATE => "mutate",
+    ALL => "all",
+);
+
+lazy_static! {
+    static ref FILE_PERMS_MAPPING: SymbolEnum<'static, FilePerms> = {
+        let mapping = vec![
+            (*READ, FilePerms::READ),
+            (*WRITE, FilePerms::WRITE),
+            (*ALL, FilePerms::all()),
+        ];
+
+        SymbolEnum::new(":file_perms", mapping)
+    };
+    static ref DIR_PERMS_MAPPING: SymbolEnum<'static, DirPerms> = {
+        let mapping = vec![
+            (*READ, DirPerms::READ),
+            (*MUTATE, DirPerms::MUTATE),
+            (*ALL, DirPerms::all()),
+        ];
+
+        SymbolEnum::new(":dir_perms", mapping)
+    };
+}
+
+struct PermsSymbolEnum(Symbol);
 
 #[derive(Clone)]
 struct MappedDirectory {
@@ -82,6 +116,20 @@ impl WasiConfigInner {
         if let Some(v) = self.args.as_ref() {
             marker.mark(*v);
         }
+    }
+}
+
+impl TryFrom<PermsSymbolEnum> for DirPerms {
+    type Error = magnus::Error;
+    fn try_from(value: PermsSymbolEnum) -> Result<Self, Error> {
+        DIR_PERMS_MAPPING.get(value.0.into_value())
+    }
+}
+
+impl TryFrom<PermsSymbolEnum> for FilePerms {
+    type Error = magnus::Error;
+    fn try_from(value: PermsSymbolEnum) -> Result<Self, Error> {
+        FILE_PERMS_MAPPING.get(value.0.into_value())
     }
 }
 
@@ -262,32 +310,8 @@ impl WasiConfig {
     ) -> Result<RbSelf, Error> {
         let host_path = host_path.to_string().unwrap();
         let guest_path = guest_path.to_string().unwrap();
-        let dir_perms_str = dir_perms.name().unwrap().to_string();
-        let file_perms_str = file_perms.name().unwrap().to_string();
-
-        let dir_perms = match dir_perms_str.as_str() {
-            "read" => DirPerms::READ,
-            "mutate" => DirPerms::MUTATE,
-            "all" => DirPerms::all(),
-            _ => {
-                return Err(error!(
-                    "Invalid dir_perms: {}. Use one of :read, :mutate, or :all",
-                    dir_perms_str
-                ))
-            }
-        };
-
-        let file_perms = match file_perms_str.as_str() {
-            "read" => FilePerms::READ,
-            "write" => FilePerms::WRITE,
-            "all" => FilePerms::all(),
-            _ => {
-                return Err(error!(
-                    "Invalid file_perms: {}. Use one of :read, :write, or :all",
-                    file_perms_str
-                ))
-            }
-        };
+        let dir_perms: DirPerms = PermsSymbolEnum(dir_perms).try_into()?;
+        let file_perms: FilePerms = PermsSymbolEnum(file_perms).try_into()?;
 
         let mapped_dir = MappedDirectory {
             host_path,

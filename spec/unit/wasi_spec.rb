@@ -320,8 +320,8 @@ module Wasmtime
           WasiConfig.new
             .set_mapped_directory(tempfile_path("tmp"), "/tmp", :mutate, :invalid_permission)
         }.to raise_error do |error|
-          expect(error).to be_a(Wasmtime::Error)
-          expect(error.message).to match(/Invalid file_perms: invalid_permission. Use one of :read, :write, or :all/)
+          expect(error).to be_a(ArgumentError)
+          expect(error.message).to match(/invalid :file_perms, expected one of \[:read, :write, :all\], got :invalid_permission/)
         end
       end
     end

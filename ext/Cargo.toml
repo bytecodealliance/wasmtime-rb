@@ -1,6 +1,6 @@
 [package]
 name = "wasmtime-rb"
-version = "33.0.0"
+version = "36.0.0"
 edition = "2021"
 authors = ["The Wasmtime Project Developers"]
 license = "Apache-2.0"
@@ -24,8 +24,8 @@ magnus = { version = "0.7", features = ["rb-sys"] }
 rb-sys = { version = "*", default-features = false, features = [
   "stable-api-compiled-fallback",
 ] }
-wasmtime = { version = "=34.0.0", features = ["memory-protection-keys"] }
-wasmtime-wasi = "=34.0.0"
+wasmtime = { version = "=36.0.0", features = ["memory-protection-keys"] }
+wasmtime-wasi = "=36.0.0"
 cap-std = "3.4.0"
 wat = "1.236.0"
 tokio = { version = "1.47.1", features = [
@@ -38,8 +38,8 @@ async-timer = { version = "1.0.0-beta.15", features = [
   "tokio1",
 ], optional = true }
 static_assertions = "1.1.0"
-wasmtime-environ = "=34.0.0"
-deterministic-wasi-ctx = { version = "=3.0.0" }
+wasmtime-environ = "=36.0.0"
+deterministic-wasi-ctx = { version = "=3.0.1" }
 
 [build-dependencies]
 rb-sys-env = "0.2.2"

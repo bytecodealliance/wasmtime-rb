@@ -14,10 +14,10 @@ use std::convert::TryFrom;
 use std::fs;
 use std::path::Path;
 use std::{fs::File, path::PathBuf};
+use wasmtime_wasi::cli::OutputFile;
 use wasmtime_wasi::p2::pipe::MemoryInputPipe;
-use wasmtime_wasi::p2::{OutputFile, WasiCtx, WasiCtxBuilder};
 use wasmtime_wasi::preview1::WasiP1Ctx;
-use wasmtime_wasi::{DirPerms, FilePerms};
+use wasmtime_wasi::{DirPerms, FilePerms, WasiCtx, WasiCtxBuilder};
 
 define_rb_intern!(
     READ => "read",

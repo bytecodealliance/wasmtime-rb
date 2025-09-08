@@ -1,3 +1,4 @@
+use crate::not_implemented;
 use bytes::Bytes;
 use magnus::{
     value::{InnerValue, Opaque, ReprValue},
@@ -5,7 +6,9 @@ use magnus::{
 };
 use std::io::Write;
 use std::sync::{Arc, Mutex};
-use wasmtime_wasi::p2::{OutputStream, Pollable, StdoutStream, StreamError, StreamResult};
+use tokio::io::AsyncWrite;
+use wasmtime_wasi::cli::{IsTerminal, StdoutStream};
+use wasmtime_wasi::p2::{OutputStream, Pollable, StreamError, StreamResult};
 
 /// A buffer that limits the number of bytes that can be written to it.
 /// If the buffer is full, it will truncate the data.
@@ -33,12 +36,18 @@ impl Clone for OutputLimitedBuffer {
 }
 
 impl StdoutStream for OutputLimitedBuffer {
-    fn stream(&self) -> Box<dyn OutputStream> {
+    fn p2_stream(&self) -> Box<dyn OutputStream> {
         let cloned = self.clone();
         Box::new(cloned)
     }
 
-    fn isatty(&self) -> bool {
+    fn async_stream(&self) -> Box<dyn AsyncWrite + Send + Sync> {
+        not_implemented!("Async support is not implemented");
+    }
+}
+
+impl IsTerminal for OutputLimitedBuffer {
+    fn is_terminal(&self) -> bool {
         false
     }
 }

@@ -18,10 +18,7 @@ use magnus::{
     DataTypeFunctions, Error, Module as _, Object, RModule, Ruby, TryConvert, TypedData, Value,
 };
 use wasmtime::component::{Linker as LinkerImpl, LinkerInstance as LinkerInstanceImpl};
-use wasmtime_wasi::{
-    p2::{IoView, WasiCtx, WasiView},
-    ResourceTable,
-};
+use wasmtime_wasi::{ResourceTable, WasiCtx};
 
 /// @yard
 /// @rename Wasmtime::Component::Linker

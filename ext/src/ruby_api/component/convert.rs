@@ -93,6 +93,9 @@ pub(crate) fn component_val_to_rb(val: Val, _store: &StoreContextValue) -> Resul
         }
         Val::Flags(vec) => Ok(vec.into_value()),
         Val::Resource(_resource_any) => not_implemented!("Resource not implemented"),
+        Val::Future(_) => not_implemented!("Future not implemented"),
+        Val::ErrorContext(_) => not_implemented!("ErrorContext not implemented"),
+        Val::Stream(_) => not_implemented!("Stream not implemented"),
     }
 }
 
@@ -280,6 +283,9 @@ pub(crate) fn rb_to_component_val(
         Type::Flags(_) => Vec::<String>::try_convert(value).map(Val::Flags),
         Type::Own(_resource_type) => not_implemented!("Resource not implemented"),
         Type::Borrow(_resource_type) => not_implemented!("Resource not implemented"),
+        Type::Future(_) => not_implemented!("Future not implemented"),
+        Type::Stream(_) => not_implemented!("Stream not implemented"),
+        Type::ErrorContext => not_implemented!("ErrorContext not implemented"),
     }
 }
 

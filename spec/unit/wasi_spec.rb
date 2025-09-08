@@ -316,10 +316,10 @@ module Wasmtime
       end
 
       it "does not accept invalid permissions" do
-        wasi_config = WasiConfig.new
-          .set_mapped_directory(tempfile_path("tmp"), "/tmp", :mutate, :invalid_permission)
-
-        expect { run_fs.call(wasi_config) }.to raise_error do |error|
+        expect {
+          WasiConfig.new
+            .set_mapped_directory(tempfile_path("tmp"), "/tmp", :mutate, :invalid_permission)
+        }.to raise_error do |error|
           expect(error).to be_a(Wasmtime::Error)
           expect(error.message).to match(/Invalid file_perms: invalid_permission. Use one of :read, :write, or :all/)
         end

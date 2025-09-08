@@ -15,6 +15,14 @@ use wasmtime_wasi::p2::{OutputFile, WasiCtx, WasiCtxBuilder};
 use wasmtime_wasi::preview1::WasiP1Ctx;
 use wasmtime_wasi::{DirPerms, FilePerms};
 
+#[derive(Clone)]
+struct MappedDirectory {
+    host_path: String,
+    guest_path: String,
+    dir_perms: DirPerms,
+    file_perms: FilePerms,
+}
+
 enum ReadStream {
     Inherit,
     Path(Opaque<RString>),
@@ -54,7 +62,7 @@ struct WasiConfigInner {
     env: Option<Opaque<RHash>>,
     args: Option<Opaque<RArray>>,
     deterministic: bool,
-    mapped_directories: Option<Opaque<RArray>>,
+    mapped_directories: Vec<MappedDirectory>,
 }
 
 impl WasiConfigInner {
@@ -72,9 +80,6 @@ impl WasiConfigInner {
             marker.mark(*v);
         }
         if let Some(v) = self.args.as_ref() {
-            marker.mark(*v);
-        }
-        if let Some(v) = self.mapped_directories.as_ref() {
             marker.mark(*v);
         }
     }
@@ -254,24 +259,47 @@ impl WasiConfig {
         guest_path: RString,
         dir_perms: Symbol,
         file_perms: Symbol,
-    ) -> RbSelf {
-        let mapped_directory = RArray::new();
-        mapped_directory.push(host_path).unwrap();
-        mapped_directory.push(guest_path).unwrap();
-        mapped_directory.push(dir_perms).unwrap();
-        mapped_directory.push(file_perms).unwrap();
+    ) -> Result<RbSelf, Error> {
+        let host_path = host_path.to_string().unwrap();
+        let guest_path = guest_path.to_string().unwrap();
+        let dir_perms_str = dir_perms.name().unwrap().to_string();
+        let file_perms_str = file_perms.name().unwrap().to_string();
 
-        let init_directory = RArray::new();
+        let dir_perms = match dir_perms_str.as_str() {
+            "read" => DirPerms::READ,
+            "mutate" => DirPerms::MUTATE,
+            "all" => DirPerms::all(),
+            _ => {
+                return Err(error!(
+                    "Invalid dir_perms: {}. Use one of :read, :mutate, or :all",
+                    dir_perms_str
+                ))
+            }
+        };
+
+        let file_perms = match file_perms_str.as_str() {
+            "read" => FilePerms::READ,
+            "write" => FilePerms::WRITE,
+            "all" => FilePerms::all(),
+            _ => {
+                return Err(error!(
+                    "Invalid file_perms: {}. Use one of :read, :write, or :all",
+                    file_perms_str
+                ))
+            }
+        };
+
+        let mapped_dir = MappedDirectory {
+            host_path,
+            guest_path,
+            dir_perms,
+            file_perms,
+        };
 
         let mut inner = rb_self.inner.borrow_mut();
-        if inner.mapped_directories.is_none() {
-            inner.mapped_directories = Some(init_directory.into());
-        }
+        inner.mapped_directories.push(mapped_dir);
 
-        let ruby = Ruby::get().unwrap();
-        let mapped_directories = ruby.get_inner(inner.mapped_directories.unwrap());
-        mapped_directories.push(mapped_directory).unwrap();
-        rb_self
+        Ok(rb_self)
     }
 
     pub fn build_p1(&self, ruby: &Ruby) -> Result<WasiP1Ctx, Error> {
@@ -358,61 +386,15 @@ impl WasiConfig {
             deterministic_wasi_ctx::add_determinism_to_wasi_ctx_builder(&mut builder);
         }
 
-        if let Some(mapped_directories) = inner.mapped_directories.as_ref() {
-            for item in unsafe { ruby.get_inner(*mapped_directories).as_slice() } {
-                let mapped_directory = RArray::try_convert(*item)?;
-                if mapped_directory.len() == 4 {
-                    let host_path =
-                        RString::try_convert(mapped_directory.entry(0)?)?.to_string()?;
-                    let guest_path =
-                        RString::try_convert(mapped_directory.entry(1)?)?.to_string()?;
-                    let dir_perms = Symbol::from_value(mapped_directory.entry(2)?)
-                        .unwrap()
-                        .name()?;
-                    let file_perms = Symbol::from_value(mapped_directory.entry(3)?)
-                        .unwrap()
-                        .name()?;
-
-                    let host_path_dir = Path::new(&host_path);
-                    let guest_path_path = guest_path.as_str();
-
-                    // Convert to FilePerms and DirPerms enums
-                    let dir_perms_flags;
-                    match dir_perms {
-                        std::borrow::Cow::Borrowed("read") => dir_perms_flags = DirPerms::READ,
-                        std::borrow::Cow::Borrowed("mutate") => dir_perms_flags = DirPerms::MUTATE,
-                        std::borrow::Cow::Borrowed("all") => dir_perms_flags = DirPerms::all(),
-                        _ => {
-                            return Err(error!(
-                                "Invalid dir_perms: {}. Use one of :read, :mutate, or :all",
-                                dir_perms
-                            ))
-                        }
-                    }
-
-                    let file_perms_flags;
-                    match file_perms {
-                        std::borrow::Cow::Borrowed("read") => file_perms_flags = FilePerms::READ,
-                        std::borrow::Cow::Borrowed("write") => file_perms_flags = FilePerms::WRITE,
-                        std::borrow::Cow::Borrowed("all") => file_perms_flags = FilePerms::all(),
-                        _ => {
-                            return Err(error!(
-                                "Invalid file_perms: {}. Use one of :read, :write, or :all",
-                                file_perms
-                            ))
-                        }
-                    }
-
-                    builder
-                        .preopened_dir(
-                            host_path_dir,
-                            guest_path_path,
-                            dir_perms_flags,
-                            file_perms_flags,
-                        )
-                        .map_err(|e| error!("{}", e))?;
-                }
-            }
+        for mapped_dir in &inner.mapped_directories {
+            builder
+                .preopened_dir(
+                    Path::new(&mapped_dir.host_path),
+                    &mapped_dir.guest_path,
+                    mapped_dir.dir_perms,
+                    mapped_dir.file_perms,
+                )
+                .map_err(|e| error!("{}", e))?;
         }
 
         Ok(builder)

@@ -1,11 +1,33 @@
 # Changelog
 
+## [v36.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v36.0.0) (2025-09-09)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v34.0.0...v36.0.0)
+
+**Closed issues:**
+
+- Build native gems workflow failing [\#479](https://github.com/bytecodealliance/wasmtime-rb/issues/479)
+- Map directory for instance [\#426](https://github.com/bytecodealliance/wasmtime-rb/issues/426)
+
+**Merged pull requests:**
+
+- Update to wasmtime v36 [\#500](https://github.com/bytecodealliance/wasmtime-rb/pull/500) ([saulecabrera](https://github.com/saulecabrera))
+- Implement preopened\_dir using set\_mapped\_directory setting [\#498](https://github.com/bytecodealliance/wasmtime-rb/pull/498) ([william-stacken](https://github.com/william-stacken))
+- Fix issues identified by latest clippy update [\#489](https://github.com/bytecodealliance/wasmtime-rb/pull/489) ([jeffcharles](https://github.com/jeffcharles))
+- Add WASI p2 support [\#488](https://github.com/bytecodealliance/wasmtime-rb/pull/488) ([jeffcharles](https://github.com/jeffcharles))
+- Update rb-sys to fix Windows build [\#487](https://github.com/bytecodealliance/wasmtime-rb/pull/487) ([jeffcharles](https://github.com/jeffcharles))
+- chore\(deps\): bump wat from 1.235.0 to 1.236.0 [\#486](https://github.com/bytecodealliance/wasmtime-rb/pull/486) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump tokio from 1.45.1 to 1.47.0 [\#483](https://github.com/bytecodealliance/wasmtime-rb/pull/483) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump rake from 13.2.1 to 13.3.0 [\#474](https://github.com/bytecodealliance/wasmtime-rb/pull/474) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v34.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v34.0.0) (2025-07-02)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v33.0.0...v34.0.0)
 
 **Merged pull requests:**
 
+- Update rb-sys [\#481](https://github.com/bytecodealliance/wasmtime-rb/pull/481) ([jeffcharles](https://github.com/jeffcharles))
+- chore\(deps\): bump rb\_sys from 0.9.111 to 0.9.116 [\#472](https://github.com/bytecodealliance/wasmtime-rb/pull/472) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Update to wasmtime 34 [\#471](https://github.com/bytecodealliance/wasmtime-rb/pull/471) ([saulecabrera](https://github.com/saulecabrera))
 - Remove Rust crate from examples [\#469](https://github.com/bytecodealliance/wasmtime-rb/pull/469) ([jeffcharles](https://github.com/jeffcharles))
 - Re-enable examples on MacOS [\#468](https://github.com/bytecodealliance/wasmtime-rb/pull/468) ([jeffcharles](https://github.com/jeffcharles))

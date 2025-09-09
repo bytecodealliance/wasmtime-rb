@@ -47,16 +47,6 @@ lazy_static! {
     };
 }
 
-struct PermsSymbolEnum(Symbol);
-
-#[derive(Clone)]
-struct MappedDirectory {
-    host_path: String,
-    guest_path: String,
-    dir_perms: DirPerms,
-    file_perms: FilePerms,
-}
-
 enum ReadStream {
     Inherit,
     Path(Opaque<RString>),
@@ -88,6 +78,24 @@ impl WriteStream {
     }
 }
 
+struct PermsSymbolEnum(Symbol);
+
+#[derive(Clone)]
+struct MappedDirectory {
+    host_path: Opaque<RString>,
+    guest_path: Opaque<RString>,
+    dir_perms: Opaque<Symbol>,
+    file_perms: Opaque<Symbol>,
+}
+impl MappedDirectory {
+    pub fn mark(&self, marker: &Marker) {
+        marker.mark(self.host_path);
+        marker.mark(self.guest_path);
+        marker.mark(self.dir_perms);
+        marker.mark(self.file_perms);
+    }
+}
+
 #[derive(Default)]
 struct WasiConfigInner {
     stdin: Option<ReadStream>,
@@ -115,6 +123,9 @@ impl WasiConfigInner {
         }
         if let Some(v) = self.args.as_ref() {
             marker.mark(*v);
+        }
+        for v in &self.mapped_directories {
+            v.mark(marker);
         }
     }
 }
@@ -307,23 +318,18 @@ impl WasiConfig {
         guest_path: RString,
         dir_perms: Symbol,
         file_perms: Symbol,
-    ) -> Result<RbSelf, Error> {
-        let host_path = host_path.to_string().unwrap();
-        let guest_path = guest_path.to_string().unwrap();
-        let dir_perms: DirPerms = PermsSymbolEnum(dir_perms).try_into()?;
-        let file_perms: FilePerms = PermsSymbolEnum(file_perms).try_into()?;
-
+    ) -> RbSelf {
         let mapped_dir = MappedDirectory {
-            host_path,
-            guest_path,
-            dir_perms,
-            file_perms,
+            host_path: host_path.into(),
+            guest_path: guest_path.into(),
+            dir_perms: dir_perms.into(),
+            file_perms: file_perms.into(),
         };
 
         let mut inner = rb_self.inner.borrow_mut();
         inner.mapped_directories.push(mapped_dir);
 
-        Ok(rb_self)
+        rb_self
     }
 
     pub fn build_p1(&self, ruby: &Ruby) -> Result<WasiP1Ctx, Error> {
@@ -411,12 +417,17 @@ impl WasiConfig {
         }
 
         for mapped_dir in &inner.mapped_directories {
+            let host_path = ruby.get_inner(mapped_dir.host_path).to_string()?;
+            let guest_path = ruby.get_inner(mapped_dir.guest_path).to_string()?;
+            let dir_perms = ruby.get_inner(mapped_dir.dir_perms);
+            let file_perms = ruby.get_inner(mapped_dir.file_perms);
+
             builder
                 .preopened_dir(
-                    Path::new(&mapped_dir.host_path),
-                    &mapped_dir.guest_path,
-                    mapped_dir.dir_perms,
-                    mapped_dir.file_perms,
+                    Path::new(&host_path),
+                    &guest_path,
+                    PermsSymbolEnum(dir_perms).try_into()?,
+                    PermsSymbolEnum(file_perms).try_into()?,
                 )
                 .map_err(|e| error!("{}", e))?;
         }

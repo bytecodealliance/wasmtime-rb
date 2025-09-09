@@ -1,16 +1,51 @@
 use super::root;
 use crate::error;
 use crate::helpers::OutputLimitedBuffer;
+use crate::ruby_api::convert::ToValType;
+use crate::{define_rb_intern, helpers::SymbolEnum};
+use lazy_static::lazy_static;
 use magnus::{
     class, function, gc::Marker, method, typed_data::Obj, value::Opaque, DataTypeFunctions, Error,
-    Module, Object, RArray, RHash, RString, Ruby, TryConvert, TypedData,
+    IntoValue, Module, Object, RArray, RHash, RString, Ruby, Symbol, TryConvert, TypedData, Value,
 };
+use rb_sys::ruby_rarray_flags::RARRAY_EMBED_FLAG;
 use std::cell::RefCell;
+use std::convert::TryFrom;
 use std::fs;
+use std::path::Path;
 use std::{fs::File, path::PathBuf};
 use wasmtime_wasi::p2::pipe::MemoryInputPipe;
 use wasmtime_wasi::p2::{OutputFile, WasiCtx, WasiCtxBuilder};
 use wasmtime_wasi::preview1::WasiP1Ctx;
+use wasmtime_wasi::{DirPerms, FilePerms};
+
+define_rb_intern!(
+    READ => "read",
+    WRITE => "write",
+    MUTATE => "mutate",
+    ALL => "all",
+);
+
+lazy_static! {
+    static ref FILE_PERMS_MAPPING: SymbolEnum<'static, FilePerms> = {
+        let mapping = vec![
+            (*READ, FilePerms::READ),
+            (*WRITE, FilePerms::WRITE),
+            (*ALL, FilePerms::all()),
+        ];
+
+        SymbolEnum::new(":file_perms", mapping)
+    };
+    static ref DIR_PERMS_MAPPING: SymbolEnum<'static, DirPerms> = {
+        let mapping = vec![
+            (*READ, DirPerms::READ),
+            (*MUTATE, DirPerms::MUTATE),
+            (*ALL, DirPerms::all()),
+        ];
+
+        SymbolEnum::new(":dir_perms", mapping)
+    };
+}
 
 enum ReadStream {
     Inherit,
@@ -43,6 +78,24 @@ impl WriteStream {
     }
 }
 
+struct PermsSymbolEnum(Symbol);
+
+#[derive(Clone)]
+struct MappedDirectory {
+    host_path: Opaque<RString>,
+    guest_path: Opaque<RString>,
+    dir_perms: Opaque<Symbol>,
+    file_perms: Opaque<Symbol>,
+}
+impl MappedDirectory {
+    pub fn mark(&self, marker: &Marker) {
+        marker.mark(self.host_path);
+        marker.mark(self.guest_path);
+        marker.mark(self.dir_perms);
+        marker.mark(self.file_perms);
+    }
+}
+
 #[derive(Default)]
 struct WasiConfigInner {
     stdin: Option<ReadStream>,
@@ -51,6 +104,7 @@ struct WasiConfigInner {
     env: Option<Opaque<RHash>>,
     args: Option<Opaque<RArray>>,
     deterministic: bool,
+    mapped_directories: Vec<MappedDirectory>,
 }
 
 impl WasiConfigInner {
@@ -70,6 +124,23 @@ impl WasiConfigInner {
         if let Some(v) = self.args.as_ref() {
             marker.mark(*v);
         }
+        for v in &self.mapped_directories {
+            v.mark(marker);
+        }
+    }
+}
+
+impl TryFrom<PermsSymbolEnum> for DirPerms {
+    type Error = magnus::Error;
+    fn try_from(value: PermsSymbolEnum) -> Result<Self, Error> {
+        DIR_PERMS_MAPPING.get(value.0.into_value())
+    }
+}
+
+impl TryFrom<PermsSymbolEnum> for FilePerms {
+    type Error = magnus::Error;
+    fn try_from(value: PermsSymbolEnum) -> Result<Self, Error> {
+        FILE_PERMS_MAPPING.get(value.0.into_value())
     }
 }
 
@@ -233,6 +304,34 @@ impl WasiConfig {
         rb_self
     }
 
+    /// @yard
+    /// Set mapped directory for host path and guest path.
+    /// @param host_path [String]
+    /// @param guest_path [String]
+    /// @param dir_perms [Symbol] Directory permissions, one of :read, :mutate, or :all
+    /// @param file_perms [Symbol] File permissions, one of :read, :write, or :all
+    /// @def set_mapped_directory(host_path, guest_path, dir_perms, file_perms)
+    /// @return [WasiConfig] +self+
+    pub fn set_mapped_directory(
+        rb_self: RbSelf,
+        host_path: RString,
+        guest_path: RString,
+        dir_perms: Symbol,
+        file_perms: Symbol,
+    ) -> RbSelf {
+        let mapped_dir = MappedDirectory {
+            host_path: host_path.into(),
+            guest_path: guest_path.into(),
+            dir_perms: dir_perms.into(),
+            file_perms: file_perms.into(),
+        };
+
+        let mut inner = rb_self.inner.borrow_mut();
+        inner.mapped_directories.push(mapped_dir);
+
+        rb_self
+    }
+
     pub fn build_p1(&self, ruby: &Ruby) -> Result<WasiP1Ctx, Error> {
         let mut builder = self.build_impl(ruby)?;
         let ctx = builder.build_p1();
@@ -317,6 +416,22 @@ impl WasiConfig {
             deterministic_wasi_ctx::add_determinism_to_wasi_ctx_builder(&mut builder);
         }
 
+        for mapped_dir in &inner.mapped_directories {
+            let host_path = ruby.get_inner(mapped_dir.host_path).to_string()?;
+            let guest_path = ruby.get_inner(mapped_dir.guest_path).to_string()?;
+            let dir_perms = ruby.get_inner(mapped_dir.dir_perms);
+            let file_perms = ruby.get_inner(mapped_dir.file_perms);
+
+            builder
+                .preopened_dir(
+                    Path::new(&host_path),
+                    &guest_path,
+                    PermsSymbolEnum(dir_perms).try_into()?,
+                    PermsSymbolEnum(file_perms).try_into()?,
+                )
+                .map_err(|e| error!("{}", e))?;
+        }
+
         Ok(builder)
     }
 }
@@ -354,6 +469,11 @@ pub fn init() -> Result<(), Error> {
     class.define_method("set_env", method!(WasiConfig::set_env, 1))?;
 
     class.define_method("set_argv", method!(WasiConfig::set_argv, 1))?;
+
+    class.define_method(
+        "set_mapped_directory",
+        method!(WasiConfig::set_mapped_directory, 4),
+    )?;
 
     Ok(())
 }

@@ -12,9 +12,11 @@ module Wasmtime
       # Compile module only once for speed
       @compiled_wasi_module = @engine.precompile_module(IO.binread("spec/fixtures/wasi-debug.wasm"))
       @compiled_wasi_deterministic_module = @engine.precompile_module(IO.binread("spec/fixtures/wasi-deterministic.wasm"))
+      @compiled_wasi_fs_module = @engine.precompile_module(IO.binread("spec/fixtures/wasi-fs.wasm"))
 
       @compiled_wasi_component = @engine.precompile_component(IO.binread("spec/fixtures/wasi-debug-p2.wasm"))
       @compiled_wasi_deterministic_component = @engine.precompile_component(IO.binread("spec/fixtures/wasi-deterministic-p2.wasm"))
+      @compiled_wasi_fs_component = @engine.precompile_component(IO.binread("spec/fixtures/wasi-fs-p2.wasm"))
     end
 
     describe "Linker.new" do
@@ -233,6 +235,95 @@ module Wasmtime
           end
         end
       end
+
+      it "writes to mapped directory" do
+        Dir.mkdir(tempfile_path("tmp"))
+        File.write(tempfile_path(File.join("tmp", "counter")), "0")
+
+        wasi_config = WasiConfig.new
+          .set_argv(["wasi-fs", "/tmp/counter"])
+          .set_mapped_directory(tempfile_path("tmp"), "/tmp", :all, :all)
+
+        expect { run_fs.call(wasi_config) }.not_to raise_error
+
+        expect(File.read(tempfile_path(File.join("tmp", "counter")))).to eq("1")
+      end
+
+      it "fails to write to mapped directory if not permitted" do
+        Dir.mkdir(tempfile_path("tmp"))
+        File.write(tempfile_path(File.join("tmp", "counter")), "0")
+
+        stderr_str = ""
+        wasi_config = WasiConfig.new
+          .set_argv(["wasi-fs", "/tmp/counter"])
+          .set_stderr_buffer(stderr_str, 40000)
+          .set_mapped_directory(tempfile_path("tmp"), "/tmp", :read, :read)
+
+        expect { run_fs.call(wasi_config) }.to raise_error do |error|
+          expect(error).to be_a(Wasmtime::Error)
+        end
+
+        expect(stderr_str).to match(/failed to create counter file/)
+
+        expect(File.read(tempfile_path(File.join("tmp", "counter")))).to eq("0")
+      end
+
+      it "fails to read from mapped directory if not permitted" do
+        Dir.mkdir(tempfile_path("tmp"))
+        File.write(tempfile_path(File.join("tmp", "counter")), "0")
+
+        stderr_str = ""
+        wasi_config = WasiConfig.new
+          .set_argv(["wasi-fs", "/tmp/counter"])
+          .set_stderr_buffer(stderr_str, 40000)
+          .set_mapped_directory(tempfile_path("tmp"), "/tmp", :mutate, :write)
+
+        expect { run_fs.call(wasi_config) }.to raise_error do |error|
+          expect(error).to be_a(Wasmtime::Error)
+        end
+
+        expect(stderr_str).to match(/failed to open counter file/)
+
+        expect(File.read(tempfile_path(File.join("tmp", "counter")))).to eq("0")
+      end
+
+      it "fails to access non-mapped directories" do
+        Dir.mkdir(tempfile_path("tmp"))
+        File.write(tempfile_path(File.join("tmp", "counter")), "0")
+
+        stderr_str = ""
+        wasi_config = WasiConfig.new
+          .set_argv(["wasi-fs", File.join(tempfile_path("tmp"), "counter")])
+          .set_stderr_buffer(stderr_str, 40000)
+
+        expect { run_fs.call(wasi_config) }.to raise_error do |error|
+          expect(error).to be_a(Wasmtime::Error)
+        end
+
+        expect(stderr_str).to match(/failed to find a pre-opened file descriptor/)
+
+        expect(File.read(tempfile_path(File.join("tmp", "counter")))).to eq("0")
+      end
+
+      it "does not accept an invalid host path" do
+        wasi_config = WasiConfig.new
+          .set_mapped_directory(tempfile_path("tmp"), "/tmp", :all, :all)
+
+        expect { run_fs.call(wasi_config) }.to raise_error do |error|
+          expect(error).to be_a(Wasmtime::Error)
+          # error message is os-specific
+        end
+      end
+
+      it "does not accept invalid permissions" do
+        wasi_config = WasiConfig.new
+          .set_mapped_directory(tempfile_path("tmp"), "/tmp", :mutate, :invalid_permission)
+
+        expect { run_fs.call(wasi_config) }.to raise_error do |error|
+          expect(error).to be_a(ArgumentError)
+          expect(error.message).to match(/invalid :file_perms, expected one of \[:read, :write, :all\], got :invalid_permission/)
+        end
+      end
     end
 
     describe "WasiConfig preview 1" do
@@ -240,6 +331,7 @@ module Wasmtime
         let(:run) { method(:run_wasi_module) }
         let(:wasi_env) { method(:wasi_module_env) }
         let(:run_deterministic) { method(:run_wasi_module_deterministic) }
+        let(:run_fs) { method(:run_wasi_module_fs) }
       end
     end
 
@@ -248,6 +340,7 @@ module Wasmtime
         let(:run) { method(:run_wasi_component) }
         let(:wasi_env) { method(:wasi_component_env) }
         let(:run_deterministic) { method(:run_wasi_component_deterministic) }
+        let(:run_fs) { method(:run_wasi_component_fs) }
       end
     end
 
@@ -270,6 +363,13 @@ module Wasmtime
       linker
         .instantiate(store, Module.deserialize(@engine, @compiled_wasi_deterministic_module))
         .invoke("_start")
+    end
+
+    def run_wasi_module_fs(wasi_config)
+      linker = Linker.new(@engine)
+      WASI::P1.add_to_linker_sync(linker)
+      store = Store.new(@engine, wasi_p1_config: wasi_config)
+      linker.instantiate(store, Module.deserialize(@engine, @compiled_wasi_fs_module)).invoke("_start")
     end
 
     def wasi_module_env
@@ -314,6 +414,17 @@ module Wasmtime
       Component::WasiCommand.new(
         store,
         Component::Component.deserialize(@engine, @compiled_wasi_deterministic_component),
+        linker
+      ).call_run(store)
+    end
+
+    def run_wasi_component_fs(wasi_config)
+      linker = Component::Linker.new(@engine)
+      WASI::P2.add_to_linker_sync(linker)
+      store = Store.new(@engine, wasi_config: wasi_config)
+      Component::WasiCommand.new(
+        store,
+        Component::Component.deserialize(@engine, @compiled_wasi_fs_component),
         linker
       ).call_run(store)
     end

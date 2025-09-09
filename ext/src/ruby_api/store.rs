@@ -513,7 +513,7 @@ impl ResourceLimiter for TrackingResourceLimiter {
 }
 
 impl WasiView for StoreData {
-    fn ctx(&mut self) -> WasiCtxView {
+    fn ctx(&mut self) -> WasiCtxView<'_> {
         let ctx = self
             .wasi
             .as_mut()

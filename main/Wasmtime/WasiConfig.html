@@ -307,6 +307,30 @@
         <li class="public ">
   <span class="summary_signature">
     
+      <a href="#set_mapped_directory-instance_method" title="#set_mapped_directory (instance method)">#<strong>set_mapped_directory</strong>(host_path, guest_path, dir_perms, file_perms)  &#x21d2; WasiConfig </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Set mapped directory for host path and guest path.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
       <a href="#set_stderr_buffer-instance_method" title="#set_stderr_buffer (instance method)">#<strong>set_stderr_buffer</strong>(buffer, capacity)  &#x21d2; WasiConfig </a>
     
 
@@ -496,12 +520,12 @@
       <pre class="lines">
 
 
-101
-102
-103</pre>
+172
+173
+174</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 101</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 172</span>
 
 pub fn new() -&gt; Self {
     Self::default()
@@ -561,14 +585,14 @@ pub fn new() -&gt; Self {
       <pre class="lines">
 
 
-108
-109
-110
-111
-112</pre>
+179
+180
+181
+182
+183</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 108</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 179</span>
 
 pub fn add_determinism(rb_self: RbSelf) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -624,14 +648,14 @@ pub fn add_determinism(rb_self: RbSelf) -&gt; RbSelf {
       <pre class="lines">
 
 
-183
-184
-185
-186
-187</pre>
+254
+255
+256
+257
+258</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 183</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 254</span>
 
 pub fn inherit_stderr(rb_self: RbSelf) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -687,14 +711,14 @@ pub fn inherit_stderr(rb_self: RbSelf) -&gt; RbSelf {
       <pre class="lines">
 
 
-117
-118
-119
-120
-121</pre>
+188
+189
+190
+191
+192</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 117</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 188</span>
 
 pub fn inherit_stdin(rb_self: RbSelf) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -750,14 +774,14 @@ pub fn inherit_stdin(rb_self: RbSelf) -&gt; RbSelf {
       <pre class="lines">
 
 
-148
-149
-150
-151
-152</pre>
+219
+220
+221
+222
+223</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 148</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 219</span>
 
 pub fn inherit_stdout(rb_self: RbSelf) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -828,14 +852,14 @@ pub fn inherit_stdout(rb_self: RbSelf) -&gt; RbSelf {
       <pre class="lines">
 
 
-230
-231
-232
-233
-234</pre>
+301
+302
+303
+304
+305</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 230</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 301</span>
 
 pub fn set_argv(rb_self: RbSelf, argv: RArray) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -906,18 +930,167 @@ pub fn set_argv(rb_self: RbSelf, argv: RArray) -&gt; RbSelf {
       <pre class="lines">
 
 
-219
-220
-221
-222
-223</pre>
+290
+291
+292
+293
+294</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 219</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 290</span>
 
 pub fn set_env(rb_self: RbSelf, env: RHash) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
     inner.env = Some(env.into());
+    rb_self
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="set_mapped_directory-instance_method">
+  
+    #<strong>set_mapped_directory</strong>(host_path, guest_path, dir_perms, file_perms)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Set mapped directory for host path and guest path.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>host_path</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>guest_path</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>dir_perms</span>
+      
+      
+        <span class='type'>(<tt>Symbol</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>Directory permissions, one of :read, :mutate, or :all</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>file_perms</span>
+      
+      
+        <span class='type'>(<tt>Symbol</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p>File permissions, one of :read, :write, or :all</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'>
+<p><code>self</code></p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 315</span>
+
+pub fn set_mapped_directory(
+    rb_self: RbSelf,
+    host_path: RString,
+    guest_path: RString,
+    dir_perms: Symbol,
+    file_perms: Symbol,
+) -&gt; RbSelf {
+    let mapped_dir = MappedDirectory {
+        host_path: host_path.into(),
+        guest_path: guest_path.into(),
+        dir_perms: dir_perms.into(),
+        file_perms: file_perms.into(),
+    };
+
+    let mut inner = rb_self.inner.borrow_mut();
+    inner.mapped_directories.push(mapped_dir);
+
     rb_self
 }</pre>
     </td>
@@ -1005,15 +1178,15 @@ pub fn set_env(rb_self: RbSelf, env: RHash) -&gt; RbSelf {
       <pre class="lines">
 
 
-209
-210
-211
-212
-213
-214</pre>
+280
+281
+282
+283
+284
+285</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 209</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 280</span>
 
 pub fn set_stderr_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1090,14 +1263,14 @@ pub fn set_stderr_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -&gt
       <pre class="lines">
 
 
-195
-196
-197
-198
-199</pre>
+266
+267
+268
+269
+270</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 195</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 266</span>
 
 pub fn set_stderr_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1173,14 +1346,14 @@ pub fn set_stderr_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
       <pre class="lines">
 
 
-128
-129
-130
-131
-132</pre>
+199
+200
+201
+202
+203</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 128</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 199</span>
 
 pub fn set_stdin_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1251,14 +1424,14 @@ pub fn set_stdin_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
       <pre class="lines">
 
 
-139
-140
-141
-142
-143</pre>
+210
+211
+212
+213
+214</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 139</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 210</span>
 
 pub fn set_stdin_string(rb_self: RbSelf, content: RString) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1350,14 +1523,14 @@ pub fn set_stdin_string(rb_self: RbSelf, content: RString) -&gt; RbSelf {
       <pre class="lines">
 
 
-174
-175
-176
-177
-178</pre>
+245
+246
+247
+248
+249</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 174</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 245</span>
 
 pub fn set_stdout_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1433,14 +1606,14 @@ pub fn set_stdout_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -&gt
       <pre class="lines">
 
 
-160
-161
-162
-163
-164</pre>
+231
+232
+233
+234
+235</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 160</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 231</span>
 
 pub fn set_stdout_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1457,7 +1630,7 @@ pub fn set_stdout_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
 </div>
 
       <div id="footer">
-  Generated on Mon Aug 11 15:50:04 2025 by
+  Generated on Tue Sep  9 13:40:56 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.5).
 </div>

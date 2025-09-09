@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Exception: Wasmtime::Trap
+  
+    &mdash; Documentation by YARD 0.9.37
+  
+</title>
+
+  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="../css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "Wasmtime::Trap";
+  relpath = '../';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="../class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="../_index.html">Index (T)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../Wasmtime.html" title="Wasmtime (module)">Wasmtime</a></span></span>
+     &raquo; 
+    <span class="title">Trap</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="../class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Exception: Wasmtime::Trap
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+  <dl>
+    <dt>Inherits:</dt>
+    <dd>
+      <span class="inheritName"><span class='object_link'><a href="Error.html" title="Wasmtime::Error (class)">Error</a></span></span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next">StandardError</li>
+          
+            <li class="next"><span class='object_link'><a href="Error.html" title="Wasmtime::Error (class)">Error</a></span></li>
+          
+            <li class="next">Wasmtime::Trap</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+    </dd>
+  </dl>
+  
+
+  
+  
+  
+  
+  
+
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>lib/wasmtime/error.rb<span class="defines">,<br />
+  ext/src/ruby_api/trap.rs</span>
+</dd>
+  </dl>
+  
+</div>
+
+
+  
+    <h2>
+      Constant Summary
+      <small><a href="#" class="constants_summary_toggle">collapse</a></small>
+    </h2>
+
+    <dl class="constants">
+      
+        <dt id="STACK_OVERFLOW-constant" class="">STACK_OVERFLOW =
+          
+        </dt>
+        <dd><pre class="code"><span class='symbol'>:stack_overflow</span></pre></dd>
+      
+        <dt id="MEMORY_OUT_OF_BOUNDS-constant" class="">MEMORY_OUT_OF_BOUNDS =
+          
+        </dt>
+        <dd><pre class="code"><span class='symbol'>:memory_out_of_bounds</span></pre></dd>
+      
+        <dt id="HEAP_MISALIGNED-constant" class="">HEAP_MISALIGNED =
+          
+        </dt>
+        <dd><pre class="code"><span class='symbol'>:heap_misaligned</span></pre></dd>
+      
+        <dt id="TABLE_OUT_OF_BOUNDS-constant" class="">TABLE_OUT_OF_BOUNDS =
+          
+        </dt>
+        <dd><pre class="code"><span class='symbol'>:table_out_of_bounds</span></pre></dd>
+      
+        <dt id="INDIRECT_CALL_TO_NULL-constant" class="">INDIRECT_CALL_TO_NULL =
+          
+        </dt>
+        <dd><pre class="code"><span class='symbol'>:indirect_call_to_null</span></pre></dd>
+      
+        <dt id="BAD_SIGNATURE-constant" class="">BAD_SIGNATURE =
+          
+        </dt>
+        <dd><pre class="code"><span class='symbol'>:bad_signature</span></pre></dd>
+      
+        <dt id="INTEGER_OVERFLOW-constant" class="">INTEGER_OVERFLOW =
+          
+        </dt>
+        <dd><pre class="code"><span class='symbol'>:integer_overflow</span></pre></dd>
+      
+        <dt id="INTEGER_DIVISION_BY_ZERO-constant" class="">INTEGER_DIVISION_BY_ZERO =
+          
+        </dt>
+        <dd><pre class="code"><span class='symbol'>:integer_division_by_zero</span></pre></dd>
+      
+        <dt id="BAD_CONVERSION_TO_INTEGER-constant" class="">BAD_CONVERSION_TO_INTEGER =
+          
+        </dt>
+        <dd><pre class="code"><span class='symbol'>:bad_conversion_to_integer</span></pre></dd>
+      
+        <dt id="UNREACHABLE_CODE_REACHED-constant" class="">UNREACHABLE_CODE_REACHED =
+          
+        </dt>
+        <dd><pre class="code"><span class='symbol'>:unreachable_code_reached</span></pre></dd>
+      
+        <dt id="INTERRUPT-constant" class="">INTERRUPT =
+          
+        </dt>
+        <dd><pre class="code"><span class='symbol'>:interrupt</span></pre></dd>
+      
+        <dt id="ALWAYS_TRAP_ADAPTER-constant" class="">ALWAYS_TRAP_ADAPTER =
+          
+        </dt>
+        <dd><pre class="code"><span class='symbol'>:always_trap_adapter</span></pre></dd>
+      
+        <dt id="OUT_OF_FUEL-constant" class="">OUT_OF_FUEL =
+          
+        </dt>
+        <dd><pre class="code"><span class='symbol'>:out_of_fuel</span></pre></dd>
+      
+        <dt id="UNKNOWN-constant" class="">UNKNOWN =
+          
+        </dt>
+        <dd><pre class="code"><span class='symbol'>:unknown</span></pre></dd>
+      
+    </dl>
+  
+
+
+
+
+
+
+
+  
+    <h2>
+      Instance Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#code-instance_method" title="#code (instance method)">#<strong>code</strong>  &#x21d2; Symbol<sup>?</sup> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the trap code as a Symbol, possibly nil if the trap did not origin from Wasm code.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#message-instance_method" title="#message (instance method)">#<strong>message</strong>  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns a textual description of the trap error, for example:     wasm trap: wasm ‘unreachable` instruction executed.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#wasm_backtrace_message-instance_method" title="#wasm_backtrace_message (instance method)">#<strong>wasm_backtrace_message</strong>  &#x21d2; String<sup>?</sup> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns a textual representation of the Wasm backtrce, if it exists.</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+
+  
+  
+  
+  
+  
+  
+  
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="code-instance_method">
+  
+    #<strong>code</strong>  &#x21d2; <tt>Symbol</tt><sup>?</sup> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns the trap code as a Symbol, possibly nil if the trap did not origin from Wasm code. All possible trap codes are defined as constants on <span class='object_link'><a href="" title="Wasmtime::Trap (class)">Wasmtime::Trap</a></span>.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Symbol</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/trap.rs', line 62</span>
+
+pub fn code(&amp;self) -&gt; Result&lt;Option&lt;Symbol&gt;, Error&gt; {
+    match self.trap {
+        wasmtime::Trap::StackOverflow =&gt; trap_const!(STACK_OVERFLOW),
+        wasmtime::Trap::MemoryOutOfBounds =&gt; trap_const!(MEMORY_OUT_OF_BOUNDS),
+        wasmtime::Trap::HeapMisaligned =&gt; trap_const!(HEAP_MISALIGNED),
+        wasmtime::Trap::TableOutOfBounds =&gt; trap_const!(TABLE_OUT_OF_BOUNDS),
+        wasmtime::Trap::IndirectCallToNull =&gt; trap_const!(INDIRECT_CALL_TO_NULL),
+        wasmtime::Trap::BadSignature =&gt; trap_const!(BAD_SIGNATURE),
+        wasmtime::Trap::IntegerOverflow =&gt; trap_const!(INTEGER_OVERFLOW),
+        wasmtime::Trap::IntegerDivisionByZero =&gt; trap_const!(INTEGER_DIVISION_BY_ZERO),
+        wasmtime::Trap::BadConversionToInteger =&gt; trap_const!(BAD_CONVERSION_TO_INTEGER),
+        wasmtime::Trap::UnreachableCodeReached =&gt; trap_const!(UNREACHABLE_CODE_REACHED),
+        wasmtime::Trap::Interrupt =&gt; trap_const!(INTERRUPT),
+        wasmtime::Trap::AlwaysTrapAdapter =&gt; trap_const!(ALWAYS_TRAP_ADAPTER),
+        wasmtime::Trap::OutOfFuel =&gt; trap_const!(OUT_OF_FUEL),
+        // When adding a trap code here, define a matching constant on Wasmtime::Trap (in Ruby)
+        _ =&gt; trap_const!(UNKNOWN),
+    }
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="message-instance_method">
+  
+    #<strong>message</strong>  &#x21d2; <tt>String</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns a textual description of the trap error, for example:</p>
+
+<pre class="code rustdoc"><code class="rustdoc">wasm trap: wasm `unreachable` instruction executed
+</code></pre>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+44
+45
+46</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/trap.rs', line 44</span>
+
+pub fn message(&amp;self) -&gt; String {
+    self.trap.to_string()
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="wasm_backtrace_message-instance_method">
+  
+    #<strong>wasm_backtrace_message</strong>  &#x21d2; <tt>String</tt><sup>?</sup> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns a textual representation of the Wasm backtrce, if it exists. For example:</p>
+
+<pre class="code rustdoc"><code class="rustdoc">error while executing at wasm backtrace:
+    0:   0x1a - &lt;unknown&gt;!&lt;wasm function 0&gt;
+</code></pre>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+54
+55
+56</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/trap.rs', line 54</span>
+
+pub fn wasm_backtrace_message(&amp;self) -&gt; Option&lt;String&gt; {
+    self.wasm_backtrace.as_ref().map(|bt| format!(&quot;{bt}&quot;))
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Tue Sep  9 15:19:14 2025 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.37 (ruby-3.4.5).
+</div>
+
+    </div>
+  </body>
+</html>

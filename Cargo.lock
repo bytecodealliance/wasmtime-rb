@@ -2012,7 +2012,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3108979166ab0d3c7262d2e16a2190ffe784b2a5beb963edef154b5e8e07680b"
 dependencies = [
  "leb128fmt",
- "wasmparser",
+ "wasmparser 0.236.0",
+]
+
+[[package]]
+name = "wasm-encoder"
+version = "0.238.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d50d48c31c615f77679b61c607b8151378a5d03159616bf3d17e8e2005afdaf5"
+dependencies = [
+ "leb128fmt",
+ "wasmparser 0.238.1",
 ]
 
 [[package]]
@@ -2029,6 +2039,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "wasmparser"
+version = "0.238.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3fa99c8328024423875ae4a55345cfde8f0371327fb2d0f33b0f52a06fc44408"
+dependencies = [
+ "bitflags",
+ "indexmap",
+ "semver",
+]
+
+[[package]]
 name = "wasmprinter"
 version = "0.236.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2036,7 +2057,7 @@ checksum = "a64dc32256b566259d30be300eb142f366343b98f42077216c7dd5e0cf4dc086"
 dependencies = [
  "anyhow",
  "termcolor",
- "wasmparser",
+ "wasmparser 0.236.0",
 ]
 
 [[package]]
@@ -2074,8 +2095,8 @@ dependencies = [
  "serde_json",
  "smallvec",
  "target-lexicon",
- "wasm-encoder",
- "wasmparser",
+ "wasm-encoder 0.236.0",
+ "wasmparser 0.236.0",
  "wasmtime-environ",
  "wasmtime-internal-asm-macros",
  "wasmtime-internal-cache",
@@ -2115,8 +2136,8 @@ dependencies = [
  "serde_derive",
  "smallvec",
  "target-lexicon",
- "wasm-encoder",
- "wasmparser",
+ "wasm-encoder 0.236.0",
+ "wasmparser 0.236.0",
  "wasmprinter",
  "wasmtime-internal-component-util",
 ]
@@ -2192,7 +2213,7 @@ dependencies = [
  "smallvec",
  "target-lexicon",
  "thiserror 2.0.12",
- "wasmparser",
+ "wasmparser 0.236.0",
  "wasmtime-environ",
  "wasmtime-internal-math",
  "wasmtime-internal-versioned-export-macros",
@@ -2288,7 +2309,7 @@ dependencies = [
  "gimli 0.32.2",
  "object 0.37.3",
  "target-lexicon",
- "wasmparser",
+ "wasmparser 0.236.0",
  "wasmtime-environ",
  "wasmtime-internal-cranelift",
  "winch-codegen",
@@ -2383,24 +2404,24 @@ dependencies = [
 
 [[package]]
 name = "wast"
-version = "236.0.0"
+version = "238.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "11d6b6faeab519ba6fbf9b26add41617ca6f5553f99ebc33d876e591d2f4f3c6"
+checksum = "b0a564e7eab2abb8920c1302b90eb2c98a15efbbe30fc060d4e2d88483aa23fe"
 dependencies = [
  "bumpalo",
  "leb128fmt",
  "memchr",
  "unicode-width",
- "wasm-encoder",
+ "wasm-encoder 0.238.1",
 ]
 
 [[package]]
 name = "wat"
-version = "1.236.0"
+version = "1.238.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cc31704322400f461f7f31a5f9190d5488aaeafb63ae69ad2b5888d2704dcb08"
+checksum = "0eb84e6ac2997025f80482266fdc9f60fa28ba791b674bfd33855e77fe867631"
 dependencies = [
- "wast 236.0.0",
+ "wast 238.0.1",
 ]
 
 [[package]]
@@ -2499,7 +2520,7 @@ dependencies = [
  "smallvec",
  "target-lexicon",
  "thiserror 2.0.12",
- "wasmparser",
+ "wasmparser 0.236.0",
  "wasmtime-environ",
  "wasmtime-internal-cranelift",
  "wasmtime-internal-math",
@@ -2754,7 +2775,7 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "unicode-xid",
- "wasmparser",
+ "wasmparser 0.236.0",
 ]
 
 [[package]]

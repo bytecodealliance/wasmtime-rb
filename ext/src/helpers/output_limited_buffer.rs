@@ -5,13 +5,40 @@ use magnus::{
 };
 use std::io::Write;
 use std::sync::{Arc, Mutex};
-use wasmtime_wasi::p2::{OutputStream, Pollable, StdoutStream, StreamError, StreamResult};
+use tokio::io::AsyncWrite;
+use wasmtime_wasi::cli::{IsTerminal, StdoutStream};
+use wasmtime_wasi::p2::{OutputStream, Pollable, StreamError, StreamResult};
 
 /// A buffer that limits the number of bytes that can be written to it.
 /// If the buffer is full, it will truncate the data.
 /// Is used in the buffer implementations of stdout and stderr in `WasiP1Ctx` and `WasiCtxBuilder`.
 pub struct OutputLimitedBuffer {
     inner: Arc<Mutex<OutputLimitedBufferInner>>,
+}
+
+// No support for WASI P3, yet.
+impl AsyncWrite for OutputLimitedBuffer {
+    fn poll_write(
+        self: std::pin::Pin<&mut Self>,
+        _cx: &mut std::task::Context<'_>,
+        _buf: &[u8],
+    ) -> std::task::Poll<Result<usize, std::io::Error>> {
+        std::task::Poll::Ready(Ok(0))
+    }
+
+    fn poll_flush(
+        self: std::pin::Pin<&mut Self>,
+        _cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), std::io::Error>> {
+        std::task::Poll::Ready(Ok(()))
+    }
+
+    fn poll_shutdown(
+        self: std::pin::Pin<&mut Self>,
+        _cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), std::io::Error>> {
+        std::task::Poll::Ready(Ok(()))
+    }
 }
 
 impl OutputLimitedBuffer {
@@ -33,12 +60,19 @@ impl Clone for OutputLimitedBuffer {
 }
 
 impl StdoutStream for OutputLimitedBuffer {
-    fn stream(&self) -> Box<dyn OutputStream> {
+    fn p2_stream(&self) -> Box<dyn OutputStream> {
         let cloned = self.clone();
         Box::new(cloned)
     }
 
-    fn isatty(&self) -> bool {
+    fn async_stream(&self) -> Box<dyn AsyncWrite + Send + Sync> {
+        let cloned = self.clone();
+        Box::new(cloned)
+    }
+}
+
+impl IsTerminal for OutputLimitedBuffer {
+    fn is_terminal(&self) -> bool {
         false
     }
 }

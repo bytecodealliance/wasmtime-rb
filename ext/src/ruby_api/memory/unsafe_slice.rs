@@ -21,7 +21,7 @@ use std::ops::Range;
 /// @yard
 /// @rename Wasmtime::Memory::UnsafeSlice
 /// Represents a slice of a WebAssembly memory. This is useful for creating Ruby
-/// strings from WASM memory without any extra memory allocations.
+/// strings from Wasm memory without any extra memory allocations.
 ///
 /// The returned {UnsafeSlice} lazily reads the underlying memory, meaning that
 /// the actual pointer to the string buffer is not materialzed until

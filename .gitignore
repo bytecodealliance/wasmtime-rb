@@ -23,6 +23,7 @@ target/
 
 # Direnv
 .direnv/
+.envrc
 
 # JIT dump
 *.dump

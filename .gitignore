@@ -15,3 +15,14 @@ target/
 
 # rspec failure tracking
 .rspec_status
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# Direnv
+.direnv/
+
+# JIT dump
+*.dump

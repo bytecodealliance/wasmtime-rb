@@ -338,7 +338,7 @@ version = "0.123.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "62225596b687f69a42c038485a28369badc186cb7c74bd9436eeec9f539011b1"
 dependencies = [
- "cranelift-entity",
+ "cranelift-entity 0.123.2",
 ]
 
 [[package]]
@@ -346,6 +346,16 @@ name = "cranelift-bitset"
 version = "0.123.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c23914fc4062558650a6f0d8c1846c97b541215a291fdeabc85f68bdc9bbcca3"
+dependencies = [
+ "serde",
+ "serde_derive",
+]
+
+[[package]]
+name = "cranelift-bitset"
+version = "0.124.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "edf5f49a2e2ae284db75437a49cc13220a7fb394983d5545af1209ab0bbadee3"
 dependencies = [
  "serde",
  "serde_derive",
@@ -360,11 +370,11 @@ dependencies = [
  "bumpalo",
  "cranelift-assembler-x64",
  "cranelift-bforest",
- "cranelift-bitset",
+ "cranelift-bitset 0.123.2",
  "cranelift-codegen-meta",
  "cranelift-codegen-shared",
  "cranelift-control",
- "cranelift-entity",
+ "cranelift-entity 0.123.2",
  "cranelift-isle",
  "gimli 0.32.2",
  "hashbrown",
@@ -412,7 +422,18 @@ version = "0.123.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6e8c542c856feb50d504e4fc0526b3db3a514f882a9f68f956164531517828ab"
 dependencies = [
- "cranelift-bitset",
+ "cranelift-bitset 0.123.2",
+ "serde",
+ "serde_derive",
+]
+
+[[package]]
+name = "cranelift-entity"
+version = "0.124.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "15513ee4bf648d366654c6a9864fe870ca64f1eed4acabf9139056e68b3d44dc"
+dependencies = [
+ "cranelift-bitset 0.124.1",
  "serde",
  "serde_derive",
 ]
@@ -1320,7 +1341,7 @@ version = "36.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "440f530c8b86cd84b6bc82a88f348c3f842da3685828e47826a5862e6238998a"
 dependencies = [
- "cranelift-bitset",
+ "cranelift-bitset 0.123.2",
  "log",
  "pulley-macros",
  "wasmtime-internal-math",
@@ -2045,8 +2066,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8c9d90bb93e764f6beabf1d02028c70a2156a6583e63ac4218dd07ef733368b0"
 dependencies = [
  "bitflags",
+ "hashbrown",
  "indexmap",
  "semver",
+ "serde",
 ]
 
 [[package]]
@@ -2097,7 +2120,7 @@ dependencies = [
  "target-lexicon",
  "wasm-encoder 0.236.0",
  "wasmparser 0.236.0",
- "wasmtime-environ",
+ "wasmtime-environ 36.0.0",
  "wasmtime-internal-asm-macros",
  "wasmtime-internal-cache",
  "wasmtime-internal-component-macro",
@@ -2123,8 +2146,8 @@ checksum = "b8cfbfe35ae7214e478766aed0fb40a0f256283e60303323e31f43885dcf3c2d"
 dependencies = [
  "anyhow",
  "cpp_demangle",
- "cranelift-bitset",
- "cranelift-entity",
+ "cranelift-bitset 0.123.2",
+ "cranelift-entity 0.123.2",
  "gimli 0.32.2",
  "indexmap",
  "log",
@@ -2140,6 +2163,27 @@ dependencies = [
  "wasmparser 0.236.0",
  "wasmprinter",
  "wasmtime-internal-component-util",
+]
+
+[[package]]
+name = "wasmtime-environ"
+version = "37.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d6bf9ff7210fa31880e7cf3cfa1b83648c777090aa11ac1c448dff11e6c466a2"
+dependencies = [
+ "anyhow",
+ "cranelift-bitset 0.124.1",
+ "cranelift-entity 0.124.1",
+ "gimli 0.32.2",
+ "indexmap",
+ "log",
+ "object 0.37.3",
+ "postcard",
+ "serde",
+ "serde_derive",
+ "smallvec",
+ "target-lexicon",
+ "wasmparser 0.239.0",
 ]
 
 [[package]]
@@ -2202,7 +2246,7 @@ dependencies = [
  "cfg-if",
  "cranelift-codegen",
  "cranelift-control",
- "cranelift-entity",
+ "cranelift-entity 0.123.2",
  "cranelift-frontend",
  "cranelift-native",
  "gimli 0.32.2",
@@ -2214,7 +2258,7 @@ dependencies = [
  "target-lexicon",
  "thiserror 2.0.12",
  "wasmparser 0.236.0",
- "wasmtime-environ",
+ "wasmtime-environ 36.0.0",
  "wasmtime-internal-math",
  "wasmtime-internal-versioned-export-macros",
 ]
@@ -2310,7 +2354,7 @@ dependencies = [
  "object 0.37.3",
  "target-lexicon",
  "wasmparser 0.236.0",
- "wasmtime-environ",
+ "wasmtime-environ 36.0.0",
  "wasmtime-internal-cranelift",
  "winch-codegen",
 ]
@@ -2344,7 +2388,7 @@ dependencies = [
  "static_assertions",
  "tokio",
  "wasmtime",
- "wasmtime-environ",
+ "wasmtime-environ 37.0.1",
  "wasmtime-wasi",
  "wat",
 ]
@@ -2521,7 +2565,7 @@ dependencies = [
  "target-lexicon",
  "thiserror 2.0.12",
  "wasmparser 0.236.0",
- "wasmtime-environ",
+ "wasmtime-environ 36.0.0",
  "wasmtime-internal-cranelift",
  "wasmtime-internal-math",
 ]

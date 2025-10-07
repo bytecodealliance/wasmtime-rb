@@ -26,8 +26,7 @@ jobs:
             # 3.0 is deprecated as stable ruby version according to:
             #  https://github.com/oxidize-rb/actions/blob/main/fetch-ci-data/evaluate.rb#L54
             exclude: [arm-linux, x64-mingw32]
-          stable-ruby-versions: |
-            exclude: [head]
+          stable-ruby-versions: "3.2,3.3,3.4"
 
   build:
     name: Build native gems

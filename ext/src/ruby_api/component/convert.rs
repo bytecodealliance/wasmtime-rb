@@ -201,9 +201,13 @@ pub(crate) fn rb_to_component_val(
                 .find(|case| case.name == name.as_str())
                 .ok_or_else(|| {
                     error!(
-                        "invalid variant case \"{}\", valid cases: {:?}",
+                        "invalid variant case \"{}\", valid cases: [{}]",
                         name,
-                        RArray::from_iter(variant.cases().map(|c| c.name))
+                        variant
+                            .cases()
+                            .map(|c| format!("\"{}\"", c.name))
+                            .collect::<Vec<_>>()
+                            .join(", ")
                     )
                 })?;
 

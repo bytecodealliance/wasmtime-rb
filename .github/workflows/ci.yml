@@ -19,7 +19,7 @@ jobs:
       result: ${{ steps.fetch.outputs.result }}
     steps:
       - id: fetch
-        uses: oxidize-rb/actions/fetch-ci-data@v1
+        uses: oxidize-rb/actions/fetch-ci-data@1.4.3
         with:
           stable-ruby-versions: |
               # See https://github.com/bytecodealliance/wasmtime-rb/issues/286

@@ -85,7 +85,7 @@ module Wasmtime
           ["s64", "1", TypeError, /conversion of String into Integer/],
           ["s64", 2**64, RangeError, /too big/],
           ["string", 1, TypeError, /conversion of Integer into String/],
-          ["string", "\xFF\xFF", EncodingError, /invalid utf-8 sequence/],
+          ["string", "\xFF\xFF", EncodingError, /invalid byte sequence in UTF-8/],
           ["char", "ab", TypeError, /too many characters in string/],
           ["list", nil, /no implicit conversion of NilClass into Array/],
           ["record", {"x" => 1}, /struct field missing: y/],

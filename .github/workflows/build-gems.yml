@@ -17,7 +17,7 @@ jobs:
       result: ${{ steps.fetch.outputs.result }}
     steps:
       - id: fetch
-        uses: oxidize-rb/actions/fetch-ci-data@02b64e04ebb629c9b325137355369f43b1fcfa80
+        uses: oxidize-rb/actions/fetch-ci-data@1.4.3
         with:
           supported-ruby-platforms: |
             # Excluding:

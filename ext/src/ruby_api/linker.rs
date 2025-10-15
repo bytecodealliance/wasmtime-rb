@@ -306,7 +306,7 @@ impl Linker {
     pub(crate) fn add_wasi_p1(&self) -> Result<(), Error> {
         *self.has_wasi.borrow_mut() = true;
         let mut inner = self.inner.borrow_mut();
-        wasmtime_wasi::preview1::add_to_linker_sync(&mut inner, |s| s.wasi_p1_ctx_mut())
+        wasmtime_wasi::p1::add_to_linker_sync(&mut inner, |s| s.wasi_p1_ctx_mut())
             .map_err(|e| error!("{e}"))
     }
 }

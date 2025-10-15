@@ -70,10 +70,10 @@ module Wasmtime
     end
 
     it "allows memory_protection_keys configuration" do
-      config.memory_protection_keys = :enable
-      expect(config.inspect).to include("memory_protection_keys: Enable")
-      config.memory_protection_keys = :disable
-      expect(config.inspect).to include("memory_protection_keys: Disable")
+      config.memory_protection_keys = :yes
+      expect(config.inspect).to include("memory_protection_keys: Yes")
+      config.memory_protection_keys = :no
+      expect(config.inspect).to include("memory_protection_keys: No")
       config.memory_protection_keys = :auto
       expect(config.inspect).to include("memory_protection_keys: Auto")
     end

@@ -10,7 +10,7 @@ use magnus::{
     Error, Module, Object as _, Value,
 };
 use rb_sys::{ruby_special_consts::RUBY_Qtrue, VALUE};
-use wasmtime::{MpkEnabled, PoolingAllocationConfig as PoolingAllocationConfigImpl};
+use wasmtime::{Enabled, PoolingAllocationConfig as PoolingAllocationConfigImpl};
 
 use crate::{define_rb_intern, err, helpers::SymbolEnum, root};
 
@@ -266,16 +266,16 @@ impl From<PoolingAllocationConfigImpl> for PoolingAllocationConfig {
 
 define_rb_intern!(
     AUTO => "auto",
-    ENABLE => "enable",
-    DISABLE => "disable",
+    YES => "yes",
+    NO => "no",
 );
 
 lazy_static! {
-    pub static ref MPK_MAPPING: SymbolEnum<'static, MpkEnabled> = {
+    pub static ref MPK_MAPPING: SymbolEnum<'static, Enabled> = {
         let mapping = vec![
-            (*AUTO, MpkEnabled::Auto),
-            (*ENABLE, MpkEnabled::Enable),
-            (*DISABLE, MpkEnabled::Disable),
+            (*AUTO, Enabled::Auto),
+            (*YES, Enabled::Yes),
+            (*NO, Enabled::No),
         ];
 
         SymbolEnum::new("Memory protection keys strategy", mapping)

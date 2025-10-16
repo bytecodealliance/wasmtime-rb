@@ -1,5 +1,28 @@
 # Changelog
 
+## [v37.0.2](https://github.com/bytecodealliance/wasmtime-rb/tree/v37.0.2) (2025-10-16)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v36.0.0...v37.0.2)
+
+**Closed issues:**
+
+- No precompiled gem for Ruby 3.3 [\#499](https://github.com/bytecodealliance/wasmtime-rb/issues/499)
+
+**Merged pull requests:**
+
+- Update to wasmtime v37 [\#512](https://github.com/bytecodealliance/wasmtime-rb/pull/512) ([saulecabrera](https://github.com/saulecabrera))
+  - Memory protection options changed to `:yes` / `:no` instead of `:enable` / `:disable`
+- Update Magnus to v0.8.2 [\#510](https://github.com/bytecodealliance/wasmtime-rb/pull/510) ([jeffcharles](https://github.com/jeffcharles))
+- Update oxidize-rb/actions/fetch-ci-data [\#509](https://github.com/bytecodealliance/wasmtime-rb/pull/509) ([saulecabrera](https://github.com/saulecabrera))
+- chore\(deps\): bump wat from 1.236.0 to 1.239.0 [\#508](https://github.com/bytecodealliance/wasmtime-rb/pull/508) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump standard from 1.50.0 to 1.51.1 [\#505](https://github.com/bytecodealliance/wasmtime-rb/pull/505) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Integrate direnv with flakes [\#503](https://github.com/bytecodealliance/wasmtime-rb/pull/503) ([saulecabrera](https://github.com/saulecabrera))
+- s/WASM/Wasm [\#502](https://github.com/bytecodealliance/wasmtime-rb/pull/502) ([saulecabrera](https://github.com/saulecabrera))
+- chore\(deps\): bump async-trait from 0.1.88 to 0.1.89 [\#497](https://github.com/bytecodealliance/wasmtime-rb/pull/497) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump rb\_sys from 0.9.116 to 0.9.117 [\#492](https://github.com/bytecodealliance/wasmtime-rb/pull/492) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump actions/checkout from 4 to 5 [\#491](https://github.com/bytecodealliance/wasmtime-rb/pull/491) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump actions/download-artifact from 4 to 5 [\#490](https://github.com/bytecodealliance/wasmtime-rb/pull/490) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v36.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v36.0.0) (2025-09-09)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v34.0.0...v36.0.0)

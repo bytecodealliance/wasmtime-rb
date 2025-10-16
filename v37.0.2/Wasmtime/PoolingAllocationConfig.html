@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Class: Wasmtime::PoolingAllocationConfig
+  
+    &mdash; Documentation by YARD 0.9.37
+  
+</title>
+
+  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="../css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "Wasmtime::PoolingAllocationConfig";
+  relpath = '../';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="../class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="../_index.html">Index (P)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../Wasmtime.html" title="Wasmtime (module)">Wasmtime</a></span></span>
+     &raquo; 
+    <span class="title">PoolingAllocationConfig</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="../class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Class: Wasmtime::PoolingAllocationConfig
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+  <dl>
+    <dt>Inherits:</dt>
+    <dd>
+      <span class="inheritName">Object</span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next">Wasmtime::PoolingAllocationConfig</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+    </dd>
+  </dl>
+  
+
+  
+  
+  
+  
+  
+
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>ext/src/ruby_api/pooling_allocation_config.rs</dd>
+  </dl>
+  
+</div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    
+<p>Configuration options used with an engines ‘allocation_strategy` to change the behavior of the pooling instance allocator.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+  <p class="tag_title">See Also:</p>
+  <ul class="see">
+    
+      <li><a href="https://docs.rs/wasmtime/latest/wasmtime/struct.PoolingAllocationConfig.html" target="_parent" title="Wasmtime&#39;s Rust doc">Wasmtime's Rust doc</a></li>
+    
+  </ul>
+
+</div>
+
+
+
+
+
+
+  
+    <h2>
+      Class Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#memory_protection_keys_available%3F-class_method" title="memory_protection_keys_available? (class method)">.<strong>memory_protection_keys_available?</strong>  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#new-class_method" title="new (class method)">.<strong>new</strong>  &#x21d2; Wasmtime::PoolingAllocationConfig </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+    </ul>
+  
+    <h2>
+      Instance Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#async_stack_keep_resident=-instance_method" title="#async_stack_keep_resident= (instance method)">#<strong>async_stack_keep_resident=</strong>(amount)  &#x21d2; Wasmtime::PoolingAllocationConfig </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#max_memories_per_module=-instance_method" title="#max_memories_per_module= (instance method)">#<strong>max_memories_per_module=</strong>(max_memories)  &#x21d2; Wasmtime::PoolingAllocationConfig </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#max_tables_per_module=-instance_method" title="#max_tables_per_module= (instance method)">#<strong>max_tables_per_module=</strong>(max_tables)  &#x21d2; Wasmtime::PoolingAllocationConfig </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#total_memories=-instance_method" title="#total_memories= (instance method)">#<strong>total_memories=</strong>(total_memories)  &#x21d2; Wasmtime::PoolingAllocationConfig </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#total_tables=-instance_method" title="#total_tables= (instance method)">#<strong>total_tables=</strong>(total_tables)  &#x21d2; Wasmtime::PoolingAllocationConfig </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+
+
+  <div id="class_method_details" class="method_details_list">
+    <h2>Class Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="memory_protection_keys_available?-class_method">
+  
+    .<strong>memory_protection_keys_available?</strong>  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+87
+88
+89</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 87</span>
+
+pub fn are_memory_protection_keys_available() -&gt; Result&lt;bool, Error&gt; {
+    Ok(wasmtime::PoolingAllocationConfig::are_memory_protection_keys_available())
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="new-class_method">
+  
+    .<strong>new</strong>  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::PoolingAllocationConfig (class)">Wasmtime::PoolingAllocationConfig</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::PoolingAllocationConfig (class)">Wasmtime::PoolingAllocationConfig</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+31
+32
+33
+34
+35
+36
+37
+38
+39</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 31</span>
+
+pub fn new() -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
+    let obj = Obj::wrap(Self::from(PoolingAllocationConfigImpl::default()));
+
+    if block_given() {
+        let _: Value = block_proc()?.call((obj,))?;
+    }
+
+    Ok(obj)
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="async_stack_keep_resident=-instance_method">
+  
+    #<strong>async_stack_keep_resident=</strong>(amount)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::PoolingAllocationConfig (class)">Wasmtime::PoolingAllocationConfig</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>amount</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::PoolingAllocationConfig (class)">Wasmtime::PoolingAllocationConfig</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+95
+96
+97
+98
+99
+100
+101</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 95</span>
+
+pub fn set_async_stack_keep_resident(
+    rb_self: Obj&lt;Self&gt;,
+    amt: usize,
+) -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
+    rb_self.borrow_mut()?.async_stack_keep_resident(amt);
+    Ok(rb_self)
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="max_memories_per_module=-instance_method">
+  
+    #<strong>max_memories_per_module=</strong>(max_memories)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::PoolingAllocationConfig (class)">Wasmtime::PoolingAllocationConfig</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>max_memories</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::PoolingAllocationConfig (class)">Wasmtime::PoolingAllocationConfig</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+64
+65
+66
+67
+68
+69
+70</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 64</span>
+
+pub fn set_max_memories_per_module(
+    rb_self: Obj&lt;Self&gt;,
+    max_memories: u32,
+) -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
+    rb_self.borrow_mut()?.max_memories_per_module(max_memories);
+    Ok(rb_self)
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="max_tables_per_module=-instance_method">
+  
+    #<strong>max_tables_per_module=</strong>(max_tables)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::PoolingAllocationConfig (class)">Wasmtime::PoolingAllocationConfig</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>max_tables</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::PoolingAllocationConfig (class)">Wasmtime::PoolingAllocationConfig</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+76
+77
+78
+79
+80
+81
+82</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 76</span>
+
+pub fn set_max_tables_per_component(
+    rb_self: Obj&lt;Self&gt;,
+    max_tables: u32,
+) -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
+    rb_self.borrow_mut()?.max_tables_per_component(max_tables);
+    Ok(rb_self)
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="total_memories=-instance_method">
+  
+    #<strong>total_memories=</strong>(total_memories)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::PoolingAllocationConfig (class)">Wasmtime::PoolingAllocationConfig</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>total_memories</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::PoolingAllocationConfig (class)">Wasmtime::PoolingAllocationConfig</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+45
+46
+47
+48
+49</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 45</span>
+
+pub fn set_total_memories(rb_self: Obj&lt;Self&gt;, total_memories: u32) -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
+    rb_self.borrow_mut()?.total_memories(total_memories);
+
+    Ok(rb_self)
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="total_tables=-instance_method">
+  
+    #<strong>total_tables=</strong>(total_tables)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::PoolingAllocationConfig (class)">Wasmtime::PoolingAllocationConfig</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>total_tables</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::PoolingAllocationConfig (class)">Wasmtime::PoolingAllocationConfig</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+55
+56
+57
+58</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 55</span>
+
+pub fn set_total_tables(rb_self: Obj&lt;Self&gt;, total_tables: u32) -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
+    rb_self.borrow_mut()?.total_tables(total_tables);
+    Ok(rb_self)
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Thu Oct 16 16:37:43 2025 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.37 (ruby-3.4.7).
+</div>
+
+    </div>
+  </body>
+</html>

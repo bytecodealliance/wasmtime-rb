@@ -50,7 +50,7 @@ jobs:
           platform: ${{ matrix.ruby-platform }}
           ruby-versions: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ',') }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: cross-gem-${{ matrix.ruby-platform }}
           path: pkg/*-${{ matrix.ruby-platform }}.gem

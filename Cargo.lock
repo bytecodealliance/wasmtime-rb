@@ -312,7 +312,7 @@ version = "0.124.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3b5364dfe182d4b89af2f4bd0dafc8f6c590bbf0216ee8ce60bfd8893c3d14a6"
 dependencies = [
- "cranelift-entity",
+ "cranelift-entity 0.124.2",
 ]
 
 [[package]]
@@ -320,6 +320,16 @@ name = "cranelift-bitset"
 version = "0.124.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3067ca8c10796434497a5faac73d949b5ac0008ed572013debe88694bfef426e"
+dependencies = [
+ "serde",
+ "serde_derive",
+]
+
+[[package]]
+name = "cranelift-bitset"
+version = "0.125.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e9cfefb6be25e6c5d9365ebef1c0d370a8ee135df72a0a357714b8841a6410e4"
 dependencies = [
  "serde",
  "serde_derive",
@@ -334,11 +344,11 @@ dependencies = [
  "bumpalo",
  "cranelift-assembler-x64",
  "cranelift-bforest",
- "cranelift-bitset",
+ "cranelift-bitset 0.124.2",
  "cranelift-codegen-meta",
  "cranelift-codegen-shared",
  "cranelift-control",
- "cranelift-entity",
+ "cranelift-entity 0.124.2",
  "cranelift-isle",
  "gimli",
  "hashbrown 0.15.5",
@@ -386,7 +396,18 @@ version = "0.124.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b3d7bf1aae1800d053aa965381dcb01054404d0bcd8ea5ffe65bb855b8e3f654"
 dependencies = [
- "cranelift-bitset",
+ "cranelift-bitset 0.124.2",
+ "serde",
+ "serde_derive",
+]
+
+[[package]]
+name = "cranelift-entity"
+version = "0.125.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d451f8619df8989e9fb29253f864fec15c42d476fc1bcbf30418f80e33aa602"
+dependencies = [
+ "cranelift-bitset 0.125.3",
  "serde",
  "serde_derive",
 ]
@@ -1272,7 +1293,7 @@ version = "37.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6cff3cc2c3a933419d4989b9dcdee724ebc9ee4cdc1f175dbaeef71d3b963336"
 dependencies = [
- "cranelift-bitset",
+ "cranelift-bitset 0.124.2",
  "log",
  "pulley-macros",
  "wasmtime-internal-math",
@@ -2048,7 +2069,7 @@ dependencies = [
  "target-lexicon",
  "wasm-encoder 0.239.0",
  "wasmparser 0.239.0",
- "wasmtime-environ",
+ "wasmtime-environ 37.0.2",
  "wasmtime-internal-asm-macros",
  "wasmtime-internal-cache",
  "wasmtime-internal-component-macro",
@@ -2074,8 +2095,8 @@ checksum = "484db5c4dd06e96559217b60893b5dbb9fe3cd28489c83a4257b277c9ead959c"
 dependencies = [
  "anyhow",
  "cpp_demangle",
- "cranelift-bitset",
- "cranelift-entity",
+ "cranelift-bitset 0.124.2",
+ "cranelift-entity 0.124.2",
  "gimli",
  "indexmap",
  "log",
@@ -2091,6 +2112,27 @@ dependencies = [
  "wasmparser 0.239.0",
  "wasmprinter",
  "wasmtime-internal-component-util",
+]
+
+[[package]]
+name = "wasmtime-environ"
+version = "38.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9a1de365ce0d1a70da9faee9983512feb221887e3e79dfdc51b0fce6c5916dde"
+dependencies = [
+ "anyhow",
+ "cranelift-bitset 0.125.3",
+ "cranelift-entity 0.125.3",
+ "gimli",
+ "indexmap",
+ "log",
+ "object",
+ "postcard",
+ "serde",
+ "serde_derive",
+ "smallvec",
+ "target-lexicon",
+ "wasmparser 0.239.0",
 ]
 
 [[package]]
@@ -2153,7 +2195,7 @@ dependencies = [
  "cfg-if",
  "cranelift-codegen",
  "cranelift-control",
- "cranelift-entity",
+ "cranelift-entity 0.124.2",
  "cranelift-frontend",
  "cranelift-native",
  "gimli",
@@ -2165,7 +2207,7 @@ dependencies = [
  "target-lexicon",
  "thiserror 2.0.17",
  "wasmparser 0.239.0",
- "wasmtime-environ",
+ "wasmtime-environ 37.0.2",
  "wasmtime-internal-math",
  "wasmtime-internal-unwinder",
  "wasmtime-internal-versioned-export-macros",
@@ -2263,7 +2305,7 @@ dependencies = [
  "object",
  "target-lexicon",
  "wasmparser 0.239.0",
- "wasmtime-environ",
+ "wasmtime-environ 37.0.2",
  "wasmtime-internal-cranelift",
  "winch-codegen",
 ]
@@ -2297,7 +2339,7 @@ dependencies = [
  "static_assertions",
  "tokio",
  "wasmtime",
- "wasmtime-environ",
+ "wasmtime-environ 38.0.3",
  "wasmtime-wasi",
  "wat",
 ]
@@ -2474,7 +2516,7 @@ dependencies = [
  "target-lexicon",
  "thiserror 2.0.17",
  "wasmparser 0.239.0",
- "wasmtime-environ",
+ "wasmtime-environ 37.0.2",
  "wasmtime-internal-cranelift",
  "wasmtime-internal-math",
 ]

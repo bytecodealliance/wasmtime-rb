@@ -78,7 +78,7 @@ jobs:
           cargo-cache: true
           cache-version: v1
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           pattern: cross-gem-*
           merge-multiple: true

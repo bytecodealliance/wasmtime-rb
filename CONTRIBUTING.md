@@ -17,11 +17,16 @@ Compile the gem, run the tests & Ruby linter:
 bundle exec rake
 ```
 
+## Updating Wasmtime
+
+1. Update the version of `deterministic-wasi-ctx` in `ext/Cargo.toml`
+1. Update the `wasmtime-` family of crates to the new version in `ext/Cargo.toml`. Note that this process might involve code changes in case the new version contains public facing API changes.
+1. Bump the `VERSION` in `lib/wasmtime/version.rb` to match one-to-one the upstream `wasmtime` version.
+1. Run `bundle install` to bump the version in `Gemfile.lock`
+
 ## Releasing
 
-1. Bump the `VERSION` in `lib/wasmtime/version.rb`
-1. Run `bundle install` to bump the version in `Gemfile.lock`
-1. Update the changelog (requires the `github_changelog_generator` gem and being authenticated with `gh`)
+1. On `main`, update the changelog (requires the `github_changelog_generator` gem and being authenticated with `gh`)
   
 ```
 github_changelog_generator \

@@ -1,5 +1,22 @@
 # Changelog
 
+## [v38.0.4](https://github.com/bytecodealliance/wasmtime-rb/tree/v38.0.4) (2025-11-14)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v37.0.2...v38.0.4)
+
+**Merged pull requests:**
+
+- docs: Contributing docs [\#526](https://github.com/bytecodealliance/wasmtime-rb/pull/526) ([saulecabrera](https://github.com/saulecabrera))
+- Update gem version to 38.0.4 [\#525](https://github.com/bytecodealliance/wasmtime-rb/pull/525) ([saulecabrera](https://github.com/saulecabrera))
+- Update rb\_sys gem [\#524](https://github.com/bytecodealliance/wasmtime-rb/pull/524) ([jeffcharles](https://github.com/jeffcharles))
+- Fix build documentation [\#523](https://github.com/bytecodealliance/wasmtime-rb/pull/523) ([jeffcharles](https://github.com/jeffcharles))
+- Update Wasmtime to 38.0.4 [\#522](https://github.com/bytecodealliance/wasmtime-rb/pull/522) ([jeffcharles](https://github.com/jeffcharles))
+- chore\(deps\): bump cap-std from 3.4.4 to 3.4.5 [\#521](https://github.com/bytecodealliance/wasmtime-rb/pull/521) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump rake from 13.3.0 to 13.3.1 [\#517](https://github.com/bytecodealliance/wasmtime-rb/pull/517) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump actions/upload-artifact from 4 to 5 [\#515](https://github.com/bytecodealliance/wasmtime-rb/pull/515) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump actions/download-artifact from 5 to 6 [\#514](https://github.com/bytecodealliance/wasmtime-rb/pull/514) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump rspec from 3.13.1 to 3.13.2 [\#513](https://github.com/bytecodealliance/wasmtime-rb/pull/513) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v37.0.2](https://github.com/bytecodealliance/wasmtime-rb/tree/v37.0.2) (2025-10-16)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v36.0.0...v37.0.2)

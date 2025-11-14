@@ -14,7 +14,7 @@ use std::convert::TryFrom;
 use std::fs;
 use std::path::Path;
 use std::{fs::File, path::PathBuf};
-use wasmtime_wasi::cli::OutputFile;
+use wasmtime_wasi::cli::{InputFile, OutputFile};
 use wasmtime_wasi::p1::WasiP1Ctx;
 use wasmtime_wasi::p2::pipe::MemoryInputPipe;
 use wasmtime_wasi::{DirPerms, FilePerms, WasiCtx, WasiCtxBuilder};
@@ -352,18 +352,7 @@ impl WasiConfig {
             match stdin {
                 ReadStream::Inherit => builder.inherit_stdin(),
                 ReadStream::Path(path) => {
-                    // Reading the whole file into memory and passing it as an
-                    // in-memory buffer because I cannot find a public struct
-                    // to use a file as an input that implements `StdinStream`
-                    // and the implementation would not be trivial.
-                    // TODO: Use
-                    // https://github.com/bytecodealliance/wasmtime/pull/10968
-                    // when it's in a published version.
-                    // SAFETY: &[u8] copied before calling in to Ruby, no GC can happen before.
-                    let inner = ruby.get_inner(*path);
-                    let path = PathBuf::from(unsafe { inner.as_str() }?);
-                    let contents = fs::read(path).map_err(|e| error!("{e}"))?;
-                    builder.stdin(MemoryInputPipe::new(contents))
+                    builder.stdin(file_r(ruby.get_inner(*path)).map(InputFile::new)?)
                 }
                 ReadStream::String(input) => {
                     // SAFETY: &[u8] copied before calling in to Ruby, no GC can happen before.
@@ -434,6 +423,11 @@ impl WasiConfig {
 
         Ok(builder)
     }
+}
+
+pub fn file_r(path: RString) -> Result<File, Error> {
+    // SAFETY: &str copied before calling in to Ruby, no GC can happen before.
+    File::open(unsafe { path.as_str()? }).map_err(|e| error!("Failed to open file {}\n{}", path, e))
 }
 
 pub fn file_w(path: RString) -> Result<File, Error> {

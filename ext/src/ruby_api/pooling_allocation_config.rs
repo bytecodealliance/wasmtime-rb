@@ -2,12 +2,8 @@ use lazy_static::lazy_static;
 use std::cell::RefCell;
 
 use magnus::{
-    block::{block_given, block_proc},
-    class, function, method,
-    rb_sys::AsRawValue,
-    typed_data::Obj,
-    value::ReprValue,
-    Error, Module, Object as _, Value,
+    class, function, method, rb_sys::AsRawValue, typed_data::Obj, value::ReprValue, Error, Module,
+    Object as _, Ruby, Value,
 };
 use rb_sys::{ruby_special_consts::RUBY_Qtrue, VALUE};
 use wasmtime::{Enabled, PoolingAllocationConfig as PoolingAllocationConfigImpl};
@@ -28,11 +24,11 @@ impl PoolingAllocationConfig {
     /// @yard
     /// @def new
     /// @return [Wasmtime::PoolingAllocationConfig]
-    pub fn new() -> Result<Obj<Self>, Error> {
-        let obj = Obj::wrap(Self::from(PoolingAllocationConfigImpl::default()));
+    pub fn new(ruby: &Ruby) -> Result<Obj<Self>, Error> {
+        let obj = ruby.obj_wrap(Self::from(PoolingAllocationConfigImpl::default()));
 
-        if block_given() {
-            let _: Value = block_proc()?.call((obj,))?;
+        if ruby.block_given() {
+            let _: Value = ruby.block_proc()?.call((obj,))?;
         }
 
         Ok(obj)
@@ -282,8 +278,8 @@ lazy_static! {
     };
 }
 
-pub fn init() -> Result<(), Error> {
-    let class = root().define_class("PoolingAllocationConfig", class::object())?;
+pub fn init(ruby: &Ruby) -> Result<(), Error> {
+    let class = root().define_class("PoolingAllocationConfig", ruby.class_object())?;
 
     class.define_singleton_method("new", function!(PoolingAllocationConfig::new, 0))?;
     class.define_singleton_method(

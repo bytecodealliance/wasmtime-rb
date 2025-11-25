@@ -235,14 +235,14 @@ impl WrapWasmtimeExternType<ExternType> for wasmtime::ExternType {
     }
 }
 
-pub fn init() -> Result<(), Error> {
-    let extern_type = root().define_class("ExternType", class::object())?;
+pub fn init(ruby: &Ruby) -> Result<(), Error> {
+    let extern_type = root().define_class("ExternType", ruby.class_object())?;
     extern_type.define_method("to_func_type", method!(ExternType::to_func_type, 0))?;
     extern_type.define_method("to_global_type", method!(ExternType::to_global_type, 0))?;
     extern_type.define_method("to_memory_type", method!(ExternType::to_memory_type, 0))?;
     extern_type.define_method("to_table_type", method!(ExternType::to_table_type, 0))?;
 
-    let class = root().define_class("Extern", class::object())?;
+    let class = root().define_class("Extern", ruby.class_object())?;
 
     class.define_method("to_func", method!(Extern::to_func, 0))?;
     class.define_method("to_global", method!(Extern::to_global, 0))?;

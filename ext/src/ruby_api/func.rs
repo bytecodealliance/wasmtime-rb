@@ -215,14 +215,14 @@ impl<'a> Func<'a> {
     ) -> Result<Value, Error> {
         let mut context = store.context_mut()?;
         let func_ty = func.ty(&mut context);
-        let params = Params::new(&func_ty, args)?.to_vec(store)?;
+        let params = Params::new(ruby, &func_ty, args)?.to_vec(store)?;
         let mut results = vec![Val::null_func_ref(); func_ty.results().len()];
 
         func.call(context, &params, &mut results)
             .map_err(|e| store.handle_wasm_error(e))?;
 
         match results.as_slice() {
-            [] => Ok(().into_value()),
+            [] => Ok(().into_value_with(ruby)),
             [result] => result.to_ruby_value(store),
             _ => {
                 let ary = ruby.ary_new_capa(results.len());
@@ -270,10 +270,10 @@ pub fn make_func_closure(
     // We then return a generic error here. The caller will check for a stored error
     // and raise it if it exists.
     move |caller_impl: CallerImpl<'_, StoreData>, params: &[Val], results: &mut [Val]| {
-        let wrapped_caller = Obj::wrap(Caller::new(caller_impl));
+        let ruby = Ruby::get().unwrap();
+        let wrapped_caller = ruby.obj_wrap(Caller::new(caller_impl));
         let store_context = StoreContextValue::from(wrapped_caller);
 
-        let ruby = Ruby::get().unwrap();
         let rparams = ruby.ary_new_capa(params.len() + 1);
         rparams
             .push(wrapped_caller.as_value())
@@ -346,12 +346,12 @@ pub fn make_func_closure(
     }
 }
 
-pub fn init() -> Result<(), Error> {
-    let func_type = root().define_class("FuncType", class::object())?;
+pub fn init(ruby: &Ruby) -> Result<(), Error> {
+    let func_type = root().define_class("FuncType", ruby.class_object())?;
     func_type.define_method("params", method!(FuncType::params, 0))?;
     func_type.define_method("results", method!(FuncType::results, 0))?;
 
-    let func = root().define_class("Func", class::object())?;
+    let func = root().define_class("Func", ruby.class_object())?;
     func.define_singleton_method("new", function!(Func::new, -1))?;
     func.define_method("call", method!(Func::call, -1))?;
     func.define_method("params", method!(Func::params, 0))?;

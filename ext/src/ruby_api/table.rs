@@ -7,7 +7,7 @@ use super::{
 use crate::{define_rb_intern, error};
 use magnus::{
     class, function, gc::Marker, method, prelude::*, scan_args, typed_data::Obj, DataTypeFunctions,
-    Error, IntoValue, Object, Symbol, TypedData, Value,
+    Error, IntoValue, Object, Ruby, Symbol, TypedData, Value,
 };
 use wasmtime::{Extern, Table as TableImpl, Val};
 
@@ -240,13 +240,13 @@ impl From<&Table<'_>> for Extern {
     }
 }
 
-pub fn init() -> Result<(), Error> {
-    let type_class = root().define_class("TableType", class::object())?;
+pub fn init(ruby: &Ruby) -> Result<(), Error> {
+    let type_class = root().define_class("TableType", ruby.class_object())?;
     type_class.define_method("type", method!(TableType::type_, 0))?;
     type_class.define_method("min_size", method!(TableType::min_size, 0))?;
     type_class.define_method("max_size", method!(TableType::max_size, 0))?;
 
-    let class = root().define_class("Table", class::object())?;
+    let class = root().define_class("Table", ruby.class_object())?;
     class.define_singleton_method("new", function!(Table::new, -1))?;
 
     class.define_method("type", method!(Table::type_, 0))?;

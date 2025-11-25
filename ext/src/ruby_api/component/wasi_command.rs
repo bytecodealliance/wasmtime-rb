@@ -49,8 +49,8 @@ impl WasiCommand {
     }
 }
 
-pub fn init(_ruby: &Ruby, namespace: &RModule) -> Result<(), Error> {
-    let linker = namespace.define_class("WasiCommand", class::object())?;
+pub fn init(ruby: &Ruby, namespace: &RModule) -> Result<(), Error> {
+    let linker = namespace.define_class("WasiCommand", ruby.class_object())?;
     linker.define_singleton_method("new", function!(WasiCommand::new, 3))?;
     linker.define_method("call_run", method!(WasiCommand::call_run, 1))?;
 

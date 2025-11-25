@@ -263,11 +263,11 @@ impl From<&Memory<'_>> for Extern {
 }
 
 pub fn init(ruby: &Ruby) -> Result<(), Error> {
-    let type_class = root().define_class("MemoryType", class::object())?;
+    let type_class = root().define_class("MemoryType", ruby.class_object())?;
     type_class.define_method("min_size", method!(MemoryType::min_size, 0))?;
     type_class.define_method("max_size", method!(MemoryType::max_size, 0))?;
 
-    let class = root().define_class("Memory", class::object())?;
+    let class = root().define_class("Memory", ruby.class_object())?;
     class.define_singleton_method("new", function!(Memory::new, -1))?;
     class.define_method("min_size", method!(Memory::min_size, 0))?;
     class.define_method("max_size", method!(Memory::max_size, 0))?;

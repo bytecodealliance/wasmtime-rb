@@ -151,7 +151,7 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
 
     let namespace = component_namespace(ruby);
 
-    let class = namespace.define_class("Component", class::object())?;
+    let class = namespace.define_class("Component", ruby.class_object())?;
     class.define_singleton_method("new", function!(Component::new, 2))?;
     class.define_singleton_method("from_file", function!(Component::from_file, 2))?;
     class.define_singleton_method("deserialize", function!(Component::deserialize, 2))?;

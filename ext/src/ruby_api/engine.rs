@@ -224,8 +224,8 @@ impl Engine {
     }
 }
 
-pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Engine", class::object())?;
+pub fn init(ruby: &Ruby) -> Result<(), Error> {
+    let class = root().define_class("Engine", ruby.class_object())?;
 
     class.define_singleton_method("new", function!(Engine::new, -1))?;
 

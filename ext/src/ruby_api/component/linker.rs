@@ -72,7 +72,7 @@ impl Linker {
         let Ok(mut inner) = rb_self.inner.try_borrow_mut() else {
             return err!("Linker is not reentrant");
         };
-        let instance = Obj::wrap(LinkerInstance::from_inner(inner.root()));
+        let instance = ruby.obj_wrap(LinkerInstance::from_inner(inner.root()));
         let block_result: Result<Value, _> = ruby.yield_value(instance);
 
         instance.take_inner();
@@ -97,7 +97,7 @@ impl Linker {
             .instance(unsafe { name.as_str() }?)
             .map_err(|e| error!("{}", e))?;
 
-        let instance = Obj::wrap(LinkerInstance::from_inner(instance));
+        let instance = ruby.obj_wrap(LinkerInstance::from_inner(instance));
 
         let block_result: Result<Value, _> = ruby.yield_value(instance);
 
@@ -235,7 +235,7 @@ impl<'a> LinkerInstance<'a> {
             .instance(unsafe { name.as_str()? })
             .map_err(|e| error!("{}", e))?;
 
-        let nested_instance = Obj::wrap(LinkerInstance::from_inner(nested_inner));
+        let nested_instance = ruby.obj_wrap(LinkerInstance::from_inner(nested_inner));
         let block_result: Result<Value, _> = ruby.yield_value(nested_instance);
         nested_instance.take_inner();
 
@@ -254,14 +254,14 @@ impl<'a> LinkerInstance<'a> {
     }
 }
 
-pub fn init(_ruby: &Ruby, namespace: &RModule) -> Result<(), Error> {
-    let linker = namespace.define_class("Linker", class::object())?;
+pub fn init(ruby: &Ruby, namespace: &RModule) -> Result<(), Error> {
+    let linker = namespace.define_class("Linker", ruby.class_object())?;
     linker.define_singleton_method("new", function!(Linker::new, 1))?;
     linker.define_method("root", method!(Linker::root, 0))?;
     linker.define_method("instance", method!(Linker::instance, 1))?;
     linker.define_method("instantiate", method!(Linker::instantiate, 2))?;
 
-    let linker_instance = namespace.define_class("LinkerInstance", class::object())?;
+    let linker_instance = namespace.define_class("LinkerInstance", ruby.class_object())?;
     linker_instance.define_method("module", method!(LinkerInstance::module, 2))?;
     linker_instance.define_method("instance", method!(LinkerInstance::instance, 1))?;
 

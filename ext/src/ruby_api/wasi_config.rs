@@ -436,8 +436,8 @@ pub fn file_w(path: RString) -> Result<File, Error> {
         .map_err(|e| error!("Failed to write to file {}\n{}", path, e))
 }
 
-pub fn init() -> Result<(), Error> {
-    let class = root().define_class("WasiConfig", class::object())?;
+pub fn init(ruby: &Ruby) -> Result<(), Error> {
+    let class = root().define_class("WasiConfig", ruby.class_object())?;
     class.define_singleton_method("new", function!(WasiConfig::new, 0))?;
 
     class.define_method("add_determinism", method!(WasiConfig::add_determinism, 0))?;

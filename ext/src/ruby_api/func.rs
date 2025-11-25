@@ -175,7 +175,8 @@ impl<'a> Func<'a> {
     ///   end
     ///   func.call(1, 2) # => [2, 3]
     pub fn call(&self, args: &[Value]) -> Result<Value, Error> {
-        Self::invoke(&self.store, &self.inner, args)
+        let ruby = Ruby::get().unwrap();
+        Self::invoke(&ruby, &self.store, &self.inner, args)
     }
 
     pub fn inner(&self) -> &FuncImpl {
@@ -207,6 +208,7 @@ impl<'a> Func<'a> {
     }
 
     pub fn invoke(
+        ruby: &Ruby,
         store: &StoreContextValue,
         func: &wasmtime::Func,
         args: &[Value],
@@ -222,11 +224,14 @@ impl<'a> Func<'a> {
         match results.as_slice() {
             [] => Ok(().into_value()),
             [result] => result.to_ruby_value(store),
-            _ => results
-                .into_iter()
-                .map(|result| result.to_ruby_value(store))
-                .collect::<Result<RArray, _>>()
-                .map(|ary| ary.as_value()),
+            _ => {
+                let ary = ruby.ary_new_capa(results.len());
+                for result in results {
+                    let val = result.to_ruby_value(store)?;
+                    ary.push(val)?;
+                }
+                Ok(ary.into_value_with(ruby))
+            }
         }
     }
 }
@@ -268,17 +273,21 @@ pub fn make_func_closure(
         let wrapped_caller = Obj::wrap(Caller::new(caller_impl));
         let store_context = StoreContextValue::from(wrapped_caller);
 
-        let params_iter = params.iter().enumerate().map(|(i, param)| {
-            param
-                .to_ruby_value(&store_context)
-                .map_err(|e| wasmtime::Error::msg(format!("invalid argument at index {i}: {e}")))
-        });
-
-        let rparams = std::iter::once(Ok(wrapped_caller.as_value()))
-            .chain(params_iter)
-            .collect::<Result<RArray, _>>()?;
-
         let ruby = Ruby::get().unwrap();
+        let rparams = ruby.ary_new_capa(params.len() + 1);
+        rparams
+            .push(wrapped_caller.as_value())
+            .map_err(|e| wasmtime::Error::msg(format!("failed to push caller: {e}")))?;
+
+        for (i, param) in params.iter().enumerate() {
+            let val = param
+                .to_ruby_value(&store_context)
+                .map_err(|e| wasmtime::Error::msg(format!("invalid argument at index {i}: {e}")))?;
+            rparams.push(val).map_err(|e| {
+                wasmtime::Error::msg(format!("failed to push argument at index {i}: {e}"))
+            })?;
+        }
+
         let callable = ruby.get_inner(callable);
 
         match (callable.call(rparams), results.len()) {

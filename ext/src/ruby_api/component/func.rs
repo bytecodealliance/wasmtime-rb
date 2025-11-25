@@ -78,7 +78,8 @@ impl Func {
     /// @return [Object] the function's return value as per its Wasm definition
     /// @see Func Func class-level documentation for type conversion logic
     pub fn call(&self, args: &[Value]) -> Result<Value, Error> {
-        Func::invoke(self.store, &self.inner, args)
+        let ruby = Ruby::get().unwrap();
+        Func::invoke(&ruby, self.store, &self.inner, args)
     }
 
     pub fn from_inner(inner: FuncImpl, instance: Obj<Instance>, store: Obj<Store>) -> Self {
@@ -89,7 +90,12 @@ impl Func {
         }
     }
 
-    pub fn invoke(store: Obj<Store>, func: &FuncImpl, args: &[Value]) -> Result<Value, Error> {
+    pub fn invoke(
+        ruby: &Ruby,
+        store: Obj<Store>,
+        func: &FuncImpl,
+        args: &[Value],
+    ) -> Result<Value, Error> {
         let store_context_value = StoreContextValue::from(store);
         let results_ty = func.results(store.context_mut());
         let mut results = vec![wasmtime::component::Val::Bool(false); results_ty.len()];
@@ -105,11 +111,14 @@ impl Func {
         let result = match results_ty.len() {
             0 => Ok(value::qnil().as_value()),
             1 => component_val_to_rb(results.into_iter().next().unwrap(), &store_context_value),
-            _ => results
-                .into_iter()
-                .map(|val| component_val_to_rb(val, &store_context_value))
-                .collect::<Result<RArray, Error>>()
-                .map(IntoValue::into_value),
+            _ => {
+                let ary = ruby.ary_new_capa(results_ty.len());
+                for result in results {
+                    let val = component_val_to_rb(result, &store_context_value)?;
+                    ary.push(val)?;
+                }
+                Ok(ary.into_value_with(ruby))
+            }
         };
 
         func.post_return(store.context_mut())

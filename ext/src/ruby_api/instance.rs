@@ -128,6 +128,7 @@ impl Instance {
     /// @return (see Func#call)
     /// @see Func#call
     pub fn invoke(&self, args: &[Value]) -> Result<Value, Error> {
+        let ruby = Ruby::get().unwrap();
         let name = RString::try_convert(*args.first().ok_or_else(|| {
             Error::new(
                 magnus::exception::type_error(),
@@ -136,7 +137,7 @@ impl Instance {
         })?)?;
 
         let func = self.get_func(self.store.context_mut(), unsafe { name.as_str()? })?;
-        Func::invoke(&self.store.into(), &func, &args[1..])
+        Func::invoke(&ruby, &self.store.into(), &func, &args[1..])
     }
 
     fn get_func(

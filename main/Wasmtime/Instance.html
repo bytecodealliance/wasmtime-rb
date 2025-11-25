@@ -684,12 +684,14 @@ pub fn exports(&amp;self) -&gt; Result&lt;RHash, Error&gt; {
 137
 138
 139
-140</pre>
+140
+141</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 130</span>
 
 pub fn invoke(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
+    let ruby = Ruby::get().unwrap();
     let name = RString::try_convert(*args.first().ok_or_else(|| {
         Error::new(
             magnus::exception::type_error(),
@@ -698,7 +700,7 @@ pub fn invoke(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
     })?)?;
 
     let func = self.get_func(self.store.context_mut(), unsafe { name.as_str()? })?;
-    Func::invoke(&amp;self.store.into(), &amp;func, &amp;args[1..])
+    Func::invoke(&amp;ruby, &amp;self.store.into(), &amp;func, &amp;args[1..])
 }</pre>
     </td>
   </tr>
@@ -710,7 +712,7 @@ pub fn invoke(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Mon Nov 17 14:39:29 2025 by
+  Generated on Tue Nov 25 18:06:07 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.7).
 </div>

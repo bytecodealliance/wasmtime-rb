@@ -596,13 +596,15 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
 
 177
 178
-179</pre>
+179
+180</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 177</span>
 
 pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
-    Self::invoke(&amp;self.store, &amp;self.inner, args)
+    let ruby = Ruby::get().unwrap();
+    Self::invoke(&amp;ruby, &amp;self.store, &amp;self.inner, args)
 }</pre>
     </td>
   </tr>
@@ -653,7 +655,6 @@ pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
       <pre class="lines">
 
 
-187
 188
 189
 190
@@ -661,10 +662,11 @@ pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
 192
 193
 194
-195</pre>
+195
+196</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 187</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 188</span>
 
 pub fn params(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
     let ty = self.inner.ty(self.store.context()?);
@@ -724,7 +726,6 @@ pub fn params(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
       <pre class="lines">
 
 
-199
 200
 201
 202
@@ -732,10 +733,11 @@ pub fn params(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
 204
 205
 206
-207</pre>
+207
+208</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 199</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 200</span>
 
 pub fn results(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
     let ty = self.inner.ty(self.store.context()?);
@@ -756,7 +758,7 @@ pub fn results(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Mon Nov 17 14:39:29 2025 by
+  Generated on Tue Nov 25 18:06:07 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.7).
 </div>

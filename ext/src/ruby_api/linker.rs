@@ -311,8 +311,8 @@ impl Linker {
     }
 }
 
-pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Linker", class::object())?;
+pub fn init(ruby: &Ruby) -> Result<(), Error> {
+    let class = root().define_class("Linker", ruby.class_object())?;
     class.define_singleton_method("new", function!(Linker::new, 1))?;
     class.define_method("allow_shadowing=", method!(Linker::set_allow_shadowing, 1))?;
     class.define_method(

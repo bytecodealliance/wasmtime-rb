@@ -99,8 +99,8 @@ impl Instance {
     }
 }
 
-pub fn init(_ruby: &Ruby, namespace: &RModule) -> Result<(), Error> {
-    let instance = namespace.define_class("Instance", class::object())?;
+pub fn init(ruby: &Ruby, namespace: &RModule) -> Result<(), Error> {
+    let instance = namespace.define_class("Instance", ruby.class_object())?;
     instance.define_method("get_func", method!(Instance::get_func, 1))?;
 
     Ok(())

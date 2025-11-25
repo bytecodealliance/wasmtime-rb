@@ -159,8 +159,8 @@ fn convert_params(
     Ok(params)
 }
 
-pub fn init(_ruby: &Ruby, namespace: &RModule) -> Result<(), Error> {
-    let func = namespace.define_class("Func", class::object())?;
+pub fn init(ruby: &Ruby, namespace: &RModule) -> Result<(), Error> {
+    let func = namespace.define_class("Func", ruby.class_object())?;
     func.define_method("call", method!(Func::call, -1))?;
 
     Ok(())

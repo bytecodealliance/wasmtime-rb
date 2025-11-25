@@ -6,7 +6,7 @@ use super::{
 use crate::error;
 use magnus::{
     class, function, gc::Marker, method, prelude::*, typed_data::Obj, DataTypeFunctions, Error,
-    Object, Symbol, TypedData, Value,
+    Object, Ruby, Symbol, TypedData, Value,
 };
 use wasmtime::{Extern, Global as GlobalImpl, Mutability};
 
@@ -198,13 +198,13 @@ impl From<&Global<'_>> for Extern {
     }
 }
 
-pub fn init() -> Result<(), Error> {
-    let type_class = root().define_class("GlobalType", class::object())?;
+pub fn init(ruby: &Ruby) -> Result<(), Error> {
+    let type_class = root().define_class("GlobalType", ruby.class_object())?;
     type_class.define_method("const?", method!(GlobalType::is_const, 0))?;
     type_class.define_method("var?", method!(GlobalType::is_var, 0))?;
     type_class.define_method("type", method!(GlobalType::type_, 0))?;
 
-    let class = root().define_class("Global", class::object())?;
+    let class = root().define_class("Global", ruby.class_object())?;
     class.define_singleton_method("var", function!(Global::var, 3))?;
     class.define_singleton_method("const", function!(Global::const_, 3))?;
 

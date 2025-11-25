@@ -1,5 +1,5 @@
 use super::{convert::ToWasmVal, errors::ExceptionMessage, store::StoreContextValue};
-use magnus::{error::ErrorType, exception::arg_error, Error, Value};
+use magnus::{error::ErrorType, exception::arg_error, Error, Ruby, Value};
 use static_assertions::assert_eq_size;
 use wasmtime::{FuncType, ValType};
 
@@ -26,10 +26,10 @@ impl Param {
 pub struct Params<'a>(&'a FuncType, &'a [Value]);
 
 impl<'a> Params<'a> {
-    pub fn new(ty: &'a FuncType, params_slice: &'a [Value]) -> Result<Self, Error> {
+    pub fn new(ruby: &Ruby, ty: &'a FuncType, params_slice: &'a [Value]) -> Result<Self, Error> {
         if ty.params().len() != params_slice.len() {
             return Err(Error::new(
-                arg_error(),
+                ruby.exception_arg_error(),
                 format!(
                     "wrong number of arguments (given {}, expected {})",
                     params_slice.len(),

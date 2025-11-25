@@ -154,8 +154,8 @@ impl From<ModuleImpl> for Module {
     }
 }
 
-pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Module", class::object())?;
+pub fn init(ruby: &Ruby) -> Result<(), Error> {
+    let class = root().define_class("Module", ruby.class_object())?;
 
     class.define_singleton_method("new", function!(Module::new, 2))?;
     class.define_singleton_method("from_file", function!(Module::from_file, 2))?;

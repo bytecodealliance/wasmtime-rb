@@ -9,7 +9,7 @@ use magnus::{
     Class, DataTypeFunctions, Error, Module as _, Ruby, TryConvert, TypedData, Value,
 };
 #[cfg(ruby_gte_3_0)]
-use magnus::{class::object, require, RClass, RModule};
+use magnus::{class::object, RClass, RModule};
 use rb_sys::{rb_ivar_set, rb_obj_freeze, rb_str_new_static};
 #[cfg(ruby_gte_3_0)]
 use rb_sys::{
@@ -177,13 +177,13 @@ impl<'a> MemoryGuard<'a> {
 }
 
 pub fn init(ruby: &Ruby) -> Result<(), Error> {
-    let parent = root().define_class("Memory", class::object())?;
+    let parent = root().define_class("Memory", ruby.class_object())?;
 
-    let class = parent.define_class("UnsafeSlice", class::object())?;
+    let class = parent.define_class("UnsafeSlice", ruby.class_object())?;
     class.define_method("to_str", method!(UnsafeSlice::to_str, 0))?;
 
     #[cfg(ruby_gte_3_0)]
-    if require("fiddle").is_ok() && fiddle_memory_view_class().is_some() {
+    if ruby.require("fiddle").is_ok() && fiddle_memory_view_class().is_some() {
         UnsafeSlice::register_memory_view(ruby)?;
         class.define_method("to_memory_view", method!(UnsafeSlice::to_memory_view, 0))?;
     }

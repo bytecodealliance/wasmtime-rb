@@ -163,7 +163,7 @@ impl Store {
 
         let (engine,) = args.required;
         let (user_data,) = args.optional;
-        let user_data = user_data.unwrap_or_else(|| ().into_value());
+        let user_data = user_data.unwrap_or_else(|| ().into_value_with(&ruby));
         let wasi_config = kw.optional.0;
         let wasi_p1_config = kw.optional.1;
 
@@ -176,7 +176,7 @@ impl Store {
 
         let limiter = match kw.optional.2 {
             None => StoreLimitsBuilder::new(),
-            Some(limits) => hash_to_store_limits_builder(limits)?,
+            Some(limits) => hash_to_store_limits_builder(&ruby, limits)?,
         }
         .build();
         let limiter = TrackingResourceLimiter::new(limiter);
@@ -376,38 +376,36 @@ impl StoreContextValue<'_> {
     }
 }
 
-fn hash_to_store_limits_builder(limits: RHash) -> Result<StoreLimitsBuilder, Error> {
+fn hash_to_store_limits_builder(ruby: &Ruby, limits: RHash) -> Result<StoreLimitsBuilder, Error> {
     let mut limiter: StoreLimitsBuilder = StoreLimitsBuilder::new();
 
-    if let Some(memory_size) =
-        limits.lookup::<_, Option<usize>>(StaticSymbol::new("memory_size"))?
-    {
+    if let Some(memory_size) = limits.lookup::<_, Option<usize>>(ruby.sym_new("memory_size"))? {
         limiter = limiter.memory_size(memory_size);
     }
 
     if let Some(table_elements) =
-        limits.lookup::<_, Option<usize>>(StaticSymbol::new("table_elements"))?
+        limits.lookup::<_, Option<usize>>(ruby.sym_new("table_elements"))?
     {
         limiter = limiter.table_elements(table_elements);
     }
 
-    if let Some(instances) = limits.lookup::<_, Option<u64>>(StaticSymbol::new("instances"))? {
+    if let Some(instances) = limits.lookup::<_, Option<u64>>(ruby.sym_new("instances"))? {
         limiter = limiter.instances(instances as usize);
     }
 
-    if let Some(tables) = limits.lookup::<_, Option<u64>>(StaticSymbol::new("tables"))? {
+    if let Some(tables) = limits.lookup::<_, Option<u64>>(ruby.sym_new("tables"))? {
         limiter = limiter.tables(tables as usize);
     }
 
-    if let Some(memories) = limits.lookup::<_, Option<u64>>(StaticSymbol::new("memories"))? {
+    if let Some(memories) = limits.lookup::<_, Option<u64>>(ruby.sym_new("memories"))? {
         limiter = limiter.memories(memories as usize);
     }
 
     Ok(limiter)
 }
 
-pub fn init() -> Result<(), Error> {
-    let class = root().define_class("Store", class::object())?;
+pub fn init(ruby: &Ruby) -> Result<(), Error> {
+    let class = root().define_class("Store", ruby.class_object())?;
 
     class.define_singleton_method("new", function!(Store::new, -1))?;
     class.define_method("data", method!(Store::data, 0))?;

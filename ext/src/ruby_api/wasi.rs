@@ -21,13 +21,13 @@ impl P2 {
     }
 }
 
-pub fn init() -> Result<(), Error> {
+pub fn init(ruby: &Ruby) -> Result<(), Error> {
     let namespace = root().define_module("WASI")?;
 
-    let p1_class = namespace.define_class("P1", class::object())?;
+    let p1_class = namespace.define_class("P1", ruby.class_object())?;
     p1_class.define_singleton_method("add_to_linker_sync", function!(P1::add_to_linker_sync, 1))?;
 
-    let p2_class = namespace.define_class("P2", class::object())?;
+    let p2_class = namespace.define_class("P2", ruby.class_object())?;
     p2_class.define_singleton_method("add_to_linker_sync", function!(P2::add_to_linker_sync, 1))?;
 
     Ok(())

@@ -61,9 +61,9 @@ impl Wasmtime {
     /// @param wat [String]
     /// @def wat2wasm(wat)
     /// @return [String] The Wasm represented as a binary +String+.
-    pub fn wat2wasm(wat: RString) -> Result<RString, Error> {
+    pub fn wat2wasm(ruby: &Ruby, wat: RString) -> Result<RString, Error> {
         wat::parse_str(unsafe { wat.as_str()? })
-            .map(|bytes| RString::from_slice(bytes.as_slice()))
+            .map(|bytes| ruby.str_from_slice(bytes.as_slice()))
             .map_err(|e| crate::error!("{}", e))
     }
 }
@@ -75,20 +75,20 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
 
     errors::init()?;
     trap::init()?;
-    engine::init()?;
-    module::init()?;
-    store::init()?;
-    instance::init()?;
-    func::init()?;
-    caller::init()?;
+    engine::init(ruby)?;
+    module::init(ruby)?;
+    store::init(ruby)?;
+    instance::init(ruby)?;
+    func::init(ruby)?;
+    caller::init(ruby)?;
     memory::init(ruby)?;
-    linker::init()?;
-    externals::init()?;
-    wasi::init()?;
-    wasi_config::init()?;
-    table::init()?;
-    global::init()?;
-    pooling_allocation_config::init()?;
+    linker::init(ruby)?;
+    externals::init(ruby)?;
+    wasi::init(ruby)?;
+    wasi_config::init(ruby)?;
+    table::init(ruby)?;
+    global::init(ruby)?;
+    pooling_allocation_config::init(ruby)?;
     component::init(ruby)?;
 
     Ok(())

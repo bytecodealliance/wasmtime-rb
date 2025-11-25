@@ -312,7 +312,7 @@ fn instance(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, name: RString) -&gt; Resu
         .instance(unsafe { name.as_str()? })
         .map_err(|e| error!(&quot;{}&quot;, e))?;
 
-    let nested_instance = Obj::wrap(LinkerInstance::from_inner(nested_inner));
+    let nested_instance = ruby.obj_wrap(LinkerInstance::from_inner(nested_inner));
     let block_result: Result&lt;Value, _&gt; = ruby.yield_value(nested_instance);
     nested_instance.take_inner();
 
@@ -414,7 +414,7 @@ fn module(rb_self: Obj&lt;Self&gt;, name: RString, module: &amp;Module) -&gt; Re
 </div>
 
       <div id="footer">
-  Generated on Tue Nov 25 18:06:07 2025 by
+  Generated on Tue Nov 25 22:05:46 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.7).
 </div>

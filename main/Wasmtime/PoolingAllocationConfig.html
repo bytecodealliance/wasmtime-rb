@@ -341,12 +341,12 @@
       <pre class="lines">
 
 
-87
-88
-89</pre>
+83
+84
+85</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 87</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 83</span>
 
 pub fn are_memory_protection_keys_available() -&gt; Result&lt;bool, Error&gt; {
     Ok(wasmtime::PoolingAllocationConfig::are_memory_protection_keys_available())
@@ -393,24 +393,24 @@ pub fn are_memory_protection_keys_available() -&gt; Result&lt;bool, Error&gt; {
       <pre class="lines">
 
 
+27
+28
+29
+30
 31
 32
 33
 34
-35
-36
-37
-38
-39</pre>
+35</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 31</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 27</span>
 
-pub fn new() -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
-    let obj = Obj::wrap(Self::from(PoolingAllocationConfigImpl::default()));
+pub fn new(ruby: &amp;Ruby) -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
+    let obj = ruby.obj_wrap(Self::from(PoolingAllocationConfigImpl::default()));
 
-    if block_given() {
-        let _: Value = block_proc()?.call((obj,))?;
+    if ruby.block_given() {
+        let _: Value = ruby.block_proc()?.call((obj,))?;
     }
 
     Ok(obj)
@@ -478,16 +478,16 @@ pub fn new() -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
       <pre class="lines">
 
 
+91
+92
+93
+94
 95
 96
-97
-98
-99
-100
-101</pre>
+97</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 95</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 91</span>
 
 pub fn set_async_stack_keep_resident(
     rb_self: Obj&lt;Self&gt;,
@@ -553,16 +553,16 @@ pub fn set_async_stack_keep_resident(
       <pre class="lines">
 
 
+60
+61
+62
+63
 64
 65
-66
-67
-68
-69
-70</pre>
+66</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 64</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 60</span>
 
 pub fn set_max_memories_per_module(
     rb_self: Obj&lt;Self&gt;,
@@ -628,16 +628,16 @@ pub fn set_max_memories_per_module(
       <pre class="lines">
 
 
+72
+73
+74
+75
 76
 77
-78
-79
-80
-81
-82</pre>
+78</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 76</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 72</span>
 
 pub fn set_max_tables_per_component(
     rb_self: Obj&lt;Self&gt;,
@@ -703,14 +703,14 @@ pub fn set_max_tables_per_component(
       <pre class="lines">
 
 
-45
-46
-47
-48
-49</pre>
+41
+42
+43
+44
+45</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 45</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 41</span>
 
 pub fn set_total_memories(rb_self: Obj&lt;Self&gt;, total_memories: u32) -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
     rb_self.borrow_mut()?.total_memories(total_memories);
@@ -774,13 +774,13 @@ pub fn set_total_memories(rb_self: Obj&lt;Self&gt;, total_memories: u32) -&gt; R
       <pre class="lines">
 
 
-55
-56
-57
-58</pre>
+51
+52
+53
+54</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 55</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 51</span>
 
 pub fn set_total_tables(rb_self: Obj&lt;Self&gt;, total_tables: u32) -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
     rb_self.borrow_mut()?.total_tables(total_tables);
@@ -796,7 +796,7 @@ pub fn set_total_tables(rb_self: Obj&lt;Self&gt;, total_tables: u32) -&gt; Resul
 </div>
 
       <div id="footer">
-  Generated on Tue Nov 25 18:06:07 2025 by
+  Generated on Tue Nov 25 22:05:46 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.7).
 </div>

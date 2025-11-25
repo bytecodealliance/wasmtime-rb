@@ -610,7 +610,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
 
     let (engine,) = args.required;
     let (user_data,) = args.optional;
-    let user_data = user_data.unwrap_or_else(|| ().into_value());
+    let user_data = user_data.unwrap_or_else(|| ().into_value_with(&amp;ruby));
     let wasi_config = kw.optional.0;
     let wasi_p1_config = kw.optional.1;
 
@@ -623,7 +623,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
 
     let limiter = match kw.optional.2 {
         None =&gt; StoreLimitsBuilder::new(),
-        Some(limits) =&gt; hash_to_store_limits_builder(limits)?,
+        Some(limits) =&gt; hash_to_store_limits_builder(&amp;ruby, limits)?,
     }
     .build();
     let limiter = TrackingResourceLimiter::new(limiter);
@@ -1077,7 +1077,7 @@ pub fn set_fuel(&amp;self, fuel: u64) -&gt; Result&lt;(), Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Nov 25 18:06:07 2025 by
+  Generated on Tue Nov 25 22:05:46 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.7).
 </div>

@@ -245,10 +245,10 @@
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 42</span>
 
-pub fn params(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
-    let len = self.inner.params().len();
-    let mut params = self.inner.params();
-    params.try_fold(RArray::with_capacity(len), |array, p| {
+pub fn params(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RArray, Error&gt; {
+    let len = rb_self.inner.params().len();
+    let mut params = rb_self.inner.params();
+    params.try_fold(ruby.ary_new_capa(len), |array, p| {
         array.push(p.to_sym()?)?;
         Ok(array)
     })
@@ -315,10 +315,10 @@ pub fn params(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 53</span>
 
-pub fn results(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
-        let len = self.inner.results().len();
-        let mut results = self.inner.results();
-        results.try_fold(RArray::with_capacity(len), |array, r| {
+pub fn results(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RArray, Error&gt; {
+        let len = rb_self.inner.results().len();
+        let mut results = rb_self.inner.results();
+        results.try_fold(ruby.ary_new_capa(len), |array, r| {
             array.push(r.to_sym()?)?;
             Ok(array)
         })
@@ -334,7 +334,7 @@ pub fn results(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Nov 25 22:05:46 2025 by
+  Generated on Wed Nov 26 22:52:19 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.7).
 </div>

@@ -232,14 +232,18 @@
 71
 72
 73
-74</pre>
+74
+75
+76</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory/unsafe_slice.rs', line 70</span>
 
-pub fn to_memory_view(rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
-    static CLASS: Lazy&lt;RClass&gt; = Lazy::new(|_| fiddle_memory_view_class().unwrap());
-    let ruby = Ruby::get().unwrap();
+pub fn to_memory_view(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
+    static CLASS: Lazy&lt;RClass&gt; = Lazy::new(|_| {
+        let ruby = Ruby::get().unwrap();
+        fiddle_memory_view_class(&amp;ruby).unwrap()
+    });
     ruby.get_inner(&amp;CLASS).new_instance((rb_self,))
 }</pre>
     </td>
@@ -291,8 +295,6 @@ pub fn to_memory_view(rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt;
       <pre class="lines">
 
 
-81
-82
 83
 84
 85
@@ -301,14 +303,16 @@ pub fn to_memory_view(rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt;
 88
 89
 90
-91</pre>
+91
+92
+93</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory/unsafe_slice.rs', line 81</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory/unsafe_slice.rs', line 83</span>
 
-pub fn to_str(rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
+pub fn to_str(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
     let raw_slice = rb_self.get_raw_slice()?;
-    let id = IVAR_NAME.into_id();
+    let id = IVAR_NAME.into_id_with(ruby);
     let rstring = unsafe {
         let val = rb_str_new_static(raw_slice.as_ptr() as _, raw_slice.len() as _);
         rb_ivar_set(val, id.as_raw(), rb_self.as_raw());
@@ -327,7 +331,7 @@ pub fn to_str(rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Nov 25 22:05:46 2025 by
+  Generated on Wed Nov 26 22:52:19 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.7).
 </div>

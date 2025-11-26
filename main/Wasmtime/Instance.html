@@ -560,13 +560,13 @@ pub fn export(&amp;self, str: RString) -&gt; Result&lt;Option&lt;super::external
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 89</span>
 
-pub fn exports(&amp;self) -&gt; Result&lt;RHash, Error&gt; {
-    let mut ctx = self.store.context_mut();
-    let hash = RHash::new();
+pub fn exports(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RHash, Error&gt; {
+    let mut ctx = rb_self.store.context_mut();
+    let hash = ruby.hash_new();
 
-    for export in self.inner.exports(&amp;mut ctx) {
-        let export_name = RString::new(export.name());
-        let wrapped_store = self.store;
+    for export in rb_self.inner.exports(&amp;mut ctx) {
+        let export_name = ruby.str_new(export.name());
+        let wrapped_store = rb_self.store;
         let wrapped_export = export
             .into_extern()
             .wrap_wasmtime_type(wrapped_store.into())?;
@@ -684,23 +684,21 @@ pub fn exports(&amp;self) -&gt; Result&lt;RHash, Error&gt; {
 137
 138
 139
-140
-141</pre>
+140</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 130</span>
 
-pub fn invoke(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
-    let ruby = Ruby::get().unwrap();
+pub fn invoke(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
     let name = RString::try_convert(*args.first().ok_or_else(|| {
         Error::new(
-            magnus::exception::type_error(),
+            ruby.exception_type_error(),
             &quot;wrong number of arguments (given 0, expected 1+)&quot;,
         )
     })?)?;
 
-    let func = self.get_func(self.store.context_mut(), unsafe { name.as_str()? })?;
-    Func::invoke(&amp;ruby, &amp;self.store.into(), &amp;func, &amp;args[1..])
+    let func = rb_self.get_func(rb_self.store.context_mut(), unsafe { name.as_str()? })?;
+    Func::invoke(ruby, &amp;rb_self.store.into(), &amp;func, &amp;args[1..])
 }</pre>
     </td>
   </tr>
@@ -712,7 +710,7 @@ pub fn invoke(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Nov 25 22:05:46 2025 by
+  Generated on Wed Nov 26 22:52:19 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.7).
 </div>

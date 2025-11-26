@@ -736,14 +736,6 @@ pub fn increment_epoch(&amp;self) {
       <pre class="lines">
 
 
-202
-203
-204
-205
-206
-207
-208
-209
 210
 211
 212
@@ -754,10 +746,18 @@ pub fn increment_epoch(&amp;self) {
 217
 218
 219
-220</pre>
+220
+221
+222
+223
+224
+225
+226
+227
+228</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 202</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 210</span>
 
 pub fn precompile_compatibility_key(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RString, Error&gt; {
     static ID: LazyId = LazyId::new(&quot;precompile_compatibility_key&quot;);
@@ -771,7 +771,7 @@ pub fn precompile_compatibility_key(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -
     let engine = rb_self.inner.clone();
     engine.precompile_compatibility_hash().hash(&amp;mut hasher);
     let hex_encoded = format!(&quot;{:x}&quot;, hasher.finish());
-    let key = RString::new(&amp;hex_encoded);
+    let key = ruby.str_new(&amp;hex_encoded);
     key.freeze();
 
     rb_self.ivar_set(ivar_id, key)?;
@@ -856,22 +856,30 @@ pub fn precompile_compatibility_key(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -
       <pre class="lines">
 
 
-189
-190
-191
-192
 193
 194
-195</pre>
+195
+196
+197
+198
+199
+200
+201
+202
+203</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 189</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 193</span>
 
-pub fn precompile_component(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RString, Error&gt; {
+pub fn precompile_component(
+    ruby: &amp;Ruby,
+    rb_self: Obj&lt;Self&gt;,
+    wat_or_wasm: RString,
+) -&gt; Result&lt;RString, Error&gt; {
     let (wat_or_wasm, _guard) = wat_or_wasm.as_locked_slice()?;
 
-    nogvl(|| self.inner.precompile_component(wat_or_wasm))
-        .map(|bytes| RString::from_slice(&amp;bytes))
+    nogvl(|| rb_self.inner.precompile_component(wat_or_wasm))
+        .map(|bytes| ruby.str_from_slice(&amp;bytes))
         .map_err(|e| error!(&quot;{}&quot;, e.to_string()))
 }</pre>
     </td>
@@ -958,16 +966,24 @@ pub fn precompile_component(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RSt
 175
 176
 177
-178</pre>
+178
+179
+180
+181
+182</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 172</span>
 
-pub fn precompile_module(&amp;self, wat_or_wasm: RString) -&gt; Result&lt;RString, Error&gt; {
+pub fn precompile_module(
+    ruby: &amp;Ruby,
+    rb_self: Obj&lt;Self&gt;,
+    wat_or_wasm: RString,
+) -&gt; Result&lt;RString, Error&gt; {
     let (wat_or_wasm, _guard) = wat_or_wasm.as_locked_slice()?;
 
-    nogvl(|| self.inner.precompile_module(wat_or_wasm))
-        .map(|bytes| RString::from_slice(&amp;bytes))
+    nogvl(|| rb_self.inner.precompile_module(wat_or_wasm))
+        .map(|bytes| ruby.str_from_slice(&amp;bytes))
         .map_err(|e| error!(&quot;{}&quot;, e.to_string()))
 }</pre>
     </td>
@@ -1139,7 +1155,7 @@ pub fn stop_epoch_interval(&amp;self) {
 </div>
 
       <div id="footer">
-  Generated on Tue Nov 25 22:05:46 2025 by
+  Generated on Wed Nov 26 22:52:19 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.7).
 </div>

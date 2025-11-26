@@ -632,15 +632,17 @@ pub fn is_const(&amp;self) -&gt; Result&lt;bool, Error&gt; {
 152
 153
 154
-155</pre>
+155
+156</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 151</span>
 
-pub fn get(&amp;self) -&gt; Result&lt;Value, Error&gt; {
-    self.inner
-        .get(self.store.context_mut()?)
-        .to_ruby_value(&amp;self.store)
+pub fn get(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Error&gt; {
+    rb_self
+        .inner
+        .get(rb_self.store.context_mut()?)
+        .to_ruby_value(ruby, &amp;rb_self.store)
 }</pre>
     </td>
   </tr>
@@ -706,7 +708,6 @@ pub fn get(&amp;self) -&gt; Result&lt;Value, Error&gt; {
       <pre class="lines">
 
 
-162
 163
 164
 165
@@ -717,10 +718,11 @@ pub fn get(&amp;self) -&gt; Result&lt;Value, Error&gt; {
 170
 171
 172
-173</pre>
+173
+174</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 162</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/global.rs', line 163</span>
 
 pub fn set(&amp;self, value: Value) -&gt; Result&lt;(), Error&gt; {
     self.inner
@@ -855,7 +857,7 @@ pub fn is_var(&amp;self) -&gt; Result&lt;bool, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Nov 25 22:05:46 2025 by
+  Generated on Wed Nov 26 22:52:19 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.7).
 </div>

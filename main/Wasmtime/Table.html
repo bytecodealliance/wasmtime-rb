@@ -598,10 +598,10 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 152</span>
 
-pub fn get(&amp;self, index: u64) -&gt; Result&lt;Value, Error&gt; {
-    match self.inner.get(self.store.context_mut()?, index) {
-        Some(wasm_val) =&gt; Val::from(wasm_val).to_ruby_value(&amp;self.store),
-        None =&gt; Ok(().into_value()),
+pub fn get(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, index: u64) -&gt; Result&lt;Value, Error&gt; {
+    match rb_self.inner.get(rb_self.store.context_mut()?, index) {
+        Some(wasm_val) =&gt; Val::from(wasm_val).to_ruby_value(ruby, &amp;rb_self.store),
+        None =&gt; Ok(().into_value_with(ruby)),
     }
 }</pre>
     </td>
@@ -1046,7 +1046,7 @@ pub fn type_(&amp;self) -&gt; Result&lt;Symbol, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Nov 25 22:05:46 2025 by
+  Generated on Wed Nov 26 22:52:19 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.7).
 </div>

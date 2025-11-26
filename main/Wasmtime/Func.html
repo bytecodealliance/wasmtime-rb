@@ -668,11 +668,11 @@ pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 188</span>
 
-pub fn params(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
-    let ty = self.inner.ty(self.store.context()?);
+pub fn params(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RArray, Error&gt; {
+    let ty = rb_self.inner.ty(rb_self.store.context()?);
     let len = ty.params().len();
     let mut params = ty.params();
-    params.try_fold(RArray::with_capacity(len), |array, p| {
+    params.try_fold(ruby.ary_new_capa(len), |array, p| {
         array.push(p.to_sym()?)?;
         Ok(array)
     })
@@ -739,11 +739,11 @@ pub fn params(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 200</span>
 
-pub fn results(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
-    let ty = self.inner.ty(self.store.context()?);
+pub fn results(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RArray, Error&gt; {
+    let ty = rb_self.inner.ty(rb_self.store.context()?);
     let len = ty.results().len();
     let mut results = ty.results();
-    results.try_fold(RArray::with_capacity(len), |array, r| {
+    results.try_fold(ruby.ary_new_capa(len), |array, r| {
         array.push(r.to_sym()?)?;
         Ok(array)
     })
@@ -758,7 +758,7 @@ pub fn results(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Nov 25 22:05:46 2025 by
+  Generated on Wed Nov 26 22:52:19 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.7).
 </div>

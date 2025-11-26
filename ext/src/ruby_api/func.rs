@@ -39,10 +39,10 @@ impl FuncType {
 
     /// @yard
     /// @return [Array<Symbol>] The function's parameter types.
-    pub fn params(&self) -> Result<RArray, Error> {
-        let len = self.inner.params().len();
-        let mut params = self.inner.params();
-        params.try_fold(RArray::with_capacity(len), |array, p| {
+    pub fn params(ruby: &Ruby, rb_self: Obj<Self>) -> Result<RArray, Error> {
+        let len = rb_self.inner.params().len();
+        let mut params = rb_self.inner.params();
+        params.try_fold(ruby.ary_new_capa(len), |array, p| {
             array.push(p.to_sym()?)?;
             Ok(array)
         })
@@ -50,10 +50,10 @@ impl FuncType {
 
     /// @yard
     /// @return [Array<Symbol>] The function's result types.
-    pub fn results(&self) -> Result<RArray, Error> {
-        let len = self.inner.results().len();
-        let mut results = self.inner.results();
-        results.try_fold(RArray::with_capacity(len), |array, r| {
+    pub fn results(ruby: &Ruby, rb_self: Obj<Self>) -> Result<RArray, Error> {
+        let len = rb_self.inner.results().len();
+        let mut results = rb_self.inner.results();
+        results.try_fold(ruby.ary_new_capa(len), |array, r| {
             array.push(r.to_sym()?)?;
             Ok(array)
         })
@@ -185,11 +185,11 @@ impl<'a> Func<'a> {
 
     /// @yard
     /// @return [Array<Symbol>] The function's parameter types.
-    pub fn params(&self) -> Result<RArray, Error> {
-        let ty = self.inner.ty(self.store.context()?);
+    pub fn params(ruby: &Ruby, rb_self: Obj<Self>) -> Result<RArray, Error> {
+        let ty = rb_self.inner.ty(rb_self.store.context()?);
         let len = ty.params().len();
         let mut params = ty.params();
-        params.try_fold(RArray::with_capacity(len), |array, p| {
+        params.try_fold(ruby.ary_new_capa(len), |array, p| {
             array.push(p.to_sym()?)?;
             Ok(array)
         })
@@ -197,11 +197,11 @@ impl<'a> Func<'a> {
 
     /// @yard
     /// @return [Array<Symbol>] The function's result types.
-    pub fn results(&self) -> Result<RArray, Error> {
-        let ty = self.inner.ty(self.store.context()?);
+    pub fn results(ruby: &Ruby, rb_self: Obj<Self>) -> Result<RArray, Error> {
+        let ty = rb_self.inner.ty(rb_self.store.context()?);
         let len = ty.results().len();
         let mut results = ty.results();
-        results.try_fold(RArray::with_capacity(len), |array, r| {
+        results.try_fold(ruby.ary_new_capa(len), |array, r| {
             array.push(r.to_sym()?)?;
             Ok(array)
         })
@@ -215,7 +215,7 @@ impl<'a> Func<'a> {
     ) -> Result<Value, Error> {
         let mut context = store.context_mut()?;
         let func_ty = func.ty(&mut context);
-        let params = Params::new(ruby, &func_ty, args)?.to_vec(store)?;
+        let params = Params::new(ruby, &func_ty, args)?.to_vec(ruby, store)?;
         let mut results = vec![Val::null_func_ref(); func_ty.results().len()];
 
         func.call(context, &params, &mut results)
@@ -223,11 +223,11 @@ impl<'a> Func<'a> {
 
         match results.as_slice() {
             [] => Ok(().into_value_with(ruby)),
-            [result] => result.to_ruby_value(store),
+            [result] => result.to_ruby_value(ruby, store),
             _ => {
                 let ary = ruby.ary_new_capa(results.len());
                 for result in results {
-                    let val = result.to_ruby_value(store)?;
+                    let val = result.to_ruby_value(ruby, store)?;
                     ary.push(val)?;
                 }
                 Ok(ary.into_value_with(ruby))
@@ -281,7 +281,7 @@ pub fn make_func_closure(
 
         for (i, param) in params.iter().enumerate() {
             let val = param
-                .to_ruby_value(&store_context)
+                .to_ruby_value(&ruby, &store_context)
                 .map_err(|e| wasmtime::Error::msg(format!("invalid argument at index {i}: {e}")))?;
             rparams.push(val).map_err(|e| {
                 wasmtime::Error::msg(format!("failed to push argument at index {i}: {e}"))

@@ -169,11 +169,15 @@ impl Engine {
     /// @param wat_or_wasm [String] The String of WAT or Wasm.
     /// @return [String] Binary String of the compiled module.
     /// @see Module.deserialize
-    pub fn precompile_module(&self, wat_or_wasm: RString) -> Result<RString, Error> {
+    pub fn precompile_module(
+        ruby: &Ruby,
+        rb_self: Obj<Self>,
+        wat_or_wasm: RString,
+    ) -> Result<RString, Error> {
         let (wat_or_wasm, _guard) = wat_or_wasm.as_locked_slice()?;
 
-        nogvl(|| self.inner.precompile_module(wat_or_wasm))
-            .map(|bytes| RString::from_slice(&bytes))
+        nogvl(|| rb_self.inner.precompile_module(wat_or_wasm))
+            .map(|bytes| ruby.str_from_slice(&bytes))
             .map_err(|e| error!("{}", e.to_string()))
     }
 
@@ -186,11 +190,15 @@ impl Engine {
     /// @param wat_or_wasm [String] The String of WAT or Wasm component.
     /// @return [String] Binary String of the compiled component.
     /// @see Component::Component.deserialize
-    pub fn precompile_component(&self, wat_or_wasm: RString) -> Result<RString, Error> {
+    pub fn precompile_component(
+        ruby: &Ruby,
+        rb_self: Obj<Self>,
+        wat_or_wasm: RString,
+    ) -> Result<RString, Error> {
         let (wat_or_wasm, _guard) = wat_or_wasm.as_locked_slice()?;
 
-        nogvl(|| self.inner.precompile_component(wat_or_wasm))
-            .map(|bytes| RString::from_slice(&bytes))
+        nogvl(|| rb_self.inner.precompile_component(wat_or_wasm))
+            .map(|bytes| ruby.str_from_slice(&bytes))
             .map_err(|e| error!("{}", e.to_string()))
     }
 
@@ -211,7 +219,7 @@ impl Engine {
         let engine = rb_self.inner.clone();
         engine.precompile_compatibility_hash().hash(&mut hasher);
         let hex_encoded = format!("{:x}", hasher.finish());
-        let key = RString::new(&hex_encoded);
+        let key = ruby.str_new(&hex_encoded);
         key.freeze();
 
         rb_self.ivar_set(ivar_id, key)?;

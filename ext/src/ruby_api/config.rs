@@ -1,12 +1,8 @@
 use crate::{define_rb_intern, helpers::SymbolEnum, PoolingAllocationConfig};
 use lazy_static::lazy_static;
 use magnus::{
-    exception::{arg_error, type_error},
-    prelude::*,
-    r_hash::ForEach,
-    try_convert,
-    typed_data::Obj,
-    Error, RHash, Symbol, TryConvert, Value,
+    prelude::*, r_hash::ForEach, try_convert, typed_data::Obj, Error, RHash, Ruby, Symbol,
+    TryConvert, Value,
 };
 use std::{
     convert::{TryFrom, TryInto},
@@ -81,6 +77,7 @@ lazy_static! {
 }
 
 pub fn hash_to_config(hash: RHash) -> Result<Config, Error> {
+    let ruby = Ruby::get_with(hash);
     let mut config = Config::default();
     hash.foreach(|name: Symbol, value: Value| {
         let id = magnus::value::Id::from(name);
@@ -119,7 +116,10 @@ pub fn hash_to_config(hash: RHash) -> Result<Config, Error> {
 
             if let Some(target) = target {
                 config.target(&target).map_err(|e| {
-                    Error::new(arg_error(), format!("Invalid target: {target}: {e}"))
+                    Error::new(
+                        ruby.exception_arg_error(),
+                        format!("Invalid target: {target}: {e}"),
+                    )
                 })?;
             }
         } else if *GENERATE_ADDRESS_MAP == id {
@@ -131,7 +131,7 @@ pub fn hash_to_config(hash: RHash) -> Result<Config, Error> {
             config.async_stack_zeroing(entry.try_into()?);
         } else {
             return Err(Error::new(
-                arg_error(),
+                ruby.exception_arg_error(),
                 format!("Unknown option: {}", name.inspect()),
             ));
         }
@@ -146,8 +146,9 @@ struct ConfigEntry(Symbol, Value);
 
 impl ConfigEntry {
     fn invalid_type(&self) -> Error {
+        let ruby = Ruby::get_with(self.0);
         Error::new(
-            type_error(),
+            ruby.exception_type_error(),
             format!("Invalid option {}: {}", self.1, self.0),
         )
     }
@@ -216,20 +217,21 @@ impl TryFrom<ConfigEntry> for InstanceAllocationStrategy {
     type Error = magnus::Error;
 
     fn try_from(value: ConfigEntry) -> Result<Self, Error> {
+        let ruby = Ruby::get_with(value.0);
         if let Ok(strategy) = Obj::<PoolingAllocationConfig>::try_convert(value.1) {
             return Ok(InstanceAllocationStrategy::Pooling(strategy.to_inner()?));
         }
 
         if let Ok(symbol) = Symbol::try_convert(value.1) {
-            if symbol.equal(Symbol::new("pooling"))? {
+            if symbol.equal(ruby.sym_new("pooling"))? {
                 return Ok(InstanceAllocationStrategy::Pooling(Default::default()));
-            } else if symbol.equal(Symbol::new("on_demand"))? {
+            } else if symbol.equal(ruby.sym_new("on_demand"))? {
                 return Ok(InstanceAllocationStrategy::OnDemand);
             }
         }
 
         Err(Error::new(
-            arg_error(),
+            ruby.exception_arg_error(),
             format!(
                 "invalid instance allocation strategy: {}",
                 value.1.inspect()

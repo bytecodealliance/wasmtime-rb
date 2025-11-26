@@ -79,11 +79,11 @@ impl Trap {
         }
     }
 
-    pub fn inspect(rb_self: Obj<Self>) -> Result<String, Error> {
+    pub fn inspect(ruby: &Ruby, rb_self: Obj<Self>) -> Result<String, Error> {
         Ok(format!(
             "#<Wasmtime::Trap:0x{:016x} @trap_code={}>",
             rb_self.as_raw(),
-            rb_self.code()?.into_value().inspect()
+            rb_self.code()?.into_value_with(ruby).inspect()
         ))
     }
 }

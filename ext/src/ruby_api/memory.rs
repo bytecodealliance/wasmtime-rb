@@ -140,12 +140,18 @@ impl<'a> Memory<'a> {
     /// @param offset [Integer]
     /// @param size [Integer]
     /// @return [String] Binary +String+ of the memory.
-    pub fn read(&self, offset: usize, size: usize) -> Result<RString, Error> {
-        self.get_wasmtime_memory()
-            .data(self.store.context()?)
+    pub fn read(
+        ruby: &Ruby,
+        rb_self: Obj<Self>,
+        offset: usize,
+        size: usize,
+    ) -> Result<RString, Error> {
+        rb_self
+            .get_wasmtime_memory()
+            .data(rb_self.store.context()?)
             .get(offset..)
             .and_then(|s| s.get(..size))
-            .map(RString::from_slice)
+            .map(|s| ruby.str_from_slice(s))
             .ok_or_else(|| error!("out of bounds memory access"))
     }
 
@@ -156,14 +162,20 @@ impl<'a> Memory<'a> {
     /// @param offset [Integer]
     /// @param size [Integer]
     /// @return [String] UTF-8 +String+ of the memory.
-    pub fn read_utf8(&self, offset: usize, size: usize) -> Result<RString, Error> {
-        self.get_wasmtime_memory()
-            .data(self.store.context()?)
+    pub fn read_utf8(
+        ruby: &Ruby,
+        rb_self: Obj<Self>,
+        offset: usize,
+        size: usize,
+    ) -> Result<RString, Error> {
+        rb_self
+            .get_wasmtime_memory()
+            .data(rb_self.store.context()?)
             .get(offset..)
             .and_then(|s| s.get(..size))
             .ok_or_else(|| error!("out of bounds memory access"))
             .and_then(|s| std::str::from_utf8(s).map_err(|e| error!("{}", e)))
-            .map(RString::new)
+            .map(|s| ruby.str_new(s))
     }
 
     /// @yard
@@ -191,14 +203,12 @@ impl<'a> Memory<'a> {
     /// @param size [Integer]
     /// @return [Wasmtime::Memory::UnsafeSlice] Slice of the memory.
     pub fn read_unsafe_slice(
+        ruby: &Ruby,
         rb_self: Obj<Self>,
         offset: usize,
         size: usize,
     ) -> Result<Obj<UnsafeSlice<'a>>, Error> {
-        Ok(Obj::wrap(UnsafeSlice::new(
-            rb_self,
-            offset..(offset + size),
-        )?))
+        Ok(ruby.obj_wrap(UnsafeSlice::new(rb_self, offset..(offset + size))?))
     }
 
     /// @yard

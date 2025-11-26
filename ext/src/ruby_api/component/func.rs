@@ -7,8 +7,8 @@ use crate::ruby_api::{
     store::{Store, StoreContextValue},
 };
 use magnus::{
-    class, exception::arg_error, gc::Marker, method, prelude::*, typed_data::Obj, value,
-    DataTypeFunctions, Error, IntoValue, RArray, RModule, Ruby, TypedData, Value,
+    class, gc::Marker, method, prelude::*, typed_data::Obj, value, DataTypeFunctions, Error,
+    IntoValue, RArray, RModule, Ruby, TypedData, Value,
 };
 use wasmtime::component::{Func as FuncImpl, Type, Val};
 
@@ -100,6 +100,7 @@ impl Func {
         let results_ty = func.results(store.context_mut());
         let mut results = vec![wasmtime::component::Val::Bool(false); results_ty.len()];
         let params = convert_params(
+            ruby,
             &store_context_value,
             &func.params(store.context_mut()),
             args,
@@ -109,12 +110,16 @@ impl Func {
             .map_err(|e| store_context_value.handle_wasm_error(e))?;
 
         let result = match results_ty.len() {
-            0 => Ok(value::qnil().as_value()),
-            1 => component_val_to_rb(results.into_iter().next().unwrap(), &store_context_value),
+            0 => Ok(ruby.qnil().as_value()),
+            1 => component_val_to_rb(
+                ruby,
+                results.into_iter().next().unwrap(),
+                &store_context_value,
+            ),
             _ => {
                 let ary = ruby.ary_new_capa(results_ty.len());
                 for result in results {
-                    let val = component_val_to_rb(result, &store_context_value)?;
+                    let val = component_val_to_rb(ruby, result, &store_context_value)?;
                     ary.push(val)?;
                 }
                 Ok(ary.into_value_with(ruby))
@@ -129,13 +134,14 @@ impl Func {
 }
 
 fn convert_params(
+    ruby: &Ruby,
     store: &StoreContextValue,
     ty: &[(String, Type)],
     params_slice: &[Value],
 ) -> Result<Vec<Val>, Error> {
     if ty.len() != params_slice.len() {
         return Err(Error::new(
-            arg_error(),
+            ruby.exception_arg_error(),
             format!(
                 "wrong number of arguments (given {}, expected {})",
                 params_slice.len(),
@@ -148,7 +154,7 @@ fn convert_params(
     for (i, (ty, value)) in ty.iter().zip(params_slice.iter()).enumerate() {
         let i: u32 = i
             .try_into()
-            .map_err(|_| Error::new(arg_error(), "too many params"))?;
+            .map_err(|_| Error::new(ruby.exception_arg_error(), "too many params"))?;
 
         let component_val = rb_to_component_val(*value, store, &ty.1)
             .map_err(|error| error.append(format!(" (param at index {i})")))?;

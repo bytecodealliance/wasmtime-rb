@@ -149,10 +149,10 @@ impl<'a> Table<'a> {
     /// @def get(index)
     /// @param index [Integer]
     /// @return [Object, nil]
-    pub fn get(&self, index: u64) -> Result<Value, Error> {
-        match self.inner.get(self.store.context_mut()?, index) {
-            Some(wasm_val) => Val::from(wasm_val).to_ruby_value(&self.store),
-            None => Ok(().into_value()),
+    pub fn get(ruby: &Ruby, rb_self: Obj<Self>, index: u64) -> Result<Value, Error> {
+        match rb_self.inner.get(rb_self.store.context_mut()?, index) {
+            Some(wasm_val) => Val::from(wasm_val).to_ruby_value(ruby, &rb_self.store),
+            None => Ok(().into_value_with(ruby)),
         }
     }
 

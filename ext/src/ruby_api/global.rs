@@ -148,10 +148,11 @@ impl<'a> Global<'a> {
 
     /// @yard
     /// @return [Object] The current value of the global.
-    pub fn get(&self) -> Result<Value, Error> {
-        self.inner
-            .get(self.store.context_mut()?)
-            .to_ruby_value(&self.store)
+    pub fn get(ruby: &Ruby, rb_self: Obj<Self>) -> Result<Value, Error> {
+        rb_self
+            .inner
+            .get(rb_self.store.context_mut()?)
+            .to_ruby_value(ruby, &rb_self.store)
     }
 
     /// @yard

@@ -6,8 +6,13 @@ mod wasi_command;
 
 use super::root;
 use magnus::{
-    class, class::RClass, function, method, prelude::*, r_string::RString, value::Lazy, Error,
-    Module, Object, RModule, Ruby,
+    class::{self, RClass},
+    function, method,
+    prelude::*,
+    r_string::RString,
+    typed_data::Obj,
+    value::Lazy,
+    Error, Module, Object, RModule, Ruby,
 };
 use rb_sys::tracking_allocator::ManuallyTracked;
 use wasmtime::component::Component as ComponentImpl;
@@ -113,11 +118,11 @@ impl Component {
     /// Serialize the component.
     /// @return [String]
     /// @see .deserialize
-    pub fn serialize(&self) -> Result<RString, Error> {
-        let bytes = self.get().serialize();
+    pub fn serialize(ruby: &Ruby, rb_self: Obj<Self>) -> Result<RString, Error> {
+        let bytes = rb_self.get().serialize();
 
         bytes
-            .map(|bytes| RString::from_slice(&bytes))
+            .map(|bytes| ruby.str_from_slice(&bytes))
             .map_err(|e| error!("{:?}", e))
     }
 

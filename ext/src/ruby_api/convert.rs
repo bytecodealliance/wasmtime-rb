@@ -223,5 +223,5 @@ pub trait WrapWasmtimeExternType<T>
 where
     T: TypedData,
 {
-    fn wrap_wasmtime_type(&self) -> Result<T, Error>;
+    fn wrap_wasmtime_type(&self, ruby: &Ruby) -> Result<T, Error>;
 }

@@ -214,20 +214,20 @@ impl<'a> WrapWasmtimeType<'a, Extern<'a>> for wasmtime::Extern {
 }
 
 impl WrapWasmtimeExternType<ExternType> for wasmtime::ExternType {
-    fn wrap_wasmtime_type(&self) -> Result<ExternType, Error> {
+    fn wrap_wasmtime_type(&self, ruby: &Ruby) -> Result<ExternType, Error> {
         match self {
-            wasmtime::ExternType::Func(ft) => Ok(ExternType::Func(Obj::wrap(
-                FuncType::from_inner(ft.clone()),
-            ))),
-            wasmtime::ExternType::Global(gt) => Ok(ExternType::Global(Obj::wrap(
-                GlobalType::from_inner(gt.clone()),
-            ))),
-            wasmtime::ExternType::Memory(mt) => Ok(ExternType::Memory(Obj::wrap(
-                MemoryType::from_inner(mt.clone()),
-            ))),
-            wasmtime::ExternType::Table(tt) => Ok(ExternType::Table(Obj::wrap(
-                TableType::from_inner(tt.clone()),
-            ))),
+            wasmtime::ExternType::Func(ft) => Ok(ExternType::Func(
+                ruby.obj_wrap(FuncType::from_inner(ft.clone())),
+            )),
+            wasmtime::ExternType::Global(gt) => Ok(ExternType::Global(
+                ruby.obj_wrap(GlobalType::from_inner(gt.clone())),
+            )),
+            wasmtime::ExternType::Memory(mt) => Ok(ExternType::Memory(
+                ruby.obj_wrap(MemoryType::from_inner(mt.clone())),
+            )),
+            wasmtime::ExternType::Table(tt) => Ok(ExternType::Table(
+                ruby.obj_wrap(TableType::from_inner(tt.clone())),
+            )),
             wasmtime::ExternType::Tag(_) => {
                 not_implemented!("exception handling not yet implemented")
             }

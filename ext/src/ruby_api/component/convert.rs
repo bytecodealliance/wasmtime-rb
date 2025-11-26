@@ -56,7 +56,7 @@ pub(crate) fn component_val_to_rb(
                 hash.aset(name.as_str(), rb_value)?
             }
 
-            Ok(hash.into_value_with(&ruby))
+            Ok(hash.into_value_with(ruby))
         }
         Val::Tuple(vec) => {
             let array = ruby.ary_new_capa(vec.len());
@@ -71,7 +71,7 @@ pub(crate) fn component_val_to_rb(
                 None => ruby.qnil().into_value_with(ruby),
             };
 
-            variant_class(&ruby).funcall(
+            variant_class(ruby).funcall(
                 NEW.into_id_with(ruby),
                 (kind.into_value_with(ruby), payload),
             )
@@ -90,7 +90,7 @@ pub(crate) fn component_val_to_rb(
                 Some(val) => component_val_to_rb(ruby, *val, _store)?,
                 None => ruby.qnil().as_value(),
             };
-            result_class(&ruby).funcall(ruby_method, (ruby_argument,))
+            result_class(ruby).funcall(ruby_method, (ruby_argument,))
         }
         Val::Flags(vec) => Ok(vec.into_value_with(ruby)),
         Val::Resource(_resource_any) => not_implemented!("Resource not implemented"),

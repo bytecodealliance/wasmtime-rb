@@ -9,7 +9,7 @@ use magnus::{
     Class, DataTypeFunctions, Error, Module as _, Ruby, TryConvert, TypedData, Value,
 };
 #[cfg(ruby_gte_3_0)]
-use magnus::{class::object, RClass, RModule};
+use magnus::{RClass, RModule};
 use rb_sys::{rb_ivar_set, rb_obj_freeze, rb_str_new_static};
 #[cfg(ruby_gte_3_0)]
 use rb_sys::{
@@ -47,8 +47,8 @@ impl DataTypeFunctions for UnsafeSlice<'_> {
 }
 
 #[cfg(ruby_gte_3_0)]
-fn fiddle_memory_view_class() -> Option<RClass> {
-    let fiddle = object().const_get::<_, RModule>("Fiddle").ok()?;
+fn fiddle_memory_view_class(ruby: &Ruby) -> Option<RClass> {
+    let fiddle = ruby.class_object().const_get::<_, RModule>("Fiddle").ok()?;
     fiddle.const_get("MemoryView").ok()
 }
 
@@ -67,9 +67,11 @@ impl<'a> UnsafeSlice<'a> {
     /// @def to_memory_view
     /// @return [Fiddle::MemoryView] Memory view of the slice.
     #[cfg(ruby_gte_3_0)]
-    pub fn to_memory_view(rb_self: Obj<Self>) -> Result<Value, Error> {
-        static CLASS: Lazy<RClass> = Lazy::new(|_| fiddle_memory_view_class().unwrap());
-        let ruby = Ruby::get().unwrap();
+    pub fn to_memory_view(ruby: &Ruby, rb_self: Obj<Self>) -> Result<Value, Error> {
+        static CLASS: Lazy<RClass> = Lazy::new(|_| {
+            let ruby = Ruby::get().unwrap();
+            fiddle_memory_view_class(&ruby).unwrap()
+        });
         ruby.get_inner(&CLASS).new_instance((rb_self,))
     }
 
@@ -78,9 +80,9 @@ impl<'a> UnsafeSlice<'a> {
     ///
     /// @def to_str
     /// @return [String] Binary +String+ of the memory.
-    pub fn to_str(rb_self: Obj<Self>) -> Result<Value, Error> {
+    pub fn to_str(ruby: &Ruby, rb_self: Obj<Self>) -> Result<Value, Error> {
         let raw_slice = rb_self.get_raw_slice()?;
-        let id = IVAR_NAME.into_id();
+        let id = IVAR_NAME.into_id_with(ruby);
         let rstring = unsafe {
             let val = rb_str_new_static(raw_slice.as_ptr() as _, raw_slice.len() as _);
             rb_ivar_set(val, id.as_raw(), rb_self.as_raw());
@@ -183,7 +185,7 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
     class.define_method("to_str", method!(UnsafeSlice::to_str, 0))?;
 
     #[cfg(ruby_gte_3_0)]
-    if ruby.require("fiddle").is_ok() && fiddle_memory_view_class().is_some() {
+    if ruby.require("fiddle").is_ok() && fiddle_memory_view_class(ruby).is_some() {
         UnsafeSlice::register_memory_view(ruby)?;
         class.define_method("to_memory_view", method!(UnsafeSlice::to_memory_view, 0))?;
     }

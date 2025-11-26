@@ -133,14 +133,16 @@ impl WasiConfigInner {
 impl TryFrom<PermsSymbolEnum> for DirPerms {
     type Error = magnus::Error;
     fn try_from(value: PermsSymbolEnum) -> Result<Self, Error> {
-        DIR_PERMS_MAPPING.get(value.0.into_value())
+        let ruby = Ruby::get_with(value.0);
+        DIR_PERMS_MAPPING.get(value.0.into_value_with(&ruby))
     }
 }
 
 impl TryFrom<PermsSymbolEnum> for FilePerms {
     type Error = magnus::Error;
     fn try_from(value: PermsSymbolEnum) -> Result<Self, Error> {
-        FILE_PERMS_MAPPING.get(value.0.into_value())
+        let ruby = Ruby::get_with(value.0);
+        FILE_PERMS_MAPPING.get(value.0.into_value_with(&ruby))
     }
 }
 

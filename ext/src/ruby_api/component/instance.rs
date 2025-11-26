@@ -5,7 +5,6 @@ use crate::error;
 use magnus::{
     class,
     error::ErrorType,
-    exception::{arg_error, type_error},
     function,
     gc::Marker,
     method,
@@ -64,9 +63,10 @@ impl Instance {
     }
 
     fn export_index(&self, handle: Value) -> Result<Option<ComponentExportIndex>, Error> {
+        let ruby = Ruby::get_with(handle);
         let invalid_arg = || {
             Error::new(
-                type_error(),
+                ruby.exception_type_error(),
                 format!(
                     "invalid argument for component index, expected String | Array<String>, got {}",
                     handle.inspect()

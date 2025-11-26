@@ -1,5 +1,5 @@
 use super::{convert::ToWasmVal, errors::ExceptionMessage, store::StoreContextValue};
-use magnus::{error::ErrorType, exception::arg_error, Error, Ruby, Value};
+use magnus::{error::ErrorType, Error, Ruby, Value};
 use static_assertions::assert_eq_size;
 use wasmtime::{FuncType, ValType};
 
@@ -40,12 +40,16 @@ impl<'a> Params<'a> {
         Ok(Self(ty, params_slice))
     }
 
-    pub fn to_vec(&self, store: &StoreContextValue) -> Result<Vec<wasmtime::Val>, Error> {
+    pub fn to_vec(
+        &self,
+        ruby: &Ruby,
+        store: &StoreContextValue,
+    ) -> Result<Vec<wasmtime::Val>, Error> {
         let mut vals = Vec::with_capacity(self.0.params().len());
         for (i, (param, value)) in self.0.params().zip(self.1.iter()).enumerate() {
             let i: u32 = i
                 .try_into()
-                .map_err(|_| Error::new(arg_error(), "too many params"))?;
+                .map_err(|_| Error::new(ruby.exception_arg_error(), "too many params"))?;
             let param = Param::new(i, param, *value);
             vals.push(param.to_wasmtime_val(store)?);
         }

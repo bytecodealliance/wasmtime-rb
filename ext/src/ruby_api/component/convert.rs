@@ -2,7 +2,6 @@ use crate::ruby_api::component::component_namespace;
 use crate::ruby_api::errors::ExceptionMessage;
 use crate::ruby_api::store::StoreContextValue;
 use crate::{define_rb_intern, err, error, not_implemented};
-use magnus::exception::type_error;
 use magnus::rb_sys::AsRawValue;
 use magnus::value::{IntoId, Lazy, ReprValue};
 use magnus::{
@@ -23,75 +22,77 @@ define_rb_intern!(
     VALUE => "value",
 );
 
-pub(crate) fn component_val_to_rb(val: Val, _store: &StoreContextValue) -> Result<Value, Error> {
+pub(crate) fn component_val_to_rb(
+    ruby: &Ruby,
+    val: Val,
+    _store: &StoreContextValue,
+) -> Result<Value, Error> {
     match val {
-        Val::Bool(bool) => Ok(bool.into_value()),
-        Val::S8(n) => Ok(n.into_value()),
-        Val::U8(n) => Ok(n.into_value()),
-        Val::S16(n) => Ok(n.into_value()),
-        Val::U16(n) => Ok(n.into_value()),
-        Val::S32(n) => Ok(n.into_value()),
-        Val::U32(n) => Ok(n.into_value()),
-        Val::S64(n) => Ok(n.into_value()),
-        Val::U64(n) => Ok(n.into_value()),
-        Val::Float32(n) => Ok(n.into_value()),
-        Val::Float64(n) => Ok(n.into_value()),
-        Val::Char(c) => Ok(c.into_value()),
-        Val::String(s) => Ok(s.as_str().into_value()),
+        Val::Bool(bool) => Ok(bool.into_value_with(ruby)),
+        Val::S8(n) => Ok(n.into_value_with(ruby)),
+        Val::U8(n) => Ok(n.into_value_with(ruby)),
+        Val::S16(n) => Ok(n.into_value_with(ruby)),
+        Val::U16(n) => Ok(n.into_value_with(ruby)),
+        Val::S32(n) => Ok(n.into_value_with(ruby)),
+        Val::U32(n) => Ok(n.into_value_with(ruby)),
+        Val::S64(n) => Ok(n.into_value_with(ruby)),
+        Val::U64(n) => Ok(n.into_value_with(ruby)),
+        Val::Float32(n) => Ok(n.into_value_with(ruby)),
+        Val::Float64(n) => Ok(n.into_value_with(ruby)),
+        Val::Char(c) => Ok(c.into_value_with(ruby)),
+        Val::String(s) => Ok(s.as_str().into_value_with(ruby)),
         Val::List(vec) => {
-            let array = RArray::with_capacity(vec.len());
+            let array = ruby.ary_new_capa(vec.len());
             for val in vec {
-                array.push(component_val_to_rb(val, _store)?)?;
+                array.push(component_val_to_rb(ruby, val, _store)?)?;
             }
-            Ok(array.into_value())
+            Ok(array.into_value_with(ruby))
         }
         Val::Record(fields) => {
-            let hash = RHash::new();
+            let hash = ruby.hash_new();
             for (name, val) in fields {
-                let rb_value = component_val_to_rb(val, _store)
+                let rb_value = component_val_to_rb(ruby, val, _store)
                     .map_err(|e| e.append(format!(" (struct field \"{name}\")")))?;
                 hash.aset(name.as_str(), rb_value)?
             }
 
-            Ok(hash.into_value())
+            Ok(hash.into_value_with(&ruby))
         }
         Val::Tuple(vec) => {
-            let array = RArray::with_capacity(vec.len());
+            let array = ruby.ary_new_capa(vec.len());
             for val in vec {
-                array.push(component_val_to_rb(val, _store)?)?;
+                array.push(component_val_to_rb(ruby, val, _store)?)?;
             }
-            Ok(array.into_value())
+            Ok(array.into_value_with(ruby))
         }
         Val::Variant(kind, val) => {
-            let ruby = Ruby::get().unwrap();
             let payload = match val {
-                Some(val) => component_val_to_rb(*val, _store)?,
-                None => ruby.qnil().into_value(),
+                Some(val) => component_val_to_rb(ruby, *val, _store)?,
+                None => ruby.qnil().into_value_with(ruby),
             };
 
             variant_class(&ruby).funcall(
-                NEW.into_id_with(&ruby),
-                (kind.into_value_with(&ruby), payload),
+                NEW.into_id_with(ruby),
+                (kind.into_value_with(ruby), payload),
             )
         }
-        Val::Enum(kind) => Ok(kind.as_str().into_value()),
+        Val::Enum(kind) => Ok(kind.as_str().into_value_with(ruby)),
         Val::Option(val) => match val {
-            Some(val) => Ok(component_val_to_rb(*val, _store)?),
-            None => Ok(value::qnil().as_value()),
+            Some(val) => Ok(component_val_to_rb(ruby, *val, _store)?),
+            None => Ok(ruby.qnil().as_value()),
         },
         Val::Result(val) => {
-            let ruby = Ruby::get().unwrap();
             let (ruby_method, val) = match val {
-                Ok(val) => (OK.into_id_with(&ruby), val),
-                Err(val) => (ERROR.into_id_with(&ruby), val),
+                Ok(val) => (OK.into_id_with(ruby), val),
+                Err(val) => (ERROR.into_id_with(ruby), val),
             };
             let ruby_argument = match val {
-                Some(val) => component_val_to_rb(*val, _store)?,
+                Some(val) => component_val_to_rb(ruby, *val, _store)?,
                 None => ruby.qnil().as_value(),
             };
             result_class(&ruby).funcall(ruby_method, (ruby_argument,))
         }
-        Val::Flags(vec) => Ok(vec.into_value()),
+        Val::Flags(vec) => Ok(vec.into_value_with(ruby)),
         Val::Resource(_resource_any) => not_implemented!("Resource not implemented"),
         Val::Future(_) => not_implemented!("Future not implemented"),
         Val::ErrorContext(_) => not_implemented!("ErrorContext not implemented"),
@@ -104,16 +105,16 @@ pub(crate) fn rb_to_component_val(
     _store: &StoreContextValue,
     ty: &Type,
 ) -> Result<Val, Error> {
+    let ruby = Ruby::get_with(value);
     match ty {
         Type::Bool => {
-            let ruby = Ruby::get().unwrap();
             if value.as_raw() == ruby.qtrue().as_raw() {
                 Ok(Val::Bool(true))
             } else if value.as_raw() == ruby.qfalse().as_raw() {
                 Ok(Val::Bool(false))
             } else {
                 Err(Error::new(
-                    type_error(),
+                    ruby.exception_type_error(),
                     // SAFETY: format will copy classname directly, before we call back in to Ruby
                     format!("no implicit conversion of {} into boolean", unsafe {
                         value.classname()
@@ -170,7 +171,7 @@ pub(crate) fn rb_to_component_val(
 
             if types.len() != rarray.len() {
                 return Err(Error::new(
-                    magnus::exception::type_error(),
+                    ruby.exception_type_error(),
                     format!(
                         "invalid array length for tuple (given {}, expected {})",
                         rarray.len(),
@@ -191,8 +192,6 @@ pub(crate) fn rb_to_component_val(
             Ok(Val::Tuple(vals))
         }
         Type::Variant(variant) => {
-            let ruby = Ruby::get().unwrap();
-
             let name: RString = value.funcall(NAME.into_id_with(&ruby), ())?;
             let name = name.to_string()?;
 
@@ -247,7 +246,6 @@ pub(crate) fn rb_to_component_val(
         }
         Type::Result(result_type) => {
             // Expect value to conform to `Wasmtime::Component::Value`'s interface
-            let ruby = Ruby::get().unwrap();
             let is_ok = value.funcall::<_, (), bool>(IS_OK.into_id_with(&ruby), ())?;
 
             if is_ok {

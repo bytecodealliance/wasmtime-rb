@@ -1,5 +1,5 @@
 use super::static_id::StaticId;
-use magnus::{exception::arg_error, prelude::*, Error, Symbol, TryConvert, Value};
+use magnus::{prelude::*, Error, Ruby, Symbol, TryConvert, Value};
 use std::fmt::Display;
 
 /// Represents an enum as a set of Symbols (using `StaticId`).
@@ -33,8 +33,9 @@ impl<'a, T: Clone> SymbolEnum<'a, T> {
     }
 
     pub fn error(&self, value: Value) -> Error {
+        let ruby = Ruby::get_with(value);
         Error::new(
-            arg_error(),
+            ruby.exception_arg_error(),
             format!(
                 "invalid {}, expected one of {}, got {:?}",
                 self.what, self.mapping, value

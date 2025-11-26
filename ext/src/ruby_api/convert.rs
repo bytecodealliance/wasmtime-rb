@@ -40,18 +40,18 @@ lazy_static! {
 }
 
 pub trait ToRubyValue {
-    fn to_ruby_value(&self, store: &StoreContextValue) -> Result<Value, Error>;
+    fn to_ruby_value(&self, ruby: &Ruby, store: &StoreContextValue) -> Result<Value, Error>;
 }
 
 impl ToRubyValue for Val {
-    fn to_ruby_value(&self, store: &StoreContextValue) -> Result<Value, Error> {
+    fn to_ruby_value(&self, ruby: &Ruby, store: &StoreContextValue) -> Result<Value, Error> {
         match self {
-            Val::I32(i) => Ok(i.into_value()),
-            Val::I64(i) => Ok(i.into_value()),
-            Val::F32(f) => Ok(f32::from_bits(*f).into_value()),
-            Val::F64(f) => Ok(f64::from_bits(*f).into_value()),
+            Val::I32(i) => Ok(i.into_value_with(ruby)),
+            Val::I64(i) => Ok(i.into_value_with(ruby)),
+            Val::F32(f) => Ok(f32::from_bits(*f).into_value_with(ruby)),
+            Val::F64(f) => Ok(f64::from_bits(*f).into_value_with(ruby)),
             Val::ExternRef(eref) => match eref {
-                None => Ok(().into_value()),
+                None => Ok(().into_value_with(ruby)),
                 Some(eref) => {
                     let inner = eref.data(store.context()?).map_err(|e| error!("{e}"))?;
                     match inner {
@@ -59,13 +59,13 @@ impl ToRubyValue for Val {
                             .downcast_ref::<ExternRefValue>()
                             .map(|v| v.0)
                             .ok_or_else(|| error!("failed to extract externref")),
-                        None => Ok(().into_value()),
+                        None => Ok(().into_value_with(ruby)),
                     }
                 }
             },
             Val::FuncRef(funcref) => match funcref {
-                None => Ok(().into_value()),
-                Some(funcref) => Ok(Func::from_inner(*store, *funcref).into_value()),
+                None => Ok(().into_value_with(ruby)),
+                Some(funcref) => Ok(Func::from_inner(*store, *funcref).into_value_with(ruby)),
             },
             Val::V128(_) => err!("converting from v128 to Ruby unsupported"),
             t => err!("cannot convert value: {t:?} to Ruby value"),
@@ -139,7 +139,7 @@ impl ToExtern for Value {
             Ok(<&Global>::try_convert(*self)?.into())
         } else {
             Err(Error::new(
-                magnus::exception::type_error(),
+                ruby.exception_type_error(),
                 format!("unexpected extern: {}", self.inspect()),
             ))
         }

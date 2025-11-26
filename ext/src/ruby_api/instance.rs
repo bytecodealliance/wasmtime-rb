@@ -86,13 +86,13 @@ impl Instance {
     ///
     /// @def exports
     /// @return [Hash{String => Extern}]
-    pub fn exports(&self) -> Result<RHash, Error> {
-        let mut ctx = self.store.context_mut();
-        let hash = RHash::new();
+    pub fn exports(ruby: &Ruby, rb_self: Obj<Self>) -> Result<RHash, Error> {
+        let mut ctx = rb_self.store.context_mut();
+        let hash = ruby.hash_new();
 
-        for export in self.inner.exports(&mut ctx) {
-            let export_name = RString::new(export.name());
-            let wrapped_store = self.store;
+        for export in rb_self.inner.exports(&mut ctx) {
+            let export_name = ruby.str_new(export.name());
+            let wrapped_store = rb_self.store;
             let wrapped_export = export
                 .into_extern()
                 .wrap_wasmtime_type(wrapped_store.into())?;
@@ -127,17 +127,16 @@ impl Instance {
     /// @param (see Func#call)
     /// @return (see Func#call)
     /// @see Func#call
-    pub fn invoke(&self, args: &[Value]) -> Result<Value, Error> {
-        let ruby = Ruby::get().unwrap();
+    pub fn invoke(ruby: &Ruby, rb_self: Obj<Self>, args: &[Value]) -> Result<Value, Error> {
         let name = RString::try_convert(*args.first().ok_or_else(|| {
             Error::new(
-                magnus::exception::type_error(),
+                ruby.exception_type_error(),
                 "wrong number of arguments (given 0, expected 1+)",
             )
         })?)?;
 
-        let func = self.get_func(self.store.context_mut(), unsafe { name.as_str()? })?;
-        Func::invoke(&ruby, &self.store.into(), &func, &args[1..])
+        let func = rb_self.get_func(rb_self.store.context_mut(), unsafe { name.as_str()? })?;
+        Func::invoke(ruby, &rb_self.store.into(), &func, &args[1..])
     }
 
     fn get_func(

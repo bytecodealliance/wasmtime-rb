@@ -14,8 +14,8 @@ use crate::{
     helpers::{nogvl, Tmplock},
 };
 use magnus::{
-    class, function, method, rb_sys::AsRawValue, Error, Module as _, Object, RArray, RHash,
-    RString, Ruby,
+    class, function, method, rb_sys::AsRawValue, typed_data::Obj, Error, Module as _, Object,
+    RArray, RHash, RString, Ruby,
 };
 use rb_sys::{
     rb_str_locktmp, rb_str_unlocktmp, tracking_allocator::ManuallyTracked, RSTRING_LEN, RSTRING_PTR,
@@ -101,12 +101,12 @@ impl Module {
     /// Serialize the module.
     /// @return [String]
     /// @see .deserialize
-    pub fn serialize(&self) -> Result<RString, Error> {
-        let module = self.get();
+    pub fn serialize(ruby: &Ruby, rb_self: Obj<Self>) -> Result<RString, Error> {
+        let module = rb_self.get();
         let bytes = module.serialize();
 
         bytes
-            .map(|bytes| RString::from_slice(&bytes))
+            .map(|bytes| ruby.str_from_slice(&bytes))
             .map_err(|e| error!("{:?}", e))
     }
 
@@ -117,16 +117,16 @@ impl Module {
     /// @yard
     /// Returns the list of imports that this Module has and must be satisfied.
     /// @return [Array<Hash>] An array of hashes containing import information
-    pub fn imports(&self) -> Result<RArray, Error> {
-        let module = self.get();
+    pub fn imports(ruby: &Ruby, rb_self: Obj<Self>) -> Result<RArray, Error> {
+        let module = rb_self.get();
         let imports = module.imports();
 
-        let result = RArray::with_capacity(imports.len());
+        let result = ruby.ary_new_capa(imports.len());
         for import in imports {
-            let hash = RHash::new();
+            let hash = ruby.hash_new();
             hash.aset("module", import.module())?;
             hash.aset("name", import.name())?;
-            hash.aset("type", import.ty().wrap_wasmtime_type()?)?;
+            hash.aset("type", import.ty().wrap_wasmtime_type(ruby)?)?;
             result.push(hash)?;
         }
         Ok(result)

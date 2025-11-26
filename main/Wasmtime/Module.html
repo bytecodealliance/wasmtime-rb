@@ -731,16 +731,16 @@ pub fn new(engine: &amp;Engine, wat_or_wasm: RString) -&gt; Result&lt;Self, Erro
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 120</span>
 
-pub fn imports(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
-        let module = self.get();
+pub fn imports(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RArray, Error&gt; {
+        let module = rb_self.get();
         let imports = module.imports();
 
-        let result = RArray::with_capacity(imports.len());
+        let result = ruby.ary_new_capa(imports.len());
         for import in imports {
-            let hash = RHash::new();
+            let hash = ruby.hash_new();
             hash.aset(&quot;module&quot;, import.module())?;
             hash.aset(&quot;name&quot;, import.name())?;
-            hash.aset(&quot;type&quot;, import.ty().wrap_wasmtime_type()?)?;
+            hash.aset(&quot;type&quot;, import.ty().wrap_wasmtime_type(ruby)?)?;
             result.push(hash)?;
         }
         Ok(result)
@@ -809,12 +809,12 @@ pub fn imports(&amp;self) -&gt; Result&lt;RArray, Error&gt; {
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 104</span>
 
-pub fn serialize(&amp;self) -&gt; Result&lt;RString, Error&gt; {
-    let module = self.get();
+pub fn serialize(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RString, Error&gt; {
+    let module = rb_self.get();
     let bytes = module.serialize();
 
     bytes
-        .map(|bytes| RString::from_slice(&amp;bytes))
+        .map(|bytes| ruby.str_from_slice(&amp;bytes))
         .map_err(|e| error!(&quot;{:?}&quot;, e))
 }</pre>
     </td>
@@ -827,7 +827,7 @@ pub fn serialize(&amp;self) -&gt; Result&lt;RString, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Wed Nov 26 22:52:19 2025 by
+  Generated on Wed Nov 26 23:09:13 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.7).
 </div>

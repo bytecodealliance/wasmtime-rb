@@ -345,15 +345,15 @@
       <pre class="lines">
 
 
-91
-92
-93
-94
-95
-96</pre>
+96
+97
+98
+99
+100
+101</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component.rs', line 91</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component.rs', line 96</span>
 
 pub fn deserialize(engine: &amp;Engine, compiled: RString) -&gt; Result&lt;Self, Error&gt; {
     // SAFETY: this string is immediately copied and never moved off the stack
@@ -438,14 +438,14 @@ pub fn deserialize(engine: &amp;Engine, compiled: RString) -&gt; Result&lt;Self,
       <pre class="lines">
 
 
-106
-107
-108
-109
-110</pre>
+111
+112
+113
+114
+115</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component.rs', line 106</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component.rs', line 111</span>
 
 pub fn deserialize_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error&gt; {
     unsafe { ComponentImpl::deserialize_file(engine.get(), path.as_str()?) }
@@ -520,18 +520,18 @@ pub fn deserialize_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self
       <pre class="lines">
 
 
-70
-71
-72
-73
-74
 75
 76
 77
-78</pre>
+78
+79
+80
+81
+82
+83</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component.rs', line 70</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component.rs', line 75</span>
 
 pub fn from_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error&gt; {
     let eng = engine.get();
@@ -617,17 +617,17 @@ pub fn from_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error
       <pre class="lines">
 
 
-56
-57
-58
-59
-60
 61
 62
-63</pre>
+63
+64
+65
+66
+67
+68</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component.rs', line 56</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component.rs', line 61</span>
 
 pub fn new(engine: &amp;Engine, wat_or_wasm: RString) -&gt; Result&lt;Self, Error&gt; {
     let eng = engine.get();
@@ -694,22 +694,22 @@ pub fn new(engine: &amp;Engine, wat_or_wasm: RString) -&gt; Result&lt;Self, Erro
       <pre class="lines">
 
 
-116
-117
-118
-119
-120
 121
-122</pre>
+122
+123
+124
+125
+126
+127</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component.rs', line 116</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component.rs', line 121</span>
 
-pub fn serialize(&amp;self) -&gt; Result&lt;RString, Error&gt; {
-    let bytes = self.get().serialize();
+pub fn serialize(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RString, Error&gt; {
+    let bytes = rb_self.get().serialize();
 
     bytes
-        .map(|bytes| RString::from_slice(&amp;bytes))
+        .map(|bytes| ruby.str_from_slice(&amp;bytes))
         .map_err(|e| error!(&quot;{:?}&quot;, e))
 }</pre>
     </td>
@@ -722,7 +722,7 @@ pub fn serialize(&amp;self) -&gt; Result&lt;RString, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Wed Nov 26 22:52:19 2025 by
+  Generated on Wed Nov 26 23:09:13 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.7).
 </div>

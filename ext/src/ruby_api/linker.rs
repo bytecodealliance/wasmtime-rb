@@ -265,17 +265,27 @@ impl Linker {
     /// @param store [Store]
     /// @param mod [Module]
     /// @return [Instance]
-    pub fn instantiate(&self, store: Obj<Store>, module: &Module) -> Result<Instance, Error> {
-        if *self.has_wasi.borrow() && !store.context().data().has_wasi_p1_ctx() {
+    pub fn instantiate(
+        ruby: &Ruby,
+        rb_self: Obj<Self>,
+        store: Obj<Store>,
+        module: &Module,
+    ) -> Result<Instance, Error> {
+        if *rb_self.has_wasi.borrow() && !store.context().data().has_wasi_p1_ctx() {
             return err!("{}", errors::missing_wasi_p1_ctx_error());
         }
 
-        self.inner
+        rb_self
+            .inner
             .borrow_mut()
             .instantiate(store.context_mut(), module.get())
-            .map_err(|e| StoreContextValue::from(store).handle_wasm_error(e))
+            .map_err(|e| StoreContextValue::from(store).handle_wasm_error(ruby, e))
             .map(|instance| {
-                self.refs.borrow().iter().for_each(|val| store.retain(*val));
+                rb_self
+                    .refs
+                    .borrow()
+                    .iter()
+                    .for_each(|val| store.retain(*val));
                 Instance::from_inner(store, instance)
             })
     }

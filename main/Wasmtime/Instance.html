@@ -398,7 +398,7 @@ pub fn new(ruby: &amp;Ruby, args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; 
 
     let module = module.get();
     let inner = InstanceImpl::new(context, module, &amp;imports)
-        .map_err(|e| StoreContextValue::from(wrapped_store).handle_wasm_error(e))?;
+        .map_err(|e| StoreContextValue::from(wrapped_store).handle_wasm_error(ruby, e))?;
 
     Ok(Self {
         inner,
@@ -483,7 +483,10 @@ pub fn new(ruby: &amp;Ruby, args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; 
 116
 117
 118
-119</pre>
+119
+120
+121
+122</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 111</span>
@@ -492,8 +495,11 @@ pub fn export(&amp;self, str: RString) -&gt; Result&lt;Option&lt;super::external
     let export = self
         .inner
         .get_export(self.store.context_mut(), unsafe { str.as_str()? });
+    let ruby = Ruby::get_with(str);
     match export {
-        Some(export) =&gt; export.wrap_wasmtime_type(self.store.into()).map(Some),
+        Some(export) =&gt; export
+            .wrap_wasmtime_type(&amp;ruby, self.store.into())
+            .map(Some),
         None =&gt; Ok(None),
     }
 }</pre>
@@ -569,7 +575,7 @@ pub fn exports(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RHash,
         let wrapped_store = rb_self.store;
         let wrapped_export = export
             .into_extern()
-            .wrap_wasmtime_type(wrapped_store.into())?;
+            .wrap_wasmtime_type(ruby, wrapped_store.into())?;
         hash.aset(export_name, wrapped_export)?;
     }
 
@@ -674,9 +680,6 @@ pub fn exports(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RHash,
       <pre class="lines">
 
 
-130
-131
-132
 133
 134
 135
@@ -684,10 +687,13 @@ pub fn exports(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RHash,
 137
 138
 139
-140</pre>
+140
+141
+142
+143</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 130</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 133</span>
 
 pub fn invoke(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
     let name = RString::try_convert(*args.first().ok_or_else(|| {
@@ -710,7 +716,7 @@ pub fn invoke(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, args: &amp;[Value]) -&g
 </div>
 
       <div id="footer">
-  Generated on Wed Nov 26 23:09:13 2025 by
+  Generated on Fri Nov 28 22:10:15 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.7).
 </div>

@@ -603,7 +603,6 @@ pub fn new(engine: &amp;Engine) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-228
 229
 230
 231
@@ -620,10 +619,11 @@ pub fn new(engine: &amp;Engine) -&gt; Result&lt;Self, Error&gt; {
 242
 243
 244
-245</pre>
+245
+246</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 228</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 229</span>
 
 pub fn alias(
     &amp;self,
@@ -1250,7 +1250,8 @@ pub fn func_new(&amp;self, args: &amp;[Value]) -&gt; Result&lt;(), Error&gt; {
 173
 174
 175
-176</pre>
+176
+177</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 159</span>
@@ -1268,9 +1269,10 @@ pub fn get(
                 name.as_str()?
             });
 
+    let ruby = Ruby::get_with(store);
     match ext {
         None =&gt; Ok(None),
-        Some(ext) =&gt; ext.wrap_wasmtime_type(store.into()).map(Some),
+        Some(ext) =&gt; ext.wrap_wasmtime_type(&amp;ruby, store.into()).map(Some),
     }
 }</pre>
     </td>
@@ -1348,16 +1350,16 @@ pub fn get(
       <pre class="lines">
 
 
-289
-290
-291
-292
-293
-294
-295</pre>
+300
+301
+302
+303
+304
+305
+306</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 289</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 300</span>
 
 pub fn get_default(&amp;self, store: Obj&lt;Store&gt;, module: RString) -&gt; Result&lt;Func&lt;&#39;_&gt;, Error&gt; {
     self.inner
@@ -1439,7 +1441,6 @@ pub fn get_default(&amp;self, store: Obj&lt;Store&gt;, module: RString) -&gt; Re
       <pre class="lines">
 
 
-186
 187
 188
 189
@@ -1454,10 +1455,11 @@ pub fn get_default(&amp;self, store: Obj&lt;Store&gt;, module: RString) -&gt; Re
 198
 199
 200
-201</pre>
+201
+202</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 186</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 187</span>
 
 pub fn instance(
     &amp;self,
@@ -1545,7 +1547,6 @@ pub fn instance(
       <pre class="lines">
 
 
-268
 269
 270
 271
@@ -1558,22 +1559,43 @@ pub fn instance(
 278
 279
 280
-281</pre>
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 268</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 269</span>
 
-pub fn instantiate(&amp;self, store: Obj&lt;Store&gt;, module: &amp;Module) -&gt; Result&lt;Instance, Error&gt; {
-    if *self.has_wasi.borrow() &amp;&amp; !store.context().data().has_wasi_p1_ctx() {
+pub fn instantiate(
+    ruby: &amp;Ruby,
+    rb_self: Obj&lt;Self&gt;,
+    store: Obj&lt;Store&gt;,
+    module: &amp;Module,
+) -&gt; Result&lt;Instance, Error&gt; {
+    if *rb_self.has_wasi.borrow() &amp;&amp; !store.context().data().has_wasi_p1_ctx() {
         return err!(&quot;{}&quot;, errors::missing_wasi_p1_ctx_error());
     }
 
-    self.inner
+    rb_self
+        .inner
         .borrow_mut()
         .instantiate(store.context_mut(), module.get())
-        .map_err(|e| StoreContextValue::from(store).handle_wasm_error(e))
+        .map_err(|e| StoreContextValue::from(store).handle_wasm_error(ruby, e))
         .map(|instance| {
-            self.refs.borrow().iter().for_each(|val| store.retain(*val));
+            rb_self
+                .refs
+                .borrow()
+                .iter()
+                .for_each(|val| store.retain(*val));
             Instance::from_inner(store, instance)
         })
 }</pre>
@@ -1650,16 +1672,16 @@ pub fn instantiate(&amp;self, store: Obj&lt;Store&gt;, module: &amp;Module) -&gt
       <pre class="lines">
 
 
-211
 212
 213
 214
 215
 216
-217</pre>
+217
+218</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 211</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 212</span>
 
 pub fn module(&amp;self, store: &amp;Store, name: RString, module: &amp;Module) -&gt; Result&lt;(), Error&gt; {
     self.inner
@@ -1699,13 +1721,13 @@ pub fn module(&amp;self, store: &amp;Store, name: RString, module: &amp;Module) 
       <pre class="lines">
 
 
-301
-302
-303
-304</pre>
+312
+313
+314
+315</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 301</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 312</span>
 
 pub fn use_deterministic_scheduling_functions(&amp;self) -&gt; Result&lt;(), Error&gt; {
     let mut inner = self.inner.borrow_mut();
@@ -1721,7 +1743,7 @@ pub fn use_deterministic_scheduling_functions(&amp;self) -&gt; Result&lt;(), Err
 </div>
 
       <div id="footer">
-  Generated on Wed Nov 26 23:09:13 2025 by
+  Generated on Fri Nov 28 22:10:15 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.7).
 </div>

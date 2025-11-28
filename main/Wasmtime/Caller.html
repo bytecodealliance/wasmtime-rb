@@ -274,16 +274,24 @@
 77
 78
 79
-80</pre>
+80
+81
+82
+83
+84</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 72</span>
 
-pub fn export(rb_self: Obj&lt;Caller&lt;&#39;a&gt;&gt;, name: RString) -&gt; Result&lt;Option&lt;Extern&lt;&#39;a&gt;&gt;, Error&gt; {
+pub fn export(
+    ruby: &amp;Ruby,
+    rb_self: Obj&lt;Caller&lt;&#39;a&gt;&gt;,
+    name: RString,
+) -&gt; Result&lt;Option&lt;Extern&lt;&#39;a&gt;&gt;, Error&gt; {
     let inner = rb_self.handle.get_mut()?;
 
     if let Some(export) = inner.get_export(unsafe { name.as_str() }?) {
-        export.wrap_wasmtime_type(rb_self.into()).map(Some)
+        export.wrap_wasmtime_type(ruby, rb_self.into()).map(Some)
     } else {
         Ok(None)
     }
@@ -350,15 +358,15 @@ pub fn export(rb_self: Obj&lt;Caller&lt;&#39;a&gt;&gt;, name: RString) -&gt; Res
       <pre class="lines">
 
 
-85
-86
-87
-88
 89
-90</pre>
+90
+91
+92
+93
+94</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 85</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 89</span>
 
 pub fn get_fuel(&amp;self) -&gt; Result&lt;u64, Error&gt; {
     self.handle
@@ -435,16 +443,16 @@ pub fn get_fuel(&amp;self) -&gt; Result&lt;u64, Error&gt; {
       <pre class="lines">
 
 
-95
-96
-97
-98
 99
 100
-101</pre>
+101
+102
+103
+104
+105</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 95</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/caller.rs', line 99</span>
 
 pub fn set_fuel(&amp;self, fuel: u64) -&gt; Result&lt;(), Error&gt; {
     self.handle
@@ -522,7 +530,7 @@ pub fn store_data(&amp;self) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Wed Nov 26 23:09:13 2025 by
+  Generated on Fri Nov 28 22:10:15 2025 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.37 (ruby-3.4.7).
 </div>

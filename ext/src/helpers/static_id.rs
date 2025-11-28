@@ -22,7 +22,8 @@ pub struct StaticId(NonZeroUsize);
 impl StaticId {
     // Use `define_rb_intern!` instead, which uses this function.
     pub fn intern_str(id: &'static str) -> Self {
-        let id: Id = magnus::StaticSymbol::new(id).into();
+        let ruby = Ruby::get().unwrap();
+        let id: Id = ruby.sym_new(id).into();
 
         // SAFETY: Ruby will never return a `0` ID.
         StaticId(unsafe { NonZeroUsize::new_unchecked(id.as_raw() as _) })
@@ -39,7 +40,8 @@ impl IntoId for StaticId {
 
 impl From<StaticId> for Symbol {
     fn from(static_id: StaticId) -> Self {
-        let id: Id = static_id.into_id();
+        let ruby = Ruby::get().unwrap();
+        let id: Id = static_id.into_id_with(&ruby);
         id.into()
     }
 }

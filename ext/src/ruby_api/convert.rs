@@ -216,7 +216,7 @@ pub trait WrapWasmtimeType<'a, T>
 where
     T: TypedData,
 {
-    fn wrap_wasmtime_type(&self, store: StoreContextValue<'a>) -> Result<T, Error>;
+    fn wrap_wasmtime_type(&self, ruby: &Ruby, store: StoreContextValue<'a>) -> Result<T, Error>;
 }
 
 pub trait WrapWasmtimeExternType<T>

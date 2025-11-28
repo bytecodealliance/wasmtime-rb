@@ -169,9 +169,10 @@ impl Linker {
                     name.as_str()?
                 });
 
+        let ruby = Ruby::get_with(store);
         match ext {
             None => Ok(None),
-            Some(ext) => ext.wrap_wasmtime_type(store.into()).map(Some),
+            Some(ext) => ext.wrap_wasmtime_type(&ruby, store.into()).map(Some),
         }
     }
 

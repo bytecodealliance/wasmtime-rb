@@ -193,7 +193,11 @@ impl Extern<'_> {
 }
 
 impl<'a> WrapWasmtimeType<'a, Extern<'a>> for wasmtime::Extern {
-    fn wrap_wasmtime_type(&self, store: StoreContextValue<'a>) -> Result<Extern<'a>, Error> {
+    fn wrap_wasmtime_type(
+        &self,
+        ruby: &Ruby,
+        store: StoreContextValue<'a>,
+    ) -> Result<Extern<'a>, Error> {
         match self {
             wasmtime::Extern::Func(func) => {
                 Ok(Extern::Func(Obj::wrap(Func::from_inner(store, *func))))
@@ -207,8 +211,12 @@ impl<'a> WrapWasmtimeType<'a, Extern<'a>> for wasmtime::Extern {
             wasmtime::Extern::Table(table) => {
                 Ok(Extern::Table(Obj::wrap(Table::from_inner(store, *table))))
             }
-            wasmtime::Extern::SharedMemory(_) => not_implemented!("shared memory not supported"),
-            wasmtime::Extern::Tag(_) => not_implemented!("exception handling not yet implemented"),
+            wasmtime::Extern::SharedMemory(_) => {
+                not_implemented!(ruby, "shared memory not supported")
+            }
+            wasmtime::Extern::Tag(_) => {
+                not_implemented!(ruby, "exception handling not yet implemented")
+            }
         }
     }
 }
@@ -229,7 +237,7 @@ impl WrapWasmtimeExternType<ExternType> for wasmtime::ExternType {
                 ruby.obj_wrap(TableType::from_inner(tt.clone())),
             )),
             wasmtime::ExternType::Tag(_) => {
-                not_implemented!("exception handling not yet implemented")
+                not_implemented!(ruby, "exception handling not yet implemented")
             }
         }
     }

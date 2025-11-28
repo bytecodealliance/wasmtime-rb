@@ -86,11 +86,9 @@ impl Trap {
             rb_self.code()?.into_value_with(ruby).inspect()
         ))
     }
-}
 
-impl From<Trap> for Error {
-    fn from(trap: Trap) -> Self {
-        magnus::Exception::from_value(Obj::wrap(trap).as_value())
+    pub fn into_error(self, ruby: &Ruby) -> Error {
+        magnus::Exception::from_value(ruby.obj_wrap(self).as_value())
             .unwrap() // Can't fail: Wasmtime::Trap is an Exception
             .into()
     }

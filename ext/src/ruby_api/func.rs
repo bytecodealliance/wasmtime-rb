@@ -219,7 +219,7 @@ impl<'a> Func<'a> {
         let mut results = vec![Val::null_func_ref(); func_ty.results().len()];
 
         func.call(context, &params, &mut results)
-            .map_err(|e| store.handle_wasm_error(e))?;
+            .map_err(|e| store.handle_wasm_error(ruby, e))?;
 
         match results.as_slice() {
             [] => Ok(().into_value_with(ruby)),

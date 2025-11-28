@@ -346,14 +346,14 @@ impl StoreContextValue<'_> {
         };
     }
 
-    pub fn handle_wasm_error(&self, error: wasmtime::Error) -> Error {
+    pub fn handle_wasm_error(&self, ruby: &Ruby, error: wasmtime::Error) -> Error {
         if let Ok(Some(error)) = self.take_last_error() {
             error
         } else if let Some(exit) = error.downcast_ref::<I32Exit>() {
             wasi_exit_error().new_instance((exit.0,)).unwrap().into()
         } else {
             Trap::try_from(error)
-                .map(|trap| trap.into())
+                .map(|trap| trap.into_error(ruby))
                 .unwrap_or_else(|e| error!("{}", e))
         }
     }

@@ -200,17 +200,17 @@ impl<'a> WrapWasmtimeType<'a, Extern<'a>> for wasmtime::Extern {
     ) -> Result<Extern<'a>, Error> {
         match self {
             wasmtime::Extern::Func(func) => {
-                Ok(Extern::Func(Obj::wrap(Func::from_inner(store, *func))))
+                Ok(Extern::Func(ruby.obj_wrap(Func::from_inner(store, *func))))
             }
-            wasmtime::Extern::Global(global) => Ok(Extern::Global(Obj::wrap(Global::from_inner(
-                store, *global,
-            )))),
-            wasmtime::Extern::Memory(mem) => {
-                Ok(Extern::Memory(Obj::wrap(Memory::from_inner(store, *mem)?)))
-            }
-            wasmtime::Extern::Table(table) => {
-                Ok(Extern::Table(Obj::wrap(Table::from_inner(store, *table))))
-            }
+            wasmtime::Extern::Global(global) => Ok(Extern::Global(
+                ruby.obj_wrap(Global::from_inner(store, *global)),
+            )),
+            wasmtime::Extern::Memory(mem) => Ok(Extern::Memory(
+                ruby.obj_wrap(Memory::from_inner(store, *mem)?),
+            )),
+            wasmtime::Extern::Table(table) => Ok(Extern::Table(
+                ruby.obj_wrap(Table::from_inner(store, *table)),
+            )),
             wasmtime::Extern::SharedMemory(_) => {
                 not_implemented!(ruby, "shared memory not supported")
             }

@@ -95,7 +95,7 @@ impl Instance {
             let wrapped_store = rb_self.store;
             let wrapped_export = export
                 .into_extern()
-                .wrap_wasmtime_type(wrapped_store.into())?;
+                .wrap_wasmtime_type(ruby, wrapped_store.into())?;
             hash.aset(export_name, wrapped_export)?;
         }
 
@@ -112,8 +112,11 @@ impl Instance {
         let export = self
             .inner
             .get_export(self.store.context_mut(), unsafe { str.as_str()? });
+        let ruby = Ruby::get_with(str);
         match export {
-            Some(export) => export.wrap_wasmtime_type(self.store.into()).map(Some),
+            Some(export) => export
+                .wrap_wasmtime_type(&ruby, self.store.into())
+                .map(Some),
             None => Ok(None),
         }
     }

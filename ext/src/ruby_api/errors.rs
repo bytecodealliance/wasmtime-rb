@@ -47,8 +47,8 @@ macro_rules! error {
 
 #[macro_export]
 macro_rules! not_implemented {
-    ($($arg:expr),*) => {
-        Err(Error::new(magnus::exception::not_imp_error(), format!($($arg),*)))
+    ($ruby:expr, $($arg:expr),*) => {
+        Err(Error::new($ruby.exception_not_imp_error(), format!($($arg),*)))
     };
 }
 

@@ -27,7 +27,7 @@ rb-sys = { version = "*", default-features = false, features = [
 wasmtime = { version = "=38.0.4", features = ["memory-protection-keys"] }
 wasmtime-wasi = "=38.0.4"
 cap-std = "3.4.5"
-wat = "1.239.0"
+wat = "1.242.0"
 tokio = { version = "1.47.1", features = [
   "rt",
   "rt-multi-thread",

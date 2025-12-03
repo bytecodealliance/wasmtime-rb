@@ -2,12 +2,12 @@ name: Publish documentation to GiHub Pages
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
       with:
         ref: gh-pages
 
     - name: Download docs
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v6
       with:
         name: doc
         path: doc
@@ -70,4 +70,4 @@ runs:
 
     # Return to the original REF so that post-action
     # can still run with the action available.
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6

@@ -1,5 +1,34 @@
 # Changelog
 
+## [v39.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v39.0.1) (2025-12-03)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v38.0.4...v39.0.1)
+
+**Closed issues:**
+
+- Disable old-api feature for Magnus [\#511](https://github.com/bytecodealliance/wasmtime-rb/issues/511)
+- Update using file as stdin to use InputFile [\#470](https://github.com/bytecodealliance/wasmtime-rb/issues/470)
+
+**Merged pull requests:**
+
+- Bump publish-doc action versions [\#546](https://github.com/bytecodealliance/wasmtime-rb/pull/546) ([jeffcharles](https://github.com/jeffcharles))
+- Wasmtime 39.0.1 [\#545](https://github.com/bytecodealliance/wasmtime-rb/pull/545) ([jeffcharles](https://github.com/jeffcharles))
+- chore\(deps\): bump actions/checkout from 5 to 6 [\#544](https://github.com/bytecodealliance/wasmtime-rb/pull/544) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump standard from 1.51.1 to 1.52.0 [\#543](https://github.com/bytecodealliance/wasmtime-rb/pull/543) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump wat from 1.240.0 to 1.242.0 [\#542](https://github.com/bytecodealliance/wasmtime-rb/pull/542) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump bytes from 1.10.1 to 1.11.0 [\#540](https://github.com/bytecodealliance/wasmtime-rb/pull/540) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Disable old-api Magnus feature [\#537](https://github.com/bytecodealliance/wasmtime-rb/pull/537) ([jeffcharles](https://github.com/jeffcharles))
+- Remove deprecated Magnus call from not\_implemented [\#536](https://github.com/bytecodealliance/wasmtime-rb/pull/536) ([jeffcharles](https://github.com/jeffcharles))
+- Remove deprecated Magnus calls in static\_id [\#535](https://github.com/bytecodealliance/wasmtime-rb/pull/535) ([jeffcharles](https://github.com/jeffcharles))
+- Remove deprecated Magnus calls in externals [\#534](https://github.com/bytecodealliance/wasmtime-rb/pull/534) ([jeffcharles](https://github.com/jeffcharles))
+- Remove deprecated Magnus call in trap [\#533](https://github.com/bytecodealliance/wasmtime-rb/pull/533) ([jeffcharles](https://github.com/jeffcharles))
+- Remove deprecated magnus calls in module and component [\#532](https://github.com/bytecodealliance/wasmtime-rb/pull/532) ([jeffcharles](https://github.com/jeffcharles))
+- Remove more deprecated Magnus calls [\#531](https://github.com/bytecodealliance/wasmtime-rb/pull/531) ([jeffcharles](https://github.com/jeffcharles))
+- Remove some deprecated Magnus calls [\#530](https://github.com/bytecodealliance/wasmtime-rb/pull/530) ([jeffcharles](https://github.com/jeffcharles))
+- Update calls to build RArrays to not use deprecated APIs [\#529](https://github.com/bytecodealliance/wasmtime-rb/pull/529) ([jeffcharles](https://github.com/jeffcharles))
+- Use InputFile for reading from stdin [\#528](https://github.com/bytecodealliance/wasmtime-rb/pull/528) ([jeffcharles](https://github.com/jeffcharles))
+- Add a script to generate changelog [\#527](https://github.com/bytecodealliance/wasmtime-rb/pull/527) ([saulecabrera](https://github.com/saulecabrera))
+
 ## [v38.0.4](https://github.com/bytecodealliance/wasmtime-rb/tree/v38.0.4) (2025-11-14)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v37.0.2...v38.0.4)
@@ -28,7 +57,6 @@
 **Merged pull requests:**
 
 - Update to wasmtime v37 [\#512](https://github.com/bytecodealliance/wasmtime-rb/pull/512) ([saulecabrera](https://github.com/saulecabrera))
-  - Memory protection options changed to `:yes` / `:no` instead of `:enable` / `:disable`
 - Update Magnus to v0.8.2 [\#510](https://github.com/bytecodealliance/wasmtime-rb/pull/510) ([jeffcharles](https://github.com/jeffcharles))
 - Update oxidize-rb/actions/fetch-ci-data [\#509](https://github.com/bytecodealliance/wasmtime-rb/pull/509) ([saulecabrera](https://github.com/saulecabrera))
 - chore\(deps\): bump wat from 1.236.0 to 1.239.0 [\#508](https://github.com/bytecodealliance/wasmtime-rb/pull/508) ([dependabot[bot]](https://github.com/apps/dependabot))

@@ -97,14 +97,10 @@ impl Func {
         args: &[Value],
     ) -> Result<Value, Error> {
         let store_context_value = StoreContextValue::from(store);
-        let results_ty = func.results(store.context_mut());
+        let func_ty = func.ty(store.context_mut());
+        let results_ty = func_ty.results();
         let mut results = vec![wasmtime::component::Val::Bool(false); results_ty.len()];
-        let params = convert_params(
-            ruby,
-            &store_context_value,
-            &func.params(store.context_mut()),
-            args,
-        )?;
+        let params = convert_params(ruby, &store_context_value, func_ty.params(), args)?;
 
         func.call(store.context_mut(), &params, &mut results)
             .map_err(|e| store_context_value.handle_wasm_error(ruby, e))?;
@@ -133,10 +129,10 @@ impl Func {
     }
 }
 
-fn convert_params(
+fn convert_params<'a>(
     ruby: &Ruby,
     store: &StoreContextValue,
-    ty: &[(String, Type)],
+    ty: impl ExactSizeIterator<Item = (&'a str, Type)>,
     params_slice: &[Value],
 ) -> Result<Vec<Val>, Error> {
     if ty.len() != params_slice.len() {
@@ -151,7 +147,7 @@ fn convert_params(
     }
 
     let mut params = Vec::with_capacity(ty.len());
-    for (i, (ty, value)) in ty.iter().zip(params_slice.iter()).enumerate() {
+    for (i, (ty, value)) in ty.zip(params_slice.iter()).enumerate() {
         let i: u32 = i
             .try_into()
             .map_err(|_| Error::new(ruby.exception_arg_error(), "too many params"))?;

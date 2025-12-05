@@ -1,6 +1,6 @@
 # Changelog
 
-## [v39.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v39.0.1) (2025-12-03)
+## [v39.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v39.0.1) (2025-12-05)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v38.0.4...v39.0.1)
 
@@ -11,6 +11,7 @@
 
 **Merged pull requests:**
 
+- Update rb\_sys to 0.9.119 to fix build [\#547](https://github.com/bytecodealliance/wasmtime-rb/pull/547) ([jeffcharles](https://github.com/jeffcharles))
 - Bump publish-doc action versions [\#546](https://github.com/bytecodealliance/wasmtime-rb/pull/546) ([jeffcharles](https://github.com/jeffcharles))
 - Wasmtime 39.0.1 [\#545](https://github.com/bytecodealliance/wasmtime-rb/pull/545) ([jeffcharles](https://github.com/jeffcharles))
 - chore\(deps\): bump actions/checkout from 5 to 6 [\#544](https://github.com/bytecodealliance/wasmtime-rb/pull/544) ([dependabot[bot]](https://github.com/apps/dependabot))

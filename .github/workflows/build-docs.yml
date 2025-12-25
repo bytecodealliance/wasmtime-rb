@@ -26,7 +26,7 @@ jobs:
 
       - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
         with:
-          ruby-version: "3.4"
+          ruby-version: "4.0"
           rustup-toolchain: "${{ env.NIGHTLY_VERSION }}"
           bundler-cache: true
           cargo-cache: true

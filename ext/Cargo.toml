@@ -38,7 +38,7 @@ async-timer = { version = "1.0.0-beta.15", features = [
   "tokio1",
 ], optional = true }
 static_assertions = "1.1.0"
-wasmtime-environ = "=39.0.1"
+wasmtime-environ = "=40.0.0"
 deterministic-wasi-ctx = { version = "=3.0.4" }
 
 [build-dependencies]

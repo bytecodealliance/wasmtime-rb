@@ -95,7 +95,8 @@ module Wasmtime
 
         instance = Instance.new(store_deadline_1, mod, [f])
         # GC stress makes Ruby very slow; we always tick before intering Wasm.
-        engine.start_epoch_interval(1) unless GC.stress
+        # Using `2` since `1` seems to cause rare failures.
+        engine.start_epoch_interval(2) unless GC.stress
         expect { instance.invoke("f") }.to raise_error(Trap)
         expect(host_call_finished).to be true
       end

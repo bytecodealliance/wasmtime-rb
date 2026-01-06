@@ -21,7 +21,7 @@ RSpec.describe "Ractor", ractor: true do
       Wasmtime::Instance.new(store, mod).invoke("hello")
     end
 
-    result = r.take
+    result = value(r)
     expect(result).to eq([1, 2, 3.0, 4.0])
   end
 
@@ -42,7 +42,13 @@ RSpec.describe "Ractor", ractor: true do
     end
 
     ractors.each do |ractor|
-      expect(ractor.take).to eq([1, 2, 3.0, 4.0])
+      expect(value(ractor)).to eq([1, 2, 3.0, 4.0])
     end
+  end
+
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("4.0")
+    def value(ractor) = ractor.value
+  else
+    def value(ractor) = ractor.take
   end
 end

@@ -7,10 +7,11 @@ on:
       ruby-version:
         description: "Ruby version to memcheck"
         required: true
-        default: "3.4"
+        default: "4.0"
         type: choice
         options:
           - "head"
+          - "4.0"
           - "3.4"
           - "3.3"
           - "3.2"
@@ -38,7 +39,7 @@ jobs:
 
       - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
         with:
-          ruby-version: ${{ inputs.ruby-version || '3.4' }}
+          ruby-version: ${{ inputs.ruby-version || '4.0' }}
           bundler-cache: true
           cargo-cache: true
           cache-version: v2

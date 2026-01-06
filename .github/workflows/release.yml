@@ -42,7 +42,7 @@ jobs:
 
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.4"
+          ruby-version: "4.0"
 
       - uses: oxidize-rb/actions/cross-gem@v1
         id: cross-gem
@@ -73,7 +73,7 @@ jobs:
 
       - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
         with:
-          ruby-version: "3.4"
+          ruby-version: "4.0"
           bundler-cache: true
           cargo-cache: true
           cache-version: v1

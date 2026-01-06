@@ -14,6 +14,7 @@ group :development do
   gem "yard-rustdoc", "~> 0.4.0", require: false
   gem "benchmark-ips", require: false
   gem "fiddle"
+  gem "rdoc"
 end
 
 group :test do

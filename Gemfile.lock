@@ -10,7 +10,9 @@ GEM
     ast (2.4.3)
     benchmark-ips (2.14.0)
     bigdecimal (3.1.9)
+    date (3.5.1)
     diff-lcs (1.6.2)
+    erb (6.0.1)
     ffi (1.17.3)
     ffi (1.17.3-aarch64-linux-gnu)
     ffi (1.17.3-aarch64-linux-musl)
@@ -35,6 +37,9 @@ GEM
       racc
     prettier_print (1.2.1)
     prism (1.6.0)
+    psych (5.3.1)
+      date
+      stringio
     racc (1.8.1)
     rainbow (3.1.1)
     rake (13.3.1)
@@ -43,6 +48,10 @@ GEM
     rake-compiler-dock (1.11.0)
     rb_sys (0.9.124)
       rake-compiler-dock (= 1.11.0)
+    rdoc (7.0.3)
+      erb
+      psych (>= 4.0.0)
+      tsort
     regexp_parser (2.11.3)
     rspec (3.13.2)
       rspec-core (~> 3.13.0)
@@ -88,8 +97,10 @@ GEM
     standard-performance (1.8.0)
       lint_roller (~> 1.1)
       rubocop-performance (~> 1.25.0)
+    stringio (3.2.0)
     syntax_tree (6.3.0)
       prettier_print (>= 1.2.0)
+    tsort (0.2.0)
     unicode-display_width (3.2.0)
       unicode-emoji (~> 4.1)
     unicode-emoji (4.2.0)
@@ -117,6 +128,7 @@ DEPENDENCIES
   get_process_mem
   rake (~> 13.3)
   rake-compiler
+  rdoc
   rspec (~> 3.13)
   standard (~> 1.52)
   wasmtime!

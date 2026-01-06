@@ -93,7 +93,7 @@ GEM
     unicode-display_width (3.2.0)
       unicode-emoji (~> 4.1)
     unicode-emoji (4.2.0)
-    yard (0.9.37)
+    yard (0.9.38)
     yard-rustdoc (0.4.2)
       syntax_tree (~> 6.0)
       yard (~> 0.9)

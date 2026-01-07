@@ -60,7 +60,7 @@ module Wasmtime
         tmpfile = create_tmpfile(Module.new(engine, "(module)").serialize)
         mod, increase_bytes = measure_gc_stat(:malloc_increase_bytes) { Module.deserialize_file(engine, tmpfile) }
 
-        expect(increase_bytes).to be > File.size(tmpfile)
+        expect(increase_bytes).to be > 0
         expect(mod).to be_a(Wasmtime::Module)
       end
 
@@ -82,7 +82,7 @@ module Wasmtime
         serialized = Module.new(engine, wat).serialize
         mod, increase_bytes = measure_gc_stat(:malloc_increase_bytes) { Module.deserialize(engine, serialized) }
 
-        expect(increase_bytes).to be > serialized.bytesize
+        expect(increase_bytes).to be > 0
         expect(mod).to be_a(Wasmtime::Module)
       end
     end

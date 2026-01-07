@@ -142,8 +142,7 @@ impl From<ModuleImpl> for Module {
         let size = if end > start {
             unsafe { end.offset_from(start) }
         } else {
-            // This is mostly a safety mechanism; this should never happen if
-            // things are correctly configured.
+            // Happens when module does not contain any Wasm functions.
             0
         };
 

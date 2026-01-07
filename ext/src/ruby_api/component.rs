@@ -137,8 +137,12 @@ impl From<ComponentImpl> for Component {
         let start = range.start;
         let end = range.end;
 
-        assert!(end > start);
-        let size = unsafe { end.offset_from(start) };
+        let size = if end > start {
+            unsafe { end.offset_from(start) }
+        } else {
+            // Happens when component does not contain any Wasm functions.
+            0
+        };
 
         Self {
             inner,

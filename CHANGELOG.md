@@ -1,5 +1,22 @@
 # Changelog
 
+## [v41.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v41.0.0) (2026-01-22)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v39.0.1...v41.0.0)
+
+**Merged pull requests:**
+
+- Update to Wasmtime 41 [\#563](https://github.com/bytecodealliance/wasmtime-rb/pull/563) ([jeffcharles](https://github.com/jeffcharles))
+- Try to fix flakey timing test [\#561](https://github.com/bytecodealliance/wasmtime-rb/pull/561) ([jeffcharles](https://github.com/jeffcharles))
+- Fix build documentation GitHub Actions workflow [\#560](https://github.com/bytecodealliance/wasmtime-rb/pull/560) ([jeffcharles](https://github.com/jeffcharles))
+- Ruby 4.0 support [\#559](https://github.com/bytecodealliance/wasmtime-rb/pull/559) ([jeffcharles](https://github.com/jeffcharles))
+- chore\(deps\): bump cap-std from 3.4.5 to 4.0.0 [\#558](https://github.com/bytecodealliance/wasmtime-rb/pull/558) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump wat from 1.242.0 to 1.243.0 [\#557](https://github.com/bytecodealliance/wasmtime-rb/pull/557) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump rake-compiler from 1.3.0 to 1.3.1 [\#552](https://github.com/bytecodealliance/wasmtime-rb/pull/552) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump actions/download-artifact from 6 to 7 [\#551](https://github.com/bytecodealliance/wasmtime-rb/pull/551) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump actions/upload-artifact from 5 to 6 [\#550](https://github.com/bytecodealliance/wasmtime-rb/pull/550) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump yard from 0.9.37 to 0.9.38 [\#549](https://github.com/bytecodealliance/wasmtime-rb/pull/549) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v39.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v39.0.1) (2025-12-05)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v38.0.4...v39.0.1)

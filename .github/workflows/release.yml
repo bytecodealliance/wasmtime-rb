@@ -108,8 +108,8 @@ jobs:
           ls -l
           for i in *.gem; do
             if [ -f "$i" ]; then
-              if ! gem push "$i" >push.out; then
-                gemerr=$?
+              gem push "$i" >push.out || gemerr=$?
+              if [ -n "$gemerr" ]; then
                 sed 's/^/::error:: /' push.out
                 if ! grep -q "Repushing of gem" push.out; then
                   exit $gemerr

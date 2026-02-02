@@ -42,4 +42,4 @@ wasmtime-environ = "=41.0.1"
 deterministic-wasi-ctx = { version = "=3.0.6" }
 
 [build-dependencies]
-rb-sys-env = "0.2.2"
+rb-sys-env = "0.2.3"

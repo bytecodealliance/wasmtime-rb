@@ -10,9 +10,11 @@ GEM
     ast (2.4.3)
     benchmark-ips (2.14.0)
     bigdecimal (3.1.9)
+    cgi (0.5.1)
     date (3.5.1)
     diff-lcs (1.6.2)
-    erb (6.0.1)
+    erb (4.0.4)
+      cgi (>= 0.3.3)
     ffi (1.17.3)
     ffi (1.17.3-aarch64-linux-gnu)
     ffi (1.17.3-aarch64-linux-musl)
@@ -48,7 +50,7 @@ GEM
     rake-compiler-dock (1.11.0)
     rb_sys (0.9.124)
       rake-compiler-dock (= 1.11.0)
-    rdoc (7.0.3)
+    rdoc (7.1.0)
       erb
       psych (>= 4.0.0)
       tsort

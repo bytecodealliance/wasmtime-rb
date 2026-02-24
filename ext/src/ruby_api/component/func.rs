@@ -122,9 +122,6 @@ impl Func {
             }
         };
 
-        func.post_return(store.context_mut())
-            .map_err(|e| store_context_value.handle_wasm_error(ruby, e))?;
-
         result
     }
 }

@@ -169,11 +169,6 @@
         </dt>
         <dd><pre class="code"><span class='symbol'>:interrupt</span></pre></dd>
       
-        <dt id="ALWAYS_TRAP_ADAPTER-constant" class="">ALWAYS_TRAP_ADAPTER =
-          
-        </dt>
-        <dd><pre class="code"><span class='symbol'>:always_trap_adapter</span></pre></dd>
-      
         <dt id="OUT_OF_FUEL-constant" class="">OUT_OF_FUEL =
           
         </dt>
@@ -345,8 +340,7 @@
 76
 77
 78
-79
-80</pre>
+79</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/trap.rs', line 62</span>
@@ -364,7 +358,6 @@ pub fn code(&amp;self) -&gt; Result&lt;Option&lt;Symbol&gt;, Error&gt; {
         wasmtime::Trap::BadConversionToInteger =&gt; trap_const!(BAD_CONVERSION_TO_INTEGER),
         wasmtime::Trap::UnreachableCodeReached =&gt; trap_const!(UNREACHABLE_CODE_REACHED),
         wasmtime::Trap::Interrupt =&gt; trap_const!(INTERRUPT),
-        wasmtime::Trap::AlwaysTrapAdapter =&gt; trap_const!(ALWAYS_TRAP_ADAPTER),
         wasmtime::Trap::OutOfFuel =&gt; trap_const!(OUT_OF_FUEL),
         // When adding a trap code here, define a matching constant on Wasmtime::Trap (in Ruby)
         _ =&gt; trap_const!(UNKNOWN),
@@ -495,7 +488,7 @@ pub fn wasm_backtrace_message(&amp;self) -&gt; Option&lt;String&gt; {
 </div>
 
       <div id="footer">
-  Generated on Mon Feb  2 14:13:37 2026 by
+  Generated on Wed Feb 25 18:20:50 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-4.0.1).
 </div>

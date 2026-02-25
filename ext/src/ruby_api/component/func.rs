@@ -105,7 +105,7 @@ impl Func {
         func.call(store.context_mut(), &params, &mut results)
             .map_err(|e| store_context_value.handle_wasm_error(ruby, e))?;
 
-        let result = match results_ty.len() {
+        match results_ty.len() {
             0 => Ok(ruby.qnil().as_value()),
             1 => component_val_to_rb(
                 ruby,
@@ -120,9 +120,7 @@ impl Func {
                 }
                 Ok(ary.into_value_with(ruby))
             }
-        };
-
-        result
+        }
     }
 }
 

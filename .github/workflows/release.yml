@@ -110,7 +110,7 @@ jobs:
             if [ -f "$i" ]; then
               gem push "$i" >push.out
               gemerr=$?
-              if [ -n "$gemerr" ]; then
+              if [ "$gemerr" -ne 0 ]; then
                 sed 's/^/::error:: /' push.out
                 if ! grep -q "Repushing of gem" push.out; then
                   exit $gemerr

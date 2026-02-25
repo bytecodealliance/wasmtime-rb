@@ -1,5 +1,18 @@
 # Changelog
 
+## [v42.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v42.0.0) (2026-02-25)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v41.0.1...v42.0.0)
+
+**Merged pull requests:**
+
+- Update to Wasmtime v42.0.0 [\#570](https://github.com/bytecodealliance/wasmtime-rb/pull/570) ([jeffcharles](https://github.com/jeffcharles))
+- chore\(deps\): bump tokio from 1.48.0 to 1.49.0 [\#569](https://github.com/bytecodealliance/wasmtime-rb/pull/569) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump rb-sys-env from 0.2.2 to 0.2.3 [\#568](https://github.com/bytecodealliance/wasmtime-rb/pull/568) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump rdoc from 7.0.3 to 7.1.0 [\#567](https://github.com/bytecodealliance/wasmtime-rb/pull/567) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump standard from 1.52.0 to 1.53.0 [\#566](https://github.com/bytecodealliance/wasmtime-rb/pull/566) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Fix issue with checking gem push exit code in release workflow [\#564](https://github.com/bytecodealliance/wasmtime-rb/pull/564) ([jeffcharles](https://github.com/jeffcharles))
+
 ## [v41.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v41.0.1) (2026-01-29)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v41.0.0...v41.0.1)

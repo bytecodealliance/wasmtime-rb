@@ -72,7 +72,6 @@ impl Trap {
             wasmtime::Trap::BadConversionToInteger => trap_const!(BAD_CONVERSION_TO_INTEGER),
             wasmtime::Trap::UnreachableCodeReached => trap_const!(UNREACHABLE_CODE_REACHED),
             wasmtime::Trap::Interrupt => trap_const!(INTERRUPT),
-            wasmtime::Trap::AlwaysTrapAdapter => trap_const!(ALWAYS_TRAP_ADAPTER),
             wasmtime::Trap::OutOfFuel => trap_const!(OUT_OF_FUEL),
             // When adding a trap code here, define a matching constant on Wasmtime::Trap (in Ruby)
             _ => trap_const!(UNKNOWN),

@@ -186,9 +186,9 @@ dependencies = [
 
 [[package]]
 name = "cap-primitives"
-version = "4.0.0"
+version = "4.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2738131575dbd2ca9e8e144a102ba4e534ca726e2446f1e92090a1cc08fe283"
+checksum = "cdadbd7c002d3a484b35243669abdae85a0ebaded5a61117169dc3400f9a7ff0"
 dependencies = [
  "ambient-authority",
  "fs-set-times",
@@ -226,11 +226,11 @@ dependencies = [
 
 [[package]]
 name = "cap-std"
-version = "4.0.0"
+version = "4.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42d9210de501a941735b489ee5c41501283259ddf3fec9884ace40def0a80a11"
+checksum = "7281235d6e96d3544ca18bba9049be92f4190f8d923e3caef1b5f66cfa752608"
 dependencies = [
- "cap-primitives 4.0.0",
+ "cap-primitives 4.0.2",
  "io-extras 0.19.0",
  "io-lifetimes 3.0.1",
  "rustix 1.1.2",
@@ -2411,7 +2411,7 @@ dependencies = [
  "async-timer",
  "async-trait",
  "bytes",
- "cap-std 4.0.0",
+ "cap-std 4.0.2",
  "deterministic-wasi-ctx",
  "lazy_static",
  "magnus",

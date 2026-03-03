@@ -1,11 +1,27 @@
 # Changelog
 
+## [v42.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v42.0.1) (2026-03-03)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v42.0.0...v42.0.1)
+
+**Merged pull requests:**
+
+- Wasmtime 42.0.1 [\#579](https://github.com/bytecodealliance/wasmtime-rb/pull/579) ([jeffcharles](https://github.com/jeffcharles))
+- chore\(deps\): bump bytes from 1.11.0 to 1.11.1 [\#578](https://github.com/bytecodealliance/wasmtime-rb/pull/578) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump cap-std from 4.0.0 to 4.0.2 [\#577](https://github.com/bytecodealliance/wasmtime-rb/pull/577) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump rdoc from 7.1.0 to 7.2.0 [\#576](https://github.com/bytecodealliance/wasmtime-rb/pull/576) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump actions/download-artifact from 7 to 8 [\#575](https://github.com/bytecodealliance/wasmtime-rb/pull/575) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump actions/upload-artifact from 6 to 7 [\#574](https://github.com/bytecodealliance/wasmtime-rb/pull/574) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump standard from 1.53.0 to 1.54.0 [\#573](https://github.com/bytecodealliance/wasmtime-rb/pull/573) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Another fix for the release script [\#572](https://github.com/bytecodealliance/wasmtime-rb/pull/572) ([jeffcharles](https://github.com/jeffcharles))
+
 ## [v42.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v42.0.0) (2026-02-25)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v41.0.1...v42.0.0)
 
 **Merged pull requests:**
 
+- Fix the release script [\#571](https://github.com/bytecodealliance/wasmtime-rb/pull/571) ([jeffcharles](https://github.com/jeffcharles))
 - Update to Wasmtime v42.0.0 [\#570](https://github.com/bytecodealliance/wasmtime-rb/pull/570) ([jeffcharles](https://github.com/jeffcharles))
 - chore\(deps\): bump tokio from 1.48.0 to 1.49.0 [\#569](https://github.com/bytecodealliance/wasmtime-rb/pull/569) ([dependabot[bot]](https://github.com/apps/dependabot))
 - chore\(deps\): bump rb-sys-env from 0.2.2 to 0.2.3 [\#568](https://github.com/bytecodealliance/wasmtime-rb/pull/568) ([dependabot[bot]](https://github.com/apps/dependabot))

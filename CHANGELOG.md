@@ -1,5 +1,17 @@
 # Changelog
 
+## [v43.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v43.0.0) (2026-03-26)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v42.0.1...v43.0.0)
+
+**Closed issues:**
+
+- JS bundling from ruby-host [\#580](https://github.com/bytecodealliance/wasmtime-rb/issues/580)
+
+**Merged pull requests:**
+
+- Update to Wasmtime v43.0.0 [\#582](https://github.com/bytecodealliance/wasmtime-rb/pull/582) ([jeffcharles](https://github.com/jeffcharles))
+
 ## [v42.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v42.0.1) (2026-03-03)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v42.0.0...v42.0.1)

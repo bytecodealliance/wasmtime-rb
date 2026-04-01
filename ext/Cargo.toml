@@ -28,7 +28,7 @@ wasmtime = { version = "=43.0.0", features = ["memory-protection-keys"] }
 wasmtime-wasi = "=43.0.0"
 cap-std = "4.0.2"
 wat = "1.246.1"
-tokio = { version = "1.49.0", features = [
+tokio = { version = "1.50.0", features = [
   "rt",
   "rt-multi-thread",
   "time",

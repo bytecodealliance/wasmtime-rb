@@ -1,5 +1,17 @@
 # Changelog
 
+## [v43.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v43.0.1) (2026-04-10)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v43.0.0...v43.0.1)
+
+**Merged pull requests:**
+
+- Update to Wasmtime 43.0.1 [\#587](https://github.com/bytecodealliance/wasmtime-rb/pull/587) ([jeffcharles](https://github.com/jeffcharles))
+- chore\(deps\): bump tokio from 1.49.0 to 1.50.0 [\#586](https://github.com/bytecodealliance/wasmtime-rb/pull/586) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump wat from 1.245.1 to 1.246.1 [\#585](https://github.com/bytecodealliance/wasmtime-rb/pull/585) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump rb-sys from 0.9.124 to 0.9.125 [\#584](https://github.com/bytecodealliance/wasmtime-rb/pull/584) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump rb\_sys from 0.9.124 to 0.9.125 [\#583](https://github.com/bytecodealliance/wasmtime-rb/pull/583) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v43.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v43.0.0) (2026-03-26)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v42.0.1...v43.0.0)

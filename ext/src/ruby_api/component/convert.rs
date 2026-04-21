@@ -97,6 +97,7 @@ pub(crate) fn component_val_to_rb(
         Val::Future(_) => not_implemented!(ruby, "Future not implemented"),
         Val::ErrorContext(_) => not_implemented!(ruby, "ErrorContext not implemented"),
         Val::Stream(_) => not_implemented!(ruby, "Stream not implemented"),
+        Val::Map(_) => not_implemented!(ruby, "Map not implemented"),
     }
 }
 
@@ -288,6 +289,7 @@ pub(crate) fn rb_to_component_val(
         Type::Future(_) => not_implemented!(ruby, "Future not implemented"),
         Type::Stream(_) => not_implemented!(ruby, "Stream not implemented"),
         Type::ErrorContext => not_implemented!(ruby, "ErrorContext not implemented"),
+        Type::Map(_) => not_implemented!(ruby, "Map not implemented"),
     }
 }
 

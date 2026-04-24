@@ -155,25 +155,25 @@ impl Linker {
     /// @param store [Store]
     /// @param mod [String] Module name
     /// @param name [String] Import name
-    /// @return [Extern, nil] The item if it exists, nil otherwise.
+    /// @return [Extern] The item.
+    /// @raise [Wasmtime::Error] if the item is not defined in this linker, or
+    ///   if looking it up fails for another reason (e.g. out of memory).
     pub fn get(
         &self,
         store: Obj<Store>,
         module: RString,
         name: RString,
-    ) -> Result<Option<Extern<'_>>, Error> {
-        let ext =
-            self.inner
-                .borrow()
-                .get(store.context_mut(), unsafe { module.as_str() }?, unsafe {
-                    name.as_str()?
-                });
+    ) -> Result<Extern<'_>, Error> {
+        let ext = self
+            .inner
+            .borrow()
+            .get(store.context_mut(), unsafe { module.as_str() }?, unsafe {
+                name.as_str()?
+            })
+            .map_err(|e| error!("{}", e))?;
 
         let ruby = Ruby::get_with(store);
-        match ext {
-            None => Ok(None),
-            Some(ext) => ext.wrap_wasmtime_type(&ruby, store.into()).map(Some),
-        }
+        ext.wrap_wasmtime_type(&ruby, store.into())
     }
 
     /// @yard

@@ -1,5 +1,13 @@
 # Changelog
 
+## [v44.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v44.0.0) (2026-04-27)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v43.0.1...v44.0.0)
+
+**Merged pull requests:**
+
+- update to Wasmtime 44.0.0 [\#588](https://github.com/bytecodealliance/wasmtime-rb/pull/588) ([jacobsteves](https://github.com/jacobsteves))
+
 ## [v43.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v43.0.1) (2026-04-10)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v43.0.0...v43.0.1)

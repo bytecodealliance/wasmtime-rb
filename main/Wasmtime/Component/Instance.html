@@ -6,13 +6,13 @@
 <title>
   Class: Wasmtime::Component::Instance
   
-    &mdash; Documentation by YARD 0.9.39
+    &mdash; Documentation by YARD 0.9.43
   
 </title>
 
-  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css">
 
-  <link rel="stylesheet" href="../../css/common.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/common.css" type="text/css">
 
 <script type="text/javascript">
   pathId = "Wasmtime::Component::Instance";
@@ -27,6 +27,8 @@
 
   </head>
   <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
     <div class="nav_wrap">
       <iframe id="nav" src="../../class_list.html?1"></iframe>
       <div id="resizer"></div>
@@ -94,16 +96,15 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>ext/src/ruby_api/component/instance.rs</dd>
+    <dd>ext/src/ruby_api/component/instance.rs
+</dd>
   </dl>
   
 </div>
 
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
-    
-<p>Represents a WebAssembly component instance.</p>
-
+    <p>Represents a WebAssembly component instance.</p>
 
   </div>
 </div>
@@ -149,14 +150,13 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Retrieves a Wasm function from the component instance.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Retrieves a Wasm function from the component instance.</p></div></span>
   
 </li>
 
       
     </ul>
+    
   
 
 
@@ -176,9 +176,7 @@
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Retrieves a Wasm function from the component instance.</p>
-
+    <p>Retrieves a Wasm function from the component instance.</p>
 
   </div>
 </div>
@@ -188,16 +186,12 @@
     <h4 class="tag_title">Examples:</h4>
     
       
-        <h5 class="example_title"><div class='inline'>
-<p>Retrieve a top-level <code>add</code> export:</p>
-</div></h5>
+        <h5 class="example_title"><div class='inline'><p>Retrieve a top-level <code>add</code> export:</p></div></h5>
       
       <pre class="example code"><code><span class='id identifier rubyid_instance'>instance</span><span class='period'>.</span><span class='id identifier rubyid_get_func'>get_func</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>add</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span></code></pre>
     
       
-        <h5 class="example_title"><div class='inline'>
-<p>Retrieve an <code>add</code> export nested under an <code>adder</code> instance top-level export:</p>
-</div></h5>
+        <h5 class="example_title"><div class='inline'><p>Retrieve an <code>add</code> export nested under an <code>adder</code> instance top-level export:</p></div></h5>
       
       <pre class="example code"><code><span class='id identifier rubyid_instance'>instance</span><span class='period'>.</span><span class='id identifier rubyid_get_func'>get_func</span><span class='lparen'>(</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>adder</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>add</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='rparen'>)</span></code></pre>
     
@@ -215,9 +209,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>The path of the function to retrieve</p>
-</div>
+        <div class='inline'><p>The path of the function to retrieve</p></div>
       
     </li>
   
@@ -234,9 +226,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>The function if it exists, nil otherwise</p>
-</div>
+        <div class='inline'><p>The function if it exists, nil otherwise</p></div>
       
     </li>
   
@@ -278,9 +268,9 @@ pub fn get_func(rb_self: Obj&lt;Self&gt;, handle: Value) -&gt; Result&lt;Option&
 </div>
 
       <div id="footer">
-  Generated on Fri Apr 10 17:38:20 2026 by
+  Generated on Mon Apr 27 19:26:22 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.39 (ruby-4.0.2).
+  0.9.43 (ruby-4.0.3).
 </div>
 
     </div>

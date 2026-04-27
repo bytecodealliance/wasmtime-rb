@@ -6,13 +6,13 @@
 <title>
   Class: Wasmtime::Memory
   
-    &mdash; Documentation by YARD 0.9.39
+    &mdash; Documentation by YARD 0.9.43
   
 </title>
 
-  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../css/style.css" type="text/css">
 
-  <link rel="stylesheet" href="../css/common.css" type="text/css" />
+  <link rel="stylesheet" href="../css/common.css" type="text/css">
 
 <script type="text/javascript">
   pathId = "Wasmtime::Memory";
@@ -27,6 +27,8 @@
 
   </head>
   <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
     <div class="nav_wrap">
       <iframe id="nav" src="../class_list.html?1"></iframe>
       <div id="resizer"></div>
@@ -94,16 +96,15 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>ext/src/ruby_api/memory.rs</dd>
+    <dd>ext/src/ruby_api/memory.rs
+</dd>
   </dl>
   
 </div>
 
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
-    
-<p>Represents a WebAssembly memory.</p>
-
+    <p>Represents a WebAssembly memory.</p>
 
   </div>
 </div>
@@ -165,6 +166,7 @@
 
       
     </ul>
+    
   
     <h2>
       Instance Method Summary
@@ -190,9 +192,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>The number of bytes of the memory.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>The number of bytes of the memory.</p></div></span>
   
 </li>
 
@@ -214,9 +214,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Grows a memory by <code>delta</code> pages.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Grows a memory by <code>delta</code> pages.</p></div></span>
   
 </li>
 
@@ -238,9 +236,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>The maximum number of memory pages.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>The maximum number of memory pages.</p></div></span>
   
 </li>
 
@@ -262,9 +258,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>The minimum number of memory pages.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>The minimum number of memory pages.</p></div></span>
   
 </li>
 
@@ -286,9 +280,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Read <code>size</code> bytes starting at <code>offset</code>.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Read <code>size</code> bytes starting at <code>offset</code>.</p></div></span>
   
 </li>
 
@@ -310,9 +302,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Read <code>size</code> bytes starting at <code>offset</code> into an <span class='object_link'><a href="Memory/UnsafeSlice.html" title="Wasmtime::Memory::UnsafeSlice (class)">UnsafeSlice</a></span>.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Read <code>size</code> bytes starting at <code>offset</code> into an <span class='object_link'><a href="Memory/UnsafeSlice.html" title="Wasmtime::Memory::UnsafeSlice (class)">UnsafeSlice</a></span>.</p></div></span>
   
 </li>
 
@@ -334,9 +324,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Read <code>size</code> bytes starting at <code>offset</code>.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Read <code>size</code> bytes starting at <code>offset</code>.</p></div></span>
   
 </li>
 
@@ -358,9 +346,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>The number of pages of the memory.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>The number of pages of the memory.</p></div></span>
   
 </li>
 
@@ -382,14 +368,13 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Write <code>value</code> starting at <code>offset</code>.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Write <code>value</code> starting at <code>offset</code>.</p></div></span>
   
 </li>
 
       
     </ul>
+    
   
 
 
@@ -438,9 +423,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>The minimum memory pages.</p>
-</div>
+        <div class='inline'><p>The minimum memory pages.</p></div>
       
     </li>
   
@@ -456,9 +439,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>The maximum memory pages.</p>
-</div>
+        <div class='inline'><p>The maximum memory pages.</p></div>
       
     </li>
   
@@ -539,9 +520,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns The number of bytes of the memory.</p>
-
+    <p>Returns The number of bytes of the memory.</p>
 
   </div>
 </div>
@@ -558,9 +537,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       
       
         &mdash;
-        <div class='inline'>
-<p>The number of bytes of the memory.</p>
-</div>
+        <div class='inline'><p>The number of bytes of the memory.</p></div>
       
     </li>
   
@@ -598,9 +575,8 @@ pub fn data_size(&amp;self) -&gt; Result&lt;usize, Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Grows a memory by <code>delta</code> pages. Raises if the memory grows beyond its limit.</p>
-
+    <p>Grows a memory by <code>delta</code> pages.
+Raises if the memory grows beyond its limit.</p>
 
   </div>
 </div>
@@ -618,9 +594,7 @@ pub fn data_size(&amp;self) -&gt; Result&lt;usize, Error&gt; {
       
       
         &mdash;
-        <div class='inline'>
-<p>The number of pages to grow by.</p>
-</div>
+        <div class='inline'><p>The number of pages to grow by.</p></div>
       
     </li>
   
@@ -637,9 +611,7 @@ pub fn data_size(&amp;self) -&gt; Result&lt;usize, Error&gt; {
       
       
         &mdash;
-        <div class='inline'>
-<p>The number of pages the memory had before being resized.</p>
-</div>
+        <div class='inline'><p>The number of pages the memory had before being resized.</p></div>
       
     </li>
   
@@ -693,9 +665,7 @@ pub fn grow(&amp;self, delta: usize) -&gt; Result&lt;u64, Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns The maximum number of memory pages.</p>
-
+    <p>Returns The maximum number of memory pages.</p>
 
   </div>
 </div>
@@ -712,9 +682,7 @@ pub fn grow(&amp;self, delta: usize) -&gt; Result&lt;u64, Error&gt; {
       
       
         &mdash;
-        <div class='inline'>
-<p>The maximum number of memory pages.</p>
-</div>
+        <div class='inline'><p>The maximum number of memory pages.</p></div>
       
     </li>
   
@@ -758,9 +726,7 @@ pub fn max_size(&amp;self) -&gt; Result&lt;Option&lt;u64&gt;, Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns The minimum number of memory pages.</p>
-
+    <p>Returns The minimum number of memory pages.</p>
 
   </div>
 </div>
@@ -777,9 +743,7 @@ pub fn max_size(&amp;self) -&gt; Result&lt;Option&lt;u64&gt;, Error&gt; {
       
       
         &mdash;
-        <div class='inline'>
-<p>The minimum number of memory pages.</p>
-</div>
+        <div class='inline'><p>The minimum number of memory pages.</p></div>
       
     </li>
   
@@ -823,9 +787,7 @@ pub fn min_size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Read <code>size</code> bytes starting at <code>offset</code>. Result is a ASCII-8BIT encoded string.</p>
-
+    <p>Read <code>size</code> bytes starting at <code>offset</code>. Result is a ASCII-8BIT encoded string.</p>
 
   </div>
 </div>
@@ -868,9 +830,7 @@ pub fn min_size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
       
       
         &mdash;
-        <div class='inline'>
-<p>Binary <code>String</code> of the memory.</p>
-</div>
+        <div class='inline'><p>Binary <code>String</code> of the memory.</p></div>
       
     </li>
   
@@ -930,15 +890,21 @@ pub fn read(
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Read <code>size</code> bytes starting at <code>offset</code> into an <span class='object_link'><a href="Memory/UnsafeSlice.html" title="Wasmtime::Memory::UnsafeSlice (class)">UnsafeSlice</a></span>. This provides a way to read a slice of memory without copying the underlying data.</p>
-
-<p>The returned <span class='object_link'><a href="Memory/UnsafeSlice.html" title="Wasmtime::Memory::UnsafeSlice (class)">UnsafeSlice</a></span> lazily reads the underlying memory, meaning that the actual pointer to the string buffer is not materialzed until <span class='object_link'><a href="Memory/UnsafeSlice.html#to_str-instance_method" title="Wasmtime::Memory::UnsafeSlice#to_str (method)">Wasmtime::Memory::UnsafeSlice#to_str</a></span> is called.</p>
-
-<p>SAFETY: Resizing the memory (as with <span class='object_link'><a href="#grow-instance_method" title="Wasmtime::Memory#grow (method)">#grow</a></span>) will invalidate the <span class='object_link'><a href="Memory/UnsafeSlice.html" title="Wasmtime::Memory::UnsafeSlice (class)">UnsafeSlice</a></span>, and future attempts to read the slice will raise an error.  However, it is not possible to invalidate the Ruby <code>String</code> object after calling <span class='object_link'><a href="Memory/UnsafeSlice.html#to_str-instance_method" title="Wasmtime::Memory::UnsafeSlice#to_str (method)">Wasmtime::Memory::UnsafeSlice#to_str</a></span>. As such, the caller must ensure that the Wasmtime <span class='object_link'><a href="" title="Wasmtime::Memory (class)">Wasmtime::Memory</a></span> is not resized while holding the Ruby string. Failing to do so could result in the <code>String</code> buffer pointing to invalid memory.</p>
-
-<p>In general, you should prefer using <span class='object_link'><a href="#read-instance_method" title="Wasmtime::Memory#read (method)">#read</a></span> or <span class='object_link'><a href="#read_utf8-instance_method" title="Wasmtime::Memory#read_utf8 (method)">#read_utf8</a></span> over this method unless you know what you’re doing.</p>
-
+    <p>Read <code>size</code> bytes starting at <code>offset</code> into an <span class='object_link'><a href="Memory/UnsafeSlice.html" title="Wasmtime::Memory::UnsafeSlice (class)">UnsafeSlice</a></span>. This
+provides a way to read a slice of memory without copying the underlying
+data.</p>
+<p>The returned <span class='object_link'><a href="Memory/UnsafeSlice.html" title="Wasmtime::Memory::UnsafeSlice (class)">UnsafeSlice</a></span> lazily reads the underlying memory, meaning that
+the actual pointer to the string buffer is not materialzed until
+<span class='object_link'><a href="Memory/UnsafeSlice.html#to_str-instance_method" title="Wasmtime::Memory::UnsafeSlice#to_str (method)">Wasmtime::Memory::UnsafeSlice#to_str</a></span> is called.</p>
+<p>SAFETY: Resizing the memory (as with <span class='object_link'><a href="#grow-instance_method" title="Wasmtime::Memory#grow (method)">#grow</a></span>) will
+invalidate the <span class='object_link'><a href="Memory/UnsafeSlice.html" title="Wasmtime::Memory::UnsafeSlice (class)">UnsafeSlice</a></span>, and future attempts to read the slice will raise
+an error.  However, it is not possible to invalidate the Ruby <code>String</code>
+object after calling <span class='object_link'><a href="Memory/UnsafeSlice.html#to_str-instance_method" title="Wasmtime::Memory::UnsafeSlice#to_str (method)">Wasmtime::Memory::UnsafeSlice#to_str</a></span>. As such, the caller must ensure
+that the Wasmtime <span class='object_link'><a href="" title="Wasmtime::Memory (class)">Wasmtime::Memory</a></span> is not resized while holding the Ruby string.
+Failing to do so could result in the <code>String</code> buffer pointing to invalid
+memory.</p>
+<p>In general, you should prefer using <span class='object_link'><a href="#read-instance_method" title="Wasmtime::Memory#read (method)">#read</a></span> or <span class='object_link'><a href="#read_utf8-instance_method" title="Wasmtime::Memory#read_utf8 (method)">#read_utf8</a></span>
+over this method unless you know what you're doing.</p>
 
   </div>
 </div>
@@ -981,9 +947,7 @@ pub fn read(
       
       
         &mdash;
-        <div class='inline'>
-<p>Slice of the memory.</p>
-</div>
+        <div class='inline'><p>Slice of the memory.</p></div>
       
     </li>
   
@@ -1031,9 +995,7 @@ pub fn read_unsafe_slice(
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Read <code>size</code> bytes starting at <code>offset</code>. Result is a UTF-8 encoded string.</p>
-
+    <p>Read <code>size</code> bytes starting at <code>offset</code>. Result is a UTF-8 encoded string.</p>
 
   </div>
 </div>
@@ -1076,9 +1038,7 @@ pub fn read_unsafe_slice(
       
       
         &mdash;
-        <div class='inline'>
-<p>UTF-8 <code>String</code> of the memory.</p>
-</div>
+        <div class='inline'><p>UTF-8 <code>String</code> of the memory.</p></div>
       
     </li>
   
@@ -1140,9 +1100,7 @@ pub fn read_utf8(
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns The number of pages of the memory.</p>
-
+    <p>Returns The number of pages of the memory.</p>
 
   </div>
 </div>
@@ -1159,9 +1117,7 @@ pub fn read_utf8(
       
       
         &mdash;
-        <div class='inline'>
-<p>The number of pages of the memory.</p>
-</div>
+        <div class='inline'><p>The number of pages of the memory.</p></div>
       
     </li>
   
@@ -1199,9 +1155,7 @@ pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    <p class="note returns_void">This method returns an undefined value.</p>
-<p>Write <code>value</code> starting at <code>offset</code>.</p>
-
+    <p class="note returns_void">This method returns an undefined value.</p><p>Write <code>value</code> starting at <code>offset</code>.</p>
 
   </div>
 </div>
@@ -1268,9 +1222,9 @@ pub fn write(&amp;self, offset: usize, value: RString) -&gt; Result&lt;(), Error
 </div>
 
       <div id="footer">
-  Generated on Fri Apr 10 17:38:20 2026 by
+  Generated on Mon Apr 27 19:26:22 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.39 (ruby-4.0.2).
+  0.9.43 (ruby-4.0.3).
 </div>
 
     </div>

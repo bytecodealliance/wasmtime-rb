@@ -6,13 +6,13 @@
 <title>
   Class: Wasmtime::Global
   
-    &mdash; Documentation by YARD 0.9.39
+    &mdash; Documentation by YARD 0.9.43
   
 </title>
 
-  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../css/style.css" type="text/css">
 
-  <link rel="stylesheet" href="../css/common.css" type="text/css" />
+  <link rel="stylesheet" href="../css/common.css" type="text/css">
 
 <script type="text/javascript">
   pathId = "Wasmtime::Global";
@@ -27,6 +27,8 @@
 
   </head>
   <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
     <div class="nav_wrap">
       <iframe id="nav" src="../class_list.html?1"></iframe>
       <div id="resizer"></div>
@@ -94,16 +96,15 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>ext/src/ruby_api/global.rs</dd>
+    <dd>ext/src/ruby_api/global.rs
+</dd>
   </dl>
   
 </div>
 
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
-    
-<p>Represents a WebAssembly global.</p>
-
+    <p>Represents a WebAssembly global.</p>
 
   </div>
 </div>
@@ -149,9 +150,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>A constant global.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>A constant global.</p></div></span>
   
 </li>
 
@@ -173,14 +172,13 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>A variable global.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>A variable global.</p></div></span>
   
 </li>
 
       
     </ul>
+    
   
     <h2>
       Instance Method Summary
@@ -228,9 +226,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>The current value of the global.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>The current value of the global.</p></div></span>
   
 </li>
 
@@ -252,9 +248,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Sets the value of the global.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Sets the value of the global.</p></div></span>
   
 </li>
 
@@ -276,9 +270,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>The Wasm type of the global‘s content.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>The Wasm type of the global‘s content.</p></div></span>
   
 </li>
 
@@ -306,6 +298,7 @@
 
       
     </ul>
+    
   
 
 
@@ -325,9 +318,7 @@
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns A constant global.</p>
-
+    <p>Returns A constant global.</p>
 
   </div>
 </div>
@@ -356,9 +347,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>The WebAssembly type of the value held by this global.</p>
-</div>
+        <div class='inline'><p>The WebAssembly type of the value held by this global.</p></div>
       
     </li>
   
@@ -372,9 +361,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>The default value of this global.</p>
-</div>
+        <div class='inline'><p>The default value of this global.</p></div>
       
     </li>
   
@@ -391,9 +378,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>A constant global.</p>
-</div>
+        <div class='inline'><p>A constant global.</p></div>
       
     </li>
   
@@ -431,9 +416,7 @@ pub fn const_(store: Obj&lt;Store&gt;, value_type: Symbol, default: Value) -&gt;
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns A variable global.</p>
-
+    <p>Returns A variable global.</p>
 
   </div>
 </div>
@@ -462,9 +445,7 @@ pub fn const_(store: Obj&lt;Store&gt;, value_type: Symbol, default: Value) -&gt;
       
       
         &mdash;
-        <div class='inline'>
-<p>The WebAssembly type of the value held by this global.</p>
-</div>
+        <div class='inline'><p>The WebAssembly type of the value held by this global.</p></div>
       
     </li>
   
@@ -478,9 +459,7 @@ pub fn const_(store: Obj&lt;Store&gt;, value_type: Symbol, default: Value) -&gt;
       
       
         &mdash;
-        <div class='inline'>
-<p>The default value of this global.</p>
-</div>
+        <div class='inline'><p>The default value of this global.</p></div>
       
     </li>
   
@@ -497,9 +476,7 @@ pub fn const_(store: Obj&lt;Store&gt;, value_type: Symbol, default: Value) -&gt;
       
       
         &mdash;
-        <div class='inline'>
-<p>A variable global.</p>
-</div>
+        <div class='inline'><p>A variable global.</p></div>
       
     </li>
   
@@ -595,9 +572,7 @@ pub fn is_const(&amp;self) -&gt; Result&lt;bool, Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns The current value of the global.</p>
-
+    <p>Returns The current value of the global.</p>
 
   </div>
 </div>
@@ -614,9 +589,7 @@ pub fn is_const(&amp;self) -&gt; Result&lt;bool, Error&gt; {
       
       
         &mdash;
-        <div class='inline'>
-<p>The current value of the global.</p>
-</div>
+        <div class='inline'><p>The current value of the global.</p></div>
       
     </li>
   
@@ -660,9 +633,7 @@ pub fn get(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Err
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Sets the value of the global. Raises if the global is a <code>const</code>.</p>
-
+    <p>Sets the value of the global. Raises if the global is a <code>const</code>.</p>
 
   </div>
 </div>
@@ -680,9 +651,7 @@ pub fn get(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, Err
       
       
         &mdash;
-        <div class='inline'>
-<p>An object that can be converted to the global’s type.</p>
-</div>
+        <div class='inline'><p>An object that can be converted to the global's type.</p></div>
       
     </li>
   
@@ -752,9 +721,7 @@ pub fn set(&amp;self, value: Value) -&gt; Result&lt;(), Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns The Wasm type of the global‘s content.</p>
-
+    <p>Returns The Wasm type of the global‘s content.</p>
 
   </div>
 </div>
@@ -771,9 +738,7 @@ pub fn set(&amp;self, value: Value) -&gt; Result&lt;(), Error&gt; {
       
       
         &mdash;
-        <div class='inline'>
-<p>The Wasm type of the global‘s content.</p>
-</div>
+        <div class='inline'><p>The Wasm type of the global‘s content.</p></div>
       
     </li>
   
@@ -857,9 +822,9 @@ pub fn is_var(&amp;self) -&gt; Result&lt;bool, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Fri Apr 10 17:38:20 2026 by
+  Generated on Mon Apr 27 19:26:22 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.39 (ruby-4.0.2).
+  0.9.43 (ruby-4.0.3).
 </div>
 
     </div>

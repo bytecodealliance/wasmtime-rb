@@ -6,13 +6,13 @@
 <title>
   Class: Wasmtime::Store
   
-    &mdash; Documentation by YARD 0.9.39
+    &mdash; Documentation by YARD 0.9.43
   
 </title>
 
-  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../css/style.css" type="text/css">
 
-  <link rel="stylesheet" href="../css/common.css" type="text/css" />
+  <link rel="stylesheet" href="../css/common.css" type="text/css">
 
 <script type="text/javascript">
   pathId = "Wasmtime::Store";
@@ -27,6 +27,8 @@
 
   </head>
   <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
     <div class="nav_wrap">
       <iframe id="nav" src="../class_list.html?1"></iframe>
       <div id="resizer"></div>
@@ -94,16 +96,15 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>ext/src/ruby_api/store.rs</dd>
+    <dd>ext/src/ruby_api/store.rs
+</dd>
   </dl>
   
 </div>
 
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
-    
-<p>Represents a WebAssembly store.</p>
-
+    <p>Represents a WebAssembly store.</p>
 
   </div>
 </div>
@@ -155,6 +156,7 @@
 
       
     </ul>
+    
   
     <h2>
       Instance Method Summary
@@ -180,9 +182,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>The passed in value in <span class='object_link'><a href="#new-class_method" title="Wasmtime::Store.new (method)">Store.new</a></span>.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>The passed in value in <span class='object_link'><a href="#new-class_method" title="Wasmtime::Store.new (method)">Store.new</a></span>.</p></div></span>
   
 </li>
 
@@ -204,9 +204,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Returns the amount of fuel in the <span class='object_link'><a href="" title="Wasmtime::Store (class)">Store</a></span>.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Returns the amount of fuel in the <span class='object_link'><a href="" title="Wasmtime::Store (class)">Store</a></span>.</p></div></span>
   
 </li>
 
@@ -228,9 +226,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Returns whether the linear memory limit has been hit.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Returns whether the linear memory limit has been hit.</p></div></span>
   
 </li>
 
@@ -252,9 +248,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Returns the maximum linear memory consumed.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Returns the maximum linear memory consumed.</p></div></span>
   
 </li>
 
@@ -276,9 +270,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Sets the epoch deadline to a certain number of ticks in the future.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Sets the epoch deadline to a certain number of ticks in the future.</p></div></span>
   
 </li>
 
@@ -300,14 +292,13 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Sets fuel to the <span class='object_link'><a href="" title="Wasmtime::Store (class)">Store</a></span>.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Sets fuel to the <span class='object_link'><a href="" title="Wasmtime::Store (class)">Store</a></span>.</p></div></span>
   
 </li>
 
       
     </ul>
+    
   
 
 
@@ -356,9 +347,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>The engine for this store.</p>
-</div>
+        <div class='inline'><p>The engine for this store.</p></div>
       
     </li>
   
@@ -374,9 +363,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>The data attached to the store. Can be retrieved through <span class='object_link'><a href="#data-instance_method" title="Wasmtime::Store#data (method)">#data</a></span> and Caller#data.</p>
-</div>
+        <div class='inline'><p>The data attached to the store. Can be retrieved through <span class='object_link'><a href="#data-instance_method" title="Wasmtime::Store#data (method)">#data</a></span> and Caller#data.</p></div>
       
     </li>
   
@@ -392,9 +379,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>The WASI config to use in this store.</p>
-</div>
+        <div class='inline'><p>The WASI config to use in this store.</p></div>
       
     </li>
   
@@ -410,9 +395,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>The WASI config to use in this store for WASI preview 1.</p>
-</div>
+        <div class='inline'><p>The WASI config to use in this store for WASI preview 1.</p></div>
       
     </li>
   
@@ -428,9 +411,8 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>See the <a href="https://docs.rs/wasmtime/latest/wasmtime/struct.StoreLimitsBuilder.html" target="_parent" title="&lt;code&gt;StoreLimitsBuilder&lt;/code&gt;‘s Rust doc"><code>StoreLimitsBuilder</code>‘s Rust doc</a> for detailed description of the different options and the defaults.</p>
-</div>
+        <div class='inline'><p>See the <a href="https://docs.rs/wasmtime/latest/wasmtime/struct.StoreLimitsBuilder.html" target="_parent" title="+StoreLimitsBuilder+&#39;s Rust doc">+StoreLimitsBuilder+'s Rust doc</a>
+for detailed description of the different options and the defaults.</p></div>
       
     </li>
   
@@ -457,9 +439,7 @@
             
           </span>
           
-            &mdash; <div class='inline'>
-<p>The maximum number of bytes a linear memory can grow to.</p>
-</div>
+            &mdash; <div class='inline'><p>The maximum number of bytes a linear memory can grow to.</p></div>
           
         </li>
       
@@ -470,9 +450,7 @@
             
           </span>
           
-            &mdash; <div class='inline'>
-<p>The maximum number of elements in a table.</p>
-</div>
+            &mdash; <div class='inline'><p>The maximum number of elements in a table.</p></div>
           
         </li>
       
@@ -483,9 +461,7 @@
             
           </span>
           
-            &mdash; <div class='inline'>
-<p>The maximum number of instances that can be created for a Store.</p>
-</div>
+            &mdash; <div class='inline'><p>The maximum number of instances that can be created for a Store.</p></div>
           
         </li>
       
@@ -496,9 +472,7 @@
             
           </span>
           
-            &mdash; <div class='inline'>
-<p>The maximum number of tables that can be created for a Store.</p>
-</div>
+            &mdash; <div class='inline'><p>The maximum number of tables that can be created for a Store.</p></div>
           
         </li>
       
@@ -509,9 +483,7 @@
             
           </span>
           
-            &mdash; <div class='inline'>
-<p>The maximum number of linear memories that can be created for a Store.</p>
-</div>
+            &mdash; <div class='inline'><p>The maximum number of linear memories that can be created for a Store.</p></div>
           
         </li>
       
@@ -668,9 +640,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns The passed in value in <span class='object_link'><a href="#new-class_method" title="Wasmtime::Store.new (method)">new</a></span>.</p>
-
+    <p>Returns The passed in value in <span class='object_link'><a href="#new-class_method" title="Wasmtime::Store.new (method)">new</a></span>.</p>
 
   </div>
 </div>
@@ -687,9 +657,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       
       
         &mdash;
-        <div class='inline'>
-<p>The passed in value in <span class='object_link'><a href="#new-class_method" title="Wasmtime::Store.new (method)">new</a></span></p>
-</div>
+        <div class='inline'><p>The passed in value in <span class='object_link'><a href="#new-class_method" title="Wasmtime::Store.new (method)">new</a></span></p></div>
       
     </li>
   
@@ -727,9 +695,7 @@ pub fn data(&amp;self) -&gt; Value {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns the amount of fuel in the <span class='object_link'><a href="" title="Wasmtime::Store (class)">Wasmtime::Store</a></span>.</p>
-
+    <p>Returns the amount of fuel in the <span class='object_link'><a href="" title="Wasmtime::Store (class)">Wasmtime::Store</a></span>.</p>
 
   </div>
 </div>
@@ -759,9 +725,7 @@ pub fn data(&amp;self) -&gt; Value {
       
       
         &mdash;
-        <div class='inline'>
-<p>if fuel consumption is not enabled via Engine#new</p>
-</div>
+        <div class='inline'><p>if fuel consumption is not enabled via Engine#new</p></div>
       
     </li>
   
@@ -799,9 +763,7 @@ pub fn get_fuel(&amp;self) -&gt; Result&lt;u64, Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns whether the linear memory limit has been hit.</p>
-
+    <p>Returns whether the linear memory limit has been hit.</p>
 
   </div>
 </div>
@@ -853,9 +815,7 @@ pub fn linear_memory_limit_hit(&amp;self) -&gt; bool {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns the maximum linear memory consumed.</p>
-
+    <p>Returns the maximum linear memory consumed.</p>
 
   </div>
 </div>
@@ -913,11 +873,9 @@ pub fn max_linear_memory_consumed(&amp;self) -&gt; usize {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Sets the epoch deadline to a certain number of ticks in the future.</p>
-
-<p>Raises if there isn’t enough fuel left in the <span class='object_link'><a href="" title="Wasmtime::Store (class)">Wasmtime::Store</a></span>, or when the <span class='object_link'><a href="Engine.html" title="Wasmtime::Engine (class)">Engine</a></span>‘s config does not have fuel enabled.</p>
-
+    <p>Sets the epoch deadline to a certain number of ticks in the future.</p>
+<p>Raises if there isn't enough fuel left in the <span class='object_link'><a href="" title="Wasmtime::Store (class)">Wasmtime::Store</a></span>, or
+when the <span class='object_link'><a href="Engine.html" title="Wasmtime::Engine (class)">Engine</a></span>'s config does not have fuel enabled.</p>
 
   </div>
 </div>
@@ -935,9 +893,7 @@ pub fn max_linear_memory_consumed(&amp;self) -&gt; usize {
       
       
         &mdash;
-        <div class='inline'>
-<p>The number of ticks before this store reaches the deadline.</p>
-</div>
+        <div class='inline'><p>The number of ticks before this store reaches the deadline.</p></div>
       
     </li>
   
@@ -996,9 +952,7 @@ pub fn set_epoch_deadline(&amp;self, ticks_beyond_current: u64) {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Sets fuel to the <span class='object_link'><a href="" title="Wasmtime::Store (class)">Wasmtime::Store</a></span>.</p>
-
+    <p>Sets fuel to the <span class='object_link'><a href="" title="Wasmtime::Store (class)">Wasmtime::Store</a></span>.</p>
 
   </div>
 </div>
@@ -1016,9 +970,7 @@ pub fn set_epoch_deadline(&amp;self, ticks_beyond_current: u64) {
       
       
         &mdash;
-        <div class='inline'>
-<p>The new fuel amount.</p>
-</div>
+        <div class='inline'><p>The new fuel amount.</p></div>
       
     </li>
   
@@ -1035,9 +987,7 @@ pub fn set_epoch_deadline(&amp;self, ticks_beyond_current: u64) {
       
       
         &mdash;
-        <div class='inline'>
-<p>if fuel consumption is not enabled via Engine#new</p>
-</div>
+        <div class='inline'><p>if fuel consumption is not enabled via Engine#new</p></div>
       
     </li>
   
@@ -1077,9 +1027,9 @@ pub fn set_fuel(&amp;self, fuel: u64) -&gt; Result&lt;(), Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Fri Apr 10 17:38:20 2026 by
+  Generated on Mon Apr 27 19:26:22 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.39 (ruby-4.0.2).
+  0.9.43 (ruby-4.0.3).
 </div>
 
     </div>

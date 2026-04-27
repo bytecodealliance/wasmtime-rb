@@ -6,13 +6,13 @@
 <title>
   Exception: Wasmtime::Trap
   
-    &mdash; Documentation by YARD 0.9.39
+    &mdash; Documentation by YARD 0.9.43
   
 </title>
 
-  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../css/style.css" type="text/css">
 
-  <link rel="stylesheet" href="../css/common.css" type="text/css" />
+  <link rel="stylesheet" href="../css/common.css" type="text/css">
 
 <script type="text/javascript">
   pathId = "Wasmtime::Trap";
@@ -27,6 +27,8 @@
 
   </head>
   <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
     <div class="nav_wrap">
       <iframe id="nav" src="../class_list.html?1"></iframe>
       <div id="resizer"></div>
@@ -98,8 +100,9 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>lib/wasmtime/error.rb<span class="defines">,<br />
+    <dd>lib/wasmtime/error.rb<span class="defines">,<br>
   ext/src/ruby_api/trap.rs</span>
+
 </dd>
   </dl>
   
@@ -213,9 +216,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Returns the trap code as a Symbol, possibly nil if the trap did not origin from Wasm code.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Returns the trap code as a Symbol, possibly nil if the trap did not origin from Wasm code.</p></div></span>
   
 </li>
 
@@ -237,9 +238,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Returns a textual description of the trap error, for example:     wasm trap: wasm <code>unreachable</code> instruction executed.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Returns a textual description of the trap error, for example:     wasm trap: wasm <code>unreachable</code> instruction executed.</p></div></span>
   
 </li>
 
@@ -261,17 +260,17 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Returns a textual representation of the Wasm backtrce, if it exists.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Returns a textual representation of the Wasm backtrce, if it exists.</p></div></span>
   
 </li>
 
       
     </ul>
+    
   
 
 
+  
   
   
   
@@ -295,9 +294,8 @@
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns the trap code as a Symbol, possibly nil if the trap did not origin from Wasm code. All possible trap codes are defined as constants on <span class='object_link'><a href="" title="Wasmtime::Trap (class)">Wasmtime::Trap</a></span>.</p>
-
+    <p>Returns the trap code as a Symbol, possibly nil if the trap did not
+origin from Wasm code. All possible trap codes are defined as constants on <span class='object_link'><a href="" title="Wasmtime::Trap (class)">Wasmtime::Trap</a></span>.</p>
 
   </div>
 </div>
@@ -379,12 +377,8 @@ pub fn code(&amp;self) -&gt; Result&lt;Option&lt;Symbol&gt;, Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns a textual description of the trap error, for example:</p>
-
-<pre class="code rustdoc"><code class="rustdoc">wasm trap: wasm `unreachable` instruction executed
-</code></pre>
-
+    <p>Returns a textual description of the trap error, for example:
+wasm trap: wasm <code>unreachable</code> instruction executed</p>
 
   </div>
 </div>
@@ -436,13 +430,10 @@ pub fn message(&amp;self) -&gt; String {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns a textual representation of the Wasm backtrce, if it exists. For example:</p>
-
+    <p>Returns a textual representation of the Wasm backtrce, if it exists.
+For example:</p>
 <pre class="code rustdoc"><code class="rustdoc">error while executing at wasm backtrace:
-    0:   0x1a - &lt;unknown&gt;!&lt;wasm function 0&gt;
-</code></pre>
-
+   0:   0x1a - &lt;unknown&gt;!&lt;wasm function 0&gt;</code></pre>
 
   </div>
 </div>
@@ -488,9 +479,9 @@ pub fn wasm_backtrace_message(&amp;self) -&gt; Option&lt;String&gt; {
 </div>
 
       <div id="footer">
-  Generated on Fri Apr 10 17:38:20 2026 by
+  Generated on Mon Apr 27 19:26:22 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.39 (ruby-4.0.2).
+  0.9.43 (ruby-4.0.3).
 </div>
 
     </div>

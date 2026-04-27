@@ -6,13 +6,13 @@
 <title>
   Class: Wasmtime::Component::Linker
   
-    &mdash; Documentation by YARD 0.9.39
+    &mdash; Documentation by YARD 0.9.43
   
 </title>
 
-  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css">
 
-  <link rel="stylesheet" href="../../css/common.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/common.css" type="text/css">
 
 <script type="text/javascript">
   pathId = "Wasmtime::Component::Linker";
@@ -27,6 +27,8 @@
 
   </head>
   <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
     <div class="nav_wrap">
       <iframe id="nav" src="../../class_list.html?1"></iframe>
       <div id="resizer"></div>
@@ -94,7 +96,8 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>ext/src/ruby_api/component/linker.rs</dd>
+    <dd>ext/src/ruby_api/component/linker.rs
+</dd>
   </dl>
   
 </div>
@@ -153,6 +156,7 @@
 
       
     </ul>
+    
   
     <h2>
       Instance Method Summary
@@ -178,9 +182,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Define items at the provided namespace in this <span class='object_link'><a href="" title="Wasmtime::Component::Linker (class)">Linker</a></span>.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Define items at the provided namespace in this <span class='object_link'><a href="" title="Wasmtime::Component::Linker (class)">Linker</a></span>.</p></div></span>
   
 </li>
 
@@ -202,9 +204,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Instantiates a <span class='object_link'><a href="Component.html" title="Wasmtime::Component::Component (class)">Component</a></span> in a <span class='object_link'><a href="../Store.html" title="Wasmtime::Store (class)">Store</a></span> using the defined imports in the linker.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Instantiates a <span class='object_link'><a href="Component.html" title="Wasmtime::Component::Component (class)">Component</a></span> in a <span class='object_link'><a href="../Store.html" title="Wasmtime::Store (class)">Store</a></span> using the defined imports in the linker.</p></div></span>
   
 </li>
 
@@ -226,14 +226,13 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Define items in the root of this <span class='object_link'><a href="" title="Wasmtime::Component::Linker (class)">Linker</a></span>.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Define items in the root of this <span class='object_link'><a href="" title="Wasmtime::Component::Linker (class)">Linker</a></span>.</p></div></span>
   
 </li>
 
       
     </ul>
+    
   
 
 
@@ -338,9 +337,7 @@ pub fn new(engine: &amp;Engine) -&gt; Result&lt;Self, Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Define items at the provided namespace in this <span class='object_link'><a href="" title="Wasmtime::Component::Linker (class)">Wasmtime::Component::Linker</a></span>.</p>
-
+    <p>Define items at the provided namespace in this <span class='object_link'><a href="" title="Wasmtime::Component::Linker (class)">Wasmtime::Component::Linker</a></span>.</p>
 
   </div>
 </div>
@@ -372,9 +369,8 @@ pub fn new(engine: &amp;Engine) -&gt; Result&lt;Self, Error&gt; {
       
       
         &mdash;
-        <div class='inline'>
-<p>The block allows configuring the <span class='object_link'><a href="LinkerInstance.html" title="Wasmtime::Component::LinkerInstance (class)">Wasmtime::Component::LinkerInstance</a></span>; outside of this scope the instance becomes unusable.</p>
-</div>
+        <div class='inline'><p>The block allows configuring the <span class='object_link'><a href="LinkerInstance.html" title="Wasmtime::Component::LinkerInstance (class)">Wasmtime::Component::LinkerInstance</a></span>;
+outside of this scope the instance becomes unusable.</p></div>
       
     </li>
   
@@ -405,9 +401,7 @@ pub fn new(engine: &amp;Engine) -&gt; Result&lt;Self, Error&gt; {
       
       
         &mdash;
-        <div class='inline'>
-<p><code>self</code></p>
-</div>
+        <div class='inline'><p><code>self</code></p></div>
       
     </li>
   
@@ -473,9 +467,7 @@ pub fn instance(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, name: RString) -&gt; 
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Instantiates a <span class='object_link'><a href="Component.html" title="Wasmtime::Component::Component (class)">Component</a></span> in a <span class='object_link'><a href="../Store.html" title="Wasmtime::Store (class)">Store</a></span> using the defined imports in the linker.</p>
-
+    <p>Instantiates a <span class='object_link'><a href="Component.html" title="Wasmtime::Component::Component (class)">Component</a></span> in a <span class='object_link'><a href="../Store.html" title="Wasmtime::Store (class)">Store</a></span> using the defined imports in the linker.</p>
 
   </div>
 </div>
@@ -595,9 +587,7 @@ fn instantiate(
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Define items in the root of this <span class='object_link'><a href="" title="Wasmtime::Component::Linker (class)">Wasmtime::Component::Linker</a></span>.</p>
-
+    <p>Define items in the root of this <span class='object_link'><a href="" title="Wasmtime::Component::Linker (class)">Wasmtime::Component::Linker</a></span>.</p>
 
   </div>
 </div>
@@ -614,9 +604,8 @@ fn instantiate(
       
       
         &mdash;
-        <div class='inline'>
-<p>The block allows configuring the <span class='object_link'><a href="LinkerInstance.html" title="Wasmtime::Component::LinkerInstance (class)">Wasmtime::Component::LinkerInstance</a></span>; outside of this scope the instance becomes unusable.</p>
-</div>
+        <div class='inline'><p>The block allows configuring the <span class='object_link'><a href="LinkerInstance.html" title="Wasmtime::Component::LinkerInstance (class)">Wasmtime::Component::LinkerInstance</a></span>;
+outside of this scope the instance becomes unusable.</p></div>
       
     </li>
   
@@ -647,9 +636,7 @@ fn instantiate(
       
       
         &mdash;
-        <div class='inline'>
-<p><code>self</code></p>
-</div>
+        <div class='inline'><p><code>self</code></p></div>
       
     </li>
   
@@ -703,9 +690,9 @@ pub fn root(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Obj&lt;Se
 </div>
 
       <div id="footer">
-  Generated on Fri Apr 10 17:38:20 2026 by
+  Generated on Mon Apr 27 19:26:22 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.39 (ruby-4.0.2).
+  0.9.43 (ruby-4.0.3).
 </div>
 
     </div>

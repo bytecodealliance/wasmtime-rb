@@ -6,13 +6,13 @@
 <title>
   Class: Wasmtime::Component::Func
   
-    &mdash; Documentation by YARD 0.9.39
+    &mdash; Documentation by YARD 0.9.43
   
 </title>
 
-  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css">
 
-  <link rel="stylesheet" href="../../css/common.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/common.css" type="text/css">
 
 <script type="text/javascript">
   pathId = "Wasmtime::Component::Func";
@@ -27,6 +27,8 @@
 
   </head>
   <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
     <div class="nav_wrap">
       <iframe id="nav" src="../../class_list.html?1"></iframe>
       <div id="resizer"></div>
@@ -94,67 +96,56 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>ext/src/ruby_api/component/func.rs</dd>
+    <dd>ext/src/ruby_api/component/func.rs
+</dd>
   </dl>
   
 </div>
 
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
-    
-<p>Represents a WebAssembly component Function</p>
-
-<h2 id="component-model-types-conversion">Component model types conversion</h2>
-
-<p>Here’s how component model types map to Ruby objects:</p>
-<dl class="rdoc-list note-list"><dt>bool</dt>
-<dd>
-<p>Ruby <code>true</code> or <code>false</code>, no automatic conversion happens.</p>
-</dd><dt>s8, u8, s16, u16, etc.</dt>
-<dd>
-<p>Ruby <code>Integer</code>. Overflows raise.</p>
-</dd><dt>f32, f64</dt>
-<dd>
-<p>Ruby <code>Float</code>.</p>
-</dd><dt>string</dt>
-<dd>
-<p>Ruby <code>String</code>. Exception will be raised if the string is not valid UTF-8.</p>
-</dd><dt>list&lt;T&gt;</dt>
-<dd>
-<p>Ruby <code>Array</code>.</p>
-</dd><dt>tuple</dt>
-<dd>
-<p>Ruby <code>Array</code> of the same size of tuple. Example: <tt>tuple&lt;T, U&gt;</tt> would be converted to <tt>[T, U]</tt>.</p>
-</dd><dt>record</dt>
-<dd>
-<p>Ruby <code>Hash</code> where field names are <tt>String</tt>s (for performance, see <a href="https://github.com/bytecodealliance/wasmtime-rb/issues/400#issuecomment-2496097993">this benchmark</a>).</p>
-</dd><dt>result&lt;O, E&gt;</dt>
-<dd>
-<p><span class='object_link'><a href="Result.html" title="Wasmtime::Component::Result (class)">Result</a></span> instance. When converting a result branch of the none type, the <span class='object_link'><a href="Result.html" title="Wasmtime::Component::Result (class)">Result</a></span>’s value MUST be <code>nil</code>.</p>
-
-<p>Examples of none type in a result: unparametrized <code>result</code>, <tt>result&lt;O&gt;</tt>, <tt>result&lt;_, E&gt;</tt>.</p>
-</dd><dt>option&lt;T&gt;</dt>
-<dd>
-<p><code>nil</code> is mapped to <code>None</code>, anything else is mapped to <tt>Some(T)</tt>.</p>
-</dd><dt>flags</dt>
-<dd>
-<p>Ruby <code>Array</code> of <tt>String</tt>s.</p>
-</dd><dt>enum</dt>
-<dd>
-<p>Ruby <code>String</code>. Exception will be raised of the <code>String</code> is not a valid enum value.</p>
-</dd><dt>variant</dt>
-<dd>
-<p><span class='object_link'><a href="Variant.html" title="Wasmtime::Component::Variant (class)">Variant</a></span> instance wrapping the variant’s name and optionally its value. Exception will be raised for:</p>
-<ul><li>
-<p>invalid <span class='object_link'><a href="Variant.html#name-instance_method" title="Wasmtime::Component::Variant#name (method)">Variant#name</a></span>,</p>
-</li><li>
-<p>unparametrized variant and not nil <span class='object_link'><a href="Variant.html#value-instance_method" title="Wasmtime::Component::Variant#value (method)">Variant#value</a></span>.</p>
-</li></ul>
-</dd><dt>resource (own&lt;T&gt; or borrow&lt;T&gt;)</dt>
-<dd>
-<p>Not yet supported.</p>
-</dd></dl>
-
+    <p>Represents a WebAssembly component Function</p>
+<h2 id="Component_model_types_conversion">Component model types conversion</h2>
+<p>Here's how component model types map to Ruby objects:</p>
+<dl>
+<dt>bool</dt>
+<dd><p>Ruby <code>true</code> or <code>false</code>, no automatic conversion happens.</p></dd>
+<dt>s8, u8, s16, u16, etc.</dt>
+<dd><p>Ruby <code>Integer</code>. Overflows raise.</p></dd>
+<dt>f32, f64</dt>
+<dd><p>Ruby <code>Float</code>.</p></dd>
+<dt>string</dt>
+<dd><p>Ruby <code>String</code>. Exception will be raised if the string is not valid UTF-8.</p></dd>
+<dt>list<T></dt>
+<dd><p>Ruby <code>Array</code>.</p></dd>
+<dt>tuple</dt>
+<dd><p>Ruby <code>Array</code> of the same size of tuple. Example: <code>tuple&lt;T, U&gt;</code> would be converted to <code>[T, U]</code>.</p></dd>
+<dt>record</dt>
+<dd><p>Ruby <code>Hash</code> where field names are +String+s
+(for performance, see <a href="https://github.com/bytecodealliance/wasmtime-rb/issues/400#issuecomment-2496097993">this benchmark</a>).</p></dd>
+<dt>result&lt;O, E&gt;</dt>
+<dd><p><span class='object_link'><a href="Result.html" title="Wasmtime::Component::Result (class)">Result</a></span> instance. When converting a result branch of the none
+type, the <span class='object_link'><a href="Result.html" title="Wasmtime::Component::Result (class)">Result</a></span>’s value MUST be <code>nil</code>.</p></dd>
+</dl>
+<pre class="code ruby"><code class="ruby">Examples of none type in a result: unparametrized +result+, +result&lt;O&gt;+, +result&lt;_, E&gt;+.
+</code></pre>
+<dl>
+<dt>option<T></dt>
+<dd><p><code>nil</code> is mapped to <code>None</code>, anything else is mapped to <code>Some(T)</code>.</p></dd>
+<dt>flags</dt>
+<dd><p>Ruby <code>Array</code> of +String+s.</p></dd>
+<dt>enum</dt>
+<dd><p>Ruby <code>String</code>. Exception will be raised of the <code>String</code> is not a valid enum value.</p></dd>
+<dt>variant</dt>
+<dd><p><span class='object_link'><a href="Variant.html" title="Wasmtime::Component::Variant (class)">Variant</a></span> instance wrapping the variant's name and optionally its value.
+Exception will be raised for:</p>
+<ul>
+<li>invalid <span class='object_link'><a href="Variant.html#name-instance_method" title="Wasmtime::Component::Variant#name (method)">Variant#name</a></span>,</li>
+<li>unparametrized variant and not nil <span class='object_link'><a href="Variant.html#value-instance_method" title="Wasmtime::Component::Variant#value (method)">Variant#value</a></span>.</li>
+</ul></dd>
+<dt>resource (own<T> or borrow<T>)</dt>
+<dd><p>Not yet supported.</p></dd>
+</dl>
 
   </div>
 </div>
@@ -200,14 +191,13 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Calls a Wasm component model function.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Calls a Wasm component model function.</p></div></span>
   
 </li>
 
       
     </ul>
+    
   
 
 
@@ -227,9 +217,7 @@
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Calls a Wasm component model function.</p>
-
+    <p>Calls a Wasm component model function.</p>
 
   </div>
 </div>
@@ -247,9 +235,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>the function’s arguments as per its Wasm definition</p>
-</div>
+        <div class='inline'><p>the function's arguments as per its Wasm definition</p></div>
       
     </li>
   
@@ -266,9 +252,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>the function’s return value as per its Wasm definition</p>
-</div>
+        <div class='inline'><p>the function's return value as per its Wasm definition</p></div>
       
     </li>
   
@@ -309,9 +293,9 @@ pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Fri Apr 10 17:38:20 2026 by
+  Generated on Mon Apr 27 19:26:22 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.39 (ruby-4.0.2).
+  0.9.43 (ruby-4.0.3).
 </div>
 
     </div>

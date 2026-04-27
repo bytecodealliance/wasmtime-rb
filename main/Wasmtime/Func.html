@@ -6,13 +6,13 @@
 <title>
   Class: Wasmtime::Func
   
-    &mdash; Documentation by YARD 0.9.39
+    &mdash; Documentation by YARD 0.9.43
   
 </title>
 
-  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../css/style.css" type="text/css">
 
-  <link rel="stylesheet" href="../css/common.css" type="text/css" />
+  <link rel="stylesheet" href="../css/common.css" type="text/css">
 
 <script type="text/javascript">
   pathId = "Wasmtime::Func";
@@ -27,6 +27,8 @@
 
   </head>
   <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
     <div class="nav_wrap">
       <iframe id="nav" src="../class_list.html?1"></iframe>
       <div id="resizer"></div>
@@ -94,16 +96,15 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>ext/src/ruby_api/func.rs</dd>
+    <dd>ext/src/ruby_api/func.rs
+</dd>
   </dl>
   
 </div>
 
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
-    
-<p>Represents a WebAssembly Function</p>
-
+    <p>Represents a WebAssembly Function</p>
 
   </div>
 </div>
@@ -149,14 +150,13 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Creates a WebAssembly function from a Ruby block.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Creates a WebAssembly function from a Ruby block.</p></div></span>
   
 </li>
 
       
     </ul>
+    
   
     <h2>
       Instance Method Summary
@@ -182,9 +182,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Calls a Wasm function.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Calls a Wasm function.</p></div></span>
   
 </li>
 
@@ -206,9 +204,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>The function’s parameter types.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>The function's parameter types.</p></div></span>
   
 </li>
 
@@ -230,14 +226,13 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>The function’s result types.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>The function's result types.</p></div></span>
   
 </li>
 
       
     </ul>
+    
   
 
 
@@ -257,9 +252,10 @@
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Creates a WebAssembly function from a Ruby block. WebAssembly functions can have 0 or more parameters and results. Each param and result must be a valid WebAssembly type represented as a symbol. The valid symbols are: <code>:i32</code>, <code>:i64</code>, <code>:f32</code>, <code>:f64</code>, <code>:v128</code>, <code>:funcref</code>, <code>:externref</code>.</p>
-
+    <p>Creates a WebAssembly function from a Ruby block. WebAssembly functions
+can have 0 or more parameters and results. Each param and result must be a
+valid WebAssembly type represented as a symbol. The valid symbols are:
+<code>:i32</code>, <code>:i64</code>, <code>:f32</code>, <code>:f64</code>, <code>:v128</code>, <code>:funcref</code>, <code>:externref</code>.</p>
 
   </div>
 </div>
@@ -269,9 +265,7 @@
     <h4 class="tag_title">Examples:</h4>
     
       
-        <h5 class="example_title"><div class='inline'>
-<p>Function that increments an i32:</p>
-</div></h5>
+        <h5 class="example_title"><div class='inline'><p>Function that increments an i32:</p></div></h5>
       
       <pre class="example code"><code><span class='id identifier rubyid_store'>store</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../Wasmtime.html" title="Wasmtime (module)">Wasmtime</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="Store.html#new-class_method" title="Wasmtime::Store.new (method)">new</a></span></span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="../Wasmtime.html" title="Wasmtime (module)">Wasmtime</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Engine.html" title="Wasmtime::Engine (class)">Engine</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="Engine.html#new-class_method" title="Wasmtime::Engine.new (method)">new</a></span></span><span class='rparen'>)</span>
 <span class='const'><span class='object_link'><a href="../Wasmtime.html" title="Wasmtime (module)">Wasmtime</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="" title="Wasmtime::Func (class)">Func</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='id identifier rubyid_store'>store</span><span class='comma'>,</span> <span class='lbracket'>[</span><span class='symbol'>:i32</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='lbracket'>[</span><span class='symbol'>:i32</span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid__caller'>_caller</span><span class='comma'>,</span> <span class='id identifier rubyid_arg1'>arg1</span><span class='op'>|</span>
@@ -279,9 +273,7 @@
 <span class='kw'>end</span></code></pre>
     
       
-        <h5 class="example_title"><div class='inline'>
-<p>Function with 2 params and 2 results:</p>
-</div></h5>
+        <h5 class="example_title"><div class='inline'><p>Function with 2 params and 2 results:</p></div></h5>
       
       <pre class="example code"><code><span class='id identifier rubyid_store'>store</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../Wasmtime.html" title="Wasmtime (module)">Wasmtime</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="Store.html#new-class_method" title="Wasmtime::Store.new (method)">new</a></span></span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="../Wasmtime.html" title="Wasmtime (module)">Wasmtime</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Engine.html" title="Wasmtime::Engine (class)">Engine</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="Engine.html#new-class_method" title="Wasmtime::Engine.new (method)">new</a></span></span><span class='rparen'>)</span>
 <span class='const'><span class='object_link'><a href="../Wasmtime.html" title="Wasmtime (module)">Wasmtime</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="" title="Wasmtime::Func (class)">Func</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='id identifier rubyid_store'>store</span><span class='comma'>,</span> <span class='lbracket'>[</span><span class='symbol'>:i32</span><span class='comma'>,</span> <span class='symbol'>:i32</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='lbracket'>[</span><span class='symbol'>:i32</span><span class='comma'>,</span> <span class='symbol'>:i32</span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid__caller'>_caller</span><span class='comma'>,</span> <span class='id identifier rubyid_arg1'>arg1</span><span class='comma'>,</span> <span class='id identifier rubyid_arg2'>arg2</span><span class='op'>|</span>
@@ -313,9 +305,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>The function’s parameters.</p>
-</div>
+        <div class='inline'><p>The function's parameters.</p></div>
       
     </li>
   
@@ -329,9 +319,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>The function’s results.</p>
-</div>
+        <div class='inline'><p>The function's results.</p></div>
       
     </li>
   
@@ -345,9 +333,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>The function’s implementation.</p>
-</div>
+        <div class='inline'><p>The function's implementation.</p></div>
       
     </li>
   
@@ -364,9 +350,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>The function’s body</p>
-</div>
+        <div class='inline'><p>The function's body</p></div>
       
     </li>
   
@@ -384,9 +368,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>Caller which can be used to interact with the <span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span>.</p>
-</div>
+        <div class='inline'><p>Caller which can be used to interact with the <span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span>.</p></div>
       
     </li>
   
@@ -400,9 +382,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>Splat of Ruby objects matching the function’s params arity.</p>
-</div>
+        <div class='inline'><p>Splat of Ruby objects matching the function’s params arity.</p></div>
       
     </li>
   
@@ -418,16 +398,16 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>The return type depends on function’s results arity:</p>
-<ul><li>
-<p>0 =&gt; <code>nil</code></p>
-</li><li>
-<p>1 =&gt; <code>Object</code></p>
-</li><li>
-<p>&gt; 1 =&gt; <tt>Array&lt;Object&gt;</tt></p>
-</li></ul>
-</div>
+        <div class='inline'><p>The return type depends on function’s results arity:</p>
+<ul>
+<li>0 =&gt; <code>nil</code></li>
+<li>1 =&gt; <code>Object</code></li>
+<li>
+<blockquote>
+<p>1 =&gt; <code>Array&lt;Object&gt;</code></p>
+</blockquote>
+</li>
+</ul></div>
       
     </li>
   
@@ -522,9 +502,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Calls a Wasm function.</p>
-
+    <p>Calls a Wasm function.</p>
 
   </div>
 </div>
@@ -554,9 +532,8 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       
       
         &mdash;
-        <div class='inline'>
-<p>The arguments to send to the Wasm function. Raises if the arguments do not conform to the Wasm function’s parameters.</p>
-</div>
+        <div class='inline'><p>The arguments to send to the Wasm function. Raises if the arguments do
+not conform to the Wasm function's parameters.</p></div>
       
     </li>
   
@@ -573,16 +550,16 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       
       
         &mdash;
-        <div class='inline'>
-<p>The return type depends on the function’s results arity:</p>
-<ul><li>
-<p>0 =&gt; <code>nil</code></p>
-</li><li>
-<p>1 =&gt; <code>Object</code></p>
-</li><li>
-<p>&gt; 1 =&gt; <tt>Array&lt;Object&gt;</tt></p>
-</li></ul>
-</div>
+        <div class='inline'><p>The return type depends on the function's results arity:</p>
+<ul>
+<li>0 =&gt; <code>nil</code></li>
+<li>1 =&gt; <code>Object</code></li>
+<li>
+<blockquote>
+<p>1 =&gt; <code>Array&lt;Object&gt;</code></p>
+</blockquote>
+</li>
+</ul></div>
       
     </li>
   
@@ -622,9 +599,7 @@ pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns The function’s parameter types.</p>
-
+    <p>Returns The function's parameter types.</p>
 
   </div>
 </div>
@@ -641,9 +616,7 @@ pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
       
       
         &mdash;
-        <div class='inline'>
-<p>The function’s parameter types.</p>
-</div>
+        <div class='inline'><p>The function's parameter types.</p></div>
       
     </li>
   
@@ -693,9 +666,7 @@ pub fn params(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RArray,
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns The function’s result types.</p>
-
+    <p>Returns The function's result types.</p>
 
   </div>
 </div>
@@ -712,9 +683,7 @@ pub fn params(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RArray,
       
       
         &mdash;
-        <div class='inline'>
-<p>The function’s result types.</p>
-</div>
+        <div class='inline'><p>The function's result types.</p></div>
       
     </li>
   
@@ -758,9 +727,9 @@ pub fn results(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RArray
 </div>
 
       <div id="footer">
-  Generated on Fri Apr 10 17:38:20 2026 by
+  Generated on Mon Apr 27 19:26:22 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.39 (ruby-4.0.2).
+  0.9.43 (ruby-4.0.3).
 </div>
 
     </div>

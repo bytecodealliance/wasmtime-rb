@@ -6,13 +6,13 @@
 <title>
   Class: Wasmtime::Engine
   
-    &mdash; Documentation by YARD 0.9.39
+    &mdash; Documentation by YARD 0.9.43
   
 </title>
 
-  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../css/style.css" type="text/css">
 
-  <link rel="stylesheet" href="../css/common.css" type="text/css" />
+  <link rel="stylesheet" href="../css/common.css" type="text/css">
 
 <script type="text/javascript">
   pathId = "Wasmtime::Engine";
@@ -27,6 +27,8 @@
 
   </head>
   <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
     <div class="nav_wrap">
       <iframe id="nav" src="../class_list.html?1"></iframe>
       <div id="resizer"></div>
@@ -94,16 +96,15 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>ext/src/ruby_api/engine.rs</dd>
+    <dd>ext/src/ruby_api/engine.rs
+</dd>
   </dl>
   
 </div>
 
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
-    
-<p>Represents a Wasmtime execution engine.</p>
-
+    <p>Represents a Wasmtime execution engine.</p>
 
   </div>
 </div>
@@ -113,9 +114,7 @@
     <h4 class="tag_title">Examples:</h4>
     
       
-        <h5 class="example_title"><div class='inline'>
-<p>Disabling parallel compilation</p>
-</div></h5>
+        <h5 class="example_title"><div class='inline'><p>Disabling parallel compilation</p></div></h5>
       
       <pre class="example code"><code><span class='comment'># Many Ruby servers use a pre-forking mechanism to allow parallel request
 </span><span class='comment'># processing. Unfortunately, this can causes processes to deadlock if you
@@ -182,6 +181,7 @@
 
       
     </ul>
+    
   
     <h2>
       Instance Method Summary
@@ -207,9 +207,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Manually increment the engine’s epoch.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Manually increment the engine's epoch.</p></div></span>
   
 </li>
 
@@ -231,9 +229,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>If two engines have a matching <span class='object_link'><a href="#precompile_compatibility_key-instance_method" title="Wasmtime::Engine#precompile_compatibility_key (method)">#precompile_compatibility_key</a></span>, then serialized modules from one engine can be deserialized by the other.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>If two engines have a matching <span class='object_link'><a href="#precompile_compatibility_key-instance_method" title="Wasmtime::Engine#precompile_compatibility_key (method)">#precompile_compatibility_key</a></span>, then serialized modules from one engine can be deserialized by the other.</p></div></span>
   
 </li>
 
@@ -255,9 +251,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>AoT compile a WebAssembly text or WebAssembly binary component for later use.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>AoT compile a WebAssembly text or WebAssembly binary component for later use.</p></div></span>
   
 </li>
 
@@ -279,9 +273,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>AoT compile a WebAssembly text or WebAssembly binary module for later use.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>AoT compile a WebAssembly text or WebAssembly binary module for later use.</p></div></span>
   
 </li>
 
@@ -303,9 +295,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Starts a timer that will increment the engine’s epoch every <code>milliseconds</code>.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Starts a timer that will increment the engine's epoch every <code>milliseconds</code>.</p></div></span>
   
 </li>
 
@@ -327,14 +317,13 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Stops a previously started timer with <span class='object_link'><a href="#start_epoch_interval-instance_method" title="Wasmtime::Engine#start_epoch_interval (method)">#start_epoch_interval</a></span>.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Stops a previously started timer with <span class='object_link'><a href="#start_epoch_interval-instance_method" title="Wasmtime::Engine#start_epoch_interval (method)">#start_epoch_interval</a></span>.</p></div></span>
   
 </li>
 
       
     </ul>
+    
   
 
 
@@ -374,9 +363,9 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>The engine’s config. See the <a href="https://docs.rs/wasmtime/latest/wasmtime/struct.Engine.html" target="_parent" title="&lt;code&gt;Config&lt;/code&gt;‘s Rust doc"><code>Config</code>‘s Rust doc</a> for detailed description of the different options and the defaults.</p>
-</div>
+        <div class='inline'><p>The engine's config.
+See the <a href="https://docs.rs/wasmtime/latest/wasmtime/struct.Engine.html" target="_parent" title="+Config+‘s Rust doc">+Config+‘s Rust doc</a> for detailed description of
+the different options and the defaults.</p></div>
       
     </li>
   
@@ -395,9 +384,7 @@
             
           </span>
           
-            &mdash; <div class='inline'>
-<p>Configures whether or not stacks used for async futures are zeroed before (re)use.</p>
-</div>
+            &mdash; <div class='inline'><p>Configures whether or not stacks used for async futures are zeroed before (re)use.</p></div>
           
         </li>
       
@@ -501,9 +488,7 @@
             
           </span>
           
-            &mdash; <div class='inline'>
-<p>Whether compile Wasm using multiple threads</p>
-</div>
+            &mdash; <div class='inline'><p>Whether compile Wasm using multiple threads</p></div>
           
         </li>
       
@@ -514,9 +499,7 @@
             
           </span>
           
-            &mdash; <div class='inline'>
-<p>Configures whether compiled artifacts will contain information to map native program addresses back to the original wasm module. This configuration option is <code>true</code> by default. Disabling this feature can result in considerably smaller serialized modules.</p>
-</div>
+            &mdash; <div class='inline'><p>Configures whether compiled artifacts will contain information to map native program addresses back to the original wasm module. This configuration option is <code>true</code> by default. Disabling this feature can result in considerably smaller serialized modules.</p></div>
           
         </li>
       
@@ -527,9 +510,7 @@
             
           </span>
           
-            &mdash; <div class='inline'>
-<p>One of <code>none</code>, <code>speed</code>, <code>speed_and_size</code>.</p>
-</div>
+            &mdash; <div class='inline'><p>One of <code>none</code>, <code>speed</code>, <code>speed_and_size</code>.</p></div>
           
         </li>
       
@@ -540,9 +521,7 @@
             
           </span>
           
-            &mdash; <div class='inline'>
-<p>One of <code>none</code>, <code>jitdump</code>, <code>vtune</code>.</p>
-</div>
+            &mdash; <div class='inline'><p>One of <code>none</code>, <code>jitdump</code>, <code>vtune</code>.</p></div>
           
         </li>
       
@@ -553,9 +532,7 @@
             
           </span>
           
-            &mdash; <div class='inline'>
-<p>One of <code>auto</code>, <code>cranelift</code>, <code>winch</code></p>
-</div>
+            &mdash; <div class='inline'><p>One of <code>auto</code>, <code>cranelift</code>, <code>winch</code></p></div>
           
         </li>
       
@@ -649,9 +626,10 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Manually increment the engine’s epoch. Note: this cannot be used from a different thread while WebAssembly is running because the Global VM lock (GVL) is not released. Using <span class='object_link'><a href="#start_epoch_interval-instance_method" title="Wasmtime::Engine#start_epoch_interval (method)">#start_epoch_interval</a></span> is recommended because it sidesteps the GVL.</p>
-
+    <p>Manually increment the engine's epoch.
+Note: this cannot be used from a different thread while WebAssembly is
+running because the Global VM lock (GVL) is not released.
+Using <span class='object_link'><a href="#start_epoch_interval-instance_method" title="Wasmtime::Engine#start_epoch_interval (method)">#start_epoch_interval</a></span> is recommended because it sidesteps the GVL.</p>
 
   </div>
 </div>
@@ -703,9 +681,9 @@ pub fn increment_epoch(&amp;self) {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>If two engines have a matching <span class='object_link'><a href="#precompile_compatibility_key-instance_method" title="Wasmtime::Engine#precompile_compatibility_key (method)">#precompile_compatibility_key</a></span>, then serialized modules from one engine can be deserialized by the other.</p>
-
+    <p>If two engines have a matching <span class='object_link'><a href="#precompile_compatibility_key-instance_method" title="Wasmtime::Engine#precompile_compatibility_key (method)">#precompile_compatibility_key</a></span>,
+then serialized modules from one engine can be deserialized by the
+other.</p>
 
   </div>
 </div>
@@ -722,9 +700,7 @@ pub fn increment_epoch(&amp;self) {
       
       
         &mdash;
-        <div class='inline'>
-<p>The hex formatted string that can be used to check precompiled module compatibility.</p>
-</div>
+        <div class='inline'><p>The hex formatted string that can be used to check precompiled module compatibility.</p></div>
       
     </li>
   
@@ -794,11 +770,8 @@ pub fn precompile_compatibility_key(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>AoT compile a WebAssembly text or WebAssembly binary component for later use.</p>
-
+    <p>AoT compile a WebAssembly text or WebAssembly binary component for later use.</p>
 <p>The compiled component can be instantiated using <span class='object_link'><a href="Component/Component.html#deserialize-class_method" title="Wasmtime::Component::Component.deserialize (method)">Component::Component.deserialize</a></span>.</p>
-
 
   </div>
 </div>
@@ -816,9 +789,7 @@ pub fn precompile_compatibility_key(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -
       
       
         &mdash;
-        <div class='inline'>
-<p>The String of WAT or Wasm component.</p>
-</div>
+        <div class='inline'><p>The String of WAT or Wasm component.</p></div>
       
     </li>
   
@@ -835,9 +806,7 @@ pub fn precompile_compatibility_key(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -
       
       
         &mdash;
-        <div class='inline'>
-<p>Binary String of the compiled component.</p>
-</div>
+        <div class='inline'><p>Binary String of the compiled component.</p></div>
       
     </li>
   
@@ -898,11 +867,8 @@ pub fn precompile_component(
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>AoT compile a WebAssembly text or WebAssembly binary module for later use.</p>
-
+    <p>AoT compile a WebAssembly text or WebAssembly binary module for later use.</p>
 <p>The compiled module can be instantiated using <span class='object_link'><a href="Module.html#deserialize-class_method" title="Wasmtime::Module.deserialize (method)">Module.deserialize</a></span>.</p>
-
 
   </div>
 </div>
@@ -920,9 +886,7 @@ pub fn precompile_component(
       
       
         &mdash;
-        <div class='inline'>
-<p>The String of WAT or Wasm.</p>
-</div>
+        <div class='inline'><p>The String of WAT or Wasm.</p></div>
       
     </li>
   
@@ -939,9 +903,7 @@ pub fn precompile_component(
       
       
         &mdash;
-        <div class='inline'>
-<p>Binary String of the compiled module.</p>
-</div>
+        <div class='inline'><p>Binary String of the compiled module.</p></div>
       
     </li>
   
@@ -1002,11 +964,9 @@ pub fn precompile_module(
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Starts a timer that will increment the engine’s epoch every <code>milliseconds</code>. Waits <code>milliseconds</code> before incrementing for the first time.</p>
-
+    <p>Starts a timer that will increment the engine's epoch every <code>milliseconds</code>.
+Waits <code>milliseconds</code> before incrementing for the first time.</p>
 <p>If a prior timer was started, it will be stopped.</p>
-
 
   </div>
 </div>
@@ -1099,9 +1059,8 @@ pub fn start_epoch_interval(&amp;self, milliseconds: u64) {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Stops a previously started timer with <span class='object_link'><a href="#start_epoch_interval-instance_method" title="Wasmtime::Engine#start_epoch_interval (method)">#start_epoch_interval</a></span>. Does nothing if there is no running timer.</p>
-
+    <p>Stops a previously started timer with <span class='object_link'><a href="#start_epoch_interval-instance_method" title="Wasmtime::Engine#start_epoch_interval (method)">#start_epoch_interval</a></span>.
+Does nothing if there is no running timer.</p>
 
   </div>
 </div>
@@ -1155,9 +1114,9 @@ pub fn stop_epoch_interval(&amp;self) {
 </div>
 
       <div id="footer">
-  Generated on Fri Apr 10 17:38:20 2026 by
+  Generated on Mon Apr 27 19:26:22 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.39 (ruby-4.0.2).
+  0.9.43 (ruby-4.0.3).
 </div>
 
     </div>

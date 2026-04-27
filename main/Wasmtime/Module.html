@@ -6,13 +6,13 @@
 <title>
   Class: Wasmtime::Module
   
-    &mdash; Documentation by YARD 0.9.39
+    &mdash; Documentation by YARD 0.9.43
   
 </title>
 
-  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../css/style.css" type="text/css">
 
-  <link rel="stylesheet" href="../css/common.css" type="text/css" />
+  <link rel="stylesheet" href="../css/common.css" type="text/css">
 
 <script type="text/javascript">
   pathId = "Wasmtime::Module";
@@ -27,6 +27,8 @@
 
   </head>
   <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
     <div class="nav_wrap">
       <iframe id="nav" src="../class_list.html?1"></iframe>
       <div id="resizer"></div>
@@ -94,16 +96,15 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>ext/src/ruby_api/module.rs</dd>
+    <dd>ext/src/ruby_api/module.rs
+</dd>
   </dl>
   
 </div>
 
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
-    
-<p>Represents a WebAssembly module.</p>
-
+    <p>Represents a WebAssembly module.</p>
 
   </div>
 </div>
@@ -149,9 +150,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Instantiates a serialized module coming from either <span class='object_link'><a href="#serialize-instance_method" title="Wasmtime::Module#serialize (method)">#serialize</a></span> or <span class='object_link'><a href="Engine.html#precompile_module-instance_method" title="Wasmtime::Engine#precompile_module (method)">Engine#precompile_module</a></span>.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Instantiates a serialized module coming from either <span class='object_link'><a href="#serialize-instance_method" title="Wasmtime::Module#serialize (method)">#serialize</a></span> or <span class='object_link'><a href="Engine.html#precompile_module-instance_method" title="Wasmtime::Engine#precompile_module (method)">Engine#precompile_module</a></span>.</p></div></span>
   
 </li>
 
@@ -173,9 +172,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Instantiates a serialized module from a file.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Instantiates a serialized module from a file.</p></div></span>
   
 </li>
 
@@ -225,6 +222,7 @@
 
       
     </ul>
+    
   
     <h2>
       Instance Method Summary
@@ -250,9 +248,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Returns the list of imports that this Module has and must be satisfied.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Returns the list of imports that this Module has and must be satisfied.</p></div></span>
   
 </li>
 
@@ -274,14 +270,13 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Serialize the module.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Serialize the module.</p></div></span>
   
 </li>
 
       
     </ul>
+    
   
 
 
@@ -301,16 +296,12 @@
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Instantiates a serialized module coming from either <span class='object_link'><a href="#serialize-instance_method" title="Wasmtime::Module#serialize (method)">#serialize</a></span> or <span class='object_link'><a href="Engine.html#precompile_module-instance_method" title="Wasmtime::Engine#precompile_module (method)">Engine#precompile_module</a></span>.</p>
-
+    <p>Instantiates a serialized module coming from either <span class='object_link'><a href="#serialize-instance_method" title="Wasmtime::Module#serialize (method)">#serialize</a></span> or <span class='object_link'><a href="Engine.html#precompile_module-instance_method" title="Wasmtime::Engine#precompile_module (method)">Engine#precompile_module</a></span>.</p>
 <p>The engine serializing and the engine deserializing must:</p>
-<ul><li>
-<p>have the same configuration</p>
-</li><li>
-<p>be of the same gem version</p>
-</li></ul>
-
+<ul>
+<li>have the same configuration</li>
+<li>be of the same gem version</li>
+</ul>
 
   </div>
 </div>
@@ -339,9 +330,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>String obtained with either <span class='object_link'><a href="Engine.html#precompile_module-instance_method" title="Wasmtime::Engine#precompile_module (method)">Engine#precompile_module</a></span> or <span class='object_link'><a href="#serialize-instance_method" title="Wasmtime::Module#serialize (method)">#serialize</a></span>.</p>
-</div>
+        <div class='inline'><p>String obtained with either <span class='object_link'><a href="Engine.html#precompile_module-instance_method" title="Wasmtime::Engine#precompile_module (method)">Engine#precompile_module</a></span> or <span class='object_link'><a href="#serialize-instance_method" title="Wasmtime::Module#serialize (method)">#serialize</a></span>.</p></div>
       
     </li>
   
@@ -399,9 +388,7 @@ pub fn deserialize(engine: &amp;Engine, compiled: RString) -&gt; Result&lt;Self,
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Instantiates a serialized module from a file.</p>
-
+    <p>Instantiates a serialized module from a file.</p>
 
   </div>
 </div>
@@ -609,9 +596,7 @@ pub fn from_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error
       
       
         &mdash;
-        <div class='inline'>
-<p>The String of WAT or Wasm.</p>
-</div>
+        <div class='inline'><p>The String of WAT or Wasm.</p></div>
       
     </li>
   
@@ -679,9 +664,7 @@ pub fn new(engine: &amp;Engine, wat_or_wasm: RString) -&gt; Result&lt;Self, Erro
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns the list of imports that this Module has and must be satisfied.</p>
-
+    <p>Returns the list of imports that this Module has and must be satisfied.</p>
 
   </div>
 </div>
@@ -698,9 +681,7 @@ pub fn new(engine: &amp;Engine, wat_or_wasm: RString) -&gt; Result&lt;Self, Erro
       
       
         &mdash;
-        <div class='inline'>
-<p>An array of hashes containing import information</p>
-</div>
+        <div class='inline'><p>An array of hashes containing import information</p></div>
       
     </li>
   
@@ -762,9 +743,7 @@ pub fn imports(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RArray
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Serialize the module.</p>
-
+    <p>Serialize the module.</p>
 
   </div>
 </div>
@@ -827,9 +806,9 @@ pub fn serialize(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RStr
 </div>
 
       <div id="footer">
-  Generated on Fri Apr 10 17:38:20 2026 by
+  Generated on Mon Apr 27 19:26:22 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.39 (ruby-4.0.2).
+  0.9.43 (ruby-4.0.3).
 </div>
 
     </div>

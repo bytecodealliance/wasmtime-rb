@@ -6,13 +6,13 @@
 <title>
   Class: Wasmtime::Extern
   
-    &mdash; Documentation by YARD 0.9.39
+    &mdash; Documentation by YARD 0.9.43
   
 </title>
 
-  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../css/style.css" type="text/css">
 
-  <link rel="stylesheet" href="../css/common.css" type="text/css" />
+  <link rel="stylesheet" href="../css/common.css" type="text/css">
 
 <script type="text/javascript">
   pathId = "Wasmtime::Extern";
@@ -27,6 +27,8 @@
 
   </head>
   <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
     <div class="nav_wrap">
       <iframe id="nav" src="../class_list.html?1"></iframe>
       <div id="resizer"></div>
@@ -94,16 +96,15 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>ext/src/ruby_api/externals.rs</dd>
+    <dd>ext/src/ruby_api/externals.rs
+</dd>
   </dl>
   
 </div>
 
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
-    
-<p>An external item to a WebAssembly module, or a list of what can possibly be exported from a Wasm module.</p>
-
+    <p>An external item to a WebAssembly module, or a list of what can possibly be exported from a Wasm module.</p>
 
   </div>
 </div>
@@ -149,9 +150,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Returns the exported function or raises a ‘<span class='object_link'><a href="ConversionError.html" title="Wasmtime::ConversionError (class)">ConversionError</a></span>` when the export is not a function.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Returns the exported function or raises a <code>{ConversionError}</code> when the export is not a function.</p></div></span>
   
 </li>
 
@@ -173,9 +172,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Returns the exported global or raises a ‘<span class='object_link'><a href="ConversionError.html" title="Wasmtime::ConversionError (class)">ConversionError</a></span>` when the export is not a global.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Returns the exported global or raises a <code>{ConversionError}</code> when the export is not a global.</p></div></span>
   
 </li>
 
@@ -197,9 +194,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Returns the exported memory or raises a ‘<span class='object_link'><a href="ConversionError.html" title="Wasmtime::ConversionError (class)">ConversionError</a></span>` when the export is not a memory.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Returns the exported memory or raises a <code>{ConversionError}</code> when the export is not a memory.</p></div></span>
   
 </li>
 
@@ -221,14 +216,13 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Returns the exported table or raises a ‘<span class='object_link'><a href="ConversionError.html" title="Wasmtime::ConversionError (class)">ConversionError</a></span>` when the export is not a table.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Returns the exported table or raises a <code>{ConversionError}</code> when the export is not a table.</p></div></span>
   
 </li>
 
       
     </ul>
+    
   
 
 
@@ -248,9 +242,8 @@
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns the exported function or raises a ‘<span class='object_link'><a href="ConversionError.html" title="Wasmtime::ConversionError (class)">ConversionError</a></span>` when the export is not a function.</p>
-
+    <p>Returns the exported function or raises a <code>{ConversionError}</code> when the export is not a
+function.</p>
 
   </div>
 </div>
@@ -267,9 +260,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>The exported function.</p>
-</div>
+        <div class='inline'><p>The exported function.</p></div>
       
     </li>
   
@@ -313,9 +304,7 @@ pub fn to_func(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value,
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns the exported global or raises a ‘<span class='object_link'><a href="ConversionError.html" title="Wasmtime::ConversionError (class)">ConversionError</a></span>` when the export is not a global.</p>
-
+    <p>Returns the exported global or raises a <code>{ConversionError}</code> when the export is not a global.</p>
 
   </div>
 </div>
@@ -332,9 +321,7 @@ pub fn to_func(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value,
       
       
         &mdash;
-        <div class='inline'>
-<p>The exported global.</p>
-</div>
+        <div class='inline'><p>The exported global.</p></div>
       
     </li>
   
@@ -378,9 +365,8 @@ pub fn to_global(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Valu
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns the exported memory or raises a ‘<span class='object_link'><a href="ConversionError.html" title="Wasmtime::ConversionError (class)">ConversionError</a></span>` when the export is not a memory.</p>
-
+    <p>Returns the exported memory or raises a <code>{ConversionError}</code> when the export is not a
+memory.</p>
 
   </div>
 </div>
@@ -397,9 +383,7 @@ pub fn to_global(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Valu
       
       
         &mdash;
-        <div class='inline'>
-<p>The exported memory.</p>
-</div>
+        <div class='inline'><p>The exported memory.</p></div>
       
     </li>
   
@@ -443,9 +427,7 @@ pub fn to_memory(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Valu
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns the exported table or raises a ‘<span class='object_link'><a href="ConversionError.html" title="Wasmtime::ConversionError (class)">ConversionError</a></span>` when the export is not a table.</p>
-
+    <p>Returns the exported table or raises a <code>{ConversionError}</code> when the export is not a table.</p>
 
   </div>
 </div>
@@ -462,9 +444,7 @@ pub fn to_memory(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Valu
       
       
         &mdash;
-        <div class='inline'>
-<p>The exported table.</p>
-</div>
+        <div class='inline'><p>The exported table.</p></div>
       
     </li>
   
@@ -502,9 +482,9 @@ pub fn to_table(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value
 </div>
 
       <div id="footer">
-  Generated on Fri Apr 10 17:38:20 2026 by
+  Generated on Mon Apr 27 19:26:22 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.39 (ruby-4.0.2).
+  0.9.43 (ruby-4.0.3).
 </div>
 
     </div>

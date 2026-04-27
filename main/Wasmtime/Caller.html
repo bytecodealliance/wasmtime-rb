@@ -6,13 +6,13 @@
 <title>
   Class: Wasmtime::Caller
   
-    &mdash; Documentation by YARD 0.9.39
+    &mdash; Documentation by YARD 0.9.43
   
 </title>
 
-  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../css/style.css" type="text/css">
 
-  <link rel="stylesheet" href="../css/common.css" type="text/css" />
+  <link rel="stylesheet" href="../css/common.css" type="text/css">
 
 <script type="text/javascript">
   pathId = "Wasmtime::Caller";
@@ -27,6 +27,8 @@
 
   </head>
   <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
     <div class="nav_wrap">
       <iframe id="nav" src="../class_list.html?1"></iframe>
       <div id="resizer"></div>
@@ -94,16 +96,17 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>ext/src/ruby_api/caller.rs</dd>
+    <dd>ext/src/ruby_api/caller.rs
+</dd>
   </dl>
   
 </div>
 
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
-    
-<p>Represents the Caller’s context within a Func execution. An instance of Caller is sent as the first parameter to Func’s implementation (the block argument in <span class='object_link'><a href="Func.html#new-class_method" title="Wasmtime::Func.new (method)">Func.new</a></span>).</p>
-
+    <p>Represents the Caller's context within a Func execution. An instance of
+Caller is sent as the first parameter to Func's implementation (the
+block argument in <span class='object_link'><a href="Func.html#new-class_method" title="Wasmtime::Func.new (method)">Func.new</a></span>).</p>
 
   </div>
 </div>
@@ -171,9 +174,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Returns the amount of fuel in the <span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span>.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Returns the amount of fuel in the <span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span>.</p></div></span>
   
 </li>
 
@@ -195,9 +196,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Sets fuel to the <span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span>.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Sets fuel to the <span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span>.</p></div></span>
   
 </li>
 
@@ -219,14 +218,13 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Returns the store’s data.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Returns the store's data.</p></div></span>
   
 </li>
 
       
     </ul>
+    
   
 
 
@@ -312,9 +310,7 @@ pub fn export(
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns the amount of fuel in the <span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span>.</p>
-
+    <p>Returns the amount of fuel in the <span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span>.</p>
 
   </div>
 </div>
@@ -344,9 +340,7 @@ pub fn export(
       
       
         &mdash;
-        <div class='inline'>
-<p>if fuel consumption is not enabled via Engine#new</p>
-</div>
+        <div class='inline'><p>if fuel consumption is not enabled via Engine#new</p></div>
       
     </li>
   
@@ -390,9 +384,7 @@ pub fn get_fuel(&amp;self) -&gt; Result&lt;u64, Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Sets fuel to the <span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span>.</p>
-
+    <p>Sets fuel to the <span class='object_link'><a href="Store.html" title="Wasmtime::Store (class)">Store</a></span>.</p>
 
   </div>
 </div>
@@ -410,9 +402,7 @@ pub fn get_fuel(&amp;self) -&gt; Result&lt;u64, Error&gt; {
       
       
         &mdash;
-        <div class='inline'>
-<p>The new fuel amount.</p>
-</div>
+        <div class='inline'><p>The new fuel amount.</p></div>
       
     </li>
   
@@ -429,9 +419,7 @@ pub fn get_fuel(&amp;self) -&gt; Result&lt;u64, Error&gt; {
       
       
         &mdash;
-        <div class='inline'>
-<p>if fuel consumption is not enabled via Engine#new</p>
-</div>
+        <div class='inline'><p>if fuel consumption is not enabled via Engine#new</p></div>
       
     </li>
   
@@ -477,9 +465,7 @@ pub fn set_fuel(&amp;self, fuel: u64) -&gt; Result&lt;(), Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns the store’s data. Akin to <span class='object_link'><a href="Store.html#data-instance_method" title="Wasmtime::Store#data (method)">Store#data</a></span>.</p>
-
+    <p>Returns the store's data. Akin to <span class='object_link'><a href="Store.html#data-instance_method" title="Wasmtime::Store#data (method)">Store#data</a></span>.</p>
 
   </div>
 </div>
@@ -496,9 +482,7 @@ pub fn set_fuel(&amp;self, fuel: u64) -&gt; Result&lt;(), Error&gt; {
       
       
         &mdash;
-        <div class='inline'>
-<p>The store’s data (the object passed to <span class='object_link'><a href="Store.html#new-class_method" title="Wasmtime::Store.new (method)">Store.new</a></span>).</p>
-</div>
+        <div class='inline'><p>The store's data (the object passed to <span class='object_link'><a href="Store.html#new-class_method" title="Wasmtime::Store.new (method)">Store.new</a></span>).</p></div>
       
     </li>
   
@@ -530,9 +514,9 @@ pub fn store_data(&amp;self) -&gt; Result&lt;Value, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Fri Apr 10 17:38:20 2026 by
+  Generated on Mon Apr 27 19:26:22 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.39 (ruby-4.0.2).
+  0.9.43 (ruby-4.0.3).
 </div>
 
     </div>

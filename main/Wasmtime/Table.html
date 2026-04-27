@@ -6,13 +6,13 @@
 <title>
   Class: Wasmtime::Table
   
-    &mdash; Documentation by YARD 0.9.39
+    &mdash; Documentation by YARD 0.9.43
   
 </title>
 
-  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../css/style.css" type="text/css">
 
-  <link rel="stylesheet" href="../css/common.css" type="text/css" />
+  <link rel="stylesheet" href="../css/common.css" type="text/css">
 
 <script type="text/javascript">
   pathId = "Wasmtime::Table";
@@ -27,6 +27,8 @@
 
   </head>
   <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
     <div class="nav_wrap">
       <iframe id="nav" src="../class_list.html?1"></iframe>
       <div id="resizer"></div>
@@ -94,16 +96,15 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>ext/src/ruby_api/table.rs</dd>
+    <dd>ext/src/ruby_api/table.rs
+</dd>
   </dl>
   
 </div>
 
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
-    
-<p>Represents a WebAssembly table.</p>
-
+    <p>Represents a WebAssembly table.</p>
 
   </div>
 </div>
@@ -155,6 +156,7 @@
 
       
     </ul>
+    
   
     <h2>
       Instance Method Summary
@@ -180,9 +182,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Returns the table element value at <code>index</code>, or <code>nil</code> if index is out of bound.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Returns the table element value at <code>index</code>, or <code>nil</code> if index is out of bound.</p></div></span>
   
 </li>
 
@@ -204,9 +204,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Grows the size of this table by <code>delta</code>.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Grows the size of this table by <code>delta</code>.</p></div></span>
   
 </li>
 
@@ -228,9 +226,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>The maximum size of this table.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>The maximum size of this table.</p></div></span>
   
 </li>
 
@@ -252,9 +248,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>The minimum size of this table.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>The minimum size of this table.</p></div></span>
   
 </li>
 
@@ -276,9 +270,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Sets the table entry at <code>index</code> to <code>value</code>.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Sets the table entry at <code>index</code> to <code>value</code>.</p></div></span>
   
 </li>
 
@@ -300,9 +292,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>The size of the table.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>The size of the table.</p></div></span>
   
 </li>
 
@@ -324,14 +314,13 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>The Wasm type of the elements of this table.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>The Wasm type of the elements of this table.</p></div></span>
   
 </li>
 
       
     </ul>
+    
   
 
 
@@ -380,9 +369,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>The WebAssembly type of the value held by this table.</p>
-</div>
+        <div class='inline'><p>The WebAssembly type of the value held by this table.</p></div>
       
     </li>
   
@@ -396,9 +383,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>The initial value of values in the table.</p>
-</div>
+        <div class='inline'><p>The initial value of values in the table.</p></div>
       
     </li>
   
@@ -412,9 +397,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>The minimum number of elements in the table.</p>
-</div>
+        <div class='inline'><p>The minimum number of elements in the table.</p></div>
       
     </li>
   
@@ -430,9 +413,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>The maximum number of elements in the table.</p>
-</div>
+        <div class='inline'><p>The maximum number of elements in the table.</p></div>
       
     </li>
   
@@ -545,9 +526,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns the table element value at <code>index</code>, or <code>nil</code> if index is out of bound.</p>
-
+    <p>Returns the table element value at <code>index</code>, or <code>nil</code> if index is out of bound.</p>
 
   </div>
 </div>
@@ -620,9 +599,8 @@ pub fn get(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, index: u64) -&gt; Result&l
   
 </h3><div class="docstring">
   <div class="discussion">
-    <p class="note returns_void">This method returns an undefined value.</p>
-<p>Grows the size of this table by <code>delta</code>. Raises if the table grows beyond its limit.</p>
-
+    <p class="note returns_void">This method returns an undefined value.</p><p>Grows the size of this table by <code>delta</code>.
+Raises if the table grows beyond its limit.</p>
 
   </div>
 </div>
@@ -640,9 +618,7 @@ pub fn get(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, index: u64) -&gt; Result&l
       
       
         &mdash;
-        <div class='inline'>
-<p>The number of elements to add to the table.</p>
-</div>
+        <div class='inline'><p>The number of elements to add to the table.</p></div>
       
     </li>
   
@@ -656,9 +632,7 @@ pub fn get(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, index: u64) -&gt; Result&l
       
       
         &mdash;
-        <div class='inline'>
-<p>The initial value for newly added table slots.</p>
-</div>
+        <div class='inline'><p>The initial value for newly added table slots.</p></div>
       
     </li>
   
@@ -723,9 +697,7 @@ pub fn grow(&amp;self, delta: u64, initial: Value) -&gt; Result&lt;u64, Error&gt
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns The maximum size of this table.</p>
-
+    <p>Returns The maximum size of this table.</p>
 
   </div>
 </div>
@@ -742,9 +714,7 @@ pub fn grow(&amp;self, delta: u64, initial: Value) -&gt; Result&lt;u64, Error&gt
       
       
         &mdash;
-        <div class='inline'>
-<p>The maximum size of this table.</p>
-</div>
+        <div class='inline'><p>The maximum size of this table.</p></div>
       
     </li>
   
@@ -782,9 +752,7 @@ pub fn max_size(&amp;self) -&gt; Result&lt;Option&lt;u64&gt;, Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns The minimum size of this table.</p>
-
+    <p>Returns The minimum size of this table.</p>
 
   </div>
 </div>
@@ -801,9 +769,7 @@ pub fn max_size(&amp;self) -&gt; Result&lt;Option&lt;u64&gt;, Error&gt; {
       
       
         &mdash;
-        <div class='inline'>
-<p>The minimum size of this table.</p>
-</div>
+        <div class='inline'><p>The minimum size of this table.</p></div>
       
     </li>
   
@@ -841,9 +807,7 @@ pub fn min_size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    <p class="note returns_void">This method returns an undefined value.</p>
-<p>Sets the table entry at <code>index</code> to <code>value</code>.</p>
-
+    <p class="note returns_void">This method returns an undefined value.</p><p>Sets the table entry at <code>index</code> to <code>value</code>.</p>
 
   </div>
 </div>
@@ -934,9 +898,7 @@ pub fn set(&amp;self, index: u64, value: Value) -&gt; Result&lt;(), Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns The size of the table.</p>
-
+    <p>Returns The size of the table.</p>
 
   </div>
 </div>
@@ -953,9 +915,7 @@ pub fn set(&amp;self, index: u64, value: Value) -&gt; Result&lt;(), Error&gt; {
       
       
         &mdash;
-        <div class='inline'>
-<p>The size of the table.</p>
-</div>
+        <div class='inline'><p>The size of the table.</p></div>
       
     </li>
   
@@ -993,9 +953,7 @@ pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns The Wasm type of the elements of this table.</p>
-
+    <p>Returns The Wasm type of the elements of this table.</p>
 
   </div>
 </div>
@@ -1012,9 +970,7 @@ pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
       
       
         &mdash;
-        <div class='inline'>
-<p>The Wasm type of the elements of this table.</p>
-</div>
+        <div class='inline'><p>The Wasm type of the elements of this table.</p></div>
       
     </li>
   
@@ -1046,9 +1002,9 @@ pub fn type_(&amp;self) -&gt; Result&lt;Symbol, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Fri Apr 10 17:38:20 2026 by
+  Generated on Mon Apr 27 19:26:22 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.39 (ruby-4.0.2).
+  0.9.43 (ruby-4.0.3).
 </div>
 
     </div>

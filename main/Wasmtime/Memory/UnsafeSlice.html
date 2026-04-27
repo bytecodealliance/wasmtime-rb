@@ -6,13 +6,13 @@
 <title>
   Class: Wasmtime::Memory::UnsafeSlice
   
-    &mdash; Documentation by YARD 0.9.39
+    &mdash; Documentation by YARD 0.9.43
   
 </title>
 
-  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css">
 
-  <link rel="stylesheet" href="../../css/common.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/common.css" type="text/css">
 
 <script type="text/javascript">
   pathId = "Wasmtime::Memory::UnsafeSlice";
@@ -27,6 +27,8 @@
 
   </head>
   <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
     <div class="nav_wrap">
       <iframe id="nav" src="../../class_list.html?1"></iframe>
       <div id="resizer"></div>
@@ -94,18 +96,19 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>ext/src/ruby_api/memory/unsafe_slice.rs</dd>
+    <dd>ext/src/ruby_api/memory/unsafe_slice.rs
+</dd>
   </dl>
   
 </div>
 
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
-    
-<p>Represents a slice of a WebAssembly memory. This is useful for creating Ruby strings from Wasm memory without any extra memory allocations.</p>
-
-<p>The returned <span class='object_link'><a href="" title="Wasmtime::Memory::UnsafeSlice (class)">UnsafeSlice</a></span> lazily reads the underlying memory, meaning that the actual pointer to the string buffer is not materialzed until <span class='object_link'><a href="#to_str-instance_method" title="Wasmtime::Memory::UnsafeSlice#to_str (method)">#to_str</a></span> is called.</p>
-
+    <p>Represents a slice of a WebAssembly memory. This is useful for creating Ruby
+strings from Wasm memory without any extra memory allocations.</p>
+<p>The returned <span class='object_link'><a href="" title="Wasmtime::Memory::UnsafeSlice (class)">UnsafeSlice</a></span> lazily reads the underlying memory, meaning that
+the actual pointer to the string buffer is not materialzed until
+<span class='object_link'><a href="#to_str-instance_method" title="Wasmtime::Memory::UnsafeSlice#to_str (method)">#to_str</a></span> is called.</p>
 
   </div>
 </div>
@@ -144,9 +147,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Get this slice as a Fiddle memory view, which can be cheaply read by other Ruby extensions.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Get this slice as a Fiddle memory view, which can be cheaply read by other Ruby extensions.</p></div></span>
   
 </li>
 
@@ -168,14 +169,13 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Gets the memory slice as a Ruby string without copying the underlying buffer.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Gets the memory slice as a Ruby string without copying the underlying buffer.</p></div></span>
   
 </li>
 
       
     </ul>
+    
   
 
 
@@ -195,9 +195,8 @@
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Get this slice as a Fiddle memory view, which can be cheaply read by other Ruby extensions.</p>
-
+    <p>Get this slice as a Fiddle memory view, which can be cheaply read by
+other Ruby extensions.</p>
 
   </div>
 </div>
@@ -214,9 +213,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>Memory view of the slice.</p>
-</div>
+        <div class='inline'><p>Memory view of the slice.</p></div>
       
     </li>
   
@@ -262,9 +259,7 @@ pub fn to_memory_view(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Gets the memory slice as a Ruby string without copying the underlying buffer.</p>
-
+    <p>Gets the memory slice as a Ruby string without copying the underlying buffer.</p>
 
   </div>
 </div>
@@ -281,9 +276,7 @@ pub fn to_memory_view(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt
       
       
         &mdash;
-        <div class='inline'>
-<p>Binary <code>String</code> of the memory.</p>
-</div>
+        <div class='inline'><p>Binary <code>String</code> of the memory.</p></div>
       
     </li>
   
@@ -331,9 +324,9 @@ pub fn to_str(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Value, 
 </div>
 
       <div id="footer">
-  Generated on Fri Apr 10 17:38:20 2026 by
+  Generated on Mon Apr 27 19:26:22 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.39 (ruby-4.0.2).
+  0.9.43 (ruby-4.0.3).
 </div>
 
     </div>

@@ -6,13 +6,13 @@
 <title>
   Class: Wasmtime::Component::Result
   
-    &mdash; Documentation by YARD 0.9.39
+    &mdash; Documentation by YARD 0.9.43
   
 </title>
 
-  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/style.css" type="text/css">
 
-  <link rel="stylesheet" href="../../css/common.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/common.css" type="text/css">
 
 <script type="text/javascript">
   pathId = "Wasmtime::Component::Result";
@@ -27,6 +27,8 @@
 
   </head>
   <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
     <div class="nav_wrap">
       <iframe id="nav" src="../../class_list.html?1"></iframe>
       <div id="resizer"></div>
@@ -94,16 +96,15 @@
   
   <dl>
     <dt>Defined in:</dt>
-    <dd>lib/wasmtime/component.rb</dd>
+    <dd>lib/wasmtime/component.rb
+</dd>
   </dl>
   
 </div>
 
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
-    
-<p>Represents a component model’s <tt>result&lt;O, E&gt;</tt> type.</p>
-
+    <p>Represents a component model's <code>result&lt;O, E&gt;</code> type.</p>
 
   </div>
 </div>
@@ -152,9 +153,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Construct an error result.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Construct an error result.</p></div></span>
   
 </li>
 
@@ -176,14 +175,13 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Construct an ok result.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Construct an ok result.</p></div></span>
   
 </li>
 
       
     </ul>
+    
   
     <h2>
       Instance Method Summary
@@ -253,9 +251,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Returns the error value of this Result if it is <span class='object_link'><a href="#error%3F-instance_method" title="Wasmtime::Component::Result#error? (method)">#error?</a></span>, otherwise raises.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Returns the error value of this Result if it is <span class='object_link'><a href="#error%3F-instance_method" title="Wasmtime::Component::Result#error? (method)">#error?</a></span>, otherwise raises.</p></div></span>
   
 </li>
 
@@ -277,9 +273,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Whether the result is an error.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Whether the result is an error.</p></div></span>
   
 </li>
 
@@ -323,9 +317,7 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Returns the ok value of this Result if it is <span class='object_link'><a href="#ok%3F-instance_method" title="Wasmtime::Component::Result#ok? (method)">#ok?</a></span>, otherwise raises.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Returns the ok value of this Result if it is <span class='object_link'><a href="#ok%3F-instance_method" title="Wasmtime::Component::Result#ok? (method)">#ok?</a></span>, otherwise raises.</p></div></span>
   
 </li>
 
@@ -347,14 +339,13 @@
   
 
   
-    <span class="summary_desc"><div class='inline'>
-<p>Whether the result is ok.</p>
-</div></span>
+    <span class="summary_desc"><div class='inline'><p>Whether the result is ok.</p></div></span>
   
 </li>
 
       
     </ul>
+    
   
 
 
@@ -374,9 +365,7 @@
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Construct an error result.</p>
-
+    <p>Construct an error result.</p>
 
   </div>
 </div>
@@ -394,9 +383,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>the error value</p>
-</div>
+        <div class='inline'><p>the error value</p></div>
       
     </li>
   
@@ -448,9 +435,7 @@
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Construct an ok result.</p>
-
+    <p>Construct an ok result.</p>
 
   </div>
 </div>
@@ -468,9 +453,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>the ok value</p>
-</div>
+        <div class='inline'><p>the ok value</p></div>
       
     </li>
   
@@ -624,9 +607,7 @@
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns the error value of this Result if it is <span class='object_link'><a href="#error%3F-instance_method" title="Wasmtime::Component::Result#error? (method)">#error?</a></span>, otherwise raises.</p>
-
+    <p>Returns the error value of this Result if it is <span class='object_link'><a href="#error%3F-instance_method" title="Wasmtime::Component::Result#error? (method)">#error?</a></span>, otherwise raises.</p>
 
   </div>
 </div>
@@ -656,9 +637,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>if this is an ok</p>
-</div>
+        <div class='inline'><p>if this is an ok</p></div>
       
     </li>
   
@@ -700,9 +679,7 @@
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns Whether the result is an error.</p>
-
+    <p>Returns Whether the result is an error.</p>
 
   </div>
 </div>
@@ -719,9 +696,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>Whether the result is an error</p>
-</div>
+        <div class='inline'><p>Whether the result is an error</p></div>
       
     </li>
   
@@ -789,9 +764,7 @@
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns the ok value of this Result if it is <span class='object_link'><a href="#ok%3F-instance_method" title="Wasmtime::Component::Result#ok? (method)">#ok?</a></span>, otherwise raises.</p>
-
+    <p>Returns the ok value of this Result if it is <span class='object_link'><a href="#ok%3F-instance_method" title="Wasmtime::Component::Result#ok? (method)">#ok?</a></span>, otherwise raises.</p>
 
   </div>
 </div>
@@ -821,9 +794,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>if this is an error</p>
-</div>
+        <div class='inline'><p>if this is an error</p></div>
       
     </li>
   
@@ -865,9 +836,7 @@
   
 </h3><div class="docstring">
   <div class="discussion">
-    
-<p>Returns Whether the result is ok.</p>
-
+    <p>Returns Whether the result is ok.</p>
 
   </div>
 </div>
@@ -884,9 +853,7 @@
       
       
         &mdash;
-        <div class='inline'>
-<p>Whether the result is ok</p>
-</div>
+        <div class='inline'><p>Whether the result is ok</p></div>
       
     </li>
   
@@ -918,9 +885,9 @@
 </div>
 
       <div id="footer">
-  Generated on Fri Apr 10 17:38:20 2026 by
+  Generated on Mon Apr 27 19:26:22 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.39 (ruby-4.0.2).
+  0.9.43 (ruby-4.0.3).
 </div>
 
     </div>

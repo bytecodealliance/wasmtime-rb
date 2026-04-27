@@ -94,10 +94,11 @@ module Wasmtime
     end
 
     describe "#get" do
-      it "returns nil for undefined items" do
+      it "raises for undefined items" do
         linker = new_linker
         store = Store.new(engine)
-        expect(linker.get(store, "nope", "nope")).to be_nil
+        expect { linker.get(store, "nope", "nope") }
+          .to raise_error(Wasmtime::Error, /missing definition for/)
       end
 
       it "returns an Extern" do

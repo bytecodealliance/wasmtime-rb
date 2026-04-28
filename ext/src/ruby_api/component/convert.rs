@@ -9,6 +9,8 @@ use magnus::{
 };
 use wasmtime::component::{Type, Val};
 
+use super::types::ComponentType;
+
 define_rb_intern!(
     // For Component::Result
     OK => "ok",
@@ -25,7 +27,7 @@ define_rb_intern!(
 pub(crate) fn component_val_to_rb(
     ruby: &Ruby,
     val: Val,
-    _store: &StoreContextValue,
+    _store: Option<&StoreContextValue>,
 ) -> Result<Value, Error> {
     match val {
         Val::Bool(bool) => Ok(bool.into_value_with(ruby)),
@@ -303,6 +305,250 @@ fn variant_class(ruby: &Ruby) -> RClass {
     static VARIANT_CLASS: Lazy<RClass> =
         Lazy::new(|ruby| component_namespace(ruby).const_get("Variant").unwrap());
     ruby.get_inner(&VARIANT_CLASS)
+}
+
+/// Validate a Ruby value against a ComponentType and convert to Val
+/// This is used for host functions where we define types standalone
+pub(super) fn validate_and_convert(
+    value: Value,
+    _store: Option<&StoreContextValue>,
+    ty: &ComponentType,
+) -> Result<Val, Error> {
+    let ruby = Ruby::get_with(value);
+    match ty {
+        ComponentType::Bool => {
+            if value.as_raw() == ruby.qtrue().as_raw() {
+                Ok(Val::Bool(true))
+            } else if value.as_raw() == ruby.qfalse().as_raw() {
+                Ok(Val::Bool(false))
+            } else {
+                Err(Error::new(
+                    ruby.exception_type_error(),
+                    format!("expected bool, got {}", unsafe { value.classname() }),
+                ))
+            }
+        }
+        ComponentType::S8 => i8::try_convert(value)
+            .map(Val::S8)
+            .map_err(|_| error!("expected s8, got {}", value.inspect())),
+        ComponentType::U8 => u8::try_convert(value)
+            .map(Val::U8)
+            .map_err(|_| error!("expected u8, got {}", value.inspect())),
+        ComponentType::S16 => i16::try_convert(value)
+            .map(Val::S16)
+            .map_err(|_| error!("expected s16, got {}", value.inspect())),
+        ComponentType::U16 => u16::try_convert(value)
+            .map(Val::U16)
+            .map_err(|_| error!("expected u16, got {}", value.inspect())),
+        ComponentType::S32 => i32::try_convert(value)
+            .map(Val::S32)
+            .map_err(|_| error!("expected s32, got {}", value.inspect())),
+        ComponentType::U32 => u32::try_convert(value)
+            .map(Val::U32)
+            .map_err(|_| error!("expected u32, got {}", value.inspect())),
+        ComponentType::S64 => i64::try_convert(value)
+            .map(Val::S64)
+            .map_err(|_| error!("expected s64, got {}", value.inspect())),
+        ComponentType::U64 => u64::try_convert(value)
+            .map(Val::U64)
+            .map_err(|_| error!("expected u64, got {}", value.inspect())),
+        ComponentType::Float32 => f32::try_convert(value)
+            .map(Val::Float32)
+            .map_err(|_| error!("expected float32, got {}", value.inspect())),
+        ComponentType::Float64 => f64::try_convert(value)
+            .map(Val::Float64)
+            .map_err(|_| error!("expected float64, got {}", value.inspect())),
+        ComponentType::Char => value
+            .to_r_string()
+            .and_then(|s| s.to_char())
+            .map(Val::Char)
+            .map_err(|_| error!("expected char, got {}", value.inspect())),
+        ComponentType::String => RString::try_convert(value)
+            .and_then(|s| s.to_string())
+            .map(Val::String)
+            .map_err(|_| error!("expected string, got {}", value.inspect())),
+        ComponentType::List(element_ty) => {
+            let rarray = RArray::try_convert(value)
+                .map_err(|_| error!("expected list (array), got {}", value.inspect()))?;
+
+            let mut vals: Vec<Val> = Vec::with_capacity(rarray.len());
+            for (i, item_value) in unsafe { rarray.as_slice() }.iter().enumerate() {
+                let component_val = validate_and_convert(*item_value, _store, element_ty)
+                    .map_err(|e| e.append(format!(" (list item at index {i})")))?;
+                vals.push(component_val);
+            }
+            Ok(Val::List(vals))
+        }
+        ComponentType::Record(fields) => {
+            let hash = RHash::try_convert(value)
+                .map_err(|_| error!("expected record (hash), got {}", value.inspect()))?;
+
+            let mut kv = Vec::with_capacity(fields.len());
+            for field in fields {
+                let field_value = hash
+                    .get(field.name.as_str())
+                    .ok_or_else(|| error!("record field missing: {}", field.name))
+                    .and_then(|v| {
+                        validate_and_convert(v, _store, &field.ty)
+                            .map_err(|e| e.append(format!(" (record field \"{}\")", field.name)))
+                    })?;
+
+                kv.push((field.name.clone(), field_value))
+            }
+            Ok(Val::Record(kv))
+        }
+        ComponentType::Tuple(types) => {
+            let rarray = RArray::try_convert(value)
+                .map_err(|_| error!("expected tuple (array), got {}", value.inspect()))?;
+
+            if types.len() != rarray.len() {
+                return Err(error!(
+                    "expected tuple with {} elements, got {}",
+                    types.len(),
+                    rarray.len()
+                ));
+            }
+
+            let mut vals: Vec<Val> = Vec::with_capacity(rarray.len());
+            for (i, (ty, item_value)) in types
+                .iter()
+                .zip(unsafe { rarray.as_slice() }.iter())
+                .enumerate()
+            {
+                let component_val = validate_and_convert(*item_value, _store, ty)
+                    .map_err(|e| e.append(format!(" (tuple element at index {i})")))?;
+                vals.push(component_val);
+            }
+
+            Ok(Val::Tuple(vals))
+        }
+        ComponentType::Variant(cases) => {
+            let name: RString = value
+                .funcall(NAME.into_id_with(&ruby), ())
+                .map_err(|_| error!("expected variant, got {}", value.inspect()))?;
+            let name = name.to_string()?;
+
+            let case = cases
+                .iter()
+                .find(|c| c.name == name.as_str())
+                .ok_or_else(|| {
+                    error!(
+                        "invalid variant case \"{}\", valid cases: [{}]",
+                        name,
+                        cases
+                            .iter()
+                            .map(|c| format!("\"{}\"", c.name))
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    )
+                })?;
+
+            let payload_rb: Value = value.funcall(VALUE.into_id_with(&ruby), ())?;
+            let payload_val = match (&case.ty, payload_rb.is_nil()) {
+                (Some(ty), _) => validate_and_convert(payload_rb, _store, ty)
+                    .map(|val| Some(Box::new(val)))
+                    .map_err(|e| e.append(format!(" (variant value for \"{}\")", &name))),
+
+                (None, true) => Ok(None),
+
+                (None, false) => err!(
+                    "expected no value for variant case \"{}\", got {}",
+                    &name,
+                    payload_rb.inspect()
+                ),
+            }?;
+
+            Ok(Val::Variant(name, payload_val))
+        }
+        ComponentType::Enum(cases) => {
+            let rstring = RString::try_convert(value)
+                .map_err(|_| error!("expected enum (string), got {}", value.inspect()))?;
+            let case_name = rstring.to_string()?;
+
+            if !cases.contains(&case_name) {
+                return Err(error!(
+                    "invalid enum case \"{}\", valid cases: [{}]",
+                    case_name,
+                    cases
+                        .iter()
+                        .map(|c| format!("\"{}\"", c))
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                ));
+            }
+
+            Ok(Val::Enum(case_name))
+        }
+        ComponentType::Option(inner_ty) => {
+            if value.is_nil() {
+                Ok(Val::Option(None))
+            } else {
+                validate_and_convert(value, _store, inner_ty)
+                    .map(|v| Val::Option(Some(Box::new(v))))
+            }
+        }
+        ComponentType::Result { ok, err } => {
+            let is_ok = value
+                .funcall::<_, (), bool>(IS_OK.into_id_with(&ruby), ())
+                .map_err(|_| error!("expected result, got {}", value.inspect()))?;
+
+            if is_ok {
+                let ok_value = value.funcall::<_, (), Value>(OK.into_id_with(&ruby), ())?;
+                match ok {
+                    Some(ty) => validate_and_convert(ok_value, _store, ty)
+                        .map(|val| Val::Result(Result::Ok(Some(Box::new(val))))),
+                    None => {
+                        if ok_value.is_nil() {
+                            Ok(Val::Result(Ok(None)))
+                        } else {
+                            err!(
+                                "expected nil for result<_, E> ok branch, got {}",
+                                ok_value.inspect()
+                            )
+                        }
+                    }
+                }
+            } else {
+                let err_value = value.funcall::<_, (), Value>(ERROR.into_id_with(&ruby), ())?;
+                match err {
+                    Some(ty) => validate_and_convert(err_value, _store, ty)
+                        .map(|val| Val::Result(Result::Err(Some(Box::new(val))))),
+                    None => {
+                        if err_value.is_nil() {
+                            Ok(Val::Result(Err(None)))
+                        } else {
+                            err!(
+                                "expected nil for result<O, _> error branch, got {}",
+                                err_value.inspect()
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        ComponentType::Flags(flag_names) => {
+            let flags_vec = Vec::<String>::try_convert(value).map_err(|_| {
+                error!("expected flags (array of strings), got {}", value.inspect())
+            })?;
+
+            // Validate that all flags are valid
+            for flag in &flags_vec {
+                if !flag_names.contains(flag) {
+                    return Err(error!(
+                        "invalid flag \"{}\", valid flags: [{}]",
+                        flag,
+                        flag_names
+                            .iter()
+                            .map(|f| format!("\"{}\"", f))
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    ));
+                }
+            }
+
+            Ok(Val::Flags(flags_vec))
+        }
+    }
 }
 
 pub fn init(ruby: &Ruby) -> Result<(), Error> {

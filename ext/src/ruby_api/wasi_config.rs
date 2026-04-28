@@ -105,6 +105,10 @@ struct WasiConfigInner {
     args: Option<Opaque<RArray>>,
     deterministic: bool,
     mapped_directories: Vec<MappedDirectory>,
+    inherit_network: bool,
+    allow_tcp: Option<bool>,
+    allow_udp: Option<bool>,
+    allow_ip_name_lookup: Option<bool>,
 }
 
 impl WasiConfigInner {
@@ -334,6 +338,49 @@ impl WasiConfig {
         rb_self
     }
 
+    /// @yard
+    /// Enable all network access by inheriting the host's network.
+    /// This allows the WASI module to use TCP, UDP, and DNS resolution.
+    /// @return [WasiConfig] +self+
+    pub fn inherit_network(rb_self: RbSelf) -> RbSelf {
+        let mut inner = rb_self.inner.borrow_mut();
+        inner.inherit_network = true;
+        rb_self
+    }
+
+    /// @yard
+    /// Allow or deny TCP socket access.
+    /// @param enabled [Boolean] Whether to allow TCP socket access
+    /// @def allow_tcp(enabled)
+    /// @return [WasiConfig] +self+
+    pub fn allow_tcp(rb_self: RbSelf, enabled: bool) -> RbSelf {
+        let mut inner = rb_self.inner.borrow_mut();
+        inner.allow_tcp = Some(enabled);
+        rb_self
+    }
+
+    /// @yard
+    /// Allow or deny UDP socket access.
+    /// @param enabled [Boolean] Whether to allow UDP socket access
+    /// @def allow_udp(enabled)
+    /// @return [WasiConfig] +self+
+    pub fn allow_udp(rb_self: RbSelf, enabled: bool) -> RbSelf {
+        let mut inner = rb_self.inner.borrow_mut();
+        inner.allow_udp = Some(enabled);
+        rb_self
+    }
+
+    /// @yard
+    /// Allow or deny IP name lookup (DNS resolution).
+    /// @param enabled [Boolean] Whether to allow IP name lookup
+    /// @def allow_ip_name_lookup(enabled)
+    /// @return [WasiConfig] +self+
+    pub fn allow_ip_name_lookup(rb_self: RbSelf, enabled: bool) -> RbSelf {
+        let mut inner = rb_self.inner.borrow_mut();
+        inner.allow_ip_name_lookup = Some(enabled);
+        rb_self
+    }
+
     pub fn build_p1(&self, ruby: &Ruby) -> Result<WasiP1Ctx, Error> {
         let mut builder = self.build_impl(ruby)?;
         let ctx = builder.build_p1();
@@ -403,8 +450,38 @@ impl WasiConfig {
             builder.envs(&env_vec);
         }
 
+        // Check for conflicting configuration: determinism and network access
         if inner.deterministic {
+            let has_network_enabled = inner.inherit_network
+                || inner.allow_tcp == Some(true)
+                || inner.allow_udp == Some(true)
+                || inner.allow_ip_name_lookup == Some(true);
+
+            if has_network_enabled {
+                return Err(error!(
+                    "Cannot enable both determinism and network access. Deterministic mode requires network to be disabled."
+                ));
+            }
+
             deterministic_wasi_ctx::add_determinism_to_wasi_ctx_builder(&mut builder);
+            // Explicitly disable network access in deterministic mode for defense-in-depth
+            builder.allow_tcp(false);
+            builder.allow_udp(false);
+            builder.allow_ip_name_lookup(false);
+        } else {
+            // Apply network configuration
+            if inner.inherit_network {
+                builder.inherit_network();
+            }
+            if let Some(allow) = inner.allow_tcp {
+                builder.allow_tcp(allow);
+            }
+            if let Some(allow) = inner.allow_udp {
+                builder.allow_udp(allow);
+            }
+            if let Some(allow) = inner.allow_ip_name_lookup {
+                builder.allow_ip_name_lookup(allow);
+            }
         }
 
         for mapped_dir in &inner.mapped_directories {
@@ -469,6 +546,14 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
     class.define_method(
         "set_mapped_directory",
         method!(WasiConfig::set_mapped_directory, 4),
+    )?;
+
+    class.define_method("inherit_network", method!(WasiConfig::inherit_network, 0))?;
+    class.define_method("allow_tcp", method!(WasiConfig::allow_tcp, 1))?;
+    class.define_method("allow_udp", method!(WasiConfig::allow_udp, 1))?;
+    class.define_method(
+        "allow_ip_name_lookup",
+        method!(WasiConfig::allow_ip_name_lookup, 1),
     )?;
 
     Ok(())

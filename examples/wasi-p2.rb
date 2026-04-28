@@ -12,6 +12,8 @@ wasi_config = Wasmtime::WasiConfig.new
   .inherit_stderr
   .set_argv(ARGV)
   .set_env(ENV)
+  .inherit_network
+
 store = Wasmtime::Store.new(engine, wasi_config: wasi_config)
 
 Wasmtime::Component::WasiCommand.new(store, component, linker).call_run(store)

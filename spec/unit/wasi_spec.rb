@@ -324,6 +324,109 @@ module Wasmtime
           expect(error.message).to match(/invalid :file_perms, expected one of \[:read, :write, :all\], got :invalid_permission/)
         end
       end
+
+      describe "network configuration" do
+        it "allows chaining inherit_network" do
+          config = WasiConfig.new.inherit_network
+          expect(config).to be_a(WasiConfig)
+        end
+
+        it "allows chaining allow_tcp with explicit value" do
+          config = WasiConfig.new.allow_tcp(false)
+          expect(config).to be_a(WasiConfig)
+        end
+
+        it "allows chaining allow_udp with explicit value" do
+          config = WasiConfig.new.allow_udp(false)
+          expect(config).to be_a(WasiConfig)
+        end
+
+        it "allows chaining allow_ip_name_lookup with explicit value" do
+          config = WasiConfig.new.allow_ip_name_lookup(false)
+          expect(config).to be_a(WasiConfig)
+        end
+
+        it "allows chaining all network methods together" do
+          config = WasiConfig.new
+            .inherit_network
+            .allow_tcp(true)
+            .allow_udp(true)
+            .allow_ip_name_lookup(true)
+            .set_stdin_string("test")
+
+          expect(config).to be_a(WasiConfig)
+        end
+
+        it "works with WASI configuration" do
+          wasi_config = WasiConfig.new
+            .inherit_network
+            .set_stdin_string("test")
+
+          expect { run.call(wasi_config) }.not_to raise_error
+        end
+
+        it "allows granular network control without inherit_network" do
+          wasi_config = WasiConfig.new
+            .allow_tcp(true)
+            .allow_udp(false)
+            .allow_ip_name_lookup(true)
+            .set_stdin_string("test")
+
+          expect { run.call(wasi_config) }.not_to raise_error
+        end
+
+        it "deterministic mode works when no network configuration is specified" do
+          wasi_config = WasiConfig.new
+            .add_determinism
+            .set_stdin_string("test")
+
+          expect { create_store.call(wasi_config) }.not_to raise_error
+        end
+
+        it "raises error when combining network configuration with deterministic mode" do
+          wasi_config = WasiConfig.new
+            .inherit_network
+            .add_determinism
+            .set_stdin_string("test")
+
+          expect {
+            create_store.call(wasi_config)
+          }.to raise_error(Wasmtime::Error, /Cannot enable both determinism and network access/)
+        end
+
+        it "raises error when allow_tcp is combined with deterministic mode" do
+          wasi_config = WasiConfig.new
+            .allow_tcp(true)
+            .add_determinism
+            .set_stdin_string("test")
+
+          expect {
+            create_store.call(wasi_config)
+          }.to raise_error(Wasmtime::Error, /Cannot enable both determinism and network access/)
+        end
+
+        it "raises error when allow_udp is combined with deterministic mode" do
+          wasi_config = WasiConfig.new
+            .add_determinism
+            .allow_udp(true)
+            .set_stdin_string("test")
+
+          expect {
+            create_store.call(wasi_config)
+          }.to raise_error(Wasmtime::Error, /Cannot enable both determinism and network access/)
+        end
+
+        it "raises error when allow_ip_name_lookup is combined with deterministic mode" do
+          wasi_config = WasiConfig.new
+            .allow_ip_name_lookup(true)
+            .add_determinism
+            .set_stdin_string("test")
+
+          expect {
+            create_store.call(wasi_config)
+          }.to raise_error(Wasmtime::Error, /Cannot enable both determinism and network access/)
+        end
+      end
     end
 
     describe "WasiConfig preview 1" do
@@ -332,6 +435,7 @@ module Wasmtime
         let(:wasi_env) { method(:wasi_module_env) }
         let(:run_deterministic) { method(:run_wasi_module_deterministic) }
         let(:run_fs) { method(:run_wasi_module_fs) }
+        let(:create_store) { method(:create_wasi_module_store) }
       end
     end
 
@@ -341,6 +445,7 @@ module Wasmtime
         let(:wasi_env) { method(:wasi_component_env) }
         let(:run_deterministic) { method(:run_wasi_component_deterministic) }
         let(:run_fs) { method(:run_wasi_component_fs) }
+        let(:create_store) { method(:create_wasi_component_store) }
       end
     end
 
@@ -431,6 +536,14 @@ module Wasmtime
 
     def tempfile_path(name)
       File.join(tmpdir, name)
+    end
+
+    def create_wasi_module_store(wasi_config)
+      Store.new(@engine, wasi_p1_config: wasi_config)
+    end
+
+    def create_wasi_component_store(wasi_config)
+      Store.new(@engine, wasi_config: wasi_config)
     end
   end
 end

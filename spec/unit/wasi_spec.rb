@@ -1,5 +1,6 @@
 require "spec_helper"
 require "json"
+require "socket"
 
 module Wasmtime
   RSpec.describe "WASI" do
@@ -17,6 +18,8 @@ module Wasmtime
       @compiled_wasi_component = @engine.precompile_component(IO.binread("spec/fixtures/wasi-debug-p2.wasm"))
       @compiled_wasi_deterministic_component = @engine.precompile_component(IO.binread("spec/fixtures/wasi-deterministic-p2.wasm"))
       @compiled_wasi_fs_component = @engine.precompile_component(IO.binread("spec/fixtures/wasi-fs-p2.wasm"))
+
+      @compiled_wasi_network_component = @engine.precompile_component(IO.binread("spec/fixtures/wasi-network-p2.wasm"))
     end
 
     describe "Linker.new" do
@@ -324,108 +327,218 @@ module Wasmtime
           expect(error.message).to match(/invalid :file_perms, expected one of \[:read, :write, :all\], got :invalid_permission/)
         end
       end
+    end
 
-      describe "network configuration" do
-        it "allows chaining inherit_network" do
-          config = WasiConfig.new.inherit_network
-          expect(config).to be_a(WasiConfig)
-        end
+    describe "WasiConfig" do
+      it "allows chaining inherit_network" do
+        config = WasiConfig.new.inherit_network
+        expect(config).to be_a(WasiConfig)
+      end
 
-        it "allows chaining allow_tcp with explicit value" do
-          config = WasiConfig.new.allow_tcp(false)
-          expect(config).to be_a(WasiConfig)
-        end
+      it "allows chaining allow_tcp with explicit value" do
+        config = WasiConfig.new.allow_tcp(false)
+        expect(config).to be_a(WasiConfig)
+      end
 
-        it "allows chaining allow_udp with explicit value" do
-          config = WasiConfig.new.allow_udp(false)
-          expect(config).to be_a(WasiConfig)
-        end
+      it "allows chaining allow_udp with explicit value" do
+        config = WasiConfig.new.allow_udp(false)
+        expect(config).to be_a(WasiConfig)
+      end
 
-        it "allows chaining allow_ip_name_lookup with explicit value" do
-          config = WasiConfig.new.allow_ip_name_lookup(false)
-          expect(config).to be_a(WasiConfig)
-        end
+      it "allows chaining allow_ip_name_lookup with explicit value" do
+        config = WasiConfig.new.allow_ip_name_lookup(false)
+        expect(config).to be_a(WasiConfig)
+      end
 
-        it "allows chaining all network methods together" do
-          config = WasiConfig.new
-            .inherit_network
-            .allow_tcp(true)
-            .allow_udp(true)
-            .allow_ip_name_lookup(true)
-            .set_stdin_string("test")
+      it "allows chaining all network methods together" do
+        config = WasiConfig.new
+          .inherit_network
+          .allow_tcp(true)
+          .allow_udp(true)
+          .allow_ip_name_lookup(true)
+          .set_stdin_string("test")
 
-          expect(config).to be_a(WasiConfig)
-        end
+        expect(config).to be_a(WasiConfig)
+      end
 
-        it "works with WASI configuration" do
-          wasi_config = WasiConfig.new
-            .inherit_network
-            .set_stdin_string("test")
+      it "works with WASI configuration" do
+        wasi_config = WasiConfig.new
+          .inherit_network
+          .set_stdin_string("test")
 
-          expect { run.call(wasi_config) }.not_to raise_error
-        end
+        expect { run_wasi_component(wasi_config) }.not_to raise_error
+      end
 
-        it "allows granular network control without inherit_network" do
-          wasi_config = WasiConfig.new
-            .allow_tcp(true)
-            .allow_udp(false)
-            .allow_ip_name_lookup(true)
-            .set_stdin_string("test")
+      it "allows granular network control without inherit_network" do
+        wasi_config = WasiConfig.new
+          .allow_tcp(true)
+          .allow_udp(false)
+          .allow_ip_name_lookup(true)
+          .set_stdin_string("test")
 
-          expect { run.call(wasi_config) }.not_to raise_error
-        end
+        expect { run_wasi_component(wasi_config) }.not_to raise_error
+      end
 
-        it "deterministic mode works when no network configuration is specified" do
-          wasi_config = WasiConfig.new
-            .add_determinism
-            .set_stdin_string("test")
+      it "deterministic mode works when no network configuration is specified" do
+        wasi_config = WasiConfig.new
+          .add_determinism
+          .set_stdin_string("test")
 
-          expect { create_store.call(wasi_config) }.not_to raise_error
-        end
+        expect { Store.new(@engine, wasi_config: wasi_config) }.not_to raise_error
+      end
 
-        it "raises error when combining network configuration with deterministic mode" do
-          wasi_config = WasiConfig.new
-            .inherit_network
-            .add_determinism
-            .set_stdin_string("test")
+      it "raises error when combining network configuration with deterministic mode" do
+        wasi_config = WasiConfig.new
+          .inherit_network
+          .add_determinism
+          .set_stdin_string("test")
 
-          expect {
-            create_store.call(wasi_config)
-          }.to raise_error(Wasmtime::Error, /Cannot enable both determinism and network access/)
-        end
+        expect {
+          Store.new(@engine, wasi_config: wasi_config)
+        }.to raise_error(Wasmtime::Error, /Cannot enable both determinism and network access/)
+      end
 
-        it "raises error when allow_tcp is combined with deterministic mode" do
-          wasi_config = WasiConfig.new
-            .allow_tcp(true)
-            .add_determinism
-            .set_stdin_string("test")
+      it "raises error when allow_tcp is combined with deterministic mode" do
+        wasi_config = WasiConfig.new
+          .allow_tcp(true)
+          .add_determinism
+          .set_stdin_string("test")
 
-          expect {
-            create_store.call(wasi_config)
-          }.to raise_error(Wasmtime::Error, /Cannot enable both determinism and network access/)
-        end
+        expect {
+          Store.new(@engine, wasi_config: wasi_config)
+        }.to raise_error(Wasmtime::Error, /Cannot enable both determinism and network access/)
+      end
 
-        it "raises error when allow_udp is combined with deterministic mode" do
-          wasi_config = WasiConfig.new
-            .add_determinism
-            .allow_udp(true)
-            .set_stdin_string("test")
+      it "raises error when allow_udp is combined with deterministic mode" do
+        wasi_config = WasiConfig.new
+          .add_determinism
+          .allow_udp(true)
+          .set_stdin_string("test")
 
-          expect {
-            create_store.call(wasi_config)
-          }.to raise_error(Wasmtime::Error, /Cannot enable both determinism and network access/)
-        end
+        expect {
+          Store.new(@engine, wasi_config: wasi_config)
+        }.to raise_error(Wasmtime::Error, /Cannot enable both determinism and network access/)
+      end
 
-        it "raises error when allow_ip_name_lookup is combined with deterministic mode" do
-          wasi_config = WasiConfig.new
-            .allow_ip_name_lookup(true)
-            .add_determinism
-            .set_stdin_string("test")
+      it "raises error when allow_ip_name_lookup is combined with deterministic mode" do
+        wasi_config = WasiConfig.new
+          .allow_ip_name_lookup(true)
+          .add_determinism
+          .set_stdin_string("test")
 
-          expect {
-            create_store.call(wasi_config)
-          }.to raise_error(Wasmtime::Error, /Cannot enable both determinism and network access/)
-        end
+        expect {
+          Store.new(@engine, wasi_config: wasi_config)
+        }.to raise_error(Wasmtime::Error, /Cannot enable both determinism and network access/)
+      end
+
+      it "succeeds when allow_tcp is enabled" do
+        port_file = tempfile_path("tcp_port")
+        server_pid = spawn_tcp_server(port_file)
+        port = wait_for_port(port_file)
+
+        stdout_str = ""
+        wasi_config = WasiConfig.new
+          .set_argv(["wasi-network", "tcp", "127.0.0.1", port.to_s])
+          .set_stdout_buffer(stdout_str, 40000)
+          .inherit_network
+          .allow_tcp(true)
+
+        run_wasi_component_network(wasi_config)
+
+        result = JSON.parse(stdout_str)
+        expect(result["test_type"]).to eq("tcp")
+        expect(result["success"]).to eq(true)
+      ensure
+        cleanup_server(server_pid)
+      end
+
+      it "fails when allow_tcp is disabled" do
+        port_file = tempfile_path("tcp_port_deny")
+        server_pid = spawn_tcp_server(port_file)
+        port = wait_for_port(port_file)
+
+        stdout_str = ""
+        wasi_config = WasiConfig.new
+          .set_argv(["wasi-network", "tcp", "127.0.0.1", port.to_s])
+          .set_stdout_buffer(stdout_str, 40000)
+          .allow_tcp(false)
+
+        run_wasi_component_network(wasi_config)
+
+        result = JSON.parse(stdout_str)
+        expect(result["test_type"]).to eq("tcp")
+        expect(result["success"]).to eq(false)
+      ensure
+        cleanup_server(server_pid)
+      end
+
+      it "succeeds when allow_udp is enabled" do
+        port_file = tempfile_path("udp_port")
+        server_pid = spawn_udp_server(port_file)
+        port = wait_for_port(port_file)
+
+        stdout_str = ""
+        wasi_config = WasiConfig.new
+          .set_argv(["wasi-network", "udp", "127.0.0.1", port.to_s])
+          .set_stdout_buffer(stdout_str, 40000)
+          .inherit_network
+          .allow_udp(true)
+
+        run_wasi_component_network(wasi_config)
+
+        result = JSON.parse(stdout_str)
+        expect(result["test_type"]).to eq("udp")
+        expect(result["success"]).to eq(true)
+      ensure
+        cleanup_server(server_pid)
+      end
+
+      it "fails when allow_udp is disabled" do
+        port_file = tempfile_path("udp_port_deny")
+        server_pid = spawn_udp_server(port_file)
+        port = wait_for_port(port_file)
+        stdout_str = ""
+        wasi_config = WasiConfig.new
+          .set_argv(["wasi-network", "udp", "127.0.0.1", port.to_s])
+          .set_stdout_buffer(stdout_str, 40000)
+          .allow_udp(false)
+
+        run_wasi_component_network(wasi_config)
+
+        result = JSON.parse(stdout_str)
+        expect(result["test_type"]).to eq("udp")
+        expect(result["success"]).to eq(false)
+      ensure
+        cleanup_server(server_pid)
+      end
+
+      it "succeeds when allow_ip_name_lookup is enabled" do
+        stdout_str = ""
+        wasi_config = WasiConfig.new
+          .set_argv(["wasi-network", "dns", "localhost"])
+          .set_stdout_buffer(stdout_str, 40000)
+          .allow_ip_name_lookup(true)
+
+        run_wasi_component_network(wasi_config)
+
+        result = JSON.parse(stdout_str)
+        expect(result["test_type"]).to eq("dns")
+        expect(result["success"]).to eq(true)
+        expect(result["message"]).to match(/Resolved localhost to/)
+      end
+
+      it "fails when allow_ip_name_lookup is disabled" do
+        stdout_str = ""
+        wasi_config = WasiConfig.new
+          .set_argv(["wasi-network", "dns", "localhost"])
+          .set_stdout_buffer(stdout_str, 40000)
+          .allow_ip_name_lookup(false)
+
+        run_wasi_component_network(wasi_config)
+
+        result = JSON.parse(stdout_str)
+        expect(result["test_type"]).to eq("dns")
+        expect(result["success"]).to eq(false)
       end
     end
 
@@ -435,7 +548,6 @@ module Wasmtime
         let(:wasi_env) { method(:wasi_module_env) }
         let(:run_deterministic) { method(:run_wasi_module_deterministic) }
         let(:run_fs) { method(:run_wasi_module_fs) }
-        let(:create_store) { method(:create_wasi_module_store) }
       end
     end
 
@@ -445,7 +557,6 @@ module Wasmtime
         let(:wasi_env) { method(:wasi_component_env) }
         let(:run_deterministic) { method(:run_wasi_component_deterministic) }
         let(:run_fs) { method(:run_wasi_component_fs) }
-        let(:create_store) { method(:create_wasi_component_store) }
       end
     end
 
@@ -534,16 +645,88 @@ module Wasmtime
       ).call_run(store)
     end
 
+    def run_wasi_component_network(wasi_config)
+      linker = Component::Linker.new(@engine)
+      WASI::P2.add_to_linker_sync(linker)
+      store = Store.new(@engine, wasi_config: wasi_config)
+      Component::WasiCommand.new(
+        store,
+        Component::Component.deserialize(@engine, @compiled_wasi_network_component),
+        linker
+      ).call_run(store)
+    end
+
     def tempfile_path(name)
       File.join(tmpdir, name)
     end
 
-    def create_wasi_module_store(wasi_config)
-      Store.new(@engine, wasi_p1_config: wasi_config)
+    # Spawn a TCP server in a separate process that writes its port to a file
+    # This server cannot run in a thread because the GVL is locked while the WASI IO
+    # is taking place
+    def spawn_tcp_server(port_file)
+      Process.spawn(
+        RbConfig.ruby,
+        "-e",
+        <<~RUBY,
+          require "socket"
+          server = TCPServer.new("127.0.0.1", 0)
+          port = server.addr[1]
+          File.write("#{port_file}", port.to_s)
+          loop do
+            client = server.accept
+            data = client.read(5)
+            client.write("WORLD") if data == "HELLO"
+            client.close
+          end
+        RUBY
+        out: File::NULL,
+        err: File::NULL
+      )
     end
 
-    def create_wasi_component_store(wasi_config)
-      Store.new(@engine, wasi_config: wasi_config)
+    # Spawn a UDP server in a separate process that writes its port to a file
+    # This server cannot run in a thread because the GVL is locked while the WASI IO
+    # is taking place
+    def spawn_udp_server(port_file)
+      Process.spawn(
+        RbConfig.ruby,
+        "-e",
+        <<~RUBY,
+          require "socket"
+          server = UDPSocket.new
+          server.bind("127.0.0.1", 0)
+          port = server.addr[1]
+          File.write("#{port_file}", port.to_s)
+          loop do
+            data, addr = server.recvfrom(100)
+            server.send("WORLD", 0, addr[3], addr[1]) if data == "HELLO"
+          end
+        RUBY
+        out: File::NULL,
+        err: File::NULL
+      )
+    end
+
+    # Wait for the port file to be written and return the port number
+    def wait_for_port(port_file, timeout: 5)
+      start_time = Time.now
+      until File.exist?(port_file)
+        sleep 0.01
+        if Time.now - start_time > timeout
+          raise "Timeout waiting for server to write port file: #{port_file}"
+        end
+      end
+      File.read(port_file).to_i
+    end
+
+    # Clean up a spawned server process
+    def cleanup_server(server_pid)
+      return unless server_pid
+
+      Process.kill("TERM", server_pid)
+      Process.wait(server_pid)
+    rescue Errno::ESRCH, Errno::ECHILD
+      # Process already terminated
     end
   end
 end

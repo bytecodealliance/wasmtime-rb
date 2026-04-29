@@ -341,6 +341,9 @@ impl WasiConfig {
     /// @yard
     /// Enable all network access by inheriting the host's network.
     /// This allows the WASI module to use TCP, UDP, and DNS resolution.
+    ///
+    /// Note: any network access happens while the Global VM Lock (GVL) is held, so other
+    /// threads will be blocked in the meantime.
     /// @return [WasiConfig] +self+
     pub fn inherit_network(rb_self: RbSelf) -> RbSelf {
         let mut inner = rb_self.inner.borrow_mut();

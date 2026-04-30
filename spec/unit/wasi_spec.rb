@@ -430,7 +430,26 @@ module Wasmtime
         }.to raise_error(Wasmtime::Error, /Cannot enable both determinism and network access/)
       end
 
-      it "succeeds when allow_tcp is enabled" do
+      it "disallows network access by default" do
+        port_file = tempfile_path("tcp_port")
+        server_pid = spawn_tcp_server(port_file)
+        port = wait_for_port(port_file)
+
+        stdout_str = ""
+        wasi_config = WasiConfig.new
+          .set_argv(["wasi-network", "tcp", "127.0.0.1", port.to_s])
+          .set_stdout_buffer(stdout_str, 40000)
+
+        run_wasi_component_network(wasi_config)
+
+        result = JSON.parse(stdout_str)
+        expect(result["test_type"]).to eq("tcp")
+        expect(result["success"]).to eq(false)
+      ensure
+        cleanup_server(server_pid)
+      end
+
+      it "allows tcp when inheriting network access" do
         port_file = tempfile_path("tcp_port")
         server_pid = spawn_tcp_server(port_file)
         port = wait_for_port(port_file)
@@ -440,18 +459,18 @@ module Wasmtime
           .set_argv(["wasi-network", "tcp", "127.0.0.1", port.to_s])
           .set_stdout_buffer(stdout_str, 40000)
           .inherit_network
-          .allow_tcp(true)
 
         run_wasi_component_network(wasi_config)
 
         result = JSON.parse(stdout_str)
         expect(result["test_type"]).to eq("tcp")
+        expect(result["message"]).to match(/and exchanged data/)
         expect(result["success"]).to eq(true)
       ensure
         cleanup_server(server_pid)
       end
 
-      it "fails when allow_tcp is disabled" do
+      it "disallows tcp when tcp is disabled" do
         port_file = tempfile_path("tcp_port_deny")
         server_pid = spawn_tcp_server(port_file)
         port = wait_for_port(port_file)
@@ -460,6 +479,7 @@ module Wasmtime
         wasi_config = WasiConfig.new
           .set_argv(["wasi-network", "tcp", "127.0.0.1", port.to_s])
           .set_stdout_buffer(stdout_str, 40000)
+          .inherit_network
           .allow_tcp(false)
 
         run_wasi_component_network(wasi_config)
@@ -471,7 +491,7 @@ module Wasmtime
         cleanup_server(server_pid)
       end
 
-      it "succeeds when allow_udp is enabled" do
+      it "allows udp when inheriting network access" do
         port_file = tempfile_path("udp_port")
         server_pid = spawn_udp_server(port_file)
         port = wait_for_port(port_file)
@@ -481,18 +501,18 @@ module Wasmtime
           .set_argv(["wasi-network", "udp", "127.0.0.1", port.to_s])
           .set_stdout_buffer(stdout_str, 40000)
           .inherit_network
-          .allow_udp(true)
 
         run_wasi_component_network(wasi_config)
 
         result = JSON.parse(stdout_str)
         expect(result["test_type"]).to eq("udp")
+        expect(result["message"]).to match(/and received response/)
         expect(result["success"]).to eq(true)
       ensure
         cleanup_server(server_pid)
       end
 
-      it "fails when allow_udp is disabled" do
+      it "disallows udp when udp is disabled" do
         port_file = tempfile_path("udp_port_deny")
         server_pid = spawn_udp_server(port_file)
         port = wait_for_port(port_file)
@@ -500,6 +520,7 @@ module Wasmtime
         wasi_config = WasiConfig.new
           .set_argv(["wasi-network", "udp", "127.0.0.1", port.to_s])
           .set_stdout_buffer(stdout_str, 40000)
+          .inherit_network
           .allow_udp(false)
 
         run_wasi_component_network(wasi_config)
@@ -511,7 +532,7 @@ module Wasmtime
         cleanup_server(server_pid)
       end
 
-      it "succeeds when allow_ip_name_lookup is enabled" do
+      it "allows dns when allow_ip_name_lookup is enabled" do
         stdout_str = ""
         wasi_config = WasiConfig.new
           .set_argv(["wasi-network", "dns", "localhost"])
@@ -522,11 +543,11 @@ module Wasmtime
 
         result = JSON.parse(stdout_str)
         expect(result["test_type"]).to eq("dns")
-        expect(result["success"]).to eq(true)
         expect(result["message"]).to match(/Resolved localhost to/)
+        expect(result["success"]).to eq(true)
       end
 
-      it "fails when allow_ip_name_lookup is disabled" do
+      it "disallows dns when allow_ip_name_lookup is disabled" do
         stdout_str = ""
         wasi_config = WasiConfig.new
           .set_argv(["wasi-network", "dns", "localhost"])

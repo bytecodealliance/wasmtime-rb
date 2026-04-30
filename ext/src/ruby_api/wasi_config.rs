@@ -352,7 +352,7 @@ impl WasiConfig {
     }
 
     /// @yard
-    /// Allow or deny TCP socket access.
+    /// Allow or deny TCP socket access. Allowed by default, can be used to blanket disable TCP.
     /// @param enabled [Boolean] Whether to allow TCP socket access
     /// @def allow_tcp(enabled)
     /// @return [WasiConfig] +self+
@@ -363,7 +363,7 @@ impl WasiConfig {
     }
 
     /// @yard
-    /// Allow or deny UDP socket access.
+    /// Allow or deny UDP socket access. Allowed by default, can be used to blanket disable UDP.
     /// @param enabled [Boolean] Whether to allow UDP socket access
     /// @def allow_udp(enabled)
     /// @return [WasiConfig] +self+

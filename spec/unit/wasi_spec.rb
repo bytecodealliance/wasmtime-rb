@@ -560,6 +560,74 @@ module Wasmtime
         expect(result["test_type"]).to eq("dns")
         expect(result["success"]).to eq(false)
       end
+
+      it "allows selective access with socket_addr_check" do
+        port_file = tempfile_path("tcp_port_selective")
+        server_pid = spawn_tcp_server(port_file)
+        port = wait_for_port(port_file)
+
+        stdout_str = ""
+        wasi_config = WasiConfig.new
+          .set_argv(["wasi-network", "tcp", "127.0.0.1", port.to_s])
+          .set_stdout_buffer(stdout_str, 40000)
+          .socket_addr_check do |addr, use|
+            # Only allow connections to localhost on the specific port
+            addr.start_with?("127.0.0.1:") && use == :tcp_connect
+          end
+
+        run_wasi_component_network(wasi_config)
+
+        result = JSON.parse(stdout_str)
+        expect(result["test_type"]).to eq("tcp")
+        expect(result["message"]).to match(/and exchanged data/)
+        expect(result["success"]).to eq(true)
+      ensure
+        cleanup_server(server_pid)
+      end
+
+      it "blocks access when socket_addr_check returns false" do
+        port_file = tempfile_path("tcp_port_blocked")
+        server_pid = spawn_tcp_server(port_file)
+        port = wait_for_port(port_file)
+
+        stdout_str = ""
+        wasi_config = WasiConfig.new
+          .set_argv(["wasi-network", "tcp", "127.0.0.1", port.to_s])
+          .set_stdout_buffer(stdout_str, 40000)
+          .socket_addr_check do |_addr, _use|
+            false # Block all access
+          end
+
+        run_wasi_component_network(wasi_config)
+
+        result = JSON.parse(stdout_str)
+        expect(result["test_type"]).to eq("tcp")
+        expect(result["success"]).to eq(false)
+      ensure
+        cleanup_server(server_pid)
+      end
+
+      it "blocks access when socket_addr_check raises an exception" do
+        port_file = tempfile_path("tcp_port_exception")
+        server_pid = spawn_tcp_server(port_file)
+        port = wait_for_port(port_file)
+
+        stdout_str = ""
+        wasi_config = WasiConfig.new
+          .set_argv(["wasi-network", "tcp", "127.0.0.1", port.to_s])
+          .set_stdout_buffer(stdout_str, 40000)
+          .socket_addr_check do |_addr, _use|
+            raise "Intentional error for testing"
+          end
+
+        run_wasi_component_network(wasi_config)
+
+        result = JSON.parse(stdout_str)
+        expect(result["test_type"]).to eq("tcp")
+        expect(result["success"]).to eq(false)
+      ensure
+        cleanup_server(server_pid)
+      end
     end
 
     describe "WasiConfig preview 1" do

@@ -4,19 +4,27 @@ use crate::helpers::OutputLimitedBuffer;
 use crate::ruby_api::convert::ToValType;
 use crate::{define_rb_intern, helpers::SymbolEnum};
 use lazy_static::lazy_static;
+use magnus::block::Proc;
+use magnus::value::ReprValue;
 use magnus::{
     class, function, gc::Marker, method, typed_data::Obj, value::Opaque, DataTypeFunctions, Error,
     IntoValue, Module, Object, RArray, RHash, RString, Ruby, Symbol, TryConvert, TypedData, Value,
 };
 use rb_sys::ruby_rarray_flags::RARRAY_EMBED_FLAG;
+use rb_sys::VALUE;
 use std::cell::RefCell;
 use std::convert::TryFrom;
 use std::fs;
+use std::future::Future;
+use std::net::SocketAddr;
 use std::path::Path;
+use std::pin::Pin;
+use std::sync::Arc;
 use std::{fs::File, path::PathBuf};
 use wasmtime_wasi::cli::{InputFile, OutputFile};
 use wasmtime_wasi::p1::WasiP1Ctx;
 use wasmtime_wasi::p2::pipe::MemoryInputPipe;
+use wasmtime_wasi::sockets::SocketAddrUse;
 use wasmtime_wasi::{DirPerms, FilePerms, WasiCtx, WasiCtxBuilder};
 
 define_rb_intern!(
@@ -96,6 +104,43 @@ impl MappedDirectory {
     }
 }
 
+struct SocketAddrProc {
+    proc: Proc,
+}
+
+impl SocketAddrProc {
+    fn call(&self, addr: SocketAddr, use_: SocketAddrUse) -> bool {
+        let ruby = Ruby::get().unwrap();
+
+        // Convert arguments to Ruby values
+        let addr_str = ruby.str_new(&addr.to_string());
+        let use_sym = socket_addr_use_to_symbol(&ruby, use_);
+
+        match self.proc.call::<_, Value>((addr_str, use_sym)) {
+            Ok(result) => bool::try_convert(result).unwrap_or(false),
+            Err(_) => {
+                // Exception in Ruby block, deny access
+                false
+            }
+        }
+    }
+}
+
+// SAFETY: We only access the Ruby proc when we have the GVL (during WASI operations).
+// The Proc is kept alive by the Store's refs field, which is marked during GC.
+unsafe impl Send for SocketAddrProc {}
+unsafe impl Sync for SocketAddrProc {}
+
+fn socket_addr_use_to_symbol(ruby: &Ruby, use_: SocketAddrUse) -> Symbol {
+    match use_ {
+        SocketAddrUse::TcpBind => ruby.to_symbol("tcp_bind"),
+        SocketAddrUse::TcpConnect => ruby.to_symbol("tcp_connect"),
+        SocketAddrUse::UdpBind => ruby.to_symbol("udp_bind"),
+        SocketAddrUse::UdpConnect => ruby.to_symbol("udp_connect"),
+        SocketAddrUse::UdpOutgoingDatagram => ruby.to_symbol("udp_outgoing_datagram"),
+    }
+}
+
 #[derive(Default)]
 struct WasiConfigInner {
     stdin: Option<ReadStream>,
@@ -109,6 +154,7 @@ struct WasiConfigInner {
     allow_tcp: Option<bool>,
     allow_udp: Option<bool>,
     allow_ip_name_lookup: Option<bool>,
+    socket_addr_check: Option<Opaque<Proc>>,
 }
 
 impl WasiConfigInner {
@@ -130,6 +176,9 @@ impl WasiConfigInner {
         }
         for v in &self.mapped_directories {
             v.mark(marker);
+        }
+        if let Some(v) = self.socket_addr_check.as_ref() {
+            marker.mark(*v);
         }
     }
 }
@@ -384,21 +433,47 @@ impl WasiConfig {
         rb_self
     }
 
-    pub fn build_p1(&self, ruby: &Ruby) -> Result<WasiP1Ctx, Error> {
-        let mut builder = self.build_impl(ruby)?;
+    /// @yard
+    /// Set a custom check function for socket address access control.
+    /// The block will be called for each socket operation with the socket address (as a String)
+    /// and the operation type (as a Symbol: :tcp_bind, :tcp_connect, :udp_bind, :udp_connect,
+    /// :udp_outgoing_datagram).
+    /// The block should return true to allow the operation or false to deny it.
+    /// If the block raises an exception, the operation will be denied.
+    ///
+    /// Note: any network access happens while the Global VM Lock (GVL) is held, so other
+    /// threads will be blocked in the meantime.
+    ///
+    /// @yieldparam addr [String] The socket address (e.g., "127.0.0.1:8080")
+    /// @yieldparam use [Symbol] The type of socket operation
+    /// @yieldreturn [Boolean] true to allow the operation, false to deny it
+    /// @def socket_addr_check
+    /// @return [WasiConfig] +self+
+    pub fn socket_addr_check(ruby: &Ruby, rb_self: RbSelf) -> RbSelf {
+        if ruby.block_given() {
+            let proc = ruby.block_proc().unwrap();
+            let mut inner = rb_self.inner.borrow_mut();
+            inner.socket_addr_check = Some(proc.into());
+        }
+        rb_self
+    }
+
+    pub fn build_p1(&self, ruby: &Ruby) -> Result<(WasiP1Ctx, Option<Value>), Error> {
+        let (mut builder, proc_value) = self.build_impl(ruby)?;
         let ctx = builder.build_p1();
-        Ok(ctx)
+        Ok((ctx, proc_value))
     }
 
-    pub fn build(&self, ruby: &Ruby) -> Result<WasiCtx, Error> {
-        let mut builder = self.build_impl(ruby)?;
+    pub fn build(&self, ruby: &Ruby) -> Result<(WasiCtx, Option<Value>), Error> {
+        let (mut builder, proc_value) = self.build_impl(ruby)?;
         let ctx = builder.build();
-        Ok(ctx)
+        Ok((ctx, proc_value))
     }
 
-    fn build_impl(&self, ruby: &Ruby) -> Result<WasiCtxBuilder, Error> {
+    fn build_impl(&self, ruby: &Ruby) -> Result<(WasiCtxBuilder, Option<Value>), Error> {
         let mut builder = WasiCtxBuilder::new();
         let inner = self.inner.borrow();
+        let mut proc_to_retain = None;
 
         if let Some(stdin) = inner.stdin.as_ref() {
             match stdin {
@@ -487,6 +562,20 @@ impl WasiConfig {
             }
         }
 
+        if let Some(check_proc) = inner.socket_addr_check.as_ref() {
+            let proc = ruby.get_inner(*check_proc);
+            let socket_addr_proc = Arc::new(SocketAddrProc { proc });
+
+            builder.socket_addr_check(move |addr, use_| {
+                let socket_addr_proc = socket_addr_proc.clone();
+                Box::pin(async move { socket_addr_proc.call(addr, use_) })
+                    as Pin<Box<dyn Future<Output = bool> + Send + Sync>>
+            });
+
+            // Store the Proc as a Value so the Store can retain it
+            proc_to_retain = Some(proc.as_value());
+        }
+
         for mapped_dir in &inner.mapped_directories {
             let host_path = ruby.get_inner(mapped_dir.host_path).to_string()?;
             let guest_path = ruby.get_inner(mapped_dir.guest_path).to_string()?;
@@ -503,7 +592,7 @@ impl WasiConfig {
                 .map_err(|e| error!("{}", e))?;
         }
 
-        Ok(builder)
+        Ok((builder, proc_to_retain))
     }
 }
 
@@ -557,6 +646,10 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
     class.define_method(
         "allow_ip_name_lookup",
         method!(WasiConfig::allow_ip_name_lookup, 1),
+    )?;
+    class.define_method(
+        "socket_addr_check",
+        method!(WasiConfig::socket_addr_check, 0),
     )?;
 
     Ok(())

@@ -167,12 +167,23 @@ impl Store {
         let wasi_config = kw.optional.0;
         let wasi_p1_config = kw.optional.1;
 
-        let wasi = wasi_config
+        let (wasi, wasi_proc) = wasi_config
             .map(|wasi_config| wasi_config.build(&ruby))
-            .transpose()?;
-        let wasi_p1 = wasi_p1_config
+            .transpose()?
+            .unzip();
+        let (wasi_p1, wasi_p1_proc) = wasi_p1_config
             .map(|wasi_config| wasi_config.build_p1(&ruby))
-            .transpose()?;
+            .transpose()?
+            .unzip();
+
+        // Collect any Procs that need to be retained
+        let mut refs = Vec::new();
+        if let Some(proc) = wasi_proc.flatten() {
+            refs.push(proc);
+        }
+        if let Some(proc) = wasi_p1_proc.flatten() {
+            refs.push(proc);
+        }
 
         let limiter = match kw.optional.2 {
             None => StoreLimitsBuilder::new(),
@@ -186,7 +197,7 @@ impl Store {
             user_data,
             wasi_p1,
             wasi,
-            refs: Default::default(),
+            refs,
             last_error: Default::default(),
             store_limits: limiter,
             resource_table: Default::default(),

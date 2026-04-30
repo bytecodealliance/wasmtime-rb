@@ -18,7 +18,6 @@ module Wasmtime
       @compiled_wasi_component = @engine.precompile_component(IO.binread("spec/fixtures/wasi-debug-p2.wasm"))
       @compiled_wasi_deterministic_component = @engine.precompile_component(IO.binread("spec/fixtures/wasi-deterministic-p2.wasm"))
       @compiled_wasi_fs_component = @engine.precompile_component(IO.binread("spec/fixtures/wasi-fs-p2.wasm"))
-
       @compiled_wasi_network_component = @engine.precompile_component(IO.binread("spec/fixtures/wasi-network-p2.wasm"))
     end
 
@@ -723,7 +722,8 @@ module Wasmtime
     def cleanup_server(server_pid)
       return unless server_pid
 
-      Process.kill("TERM", server_pid)
+      signal = RUBY_PLATFORM.match?(/mswin|mingw|cygwin/) ? "KILL" : "TERM"
+      Process.kill(signal, server_pid)
       Process.wait(server_pid)
     rescue Errno::ESRCH, Errno::ECHILD
       # Process already terminated

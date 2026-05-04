@@ -6,7 +6,7 @@ source "https://rubygems.org"
 gemspec
 
 group :development do
-  gem "rake", "~> 13.3"
+  gem "rake", "~> 13.4"
   gem "rake-compiler"
   gem "standard", "~> 1.54"
   gem "get_process_mem"

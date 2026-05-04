@@ -221,6 +221,11 @@ impl<'a> Func<'a> {
         func.call(context, &params, &mut results)
             .map_err(|e| store.handle_wasm_error(ruby, e))?;
 
+        // Check for any errors stored during execution (e.g., from socket checks)
+        if let Some(error) = store.take_last_error()? {
+            return Err(error);
+        }
+
         match results.as_slice() {
             [] => Ok(().into_value_with(ruby)),
             [result] => result.to_ruby_value(ruby, store),

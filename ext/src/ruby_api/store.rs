@@ -1,6 +1,7 @@
 use super::errors::wasi_exit_error;
 use super::{caller::Caller, engine::Engine, root, trap::Trap};
 use crate::{define_rb_intern, error, WasiConfig};
+use magnus::value::ReprValue;
 use magnus::value::StaticSymbol;
 use magnus::{
     class, function,
@@ -8,7 +9,8 @@ use magnus::{
     method, scan_args,
     typed_data::Obj,
     value::Opaque,
-    DataTypeFunctions, Error, IntoValue, Module, Object, Ruby, TypedData, Value,
+    DataTypeFunctions, Error, ExceptionClass, IntoValue, Module, Object, Ruby, TryConvert,
+    TypedData, Value,
 };
 use magnus::{Class, RHash};
 use rb_sys::tracking_allocator::{ManuallyTracked, TrackingAllocator};
@@ -68,6 +70,33 @@ impl StoreData {
 
     pub fn take_error(&mut self) -> Option<Error> {
         self.last_error.take()
+    }
+
+    pub fn check_socket_errors(&mut self) {
+        use crate::ruby_api::wasi_config::WasiRetainedData;
+
+        // Check all retained values for WasiRetainedData and extract error storages
+        for value in &self.refs {
+            let ruby = Ruby::get().unwrap();
+
+            // Try to convert to WasiRetainedData
+            if let Ok(retained) = Obj::<WasiRetainedData>::try_convert(*value) {
+                if let Some(storage) = retained.error_storage() {
+                    if let Ok(mut guard) = storage.lock() {
+                        if let Some((class_name, error_msg)) = guard.take() {
+                            // Look up the exception class by name and reconstruct the error
+                            let exception_class = ruby
+                                .class_object()
+                                .const_get::<_, ExceptionClass>(class_name)
+                                .unwrap_or_else(|_| ruby.exception_runtime_error());
+
+                            self.last_error = Some(Error::new(exception_class, error_msg));
+                            return;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     pub fn mark(&self, marker: &Marker) {
@@ -167,23 +196,21 @@ impl Store {
         let wasi_config = kw.optional.0;
         let wasi_p1_config = kw.optional.1;
 
-        let (wasi, wasi_proc) = wasi_config
+        let (wasi, wasi_retained) = wasi_config
             .map(|wasi_config| wasi_config.build(&ruby))
             .transpose()?
             .unzip();
-        let (wasi_p1, wasi_p1_proc) = wasi_p1_config
+        let (wasi_p1, wasi_p1_retained) = wasi_p1_config
             .map(|wasi_config| wasi_config.build_p1(&ruby))
             .transpose()?
             .unzip();
 
-        // Collect any Procs that need to be retained
-        let mut refs = Vec::new();
-        if let Some(proc) = wasi_proc.flatten() {
-            refs.push(proc);
-        }
-        if let Some(proc) = wasi_p1_proc.flatten() {
-            refs.push(proc);
-        }
+        // Collect any Values that need to be retained for GC
+        let refs: Vec<Value> = [wasi_retained, wasi_p1_retained]
+            .into_iter()
+            .flatten()
+            .flatten()
+            .collect();
 
         let limiter = match kw.optional.2 {
             None => StoreLimitsBuilder::new(),
@@ -374,8 +401,14 @@ impl StoreContextValue<'_> {
         Ok(())
     }
 
-    fn take_last_error(&self) -> Result<Option<Error>, Error> {
+    pub fn take_last_error(&self) -> Result<Option<Error>, Error> {
         let ruby = Ruby::get().unwrap();
+
+        // Check for socket errors first and merge into last_error
+        if let Ok(mut context) = self.context_mut() {
+            context.data_mut().check_socket_errors();
+        }
+
         match self {
             Self::Store(store) => Ok(ruby.get_inner(*store).take_last_error()),
             Self::Caller(caller) => Ok(ruby

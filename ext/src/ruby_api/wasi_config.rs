@@ -6,6 +6,7 @@ use crate::{define_rb_intern, helpers::SymbolEnum};
 use lazy_static::lazy_static;
 use magnus::block::Proc;
 use magnus::value::ReprValue;
+use magnus::Class;
 use magnus::{
     class, function, gc::Marker, method, typed_data::Obj, value::Opaque, DataTypeFunctions, Error,
     IntoValue, Module, Object, RArray, RHash, RString, Ruby, Symbol, TryConvert, TypedData, Value,
@@ -19,13 +20,48 @@ use std::future::Future;
 use std::net::SocketAddr;
 use std::path::Path;
 use std::pin::Pin;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::{fs::File, path::PathBuf};
 use wasmtime_wasi::cli::{InputFile, OutputFile};
 use wasmtime_wasi::p1::WasiP1Ctx;
 use wasmtime_wasi::p2::pipe::MemoryInputPipe;
 use wasmtime_wasi::sockets::SocketAddrUse;
 use wasmtime_wasi::{DirPerms, FilePerms, WasiCtx, WasiCtxBuilder};
+
+/// Storage for errors that occur in socket_addr_check callbacks.
+/// We store (class_name, message) tuples since magnus::Error is not Send+Sync.
+/// Storing the class name allows us to reconstruct the original exception type.
+type SocketErrorStorage = Arc<Mutex<Option<(String, String)>>>;
+
+/// Container for data that needs to be retained by the Store for WASI functionality.
+/// This includes Ruby procs (for GC marking) and error storages (for error propagation).
+#[derive(TypedData)]
+#[magnus(class = "Wasmtime::WasiRetainedData", mark, free_immediately)]
+pub struct WasiRetainedData {
+    proc: Option<Opaque<Proc>>,
+    error_storage: Option<SocketErrorStorage>,
+}
+
+impl DataTypeFunctions for WasiRetainedData {
+    fn mark(&self, marker: &Marker) {
+        if let Some(proc) = self.proc {
+            marker.mark(proc);
+        }
+    }
+}
+
+impl WasiRetainedData {
+    pub fn new(proc: Option<Proc>, error_storage: Option<SocketErrorStorage>) -> Self {
+        Self {
+            proc: proc.map(|p| p.into()),
+            error_storage,
+        }
+    }
+
+    pub fn error_storage(&self) -> Option<&SocketErrorStorage> {
+        self.error_storage.as_ref()
+    }
+}
 
 define_rb_intern!(
     READ => "read",
@@ -106,6 +142,7 @@ impl MappedDirectory {
 
 struct SocketAddrProc {
     proc: Proc,
+    error_storage: SocketErrorStorage,
 }
 
 impl SocketAddrProc {
@@ -118,8 +155,18 @@ impl SocketAddrProc {
 
         match self.proc.call::<_, Value>((addr_str, use_sym)) {
             Ok(result) => bool::try_convert(result).unwrap_or(false),
-            Err(_) => {
-                // Exception in Ruby block, deny access
+            Err(error) => {
+                // Store both class name and message for later retrieval
+                if let Ok(mut storage) = self.error_storage.lock() {
+                    // Get the exception class name from the error's value
+                    let class_name = if let Some(exception_value) = error.value() {
+                        unsafe { exception_value.class().name().into_owned() }
+                    } else {
+                        "RuntimeError".to_string()
+                    };
+                    *storage = Some((class_name, error.to_string()));
+                }
+                // Deny access when an exception occurs
                 false
             }
         }
@@ -459,21 +506,22 @@ impl WasiConfig {
     }
 
     pub fn build_p1(&self, ruby: &Ruby) -> Result<(WasiP1Ctx, Option<Value>), Error> {
-        let (mut builder, proc_value) = self.build_impl(ruby)?;
+        let (mut builder, retained_data) = self.build_impl(ruby)?;
         let ctx = builder.build_p1();
-        Ok((ctx, proc_value))
+        Ok((ctx, retained_data))
     }
 
     pub fn build(&self, ruby: &Ruby) -> Result<(WasiCtx, Option<Value>), Error> {
-        let (mut builder, proc_value) = self.build_impl(ruby)?;
+        let (mut builder, retained_data) = self.build_impl(ruby)?;
         let ctx = builder.build();
-        Ok((ctx, proc_value))
+        Ok((ctx, retained_data))
     }
 
     fn build_impl(&self, ruby: &Ruby) -> Result<(WasiCtxBuilder, Option<Value>), Error> {
         let mut builder = WasiCtxBuilder::new();
         let inner = self.inner.borrow();
         let mut proc_to_retain = None;
+        let mut error_storage_to_retain = None;
 
         if let Some(stdin) = inner.stdin.as_ref() {
             match stdin {
@@ -550,7 +598,11 @@ impl WasiConfig {
 
         if let Some(check_proc) = inner.socket_addr_check.as_ref() {
             let proc = ruby.get_inner(*check_proc);
-            let socket_addr_proc = Arc::new(SocketAddrProc { proc });
+            let error_storage = Arc::new(Mutex::new(None));
+            let socket_addr_proc = Arc::new(SocketAddrProc {
+                proc,
+                error_storage: error_storage.clone(),
+            });
 
             builder.socket_addr_check(move |addr, use_| {
                 let socket_addr_proc = socket_addr_proc.clone();
@@ -558,8 +610,9 @@ impl WasiConfig {
                     as Pin<Box<dyn Future<Output = bool> + Send + Sync>>
             });
 
-            // Store the Proc as a Value so the Store can retain it
-            proc_to_retain = Some(proc.as_value());
+            // Store the Proc and error storage together
+            proc_to_retain = Some(proc);
+            error_storage_to_retain = Some(error_storage);
         }
 
         for mapped_dir in &inner.mapped_directories {
@@ -578,7 +631,15 @@ impl WasiConfig {
                 .map_err(|e| error!("{}", e))?;
         }
 
-        Ok((builder, proc_to_retain))
+        // Wrap retained data in a single Ruby object if we have anything to retain
+        let retained_value = if proc_to_retain.is_some() || error_storage_to_retain.is_some() {
+            let retained_data = WasiRetainedData::new(proc_to_retain, error_storage_to_retain);
+            Some(ruby.obj_wrap(retained_data).as_value())
+        } else {
+            None
+        };
+
+        Ok((builder, retained_value))
     }
 
     fn check_determinism(&self) -> Result<(), Error> {
@@ -589,7 +650,9 @@ impl WasiConfig {
             || inner.allow_ip_name_lookup == Some(true);
 
         if inner.deterministic && has_network_enabled {
-            Err(error!("Sources of indeterminism cannot be combined with determinism"))
+            Err(error!(
+                "Sources of indeterminism cannot be combined with determinism"
+            ))
         } else {
             Ok(())
         }
@@ -608,6 +671,9 @@ pub fn file_w(path: RString) -> Result<File, Error> {
 }
 
 pub fn init(ruby: &Ruby) -> Result<(), Error> {
+    // Register internal WasiRetainedData class (not exposed to Ruby API)
+    root().define_class("WasiRetainedData", ruby.class_object())?;
+
     let class = root().define_class("WasiConfig", ruby.class_object())?;
     class.define_singleton_method("new", function!(WasiConfig::new, 0))?;
 

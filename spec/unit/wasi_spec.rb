@@ -617,10 +617,12 @@ module Wasmtime
           .set_argv(["wasi-network", "tcp", "127.0.0.1", port.to_s])
           .set_stdout_buffer(stdout_str, 40000)
           .socket_addr_check do |_addr, _use|
-            raise "Intentional error for testing"
+            raise ArgumentError, "Intentional error for testing"
           end
 
-        run_wasi_component_network(wasi_config)
+        expect {
+          run_wasi_component_network(wasi_config)
+        }.to raise_error(ArgumentError, /Intentional error for testing/)
 
         result = JSON.parse(stdout_str)
         expect(result["test_type"]).to eq("tcp")

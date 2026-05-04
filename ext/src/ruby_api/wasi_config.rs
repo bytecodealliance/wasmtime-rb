@@ -530,22 +530,8 @@ impl WasiConfig {
 
         // Check for conflicting configuration: determinism and network access
         if inner.deterministic {
-            let has_network_enabled = inner.inherit_network
-                || inner.allow_tcp == Some(true)
-                || inner.allow_udp == Some(true)
-                || inner.allow_ip_name_lookup == Some(true);
-
-            if has_network_enabled {
-                return Err(error!(
-                    "Cannot enable both determinism and network access. Deterministic mode requires network to be disabled."
-                ));
-            }
-
+            self.check_determinism()?;
             deterministic_wasi_ctx::add_determinism_to_wasi_ctx_builder(&mut builder);
-            // Explicitly disable network access in deterministic mode for defense-in-depth
-            builder.allow_tcp(false);
-            builder.allow_udp(false);
-            builder.allow_ip_name_lookup(false);
         } else {
             // Apply network configuration
             if inner.inherit_network {
@@ -593,6 +579,20 @@ impl WasiConfig {
         }
 
         Ok((builder, proc_to_retain))
+    }
+
+    fn check_determinism(&self) -> Result<(), Error> {
+        let inner = self.inner.borrow();
+        let has_network_enabled = inner.inherit_network
+            || inner.allow_tcp == Some(true)
+            || inner.allow_udp == Some(true)
+            || inner.allow_ip_name_lookup == Some(true);
+
+        if inner.deterministic && has_network_enabled {
+            Err(error!("Sources of indeterminism cannot be combined with determinism"))
+        } else {
+            Ok(())
+        }
     }
 }
 

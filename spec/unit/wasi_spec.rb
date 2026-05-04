@@ -394,7 +394,7 @@ module Wasmtime
 
         expect {
           Store.new(@engine, wasi_config: wasi_config)
-        }.to raise_error(Wasmtime::Error, /Cannot enable both determinism and network access/)
+        }.to raise_error(Wasmtime::Error, /Sources of indeterminism cannot be combined/)
       end
 
       it "raises error when allow_tcp is combined with deterministic mode" do
@@ -405,7 +405,7 @@ module Wasmtime
 
         expect {
           Store.new(@engine, wasi_config: wasi_config)
-        }.to raise_error(Wasmtime::Error, /Cannot enable both determinism and network access/)
+        }.to raise_error(Wasmtime::Error, /Sources of indeterminism cannot be combined/)
       end
 
       it "raises error when allow_udp is combined with deterministic mode" do
@@ -416,7 +416,7 @@ module Wasmtime
 
         expect {
           Store.new(@engine, wasi_config: wasi_config)
-        }.to raise_error(Wasmtime::Error, /Cannot enable both determinism and network access/)
+        }.to raise_error(Wasmtime::Error, /Sources of indeterminism cannot be combined/)
       end
 
       it "raises error when allow_ip_name_lookup is combined with deterministic mode" do
@@ -427,7 +427,7 @@ module Wasmtime
 
         expect {
           Store.new(@engine, wasi_config: wasi_config)
-        }.to raise_error(Wasmtime::Error, /Cannot enable both determinism and network access/)
+        }.to raise_error(Wasmtime::Error, /Sources of indeterminism cannot be combined/)
       end
 
       it "disallows network access by default" do

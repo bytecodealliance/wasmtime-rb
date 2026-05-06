@@ -9,6 +9,7 @@ use crate::{
     ruby_api::{
         component::{linker::Linker, Component},
         errors,
+        store::StoreContextValue,
     },
     Store,
 };
@@ -39,13 +40,21 @@ impl WasiCommand {
     /// @def call_run(store)
     /// @param store [Store]
     /// @return [nil]
-    pub fn call_run(_ruby: &Ruby, rb_self: Obj<Self>, store: &Store) -> Result<(), Error> {
+    pub fn call_run(_ruby: &Ruby, rb_self: Obj<Self>, store: Obj<Store>) -> Result<(), Error> {
+        let store_context_value = StoreContextValue::from(store);
         rb_self
             .command
             .wasi_cli_run()
             .call_run(store.context_mut())
             .map_err(|err| error!("{err}"))?
-            .map_err(|_| error!("Error running `run`"))
+            .map_err(|_| error!("Error running `run`"))?;
+
+        // Check for any errors stored during execution (e.g., from socket checks)
+        if let Some(error) = store_context_value.take_last_error()? {
+            return Err(error);
+        }
+
+        Ok(())
     }
 }
 

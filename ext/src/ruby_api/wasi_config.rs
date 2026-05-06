@@ -4,20 +4,59 @@ use crate::helpers::OutputLimitedBuffer;
 use crate::ruby_api::convert::ToValType;
 use crate::{define_rb_intern, helpers::SymbolEnum};
 use lazy_static::lazy_static;
+use magnus::block::Proc;
+use magnus::value::ReprValue;
+use magnus::Class;
 use magnus::{
     class, function, gc::Marker, method, typed_data::Obj, value::Opaque, DataTypeFunctions, Error,
     IntoValue, Module, Object, RArray, RHash, RString, Ruby, Symbol, TryConvert, TypedData, Value,
 };
 use rb_sys::ruby_rarray_flags::RARRAY_EMBED_FLAG;
+use rb_sys::VALUE;
 use std::cell::RefCell;
 use std::convert::TryFrom;
 use std::fs;
+use std::future::Future;
+use std::net::SocketAddr;
 use std::path::Path;
+use std::pin::Pin;
+use std::sync::{Arc, Mutex};
 use std::{fs::File, path::PathBuf};
 use wasmtime_wasi::cli::{InputFile, OutputFile};
 use wasmtime_wasi::p1::WasiP1Ctx;
 use wasmtime_wasi::p2::pipe::MemoryInputPipe;
+use wasmtime_wasi::sockets::SocketAddrUse;
 use wasmtime_wasi::{DirPerms, FilePerms, WasiCtx, WasiCtxBuilder};
+
+/// Storage for errors that occur in socket_addr_check callbacks.
+/// We store (class_name, message) tuples since magnus::Error is not Send+Sync.
+/// Storing the class name allows us to reconstruct the original exception type.
+type SocketErrorStorage = Arc<Mutex<Option<(String, String)>>>;
+
+/// Container for data that needs to be retained by the Store for WASI functionality.
+/// This includes Ruby procs (for GC marking) and error storages (for error propagation).
+pub struct WasiRetainedData {
+    proc: Option<Opaque<Proc>>,
+    error_storage: Option<SocketErrorStorage>,
+}
+
+impl WasiRetainedData {
+    pub fn mark(&self, marker: &Marker) {
+        if let Some(proc) = self.proc {
+            marker.mark(proc);
+        }
+    }
+    pub fn new(proc: Option<Proc>, error_storage: Option<SocketErrorStorage>) -> Self {
+        Self {
+            proc: proc.map(|p| p.into()),
+            error_storage,
+        }
+    }
+
+    pub fn error_storage(&self) -> Option<&SocketErrorStorage> {
+        self.error_storage.as_ref()
+    }
+}
 
 define_rb_intern!(
     READ => "read",
@@ -96,6 +135,54 @@ impl MappedDirectory {
     }
 }
 
+struct SocketAddrProc {
+    proc: Proc,
+    error_storage: SocketErrorStorage,
+}
+
+impl SocketAddrProc {
+    fn call(&self, addr: SocketAddr, use_: SocketAddrUse) -> bool {
+        let ruby = Ruby::get().unwrap();
+
+        // Convert arguments to Ruby values
+        let addr_str = ruby.str_new(&addr.to_string());
+        let use_sym = socket_addr_use_to_symbol(&ruby, use_);
+
+        match self.proc.call::<_, Value>((addr_str, use_sym)) {
+            Ok(result) => bool::try_convert(result).unwrap_or(false),
+            Err(error) => {
+                // Store both class name and message for later retrieval
+                if let Ok(mut storage) = self.error_storage.lock() {
+                    // Get the exception class name from the error's value
+                    let class_name = if let Some(exception_value) = error.value() {
+                        unsafe { exception_value.class().name().into_owned() }
+                    } else {
+                        "RuntimeError".to_string()
+                    };
+                    *storage = Some((class_name, error.to_string()));
+                }
+                // Deny access when an exception occurs
+                false
+            }
+        }
+    }
+}
+
+// SAFETY: We only access the Ruby proc when we have the GVL (during WASI operations).
+// The Proc is kept alive by the Store's refs field, which is marked during GC.
+unsafe impl Send for SocketAddrProc {}
+unsafe impl Sync for SocketAddrProc {}
+
+fn socket_addr_use_to_symbol(ruby: &Ruby, use_: SocketAddrUse) -> Symbol {
+    match use_ {
+        SocketAddrUse::TcpBind => ruby.to_symbol("tcp_bind"),
+        SocketAddrUse::TcpConnect => ruby.to_symbol("tcp_connect"),
+        SocketAddrUse::UdpBind => ruby.to_symbol("udp_bind"),
+        SocketAddrUse::UdpConnect => ruby.to_symbol("udp_connect"),
+        SocketAddrUse::UdpOutgoingDatagram => ruby.to_symbol("udp_outgoing_datagram"),
+    }
+}
+
 #[derive(Default)]
 struct WasiConfigInner {
     stdin: Option<ReadStream>,
@@ -105,6 +192,11 @@ struct WasiConfigInner {
     args: Option<Opaque<RArray>>,
     deterministic: bool,
     mapped_directories: Vec<MappedDirectory>,
+    inherit_network: bool,
+    allow_tcp: Option<bool>,
+    allow_udp: Option<bool>,
+    allow_ip_name_lookup: Option<bool>,
+    socket_addr_check: Option<Opaque<Proc>>,
 }
 
 impl WasiConfigInner {
@@ -126,6 +218,9 @@ impl WasiConfigInner {
         }
         for v in &self.mapped_directories {
             v.mark(marker);
+        }
+        if let Some(v) = self.socket_addr_check.as_ref() {
+            marker.mark(*v);
         }
     }
 }
@@ -334,21 +429,94 @@ impl WasiConfig {
         rb_self
     }
 
-    pub fn build_p1(&self, ruby: &Ruby) -> Result<WasiP1Ctx, Error> {
-        let mut builder = self.build_impl(ruby)?;
+    /// @yard
+    /// Enable all network access by inheriting the host's network.
+    /// This allows the WASI module to use TCP, UDP, and DNS resolution.
+    ///
+    /// Note: any network access happens while the Global VM Lock (GVL) is held, so other
+    /// threads will be blocked in the meantime.
+    /// @return [WasiConfig] +self+
+    pub fn inherit_network(rb_self: RbSelf) -> RbSelf {
+        let mut inner = rb_self.inner.borrow_mut();
+        inner.inherit_network = true;
+        rb_self
+    }
+
+    /// @yard
+    /// Allow or deny TCP socket access. Allowed by default, can be used to blanket disable TCP.
+    /// @param enabled [Boolean] Whether to allow TCP socket access
+    /// @def allow_tcp(enabled)
+    /// @return [WasiConfig] +self+
+    pub fn allow_tcp(rb_self: RbSelf, enabled: bool) -> RbSelf {
+        let mut inner = rb_self.inner.borrow_mut();
+        inner.allow_tcp = Some(enabled);
+        rb_self
+    }
+
+    /// @yard
+    /// Allow or deny UDP socket access. Allowed by default, can be used to blanket disable UDP.
+    /// @param enabled [Boolean] Whether to allow UDP socket access
+    /// @def allow_udp(enabled)
+    /// @return [WasiConfig] +self+
+    pub fn allow_udp(rb_self: RbSelf, enabled: bool) -> RbSelf {
+        let mut inner = rb_self.inner.borrow_mut();
+        inner.allow_udp = Some(enabled);
+        rb_self
+    }
+
+    /// @yard
+    /// Allow or deny IP name lookup (DNS resolution).
+    /// @param enabled [Boolean] Whether to allow IP name lookup
+    /// @def allow_ip_name_lookup(enabled)
+    /// @return [WasiConfig] +self+
+    pub fn allow_ip_name_lookup(rb_self: RbSelf, enabled: bool) -> RbSelf {
+        let mut inner = rb_self.inner.borrow_mut();
+        inner.allow_ip_name_lookup = Some(enabled);
+        rb_self
+    }
+
+    /// @yard
+    /// Set a custom check function for socket address access control.
+    /// The block will be called for each socket operation with the socket address (as a String)
+    /// and the operation type (as a Symbol: :tcp_bind, :tcp_connect, :udp_bind, :udp_connect,
+    /// :udp_outgoing_datagram).
+    /// The block should return true to allow the operation or false to deny it.
+    /// If the block raises an exception, the operation will be denied.
+    ///
+    /// Note: any network access happens while the Global VM Lock (GVL) is held, so other
+    /// threads will be blocked in the meantime.
+    ///
+    /// @yieldparam addr [String] The socket address (e.g., "127.0.0.1:8080")
+    /// @yieldparam use [Symbol] The type of socket operation
+    /// @yieldreturn [Boolean] true to allow the operation, false to deny it
+    /// @def socket_addr_check
+    /// @return [WasiConfig] +self+
+    pub fn socket_addr_check(ruby: &Ruby, rb_self: RbSelf) -> RbSelf {
+        if ruby.block_given() {
+            let proc = ruby.block_proc().unwrap();
+            let mut inner = rb_self.inner.borrow_mut();
+            inner.socket_addr_check = Some(proc.into());
+        }
+        rb_self
+    }
+
+    pub fn build_p1(&self, ruby: &Ruby) -> Result<(WasiP1Ctx, Option<WasiRetainedData>), Error> {
+        let (mut builder, retained_data) = self.build_impl(ruby)?;
         let ctx = builder.build_p1();
-        Ok(ctx)
+        Ok((ctx, retained_data))
     }
 
-    pub fn build(&self, ruby: &Ruby) -> Result<WasiCtx, Error> {
-        let mut builder = self.build_impl(ruby)?;
+    pub fn build(&self, ruby: &Ruby) -> Result<(WasiCtx, Option<WasiRetainedData>), Error> {
+        let (mut builder, retained_data) = self.build_impl(ruby)?;
         let ctx = builder.build();
-        Ok(ctx)
+        Ok((ctx, retained_data))
     }
 
-    fn build_impl(&self, ruby: &Ruby) -> Result<WasiCtxBuilder, Error> {
+    fn build_impl(&self, ruby: &Ruby) -> Result<(WasiCtxBuilder, Option<WasiRetainedData>), Error> {
         let mut builder = WasiCtxBuilder::new();
         let inner = self.inner.borrow();
+        let mut proc_to_retain = None;
+        let mut error_storage_to_retain = None;
 
         if let Some(stdin) = inner.stdin.as_ref() {
             match stdin {
@@ -403,8 +571,43 @@ impl WasiConfig {
             builder.envs(&env_vec);
         }
 
+        // Check for conflicting configuration: determinism and network access
         if inner.deterministic {
+            self.check_determinism()?;
             deterministic_wasi_ctx::add_determinism_to_wasi_ctx_builder(&mut builder);
+        } else {
+            // Apply network configuration
+            if inner.inherit_network {
+                builder.inherit_network();
+            }
+            if let Some(allow) = inner.allow_tcp {
+                builder.allow_tcp(allow);
+            }
+            if let Some(allow) = inner.allow_udp {
+                builder.allow_udp(allow);
+            }
+            if let Some(allow) = inner.allow_ip_name_lookup {
+                builder.allow_ip_name_lookup(allow);
+            }
+        }
+
+        if let Some(check_proc) = inner.socket_addr_check.as_ref() {
+            let proc = ruby.get_inner(*check_proc);
+            let error_storage = Arc::new(Mutex::new(None));
+            let socket_addr_proc = Arc::new(SocketAddrProc {
+                proc,
+                error_storage: error_storage.clone(),
+            });
+
+            builder.socket_addr_check(move |addr, use_| {
+                let socket_addr_proc = socket_addr_proc.clone();
+                Box::pin(async move { socket_addr_proc.call(addr, use_) })
+                    as Pin<Box<dyn Future<Output = bool> + Send + Sync>>
+            });
+
+            // Store the Proc and error storage together
+            proc_to_retain = Some(proc);
+            error_storage_to_retain = Some(error_storage);
         }
 
         for mapped_dir in &inner.mapped_directories {
@@ -423,7 +626,33 @@ impl WasiConfig {
                 .map_err(|e| error!("{}", e))?;
         }
 
-        Ok(builder)
+        // Return retained data directly if we have anything to retain
+        let retained_data = if proc_to_retain.is_some() || error_storage_to_retain.is_some() {
+            Some(WasiRetainedData::new(
+                proc_to_retain,
+                error_storage_to_retain,
+            ))
+        } else {
+            None
+        };
+
+        Ok((builder, retained_data))
+    }
+
+    fn check_determinism(&self) -> Result<(), Error> {
+        let inner = self.inner.borrow();
+        let has_network_enabled = inner.inherit_network
+            || inner.allow_tcp == Some(true)
+            || inner.allow_udp == Some(true)
+            || inner.allow_ip_name_lookup == Some(true);
+
+        if inner.deterministic && has_network_enabled {
+            Err(error!(
+                "Sources of indeterminism cannot be combined with determinism"
+            ))
+        } else {
+            Ok(())
+        }
     }
 }
 
@@ -469,6 +698,18 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
     class.define_method(
         "set_mapped_directory",
         method!(WasiConfig::set_mapped_directory, 4),
+    )?;
+
+    class.define_method("inherit_network", method!(WasiConfig::inherit_network, 0))?;
+    class.define_method("allow_tcp", method!(WasiConfig::allow_tcp, 1))?;
+    class.define_method("allow_udp", method!(WasiConfig::allow_udp, 1))?;
+    class.define_method(
+        "allow_ip_name_lookup",
+        method!(WasiConfig::allow_ip_name_lookup, 1),
+    )?;
+    class.define_method(
+        "socket_addr_check",
+        method!(WasiConfig::socket_addr_check, 0),
     )?;
 
     Ok(())

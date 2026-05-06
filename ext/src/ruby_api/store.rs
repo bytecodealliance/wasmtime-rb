@@ -1,6 +1,8 @@
 use super::errors::wasi_exit_error;
 use super::{caller::Caller, engine::Engine, root, trap::Trap};
+use crate::ruby_api::wasi_config::WasiRetainedData;
 use crate::{define_rb_intern, error, WasiConfig};
+use magnus::value::ReprValue;
 use magnus::value::StaticSymbol;
 use magnus::{
     class, function,
@@ -8,7 +10,8 @@ use magnus::{
     method, scan_args,
     typed_data::Obj,
     value::Opaque,
-    DataTypeFunctions, Error, IntoValue, Module, Object, Ruby, TypedData, Value,
+    DataTypeFunctions, Error, ExceptionClass, IntoValue, Module, Object, Ruby, TryConvert,
+    TypedData, Value,
 };
 use magnus::{Class, RHash};
 use rb_sys::tracking_allocator::{ManuallyTracked, TrackingAllocator};
@@ -34,6 +37,7 @@ pub struct StoreData {
     wasi_p1: Option<WasiP1Ctx>,
     wasi: Option<WasiCtx>,
     refs: Vec<Value>,
+    wasi_retained_data: Vec<WasiRetainedData>,
     last_error: Option<Error>,
     store_limits: TrackingResourceLimiter,
     resource_table: ResourceTable,
@@ -70,6 +74,27 @@ impl StoreData {
         self.last_error.take()
     }
 
+    pub fn check_socket_errors(&mut self) {
+        // Check all wasi_retained_data for stored socket errors
+        for retained_data in &self.wasi_retained_data {
+            if let Some(storage) = retained_data.error_storage() {
+                if let Ok(mut guard) = storage.lock() {
+                    if let Some((class_name, error_msg)) = guard.take() {
+                        let ruby = Ruby::get().unwrap();
+                        // Look up the exception class by name and reconstruct the error
+                        let exception_class = ruby
+                            .class_object()
+                            .const_get::<_, ExceptionClass>(class_name)
+                            .unwrap_or_else(|_| ruby.exception_runtime_error());
+
+                        self.last_error = Some(Error::new(exception_class, error_msg));
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
     pub fn mark(&self, marker: &Marker) {
         marker.mark_movable(self.user_data);
 
@@ -77,6 +102,10 @@ impl StoreData {
             if let Some(val) = error.value() {
                 marker.mark(val);
             }
+        }
+
+        for retained_data in &self.wasi_retained_data {
+            retained_data.mark(marker);
         }
 
         for value in self.refs.iter() {
@@ -167,12 +196,21 @@ impl Store {
         let wasi_config = kw.optional.0;
         let wasi_p1_config = kw.optional.1;
 
-        let wasi = wasi_config
+        let (wasi, wasi_retained) = wasi_config
             .map(|wasi_config| wasi_config.build(&ruby))
-            .transpose()?;
-        let wasi_p1 = wasi_p1_config
+            .transpose()?
+            .unzip();
+        let (wasi_p1, wasi_p1_retained) = wasi_p1_config
             .map(|wasi_config| wasi_config.build_p1(&ruby))
-            .transpose()?;
+            .transpose()?
+            .unzip();
+
+        // Store all WasiRetainedData to support both wasi and wasi_p1 configs
+        let wasi_retained_data: Vec<WasiRetainedData> = [wasi_retained, wasi_p1_retained]
+            .into_iter()
+            .flatten()
+            .flatten()
+            .collect();
 
         let limiter = match kw.optional.2 {
             None => StoreLimitsBuilder::new(),
@@ -187,6 +225,7 @@ impl Store {
             wasi_p1,
             wasi,
             refs: Default::default(),
+            wasi_retained_data,
             last_error: Default::default(),
             store_limits: limiter,
             resource_table: Default::default(),
@@ -363,8 +402,14 @@ impl StoreContextValue<'_> {
         Ok(())
     }
 
-    fn take_last_error(&self) -> Result<Option<Error>, Error> {
+    pub fn take_last_error(&self) -> Result<Option<Error>, Error> {
         let ruby = Ruby::get().unwrap();
+
+        // Check for socket errors first and merge into last_error
+        if let Ok(mut context) = self.context_mut() {
+            context.data_mut().check_socket_errors();
+        }
+
         match self {
             Self::Store(store) => Ok(ruby.get_inner(*store).take_last_error()),
             Self::Caller(caller) => Ok(ruby

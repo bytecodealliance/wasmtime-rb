@@ -1,5 +1,6 @@
 use super::errors::wasi_exit_error;
 use super::{caller::Caller, engine::Engine, root, trap::Trap};
+use crate::ruby_api::wasi_config::WasiRetainedData;
 use crate::{define_rb_intern, error, WasiConfig};
 use magnus::value::ReprValue;
 use magnus::value::StaticSymbol;
@@ -36,6 +37,7 @@ pub struct StoreData {
     wasi_p1: Option<WasiP1Ctx>,
     wasi: Option<WasiCtx>,
     refs: Vec<Value>,
+    wasi_retained_data: Vec<WasiRetainedData>,
     last_error: Option<Error>,
     store_limits: TrackingResourceLimiter,
     resource_table: ResourceTable,
@@ -73,26 +75,20 @@ impl StoreData {
     }
 
     pub fn check_socket_errors(&mut self) {
-        use crate::ruby_api::wasi_config::WasiRetainedData;
+        // Check all wasi_retained_data for stored socket errors
+        for retained_data in &self.wasi_retained_data {
+            if let Some(storage) = retained_data.error_storage() {
+                if let Ok(mut guard) = storage.lock() {
+                    if let Some((class_name, error_msg)) = guard.take() {
+                        let ruby = Ruby::get().unwrap();
+                        // Look up the exception class by name and reconstruct the error
+                        let exception_class = ruby
+                            .class_object()
+                            .const_get::<_, ExceptionClass>(class_name)
+                            .unwrap_or_else(|_| ruby.exception_runtime_error());
 
-        // Check all retained values for WasiRetainedData and extract error storages
-        for value in &self.refs {
-            let ruby = Ruby::get().unwrap();
-
-            // Try to convert to WasiRetainedData
-            if let Ok(retained) = Obj::<WasiRetainedData>::try_convert(*value) {
-                if let Some(storage) = retained.error_storage() {
-                    if let Ok(mut guard) = storage.lock() {
-                        if let Some((class_name, error_msg)) = guard.take() {
-                            // Look up the exception class by name and reconstruct the error
-                            let exception_class = ruby
-                                .class_object()
-                                .const_get::<_, ExceptionClass>(class_name)
-                                .unwrap_or_else(|_| ruby.exception_runtime_error());
-
-                            self.last_error = Some(Error::new(exception_class, error_msg));
-                            return;
-                        }
+                        self.last_error = Some(Error::new(exception_class, error_msg));
+                        return;
                     }
                 }
             }
@@ -106,6 +102,10 @@ impl StoreData {
             if let Some(val) = error.value() {
                 marker.mark(val);
             }
+        }
+
+        for retained_data in &self.wasi_retained_data {
+            retained_data.mark(marker);
         }
 
         for value in self.refs.iter() {
@@ -205,8 +205,8 @@ impl Store {
             .transpose()?
             .unzip();
 
-        // Collect any Values that need to be retained for GC
-        let refs: Vec<Value> = [wasi_retained, wasi_p1_retained]
+        // Store all WasiRetainedData to support both wasi and wasi_p1 configs
+        let wasi_retained_data: Vec<WasiRetainedData> = [wasi_retained, wasi_p1_retained]
             .into_iter()
             .flatten()
             .flatten()
@@ -224,7 +224,8 @@ impl Store {
             user_data,
             wasi_p1,
             wasi,
-            refs,
+            refs: Default::default(),
+            wasi_retained_data,
             last_error: Default::default(),
             store_limits: limiter,
             resource_table: Default::default(),

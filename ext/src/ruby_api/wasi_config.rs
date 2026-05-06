@@ -35,22 +35,17 @@ type SocketErrorStorage = Arc<Mutex<Option<(String, String)>>>;
 
 /// Container for data that needs to be retained by the Store for WASI functionality.
 /// This includes Ruby procs (for GC marking) and error storages (for error propagation).
-#[derive(TypedData)]
-#[magnus(class = "Wasmtime::WasiRetainedData", mark, free_immediately)]
 pub struct WasiRetainedData {
     proc: Option<Opaque<Proc>>,
     error_storage: Option<SocketErrorStorage>,
 }
 
-impl DataTypeFunctions for WasiRetainedData {
-    fn mark(&self, marker: &Marker) {
+impl WasiRetainedData {
+    pub fn mark(&self, marker: &Marker) {
         if let Some(proc) = self.proc {
             marker.mark(proc);
         }
     }
-}
-
-impl WasiRetainedData {
     pub fn new(proc: Option<Proc>, error_storage: Option<SocketErrorStorage>) -> Self {
         Self {
             proc: proc.map(|p| p.into()),
@@ -505,19 +500,19 @@ impl WasiConfig {
         rb_self
     }
 
-    pub fn build_p1(&self, ruby: &Ruby) -> Result<(WasiP1Ctx, Option<Value>), Error> {
+    pub fn build_p1(&self, ruby: &Ruby) -> Result<(WasiP1Ctx, Option<WasiRetainedData>), Error> {
         let (mut builder, retained_data) = self.build_impl(ruby)?;
         let ctx = builder.build_p1();
         Ok((ctx, retained_data))
     }
 
-    pub fn build(&self, ruby: &Ruby) -> Result<(WasiCtx, Option<Value>), Error> {
+    pub fn build(&self, ruby: &Ruby) -> Result<(WasiCtx, Option<WasiRetainedData>), Error> {
         let (mut builder, retained_data) = self.build_impl(ruby)?;
         let ctx = builder.build();
         Ok((ctx, retained_data))
     }
 
-    fn build_impl(&self, ruby: &Ruby) -> Result<(WasiCtxBuilder, Option<Value>), Error> {
+    fn build_impl(&self, ruby: &Ruby) -> Result<(WasiCtxBuilder, Option<WasiRetainedData>), Error> {
         let mut builder = WasiCtxBuilder::new();
         let inner = self.inner.borrow();
         let mut proc_to_retain = None;
@@ -631,15 +626,17 @@ impl WasiConfig {
                 .map_err(|e| error!("{}", e))?;
         }
 
-        // Wrap retained data in a single Ruby object if we have anything to retain
-        let retained_value = if proc_to_retain.is_some() || error_storage_to_retain.is_some() {
-            let retained_data = WasiRetainedData::new(proc_to_retain, error_storage_to_retain);
-            Some(ruby.obj_wrap(retained_data).as_value())
+        // Return retained data directly if we have anything to retain
+        let retained_data = if proc_to_retain.is_some() || error_storage_to_retain.is_some() {
+            Some(WasiRetainedData::new(
+                proc_to_retain,
+                error_storage_to_retain,
+            ))
         } else {
             None
         };
 
-        Ok((builder, retained_value))
+        Ok((builder, retained_data))
     }
 
     fn check_determinism(&self) -> Result<(), Error> {
@@ -671,9 +668,6 @@ pub fn file_w(path: RString) -> Result<File, Error> {
 }
 
 pub fn init(ruby: &Ruby) -> Result<(), Error> {
-    // Register internal WasiRetainedData class (not exposed to Ruby API)
-    root().define_class("WasiRetainedData", ruby.class_object())?;
-
     let class = root().define_class("WasiConfig", ruby.class_object())?;
     class.define_singleton_method("new", function!(WasiConfig::new, 0))?;
 

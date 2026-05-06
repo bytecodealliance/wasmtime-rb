@@ -184,6 +184,94 @@
         <li class="public ">
   <span class="summary_signature">
     
+      <a href="#allow_ip_name_lookup-instance_method" title="#allow_ip_name_lookup (instance method)">#<strong>allow_ip_name_lookup</strong>(enabled)  &#x21d2; WasiConfig </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Allow or deny IP name lookup (DNS resolution).</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#allow_tcp-instance_method" title="#allow_tcp (instance method)">#<strong>allow_tcp</strong>(enabled)  &#x21d2; WasiConfig </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Allow or deny TCP socket access.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#allow_udp-instance_method" title="#allow_udp (instance method)">#<strong>allow_udp</strong>(enabled)  &#x21d2; WasiConfig </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Allow or deny UDP socket access.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#inherit_network-instance_method" title="#inherit_network (instance method)">#<strong>inherit_network</strong>  &#x21d2; WasiConfig </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Enable all network access by inheriting the host's network.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
       <a href="#inherit_stderr-instance_method" title="#inherit_stderr (instance method)">#<strong>inherit_stderr</strong>  &#x21d2; WasiConfig </a>
     
 
@@ -445,6 +533,28 @@
 </li>
 
       
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#socket_addr_check-instance_method" title="#socket_addr_check (instance method)">#<strong>socket_addr_check</strong> {|addr, use| ... } &#x21d2; WasiConfig </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Set a custom check function for socket address access control.</p></div></span>
+  
+</li>
+
+      
     </ul>
     
   
@@ -493,12 +603,12 @@ no env, no argv, no file access.</p>
       <pre class="lines">
 
 
-174
-175
-176</pre>
+269
+270
+271</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 174</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 269</span>
 
 pub fn new() -&gt; Self {
     Self::default()
@@ -554,18 +664,311 @@ pub fn new() -&gt; Self {
       <pre class="lines">
 
 
-181
-182
-183
-184
-185</pre>
+276
+277
+278
+279
+280</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 181</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 276</span>
 
 pub fn add_determinism(rb_self: RbSelf) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
     inner.deterministic = true;
+    rb_self
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="allow_ip_name_lookup-instance_method">
+  
+    #<strong>allow_ip_name_lookup</strong>(enabled)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Allow or deny IP name lookup (DNS resolution).</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>enabled</span>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>Whether to allow IP name lookup</p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p><code>self</code></p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+472
+473
+474
+475
+476</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 472</span>
+
+pub fn allow_ip_name_lookup(rb_self: RbSelf, enabled: bool) -&gt; RbSelf {
+    let mut inner = rb_self.inner.borrow_mut();
+    inner.allow_ip_name_lookup = Some(enabled);
+    rb_self
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="allow_tcp-instance_method">
+  
+    #<strong>allow_tcp</strong>(enabled)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Allow or deny TCP socket access. Allowed by default, can be used to blanket disable TCP.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>enabled</span>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>Whether to allow TCP socket access</p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p><code>self</code></p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+450
+451
+452
+453
+454</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 450</span>
+
+pub fn allow_tcp(rb_self: RbSelf, enabled: bool) -&gt; RbSelf {
+    let mut inner = rb_self.inner.borrow_mut();
+    inner.allow_tcp = Some(enabled);
+    rb_self
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="allow_udp-instance_method">
+  
+    #<strong>allow_udp</strong>(enabled)  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Allow or deny UDP socket access. Allowed by default, can be used to blanket disable UDP.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>enabled</span>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>Whether to allow UDP socket access</p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p><code>self</code></p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+461
+462
+463
+464
+465</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 461</span>
+
+pub fn allow_udp(rb_self: RbSelf, enabled: bool) -&gt; RbSelf {
+    let mut inner = rb_self.inner.borrow_mut();
+    inner.allow_udp = Some(enabled);
+    rb_self
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="inherit_network-instance_method">
+  
+    #<strong>inherit_network</strong>  &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Enable all network access by inheriting the host's network.
+This allows the WASI module to use TCP, UDP, and DNS resolution.</p>
+<p>Note: any network access happens while the Global VM Lock (GVL) is held, so other
+threads will be blocked in the meantime.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p><code>self</code></p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+439
+440
+441
+442
+443</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 439</span>
+
+pub fn inherit_network(rb_self: RbSelf) -&gt; RbSelf {
+    let mut inner = rb_self.inner.borrow_mut();
+    inner.inherit_network = true;
     rb_self
 }</pre>
     </td>
@@ -613,14 +1016,14 @@ pub fn add_determinism(rb_self: RbSelf) -&gt; RbSelf {
       <pre class="lines">
 
 
-256
-257
-258
-259
-260</pre>
+351
+352
+353
+354
+355</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 256</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 351</span>
 
 pub fn inherit_stderr(rb_self: RbSelf) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -672,14 +1075,14 @@ pub fn inherit_stderr(rb_self: RbSelf) -&gt; RbSelf {
       <pre class="lines">
 
 
-190
-191
-192
-193
-194</pre>
+285
+286
+287
+288
+289</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 190</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 285</span>
 
 pub fn inherit_stdin(rb_self: RbSelf) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -731,14 +1134,14 @@ pub fn inherit_stdin(rb_self: RbSelf) -&gt; RbSelf {
       <pre class="lines">
 
 
-221
-222
-223
-224
-225</pre>
+316
+317
+318
+319
+320</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 221</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 316</span>
 
 pub fn inherit_stdout(rb_self: RbSelf) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -805,14 +1208,14 @@ pub fn inherit_stdout(rb_self: RbSelf) -&gt; RbSelf {
       <pre class="lines">
 
 
-303
-304
-305
-306
-307</pre>
+398
+399
+400
+401
+402</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 303</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 398</span>
 
 pub fn set_argv(rb_self: RbSelf, argv: RArray) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -879,14 +1282,14 @@ pub fn set_argv(rb_self: RbSelf, argv: RArray) -&gt; RbSelf {
       <pre class="lines">
 
 
-292
-293
-294
-295
-296</pre>
+387
+388
+389
+390
+391</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 292</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 387</span>
 
 pub fn set_env(rb_self: RbSelf, env: RHash) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -992,28 +1395,28 @@ pub fn set_env(rb_self: RbSelf, env: RHash) -&gt; RbSelf {
       <pre class="lines">
 
 
-317
-318
-319
-320
-321
-322
-323
-324
-325
-326
-327
-328
-329
-330
-331
-332
-333
-334
-335</pre>
+412
+413
+414
+415
+416
+417
+418
+419
+420
+421
+422
+423
+424
+425
+426
+427
+428
+429
+430</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 317</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 412</span>
 
 pub fn set_mapped_directory(
     rb_self: RbSelf,
@@ -1113,15 +1516,15 @@ No encoding checks are done on the resulting string, it is the caller's responsi
       <pre class="lines">
 
 
-282
-283
-284
-285
-286
-287</pre>
+377
+378
+379
+380
+381
+382</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 282</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 377</span>
 
 pub fn set_stderr_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1193,14 +1596,14 @@ otherwise try to create it.</p>
       <pre class="lines">
 
 
-268
-269
-270
-271
-272</pre>
+363
+364
+365
+366
+367</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 268</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 363</span>
 
 pub fn set_stderr_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1270,14 +1673,14 @@ pub fn set_stderr_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
       <pre class="lines">
 
 
-201
-202
-203
-204
-205</pre>
+296
+297
+298
+299
+300</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 201</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 296</span>
 
 pub fn set_stdin_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1344,14 +1747,14 @@ pub fn set_stdin_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
       <pre class="lines">
 
 
-212
-213
-214
-215
-216</pre>
+307
+308
+309
+310
+311</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 212</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 307</span>
 
 pub fn set_stdin_string(rb_self: RbSelf, content: RString) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1437,14 +1840,14 @@ No encoding checks are done on the resulting string, it is the caller's responsi
       <pre class="lines">
 
 
-247
-248
-249
-250
-251</pre>
+342
+343
+344
+345
+346</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 247</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 342</span>
 
 pub fn set_stdout_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1515,18 +1918,138 @@ otherwise try to create it.</p>
       <pre class="lines">
 
 
-233
-234
-235
-236
-237</pre>
+328
+329
+330
+331
+332</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 233</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 328</span>
 
 pub fn set_stdout_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
     inner.stdout = Some(WriteStream::Path(path.into()));
+    rb_self
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="socket_addr_check-instance_method">
+  
+    #<strong>socket_addr_check</strong> {|addr, use| ... } &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Set a custom check function for socket address access control.
+The block will be called for each socket operation with the socket address (as a String)
+and the operation type (as a Symbol: :tcp_bind, :tcp_connect, :udp_bind, :udp_connect,
+:udp_outgoing_datagram).
+The block should return true to allow the operation or false to deny it.
+If the block raises an exception, the operation will be denied.</p>
+<p>Note: any network access happens while the Global VM Lock (GVL) is held, so other
+threads will be blocked in the meantime.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Yield Parameters:</p>
+<ul class="yieldparam">
+  
+    <li>
+      
+        <span class='name'>addr</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The socket address (e.g., &quot;127.0.0.1:8080&quot;)</p></div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>use</span>
+      
+      
+        <span class='type'>(<tt>Symbol</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The type of socket operation</p></div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Yield Returns:</p>
+<ul class="yieldreturn">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>true to allow the operation, false to deny it</p></div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::WasiConfig (class)">WasiConfig</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p><code>self</code></p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+494
+495
+496
+497
+498
+499
+500
+501</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 494</span>
+
+pub fn socket_addr_check(ruby: &amp;Ruby, rb_self: RbSelf) -&gt; RbSelf {
+    if ruby.block_given() {
+        let proc = ruby.block_proc().unwrap();
+        let mut inner = rb_self.inner.borrow_mut();
+        inner.socket_addr_check = Some(proc.into());
+    }
     rb_self
 }</pre>
     </td>
@@ -1539,7 +2062,7 @@ pub fn set_stdout_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
 </div>
 
       <div id="footer">
-  Generated on Mon May  4 21:19:27 2026 by
+  Generated on Wed May  6 11:46:43 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.43 (ruby-4.0.3).
 </div>

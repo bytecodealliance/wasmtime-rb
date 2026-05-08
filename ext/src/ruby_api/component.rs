@@ -2,6 +2,7 @@ mod convert;
 mod func;
 mod instance;
 mod linker;
+mod types;
 mod wasi_command;
 
 use super::root;
@@ -169,6 +170,7 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
     linker::init(ruby, &namespace)?;
     instance::init(ruby, &namespace)?;
     func::init(ruby, &namespace)?;
+    types::init(ruby, &namespace)?;
     convert::init(ruby)?;
     wasi_command::init(ruby, &namespace)?;
 

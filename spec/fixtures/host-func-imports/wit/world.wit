@@ -1,0 +1,34 @@
+package fixtures:host-func-imports;
+
+world host-imports {
+    // Simple primitives
+    import greet: func(name: string) -> string;
+    import add: func(a: u32, b: u32) -> u32;
+    import get-constant: func() -> u32;
+    
+    // Complex types
+    record point {
+        x: s32,
+        y: s32,
+    }
+    
+    import make-point: func(x: s32, y: s32) -> point;
+    import sum-list: func(numbers: list<s32>) -> s32;
+    import maybe-double: func(n: option<u32>) -> option<u32>;
+    import safe-divide: func(a: u32, b: u32) -> result<u32, string>;
+    
+    // Nested instance
+    import math: interface {
+        multiply: func(a: u32, b: u32) -> u32;
+    }
+    
+    // Guest functions that call the imports
+    export test-greet: func(name: string) -> string;
+    export test-add: func(a: u32, b: u32) -> u32;
+    export test-constant: func() -> u32;
+    export test-point: func(x: s32, y: s32) -> point;
+    export test-sum: func(numbers: list<s32>) -> s32;
+    export test-maybe: func(n: option<u32>) -> option<u32>;
+    export test-divide: func(a: u32, b: u32) -> result<u32, string>;
+    export test-multiply: func(a: u32, b: u32) -> u32;
+}

@@ -37,6 +37,18 @@ impl Guest for Component {
     fn test_multiply(a: u32, b: u32) -> u32 {
         math::multiply(a, b)
     }
+
+    fn test_get_numbers() -> Vec<i32> {
+        bindings::get_numbers()
+    }
+
+    fn test_make_tuple(n: u32, s: String, b: bool) -> (u32, String, bool) {
+        bindings::make_tuple(n, &s, b)
+    }
+
+    fn test_analyze_numbers(numbers: Vec<i32>) -> (i32, Vec<i32>) {
+        bindings::analyze_numbers(&numbers)
+    }
 }
 
 bindings::export!(Component with_types_in bindings);

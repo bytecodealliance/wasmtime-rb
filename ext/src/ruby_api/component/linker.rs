@@ -1,10 +1,10 @@
 use super::convert;
-use super::types::{self, ComponentType};
+use super::types;
 use super::{Component, Instance};
 use crate::{
     err,
     ruby_api::{
-        errors,
+        errors::{self, ExceptionMessage},
         store::{StoreContextValue, StoreData},
         Engine, Module, Store,
     },
@@ -12,7 +12,6 @@ use crate::{
 use std::{
     borrow::BorrowMut,
     cell::{RefCell, RefMut},
-    collections::HashMap,
 };
 
 use crate::error;
@@ -31,15 +30,6 @@ use magnus::{
 use wasmtime::component::{Linker as LinkerImpl, LinkerInstance as LinkerInstanceImpl, Val};
 use wasmtime_wasi::{ResourceTable, WasiCtx};
 
-/// Stores type information for a registered host function
-#[derive(Clone, Debug)]
-struct FuncTypeInfo {
-    #[allow(dead_code)]
-    path: String, // e.g., "" for root, "math" for nested instance
-    param_types: Vec<ComponentType>,
-    result_types: Vec<ComponentType>,
-}
-
 /// @yard
 /// @rename Wasmtime::Component::Linker
 /// @see https://docs.rs/wasmtime/latest/wasmtime/component/struct.Linker.html Wasmtime's Rust doc
@@ -49,7 +39,6 @@ pub struct Linker {
     inner: RefCell<LinkerImpl<StoreData>>,
     refs: RefCell<Vec<Value>>,
     has_wasi: RefCell<bool>,
-    func_types: RefCell<HashMap<String, FuncTypeInfo>>,
 }
 unsafe impl Send for Linker {}
 
@@ -71,7 +60,6 @@ impl Linker {
             inner: RefCell::new(linker),
             refs: RefCell::new(Vec::new()),
             has_wasi: RefCell::new(false),
-            func_types: RefCell::new(HashMap::new()),
         })
     }
 
@@ -154,8 +142,6 @@ impl Linker {
             return err!("{}", errors::missing_wasi_ctx_error("linker.instantiate"));
         }
 
-        Self::validate_host_function_signatures(&rb_self, component)?;
-
         let inner = rb_self.inner.borrow();
         inner
             .instantiate(store.context_mut(), component.get())
@@ -169,141 +155,6 @@ impl Linker {
                 Instance::from_inner(store, instance)
             })
             .map_err(|e| error!("{}", e))
-    }
-
-    /// Validate that host functions defined via func_new match the component's expected import signatures
-    fn validate_host_function_signatures(
-        rb_self: &Obj<Self>,
-        component: &Component,
-    ) -> Result<(), Error> {
-        // Get component type information
-        let component_ty = component.get().component_type();
-        let func_types = rb_self.func_types.borrow();
-        let inner = rb_self.inner.borrow();
-        let engine = inner.engine();
-
-        // Helper to validate a single import
-        fn validate_import(
-            path: &str,
-            name: &str,
-            expected_func: &wasmtime::component::types::ComponentFunc,
-            func_types: &HashMap<String, FuncTypeInfo>,
-        ) -> Result<(), String> {
-            let full_key = if path.is_empty() {
-                name.to_string()
-            } else {
-                format!("{}/{}", path, name)
-            };
-
-            // Check if this function was defined in the linker
-            if let Some(declared_info) = func_types.get(&full_key) {
-                // Extract expected types from component
-                let (expected_params, expected_results) = types::extract_func_types(expected_func)
-                    .map_err(|e| format!("failed to extract function types: {}", e))?;
-
-                // Validate parameter count
-                if declared_info.param_types.len() != expected_params.len() {
-                    return Err(format!(
-                        "host function \"{}\" parameter count mismatch: declared has {} parameters, expected has {}",
-                        full_key,
-                        declared_info.param_types.len(),
-                        expected_params.len()
-                    ));
-                }
-
-                // Validate each parameter type
-                for (i, (declared_ty, expected_ty)) in declared_info
-                    .param_types
-                    .iter()
-                    .zip(expected_params.iter())
-                    .enumerate()
-                {
-                    if let Err(e) = types::types_match(declared_ty, expected_ty) {
-                        return Err(format!(
-                            "host function \"{}\" parameter {} has incompatible type: {}",
-                            full_key, i, e
-                        ));
-                    }
-                }
-
-                // Validate result count
-                if declared_info.result_types.len() != expected_results.len() {
-                    return Err(format!(
-                        "host function \"{}\" result count mismatch: declared has {} results, expected has {}",
-                        full_key,
-                        declared_info.result_types.len(),
-                        expected_results.len()
-                    ));
-                }
-
-                // Validate each result type
-                for (i, (declared_ty, expected_ty)) in declared_info
-                    .result_types
-                    .iter()
-                    .zip(expected_results.iter())
-                    .enumerate()
-                {
-                    if let Err(e) = types::types_match(declared_ty, expected_ty) {
-                        return Err(format!(
-                            "host function \"{}\" result {} has incompatible type: {}",
-                            full_key, i, e
-                        ));
-                    }
-                }
-            }
-
-            Ok(())
-        }
-
-        // Helper to recursively validate imports
-        fn validate_imports_recursive(
-            path: &str,
-            item: &wasmtime::component::types::ComponentItem,
-            func_types: &HashMap<String, FuncTypeInfo>,
-            engine: &wasmtime::Engine,
-        ) -> Result<(), String> {
-            use wasmtime::component::types::ComponentItem;
-
-            match item {
-                ComponentItem::ComponentFunc(func) => {
-                    // Extract just the function name from the full path
-                    let name = if let Some(idx) = path.rfind('/') {
-                        &path[idx + 1..]
-                    } else {
-                        path
-                    };
-                    let parent_path = if let Some(idx) = path.rfind('/') {
-                        &path[..idx]
-                    } else {
-                        ""
-                    };
-                    validate_import(parent_path, name, func, func_types)?;
-                }
-                ComponentItem::ComponentInstance(instance) => {
-                    // Recursively validate nested exports
-                    for (export_name, export_item) in instance.exports(engine) {
-                        let nested_path = if path.is_empty() {
-                            export_name.to_string()
-                        } else {
-                            format!("{}/{}", path, export_name)
-                        };
-                        validate_imports_recursive(&nested_path, &export_item, func_types, engine)?;
-                    }
-                }
-                _ => {
-                    // Other types (Module, CoreFunc, Type, etc.) are not validated here
-                }
-            }
-            Ok(())
-        }
-
-        // Validate all imports
-        for (import_name, import_item) in component_ty.imports(engine) {
-            validate_imports_recursive(import_name, &import_item, &func_types, engine)
-                .map_err(|e| error!("{}", e))?;
-        }
-
-        Ok(())
     }
 
     pub(crate) fn add_wasi_p2(&self) -> Result<(), Error> {
@@ -433,57 +284,51 @@ impl<'a> LinkerInstance<'a> {
     /// @yard
     /// Define a host function in this linker instance.
     ///
-    /// @def func_new(name, params, results, &block)
+    /// Host functions must return wrapped values to specify their types.
+    /// Use {Type#wrap} to wrap return values with their type information.
+    ///
+    /// @example Simple scalar return
+    ///   root.func_new("add") do |a, b|
+    ///     Type::U32.wrap(a + b)
+    ///   end
+    ///
+    /// @example Returning a list (the list itself, not array of results)
+    ///   root.func_new("get-numbers") do
+    ///     Type::List(Type::S32).wrap([1, 2, 3])
+    ///   end
+    ///
+    /// @example Multiple return values (array of wrapped values)
+    ///   root.func_new("divide-with-remainder") do |a, b|
+    ///     [Type::U32.wrap(a / b), Type::U32.wrap(a % b)]
+    ///   end
+    ///
+    /// @example Complex types (records, results, etc.)
+    ///   root.func_new("make-point") do |x, y|
+    ///     point_type = Type::Record("x" => Type::S32, "y" => Type::S32)
+    ///     point_type.wrap({"x" => x, "y" => y})
+    ///   end
+    ///
+    /// @def func_new(name, &block)
     /// @param name [String] The function name
-    /// @param params [Array<Type>] The function parameter types
-    /// @param results [Array<Type>] The function result types
     /// @yield [caller, *args] The block implementing the host function
     /// @yieldparam caller [Caller] The caller context (not yet fully implemented)
     /// @yieldparam args [Array<Object>] The function arguments, converted from component values
-    /// @yieldreturn [Object, Array<Object>] The function result(s), will be validated and converted
+    /// @yieldreturn [WrappedValue, Array<WrappedValue>] Wrapped result(s) with type information
     /// @return [LinkerInstance] +self+
     fn func_new(_ruby: &Ruby, rb_self: Obj<Self>, args: &[Value]) -> Result<Obj<Self>, Error> {
-        let args = scan_args::<(RString, RArray, RArray), (), (), (), (), Proc>(args)?;
-        let (name, params_array, results_array) = args.required;
+        let args = scan_args::<(RString,), (), (), (), (), Proc>(args)?;
+        let (name,) = args.required;
         let callable = args.block;
 
-        // Extract ComponentType from Type values
-        let mut param_types = Vec::with_capacity(params_array.len());
-        for param_value in unsafe { params_array.as_slice() } {
-            param_types.push(types::extract_component_type(*param_value)?);
-        }
-
-        let mut result_types = Vec::with_capacity(results_array.len());
-        for result_value in unsafe { results_array.as_slice() } {
-            result_types.push(types::extract_component_type(*result_value)?);
-        }
-
         let name_str = unsafe { name.as_str() }?;
-
-        // Store type metadata for later validation
-        let full_key = if rb_self.path.is_empty() {
-            name_str.to_string()
-        } else {
-            format!("{}/{}", rb_self.path, name_str)
-        };
 
         // Get parent Linker - we'll store the callable there to prevent GC
         // (rb_self is ephemeral and won't keep references alive after the block ends)
         let parent_linker: Obj<Linker> = Obj::try_convert(rb_self.parent_linker)?;
-
         parent_linker.refs.borrow_mut().push(callable.as_value());
-        parent_linker.func_types.borrow_mut().insert(
-            full_key,
-            FuncTypeInfo {
-                path: rb_self.path.clone(),
-                param_types: param_types.clone(),
-                result_types: result_types.clone(),
-            },
-        );
 
         // Create the closure that will be called from Wasm
-        let func_closure =
-            make_component_func_closure(param_types.clone(), result_types.clone(), callable.into());
+        let func_closure = make_component_func_closure(callable.into());
 
         let Ok(mut maybe_instance) = rb_self.inner.try_borrow_mut() else {
             return err!("LinkerInstance is not reentrant");
@@ -507,9 +352,8 @@ impl<'a> LinkerInstance<'a> {
 }
 
 /// Create a closure that wraps a Ruby Proc for use as a component host function
+/// The closure expects wrapped return values (WrappedValue) that carry type information
 fn make_component_func_closure(
-    param_types: Vec<ComponentType>,
-    result_types: Vec<ComponentType>,
     callable: Opaque<Proc>,
 ) -> impl Fn(
     wasmtime::StoreContextMut<'_, StoreData>,
@@ -528,7 +372,7 @@ fn make_component_func_closure(
 
         // Convert Wasm params to Ruby values
         let rparams = ruby.ary_new_capa(params.len());
-        for (i, (param, _param_ty)) in params.iter().zip(param_types.iter()).enumerate() {
+        for (i, param) in params.iter().enumerate() {
             let rb_value =
                 convert::component_val_to_rb(&ruby, param.clone(), None).map_err(|e| {
                     wasmtime::Error::msg(format!("failed to convert parameter at index {i}: {e}"))
@@ -548,7 +392,8 @@ fn make_component_func_closure(
         })?;
 
         // Handle result conversion based on arity
-        match result_types.len() {
+        let num_results = results.len();
+        match num_results {
             0 => {
                 // No return value expected
                 Ok(())
@@ -556,19 +401,23 @@ fn make_component_func_closure(
             1 => {
                 // Single return value - accept either the value directly or in an array
                 let result_value = if let Ok(result_array) = RArray::to_ary(proc_result) {
+                    // User returned [wrapped_value] - unwrap the array
                     if result_array.len() != 1 {
-                        return Err(wasmtime::Error::msg(format!(
-                            "expected 1 result, got {}",
-                            result_array.len()
-                        )));
+                        store_context.data_mut().set_error(Error::new(
+                            ruby.exception_arg_error(),
+                            format!("expected 1 result, got {}", result_array.len()),
+                        ));
+                        return Err(wasmtime::Error::msg(""));
                     }
                     unsafe { result_array.as_slice()[0] }
                 } else {
+                    // User returned wrapped_value directly (most common case)
                     proc_result
                 };
 
-                let converted = convert::validate_and_convert(result_value, None, &result_types[0])
-                    .map_err(|e| {
+                // Extract type and value from WrappedValue, then validate and convert
+                let converted =
+                    convert::wrapped_to_component_val(result_value, None).map_err(|e| {
                         // Store type errors on StoreData as well
                         store_context.data_mut().set_error(e);
                         wasmtime::Error::msg("")
@@ -578,28 +427,30 @@ fn make_component_func_closure(
             }
             n => {
                 // Multiple return values - expect an array
-                let result_array = RArray::to_ary(proc_result)
-                    .map_err(|_| wasmtime::Error::msg("expected array of results"))?;
+                let result_array = RArray::to_ary(proc_result).map_err(|_| {
+                    store_context.data_mut().set_error(Error::new(
+                        ruby.exception_type_error(),
+                        "expected array of results",
+                    ));
+                    wasmtime::Error::msg("")
+                })?;
 
                 if result_array.len() != n {
-                    return Err(wasmtime::Error::msg(format!(
-                        "expected {} results, got {}",
-                        n,
-                        result_array.len()
-                    )));
+                    store_context.data_mut().set_error(Error::new(
+                        ruby.exception_arg_error(),
+                        format!("expected {} results, got {}", n, result_array.len()),
+                    ));
+                    return Err(wasmtime::Error::msg(""));
                 }
 
-                for (i, (result_value, result_ty)) in unsafe { result_array.as_slice() }
-                    .iter()
-                    .zip(result_types.iter())
-                    .enumerate()
-                {
-                    let converted = convert::validate_and_convert(*result_value, None, result_ty)
+                for (i, result_value) in unsafe { result_array.as_slice() }.iter().enumerate() {
+                    let converted = convert::wrapped_to_component_val(*result_value, None)
                         .map_err(|e| {
-                        // Store type errors on StoreData as well
-                        store_context.data_mut().set_error(e);
-                        wasmtime::Error::msg("")
-                    })?;
+                            // Append index information to error
+                            let error_with_context = e.append(format!(" (result at index {i})"));
+                            store_context.data_mut().set_error(error_with_context);
+                            wasmtime::Error::msg("")
+                        })?;
                     results[i] = converted;
                 }
                 Ok(())

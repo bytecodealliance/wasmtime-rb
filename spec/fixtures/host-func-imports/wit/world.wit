@@ -16,6 +16,9 @@ world host-imports {
     import sum-list: func(numbers: list<s32>) -> s32;
     import maybe-double: func(n: option<u32>) -> option<u32>;
     import safe-divide: func(a: u32, b: u32) -> result<u32, string>;
+    import get-numbers: func() -> list<s32>;
+    import make-tuple: func(n: u32, s: string, b: bool) -> tuple<u32, string, bool>;
+    import analyze-numbers: func(numbers: list<s32>) -> tuple<s32, list<s32>>;
     
     // Nested instance
     import math: interface {
@@ -31,4 +34,7 @@ world host-imports {
     export test-maybe: func(n: option<u32>) -> option<u32>;
     export test-divide: func(a: u32, b: u32) -> result<u32, string>;
     export test-multiply: func(a: u32, b: u32) -> u32;
+    export test-get-numbers: func() -> list<s32>;
+    export test-make-tuple: func(n: u32, s: string, b: bool) -> tuple<u32, string, bool>;
+    export test-analyze-numbers: func(numbers: list<s32>) -> tuple<s32, list<s32>>;
 }

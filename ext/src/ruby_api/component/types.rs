@@ -1,7 +1,7 @@
 use crate::error;
 use magnus::{
-    class, function, prelude::*, r_hash::ForEach, Error, Module as _, RArray, RHash, RString, Ruby,
-    Symbol, TryConvert, TypedData, Value,
+    class, function, gc::Marker, method, prelude::*, r_hash::ForEach, value::Opaque, Error,
+    Module as _, RArray, RHash, RString, Ruby, Symbol, TryConvert, TypedData, Value,
 };
 use std::fmt;
 
@@ -206,6 +206,52 @@ impl RbComponentType {
     pub fn new(inner: ComponentType) -> Self {
         Self { inner }
     }
+
+    /// @yard
+    /// Wrap a Ruby value with type information for use as a host function return value.
+    /// @def wrap(value)
+    /// @param value [Object] The Ruby value to wrap
+    /// @return [WrappedValue] A wrapped value that can be returned from host functions
+    pub fn wrap(&self, value: Value) -> WrappedValue {
+        WrappedValue::new(value, self.inner.clone())
+    }
+}
+
+/// @yard
+/// @rename Wasmtime::Component::WrappedValue
+/// A Ruby value wrapped with component model type information.
+/// Returned from {Type#wrap} and used as host function return values.
+#[derive(Clone, TypedData)]
+#[magnus(class = "Wasmtime::Component::WrappedValue", mark, free_immediately)]
+pub struct WrappedValue {
+    value: Opaque<Value>,
+    component_type: ComponentType,
+}
+unsafe impl Send for WrappedValue {}
+
+impl magnus::DataTypeFunctions for WrappedValue {
+    fn mark(&self, marker: &magnus::gc::Marker) {
+        marker.mark(self.value);
+    }
+}
+
+impl WrappedValue {
+    pub fn new(value: Value, component_type: ComponentType) -> Self {
+        Self {
+            value: value.into(),
+            component_type,
+        }
+    }
+
+    /// Get the wrapped Ruby value
+    pub fn value(&self, ruby: &Ruby) -> Value {
+        ruby.get_inner(self.value)
+    }
+
+    /// Get the component type information
+    pub fn component_type(&self) -> &ComponentType {
+        &self.component_type
+    }
 }
 
 pub struct TypeFactory;
@@ -378,343 +424,11 @@ pub fn init(ruby: &Ruby, namespace: &magnus::RModule) -> Result<(), Error> {
     type_class.define_singleton_method("result", function!(TypeFactory::result, 2))?;
     type_class.define_singleton_method("flags", function!(TypeFactory::flags, 1))?;
 
+    // Instance method for wrapping values
+    type_class.define_method("wrap", method!(RbComponentType::wrap, 1))?;
+
+    // WrappedValue class
+    let _wrapped_value_class = namespace.define_class("WrappedValue", ruby.class_object())?;
+
     Ok(())
-}
-
-// Make ComponentType accessible from other component modules
-pub(super) fn extract_component_type(value: Value) -> Result<ComponentType, Error> {
-    let rb_ty: &RbComponentType = TryConvert::try_convert(value)?;
-    Ok(rb_ty.inner.clone())
-}
-
-/// Convert wasmtime's component Type to our ComponentType
-/// This is used for validating host function signatures against component imports
-pub(super) fn wasmtime_type_to_component_type(
-    ty: &wasmtime::component::Type,
-) -> Result<ComponentType, String> {
-    use wasmtime::component::types::ComponentItem;
-
-    match ty {
-        wasmtime::component::Type::Bool => Ok(ComponentType::Bool),
-        wasmtime::component::Type::S8 => Ok(ComponentType::S8),
-        wasmtime::component::Type::U8 => Ok(ComponentType::U8),
-        wasmtime::component::Type::S16 => Ok(ComponentType::S16),
-        wasmtime::component::Type::U16 => Ok(ComponentType::U16),
-        wasmtime::component::Type::S32 => Ok(ComponentType::S32),
-        wasmtime::component::Type::U32 => Ok(ComponentType::U32),
-        wasmtime::component::Type::S64 => Ok(ComponentType::S64),
-        wasmtime::component::Type::U64 => Ok(ComponentType::U64),
-        wasmtime::component::Type::Float32 => Ok(ComponentType::Float32),
-        wasmtime::component::Type::Float64 => Ok(ComponentType::Float64),
-        wasmtime::component::Type::Char => Ok(ComponentType::Char),
-        wasmtime::component::Type::String => Ok(ComponentType::String),
-        wasmtime::component::Type::List(inner) => {
-            let inner_ty = wasmtime_type_to_component_type(&inner.ty())?;
-            Ok(ComponentType::List(Box::new(inner_ty)))
-        }
-        wasmtime::component::Type::Record(record) => {
-            let mut fields = Vec::new();
-            for field in record.fields() {
-                let field_ty = wasmtime_type_to_component_type(&field.ty)?;
-                fields.push(RecordField {
-                    name: field.name.to_string(),
-                    ty: field_ty,
-                });
-            }
-            Ok(ComponentType::Record(fields))
-        }
-        wasmtime::component::Type::Tuple(tuple) => {
-            let mut types = Vec::new();
-            for ty in tuple.types() {
-                types.push(wasmtime_type_to_component_type(&ty)?);
-            }
-            Ok(ComponentType::Tuple(types))
-        }
-        wasmtime::component::Type::Variant(variant) => {
-            let mut cases = Vec::new();
-            for case in variant.cases() {
-                let case_ty = case
-                    .ty
-                    .as_ref()
-                    .map(wasmtime_type_to_component_type)
-                    .transpose()?;
-                cases.push(VariantCase {
-                    name: case.name.to_string(),
-                    ty: case_ty,
-                });
-            }
-            Ok(ComponentType::Variant(cases))
-        }
-        wasmtime::component::Type::Enum(enum_ty) => {
-            let cases: Vec<String> = enum_ty.names().map(|s| s.to_string()).collect();
-            Ok(ComponentType::Enum(cases))
-        }
-        wasmtime::component::Type::Option(opt) => {
-            let inner_ty = wasmtime_type_to_component_type(&opt.ty())?;
-            Ok(ComponentType::Option(Box::new(inner_ty)))
-        }
-        wasmtime::component::Type::Result(result) => {
-            let ok = result
-                .ok()
-                .map(|ty| wasmtime_type_to_component_type(&ty).map(Box::new))
-                .transpose()?;
-            let err = result
-                .err()
-                .map(|ty| wasmtime_type_to_component_type(&ty).map(Box::new))
-                .transpose()?;
-            Ok(ComponentType::Result { ok, err })
-        }
-        wasmtime::component::Type::Flags(flags) => {
-            let names: Vec<String> = flags.names().map(|s| s.to_string()).collect();
-            Ok(ComponentType::Flags(names))
-        }
-        wasmtime::component::Type::Own(_) | wasmtime::component::Type::Borrow(_) => Err(
-            "resource types (own/borrow) are not yet supported for host function validation"
-                .to_string(),
-        ),
-        wasmtime::component::Type::Map(_) => {
-            Err("map types are not yet supported for host function validation".to_string())
-        }
-        wasmtime::component::Type::Future(_) => {
-            Err("future types are not yet supported for host function validation".to_string())
-        }
-        wasmtime::component::Type::Stream(_) => {
-            Err("stream types are not yet supported for host function validation".to_string())
-        }
-        wasmtime::component::Type::ErrorContext => Err(
-            "error-context types are not yet supported for host function validation".to_string(),
-        ),
-    }
-}
-
-/// Extract function parameter and result types from a ComponentFunc
-pub(super) fn extract_func_types(
-    func: &wasmtime::component::types::ComponentFunc,
-) -> Result<(Vec<ComponentType>, Vec<ComponentType>), String> {
-    let mut param_types = Vec::new();
-    for (_name, ty) in func.params() {
-        param_types.push(wasmtime_type_to_component_type(&ty)?);
-    }
-
-    let mut result_types = Vec::new();
-    // Results is an iterator of Type directly (not tuples)
-    for ty in func.results() {
-        result_types.push(wasmtime_type_to_component_type(&ty)?);
-    }
-
-    Ok((param_types, result_types))
-}
-
-/// Compare two ComponentTypes for compatibility
-/// Returns Ok(()) if types match, Err with descriptive message if they don't
-pub(super) fn types_match(
-    declared: &ComponentType,
-    expected: &ComponentType,
-) -> Result<(), String> {
-    match (declared, expected) {
-        // Primitive types must match exactly
-        (ComponentType::Bool, ComponentType::Bool)
-        | (ComponentType::S8, ComponentType::S8)
-        | (ComponentType::U8, ComponentType::U8)
-        | (ComponentType::S16, ComponentType::S16)
-        | (ComponentType::U16, ComponentType::U16)
-        | (ComponentType::S32, ComponentType::S32)
-        | (ComponentType::U32, ComponentType::U32)
-        | (ComponentType::S64, ComponentType::S64)
-        | (ComponentType::U64, ComponentType::U64)
-        | (ComponentType::Float32, ComponentType::Float32)
-        | (ComponentType::Float64, ComponentType::Float64)
-        | (ComponentType::Char, ComponentType::Char)
-        | (ComponentType::String, ComponentType::String) => Ok(()),
-
-        // List types: element types must match
-        (ComponentType::List(d_inner), ComponentType::List(e_inner)) => {
-            types_match(d_inner, e_inner).map_err(|e| format!("list element type mismatch: {}", e))
-        }
-
-        // Option types: inner types must match
-        (ComponentType::Option(d_inner), ComponentType::Option(e_inner)) => {
-            types_match(d_inner, e_inner).map_err(|e| format!("option type mismatch: {}", e))
-        }
-
-        // Record types: must have same fields with matching types
-        (ComponentType::Record(d_fields), ComponentType::Record(e_fields)) => {
-            if d_fields.len() != e_fields.len() {
-                return Err(format!(
-                    "record field count mismatch: declared has {} fields, expected has {}",
-                    d_fields.len(),
-                    e_fields.len()
-                ));
-            }
-
-            for (d_field, e_field) in d_fields.iter().zip(e_fields.iter()) {
-                if d_field.name != e_field.name {
-                    return Err(format!(
-                        "record field name mismatch: declared has '{}', expected has '{}'",
-                        d_field.name, e_field.name
-                    ));
-                }
-                types_match(&d_field.ty, &e_field.ty)
-                    .map_err(|e| format!("record field '{}' type mismatch: {}", d_field.name, e))?;
-            }
-            Ok(())
-        }
-
-        // Tuple types: must have same number of elements with matching types
-        (ComponentType::Tuple(d_types), ComponentType::Tuple(e_types)) => {
-            if d_types.len() != e_types.len() {
-                return Err(format!(
-                    "tuple length mismatch: declared has {} elements, expected has {}",
-                    d_types.len(),
-                    e_types.len()
-                ));
-            }
-
-            for (i, (d_ty, e_ty)) in d_types.iter().zip(e_types.iter()).enumerate() {
-                types_match(d_ty, e_ty)
-                    .map_err(|e| format!("tuple element {} mismatch: {}", i, e))?;
-            }
-            Ok(())
-        }
-
-        // Variant types: must have same cases with matching types
-        (ComponentType::Variant(d_cases), ComponentType::Variant(e_cases)) => {
-            if d_cases.len() != e_cases.len() {
-                return Err(format!(
-                    "variant case count mismatch: declared has {} cases, expected has {}",
-                    d_cases.len(),
-                    e_cases.len()
-                ));
-            }
-
-            for (d_case, e_case) in d_cases.iter().zip(e_cases.iter()) {
-                if d_case.name != e_case.name {
-                    return Err(format!(
-                        "variant case name mismatch: declared has '{}', expected has '{}'",
-                        d_case.name, e_case.name
-                    ));
-                }
-
-                match (&d_case.ty, &e_case.ty) {
-                    (Some(d_ty), Some(e_ty)) => {
-                        types_match(d_ty, e_ty).map_err(|e| {
-                            format!("variant case '{}' type mismatch: {}", d_case.name, e)
-                        })?;
-                    }
-                    (None, None) => {}
-                    (Some(_), None) => {
-                        return Err(format!(
-                            "variant case '{}': declared has payload, expected has none",
-                            d_case.name
-                        ));
-                    }
-                    (None, Some(_)) => {
-                        return Err(format!(
-                            "variant case '{}': declared has no payload, expected has payload",
-                            d_case.name
-                        ));
-                    }
-                }
-            }
-            Ok(())
-        }
-
-        // Enum types: must have same cases in same order
-        (ComponentType::Enum(d_cases), ComponentType::Enum(e_cases)) => {
-            if d_cases.len() != e_cases.len() {
-                return Err(format!(
-                    "enum case count mismatch: declared has {} cases, expected has {}",
-                    d_cases.len(),
-                    e_cases.len()
-                ));
-            }
-
-            for (d_case, e_case) in d_cases.iter().zip(e_cases.iter()) {
-                if d_case != e_case {
-                    return Err(format!(
-                        "enum case mismatch: declared has '{}', expected has '{}'",
-                        d_case, e_case
-                    ));
-                }
-            }
-            Ok(())
-        }
-
-        // Result types: ok and err types must match
-        (
-            ComponentType::Result {
-                ok: d_ok,
-                err: d_err,
-            },
-            ComponentType::Result {
-                ok: e_ok,
-                err: e_err,
-            },
-        ) => {
-            match (d_ok, e_ok) {
-                (Some(d_ty), Some(e_ty)) => {
-                    types_match(d_ty, e_ty)
-                        .map_err(|e| format!("result ok type mismatch: {}", e))?;
-                }
-                (None, None) => {}
-                (Some(_), None) => {
-                    return Err(
-                        "result ok type mismatch: declared has ok type, expected has none"
-                            .to_string(),
-                    );
-                }
-                (None, Some(_)) => {
-                    return Err(
-                        "result ok type mismatch: declared has no ok type, expected has ok type"
-                            .to_string(),
-                    );
-                }
-            }
-
-            match (d_err, e_err) {
-                (Some(d_ty), Some(e_ty)) => {
-                    types_match(d_ty, e_ty)
-                        .map_err(|e| format!("result err type mismatch: {}", e))?;
-                }
-                (None, None) => {}
-                (Some(_), None) => {
-                    return Err(
-                        "result err type mismatch: declared has err type, expected has none"
-                            .to_string(),
-                    );
-                }
-                (None, Some(_)) => {
-                    return Err(
-                        "result err type mismatch: declared has no err type, expected has err type"
-                            .to_string(),
-                    );
-                }
-            }
-            Ok(())
-        }
-
-        // Flags types: must have same flags in same order
-        (ComponentType::Flags(d_flags), ComponentType::Flags(e_flags)) => {
-            if d_flags.len() != e_flags.len() {
-                return Err(format!(
-                    "flags count mismatch: declared has {} flags, expected has {}",
-                    d_flags.len(),
-                    e_flags.len()
-                ));
-            }
-
-            for (d_flag, e_flag) in d_flags.iter().zip(e_flags.iter()) {
-                if d_flag != e_flag {
-                    return Err(format!(
-                        "flag mismatch: declared has '{}', expected has '{}'",
-                        d_flag, e_flag
-                    ));
-                }
-            }
-            Ok(())
-        }
-
-        // Type mismatch
-        _ => Err(format!("expected {}, got {}", expected, declared)),
-    }
 }

@@ -9,7 +9,7 @@ use magnus::{
 };
 use wasmtime::component::{Type, Val};
 
-use super::types::ComponentType;
+use super::types::{ComponentType, WrappedValue};
 
 define_rb_intern!(
     // For Component::Result
@@ -305,6 +305,29 @@ fn variant_class(ruby: &Ruby) -> RClass {
     static VARIANT_CLASS: Lazy<RClass> =
         Lazy::new(|ruby| component_namespace(ruby).const_get("Variant").unwrap());
     ruby.get_inner(&VARIANT_CLASS)
+}
+
+/// Extract type and value from a wrapped value and convert to Val
+/// This is the primary conversion path for host function return values
+pub(super) fn wrapped_to_component_val(
+    value: Value,
+    _store: Option<&StoreContextValue>,
+) -> Result<Val, Error> {
+    let ruby = Ruby::get_with(value);
+
+    // Try to convert to WrappedValue
+    let wrapped: &WrappedValue = magnus::TryConvert::try_convert(value).map_err(|_| {
+        Error::new(
+            ruby.exception_type_error(),
+            format!(
+                "host function must return wrapped value (e.g., Type::U32.wrap(value)), got {}",
+                unsafe { value.classname() }
+            ),
+        )
+    })?;
+
+    // Extract the inner value and type, then validate and convert
+    validate_and_convert(wrapped.value(&ruby), _store, wrapped.component_type())
 }
 
 /// Validate a Ruby value against a ComponentType and convert to Val

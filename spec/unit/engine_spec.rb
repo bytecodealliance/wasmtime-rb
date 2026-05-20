@@ -29,6 +29,7 @@ module Wasmtime
         [:wasm_memory64, true],
         [:parallel_compilation, true],
         [:wasm_reference_types, true],
+        [:wasm_exceptions, true],
         [:async_stack_zeroing, true]
       ].each do |option, valid, invalid = nil|
         it "supports #{option}" do

@@ -42,6 +42,7 @@ define_rb_intern!(
     POOLING => "pooling",
     ON_DEMAND => "on_demand",
     WASM_REFERENCE_TYPES => "wasm_reference_types",
+    WASM_EXCEPTIONS => "wasm_exceptions",
     ASYNC_STACK_ZEROING => "async_stack_zeroing",
 );
 
@@ -105,6 +106,8 @@ pub fn hash_to_config(hash: RHash) -> Result<Config, Error> {
             config.parallel_compilation(entry.try_into()?);
         } else if *WASM_REFERENCE_TYPES == id {
             config.wasm_reference_types(entry.try_into()?);
+        } else if *WASM_EXCEPTIONS == id {
+            config.wasm_exceptions(entry.try_into()?);
         } else if *PROFILER == id {
             config.profiler(entry.try_into()?);
         } else if *CRANELIFT_OPT_LEVEL == id {

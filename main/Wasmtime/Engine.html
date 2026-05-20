@@ -479,6 +479,17 @@ the different options and the defaults.</p></div>
         </li>
       
         <li>
+          <span class="name">:wasm_exceptions</span>
+          <span class="type">(<tt>Boolean</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+            &mdash; <div class='inline'><p>Whether the WebAssembly exception-handling proposal is enabled.</p></div>
+          
+        </li>
+      
+        <li>
           <span class="name">:parallel_compilation</span>
           <span class="type">(<tt>Boolean</tt>)</span>
           <span class="default">
@@ -562,7 +573,6 @@ the different options and the defaults.</p></div>
       <pre class="lines">
 
 
-90
 91
 92
 93
@@ -580,10 +590,11 @@ the different options and the defaults.</p></div>
 105
 106
 107
-108</pre>
+108
+109</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 90</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 91</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let args = scan_args::scan_args::&lt;(), (Option&lt;Value&gt;,), (), (), (), ()&gt;(args)?;
@@ -655,12 +666,12 @@ Using <span class='object_link'><a href="#start_epoch_interval-instance_method" 
       <pre class="lines">
 
 
-155
 156
-157</pre>
+157
+158</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 155</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 156</span>
 
 pub fn increment_epoch(&amp;self) {
     self.inner.increment_epoch();
@@ -712,7 +723,6 @@ other.</p>
       <pre class="lines">
 
 
-210
 211
 212
 213
@@ -730,10 +740,11 @@ other.</p>
 225
 226
 227
-228</pre>
+228
+229</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 210</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 211</span>
 
 pub fn precompile_compatibility_key(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RString, Error&gt; {
     static ID: LazyId = LazyId::new(&quot;precompile_compatibility_key&quot;);
@@ -825,7 +836,6 @@ pub fn precompile_compatibility_key(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -
       <pre class="lines">
 
 
-193
 194
 195
 196
@@ -835,10 +845,11 @@ pub fn precompile_compatibility_key(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -
 200
 201
 202
-203</pre>
+203
+204</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 193</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 194</span>
 
 pub fn precompile_component(
     ruby: &amp;Ruby,
@@ -922,7 +933,6 @@ pub fn precompile_component(
       <pre class="lines">
 
 
-172
 173
 174
 175
@@ -932,10 +942,11 @@ pub fn precompile_component(
 179
 180
 181
-182</pre>
+182
+183</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 172</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 173</span>
 
 pub fn precompile_module(
     ruby: &amp;Ruby,
@@ -1007,7 +1018,6 @@ Waits <code>milliseconds</code> before incrementing for the first time.</p>
       <pre class="lines">
 
 
-119
 120
 121
 122
@@ -1022,10 +1032,11 @@ Waits <code>milliseconds</code> before incrementing for the first time.</p>
 131
 132
 133
-134</pre>
+134
+135</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 119</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 120</span>
 
 pub fn start_epoch_interval(&amp;self, milliseconds: u64) {
     self.stop_epoch_interval();
@@ -1086,16 +1097,16 @@ Does nothing if there is no running timer.</p>
       <pre class="lines">
 
 
-141
 142
 143
 144
 145
 146
-147</pre>
+147
+148</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 141</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 142</span>
 
 pub fn stop_epoch_interval(&amp;self) {
     let maybe_handle = self.timer_task.lock().unwrap().take();
@@ -1114,9 +1125,9 @@ pub fn stop_epoch_interval(&amp;self) {
 </div>
 
       <div id="footer">
-  Generated on Wed May  6 11:46:42 2026 by
+  Generated on Wed May 20 21:29:23 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.43 (ruby-4.0.3).
+  0.9.43 (ruby-4.0.5).
 </div>
 
     </div>

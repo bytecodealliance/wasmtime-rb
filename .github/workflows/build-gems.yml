@@ -84,6 +84,18 @@ jobs:
         shell: bash
         run: |
           gem install pkg/wasmtime-*.gem --verbose
+          ruby -v
+          ruby -e 'require "rbconfig"; p RUBY_PLATFORM; p RbConfig::CONFIG.values_at("arch", "host_cpu", "target_cpu", "host_os")'
+          ruby -e 'spec = Gem::Specification.find_by_name("wasmtime"); puts spec.full_gem_path; puts Dir[File.join(spec.full_gem_path, "lib/wasmtime/*/wasmtime_rb.so")]'
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            cmd //c 'where ruby'
+            cmd //c 'where x64-ucrt-ruby400.dll'
+            cmd //c 'where bcrypt.dll'
+            cmd //c 'where bcryptprimitives.dll'
+            cmd //c 'where api-ms-win-crt-runtime-l1-1-0.dll'
+            cmd //c 'where api-ms-win-crt-private-l1-1-0.dll'
+            cmd //c 'where api-ms-win-core-synch-l1-2-0.dll'
+          fi
           script="puts Wasmtime::Engine.new.precompile_module('(module)')"
           ruby -rwasmtime -e "$script" | grep wasmtime.info
           echo "✅ Successfully gem installed"

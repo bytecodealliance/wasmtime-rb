@@ -29,44 +29,13 @@ jobs:
           stable-ruby-versions: |
             exclude: [head]
 
-  native:
-    name: Build native gems
-    needs: ci-data
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        ruby-platform: ${{ fromJSON(needs.ci-data.outputs.result).supported-ruby-platforms }}
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: "4.0"
-
-      - uses: oxidize-rb/actions/cross-gem@v1
-        id: cross-gem
-        with:
-          platform: ${{ matrix.ruby-platform }}
-          ruby-versions: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ',') }}
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: cross-gem-${{ matrix.ruby-platform }}
-          path: ${{ steps.cross-gem.outputs.gem-path }}
-          if-no-files-found: error
-
   native-smoke:
     name: Smoke ${{ matrix.ruby-platform }} native gem on Ruby ${{ matrix.ruby }}
-    needs: native
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - ruby-platform: x86_64-linux
-            os: ubuntu-latest
-            ruby: "4.0"
           - ruby-platform: x64-mingw-ucrt
             os: windows-latest
             ruby: "4.0"
@@ -77,8 +46,10 @@ jobs:
 
       - uses: actions/download-artifact@v8
         with:
+          run-id: 26301529984
           name: cross-gem-${{ matrix.ruby-platform }}
           path: pkg/
+          github-token: ${{ github.token }}
 
       - name: Smoke gem install
         shell: bash
@@ -95,12 +66,45 @@ jobs:
             cmd //c 'where api-ms-win-crt-runtime-l1-1-0.dll'
             cmd //c 'where api-ms-win-crt-private-l1-1-0.dll'
             cmd //c 'where api-ms-win-core-synch-l1-2-0.dll'
+
+            for dll_name in \
+              api-ms-win-crt-runtime-l1-1-0.dll \
+              api-ms-win-crt-private-l1-1-0.dll \
+              api-ms-win-core-synch-l1-2-0.dll; do
+              while IFS= read -r dll_path; do
+                dll_path="${dll_path%$'\r'}"
+                echo "==== $dll_path ===="
+                objdump -f "$(cygpath -u "$dll_path")" || true
+              done < <(cmd //c "where $dll_name" 2>/dev/null || true)
+            done
           fi
+
           script="puts Wasmtime::Engine.new.precompile_module('(module)')"
+          set +e
           ruby -rwasmtime -e "$script" | grep wasmtime.info
+          status=$?
+          set -e
+
+          if [[ "$status" -ne 0 && "${{ runner.os }}" == "Windows" ]]; then
+            echo "::warning::Initial require failed; retrying with a sanitized PATH"
+            ruby_bindir="$(cygpath -u "$(ruby -e 'require "rbconfig"; print RbConfig::CONFIG.fetch("bindir")')")"
+            devkit="$(cygpath -u "$RI_DEVKIT")"
+            export PATH="$ruby_bindir:$devkit/ucrt64/bin:$devkit/usr/bin:/c/Windows/System32:/c/Windows"
+            echo "Sanitized PATH=$PATH"
+            cmd //c 'where ruby'
+            cmd //c 'where x64-ucrt-ruby400.dll'
+            cmd //c 'where api-ms-win-crt-runtime-l1-1-0.dll' || true
+            cmd //c 'where api-ms-win-crt-private-l1-1-0.dll' || true
+            cmd //c 'where api-ms-win-core-synch-l1-2-0.dll' || true
+            ruby -rwasmtime -e "$script" | grep wasmtime.info
+          else
+            exit "$status"
+          fi
+
           echo "✅ Successfully gem installed"
 
   source:
+    if: false # Temporarily disabled while debugging x64-mingw-ucrt smoke failures.
     name: Build source gem
     runs-on: ${{ matrix.os }}
     strategy:

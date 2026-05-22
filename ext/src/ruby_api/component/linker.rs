@@ -1,5 +1,4 @@
 use super::convert;
-use super::types;
 use super::{Component, Instance};
 use crate::{
     err,
@@ -284,36 +283,34 @@ impl<'a> LinkerInstance<'a> {
     /// @yard
     /// Define a host function in this linker instance.
     ///
-    /// Host functions must return wrapped values to specify their types.
-    /// Use {Type#wrap} to wrap return values with their type information.
+    /// Host functions return plain Ruby values which are automatically validated
+    /// and converted based on the function's type signature from the component.
     ///
     /// @example Simple scalar return
     ///   root.func_new("add") do |a, b|
-    ///     Type::U32.wrap(a + b)
+    ///     a + b  # Returns u32
     ///   end
     ///
-    /// @example Returning a list (the list itself, not array of results)
+    /// @example Returning a list
     ///   root.func_new("get-numbers") do
-    ///     Type::List(Type::S32).wrap([1, 2, 3])
+    ///     [1, 2, 3]  # Returns list<s32>
     ///   end
     ///
-    /// @example Multiple return values (array of wrapped values)
-    ///   root.func_new("divide-with-remainder") do |a, b|
-    ///     [Type::U32.wrap(a / b), Type::U32.wrap(a % b)]
+    /// @example Returning a tuple
+    ///   root.func_new("make-tuple") do |n, s, b|
+    ///     [n, s, b]  # Returns tuple<u32, string, bool>
     ///   end
     ///
     /// @example Complex types (records, results, etc.)
     ///   root.func_new("make-point") do |x, y|
-    ///     point_type = Type::Record("x" => Type::S32, "y" => Type::S32)
-    ///     point_type.wrap({"x" => x, "y" => y})
+    ///     {"x" => x, "y" => y}  # Returns record with x and y fields
     ///   end
     ///
     /// @def func_new(name, &block)
     /// @param name [String] The function name
-    /// @yield [caller, *args] The block implementing the host function
-    /// @yieldparam caller [Caller] The caller context (not yet fully implemented)
+    /// @yield [*args] The block implementing the host function
     /// @yieldparam args [Array<Object>] The function arguments, converted from component values
-    /// @yieldreturn [WrappedValue, Array<WrappedValue>] Wrapped result(s) with type information
+    /// @yieldreturn [Object] Result value matching the function's return type. Use arrays for lists and tuples, hashes for records.
     /// @return [LinkerInstance] +self+
     fn func_new(_ruby: &Ruby, rb_self: Obj<Self>, args: &[Value]) -> Result<Obj<Self>, Error> {
         let args = scan_args::<(RString,), (), (), (), (), Proc>(args)?;
@@ -352,7 +349,7 @@ impl<'a> LinkerInstance<'a> {
 }
 
 /// Create a closure that wraps a Ruby Proc for use as a component host function
-/// The closure expects wrapped return values (WrappedValue) that carry type information
+/// The closure uses the function's type signature for automatic validation and conversion
 fn make_component_func_closure(
     callable: Opaque<Proc>,
 ) -> impl Fn(
@@ -365,7 +362,7 @@ fn make_component_func_closure(
        + Sync
        + 'static {
     move |mut store_context: wasmtime::StoreContextMut<'_, StoreData>,
-          _func: wasmtime::component::types::ComponentFunc,
+          func: wasmtime::component::types::ComponentFunc,
           params: &[Val],
           results: &mut [Val]| {
         let ruby = Ruby::get().unwrap();
@@ -391,69 +388,36 @@ fn make_component_func_closure(
             wasmtime::Error::msg("")
         })?;
 
+        // Get expected result types from function signature
+        let results_types: Vec<_> = func.results().collect();
+        let num_results = results_types.len();
+
         // Handle result conversion based on arity
-        let num_results = results.len();
+        // Note: WIT only supports 0 or 1 return values (use tuples for multiple values)
         match num_results {
             0 => {
                 // No return value expected
                 Ok(())
             }
             1 => {
-                // Single return value - accept either the value directly or in an array
-                let result_value = if let Ok(result_array) = RArray::to_ary(proc_result) {
-                    // User returned [wrapped_value] - unwrap the array
-                    if result_array.len() != 1 {
-                        store_context.data_mut().set_error(Error::new(
-                            ruby.exception_arg_error(),
-                            format!("expected 1 result, got {}", result_array.len()),
-                        ));
-                        return Err(wasmtime::Error::msg(""));
-                    }
-                    unsafe { result_array.as_slice()[0] }
-                } else {
-                    // User returned wrapped_value directly (most common case)
-                    proc_result
-                };
-
-                // Extract type and value from WrappedValue, then validate and convert
-                let converted =
-                    convert::wrapped_to_component_val(result_value, None).map_err(|e| {
-                        // Store type errors on StoreData as well
+                // Single return value - convert directly
+                // Don't unwrap arrays - the value might be a list or tuple type
+                let expected_ty = &results_types[0];
+                let converted = convert::rb_to_component_val(proc_result, None, expected_ty)
+                    .map_err(|e| {
                         store_context.data_mut().set_error(e);
                         wasmtime::Error::msg("")
                     })?;
                 results[0] = converted;
                 Ok(())
             }
-            n => {
-                // Multiple return values - expect an array
-                let result_array = RArray::to_ary(proc_result).map_err(|_| {
-                    store_context.data_mut().set_error(Error::new(
-                        ruby.exception_type_error(),
-                        "expected array of results",
-                    ));
-                    wasmtime::Error::msg("")
-                })?;
-
-                if result_array.len() != n {
-                    store_context.data_mut().set_error(Error::new(
-                        ruby.exception_arg_error(),
-                        format!("expected {} results, got {}", n, result_array.len()),
-                    ));
-                    return Err(wasmtime::Error::msg(""));
-                }
-
-                for (i, result_value) in unsafe { result_array.as_slice() }.iter().enumerate() {
-                    let converted = convert::wrapped_to_component_val(*result_value, None)
-                        .map_err(|e| {
-                            // Append index information to error
-                            let error_with_context = e.append(format!(" (result at index {i})"));
-                            store_context.data_mut().set_error(error_with_context);
-                            wasmtime::Error::msg("")
-                        })?;
-                    results[i] = converted;
-                }
-                Ok(())
+            _ => {
+                // WIT doesn't support multiple return values - this should never happen
+                store_context.data_mut().set_error(Error::new(
+                    ruby.exception_runtime_error(),
+                    format!("unexpected number of results: {}", num_results),
+                ));
+                Err(wasmtime::Error::msg(""))
             }
         }
     }

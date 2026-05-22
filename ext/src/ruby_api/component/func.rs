@@ -152,7 +152,7 @@ fn convert_params<'a>(
             .try_into()
             .map_err(|_| Error::new(ruby.exception_arg_error(), "too many params"))?;
 
-        let component_val = rb_to_component_val(*value, store, &ty.1)
+        let component_val = rb_to_component_val(*value, Some(store), &ty.1)
             .map_err(|error| error.append(format!(" (param at index {i})")))?;
 
         params.push(component_val);

@@ -37,12 +37,10 @@ module Wasmtime
       end
 
       describe "LinkerInstance#func_new" do
-        let(:t) { Type }
-
         it "defines a function" do
           linker.root do |root|
             root.func_new("greet") do |name|
-              t.string.wrap("Hello, #{name}!")
+              "Hello, #{name}!"
             end
           end
 
@@ -52,7 +50,7 @@ module Wasmtime
         it "defines functions in nested instances" do
           linker.instance("math") do |math|
             math.func_new("add") do |a, b|
-              t.u32.wrap(a + b)
+              a + b
             end
           end
 
@@ -85,64 +83,54 @@ module Wasmtime
 
           # Stub root functions
           linker.root do |root|
-            root.func_new("greet") { |name| t.string.wrap(name) } unless skip_funcs.include?("greet")
-            root.func_new("add") { |a, b| t.u32.wrap(a + b) } unless skip_funcs.include?("add")
-            root.func_new("get-constant") { t.u32.wrap(0) } unless skip_funcs.include?("get-constant")
+            root.func_new("greet") { |name| name } unless skip_funcs.include?("greet")
+            root.func_new("add") { |a, b| a + b } unless skip_funcs.include?("add")
+            root.func_new("get-constant") { 0 } unless skip_funcs.include?("get-constant")
             unless skip_funcs.include?("make-point")
-              point_type = t.record("x" => t.s32, "y" => t.s32)
               root.func_new("make-point") do |x, y|
-                point_type.wrap({"x" => x, "y" => y})
+                {"x" => x, "y" => y}
               end
             end
-            root.func_new("sum-list") { |nums| t.s32.wrap(nums.sum) } unless skip_funcs.include?("sum-list")
-            root.func_new("maybe-double") { |n| t.option(t.u32).wrap(n) } unless skip_funcs.include?("maybe-double")
+            root.func_new("sum-list") { |nums| nums.sum } unless skip_funcs.include?("sum-list")
+            root.func_new("maybe-double") { |n| n } unless skip_funcs.include?("maybe-double")
             unless skip_funcs.include?("safe-divide")
               root.func_new("safe-divide") do |a, b|
-                t.result(t.u32, t.string).wrap(Result.ok(a))
+                Result.ok(a)
               end
             end
-            root.func_new("get-numbers") { t.list(t.s32).wrap([]) } unless skip_funcs.include?("get-numbers")
+            root.func_new("get-numbers") { [] } unless skip_funcs.include?("get-numbers")
             unless skip_funcs.include?("make-tuple")
-              tuple_type = t.tuple([t.u32, t.string, t.bool])
               root.func_new("make-tuple") do |n, s, b|
-                tuple_type.wrap([n, s, b])
+                [n, s, b]
               end
             end
             unless skip_funcs.include?("analyze-numbers")
-              tuple_type = t.tuple([t.s32, t.list(t.s32)])
               root.func_new("analyze-numbers") do |nums|
-                tuple_type.wrap([0, nums])
+                [0, nums]
               end
             end
             # Additional integer types
-            root.func_new("echo-s8") { |n| t.s8.wrap(n) } unless skip_funcs.include?("echo-s8")
-            root.func_new("echo-u8") { |n| t.u8.wrap(n) } unless skip_funcs.include?("echo-u8")
-            root.func_new("echo-s16") { |n| t.s16.wrap(n) } unless skip_funcs.include?("echo-s16")
-            root.func_new("echo-u16") { |n| t.u16.wrap(n) } unless skip_funcs.include?("echo-u16")
-            root.func_new("echo-s64") { |n| t.s64.wrap(n) } unless skip_funcs.include?("echo-s64")
-            root.func_new("echo-u64") { |n| t.u64.wrap(n) } unless skip_funcs.include?("echo-u64")
+            root.func_new("echo-s8") { |n| n } unless skip_funcs.include?("echo-s8")
+            root.func_new("echo-u8") { |n| n } unless skip_funcs.include?("echo-u8")
+            root.func_new("echo-s16") { |n| n } unless skip_funcs.include?("echo-s16")
+            root.func_new("echo-u16") { |n| n } unless skip_funcs.include?("echo-u16")
+            root.func_new("echo-s64") { |n| n } unless skip_funcs.include?("echo-s64")
+            root.func_new("echo-u64") { |n| n } unless skip_funcs.include?("echo-u64")
             # Float types
-            root.func_new("echo-f32") { |n| t.float32.wrap(n) } unless skip_funcs.include?("echo-f32")
-            root.func_new("echo-f64") { |n| t.float64.wrap(n) } unless skip_funcs.include?("echo-f64")
+            root.func_new("echo-f32") { |n| n } unless skip_funcs.include?("echo-f32")
+            root.func_new("echo-f64") { |n| n } unless skip_funcs.include?("echo-f64")
             # Char type
-            root.func_new("echo-char") { |c| t.char.wrap(c) } unless skip_funcs.include?("echo-char")
+            root.func_new("echo-char") { |c| c } unless skip_funcs.include?("echo-char")
             # Enum, variant, flags
-            root.func_new("echo-enum") { |c| t.enum(["red", "green", "blue"]).wrap(c) } unless skip_funcs.include?("echo-enum")
-            unless skip_funcs.include?("echo-variant")
-              variant_type = t.variant(
-                "circle" => t.float32,
-                "rectangle" => t.tuple([t.float32, t.float32]),
-                "point" => nil
-              )
-              root.func_new("echo-variant") { |s| variant_type.wrap(s) }
-            end
-            root.func_new("echo-flags") { |p| t.flags(["read", "write", "execute"]).wrap(p) } unless skip_funcs.include?("echo-flags")
+            root.func_new("echo-enum") { |c| c } unless skip_funcs.include?("echo-enum")
+            root.func_new("echo-variant") { |s| s } unless skip_funcs.include?("echo-variant")
+            root.func_new("echo-flags") { |p| p } unless skip_funcs.include?("echo-flags")
           end
 
           # Stub math instance unless skipped
           unless skip_funcs.include?("math")
             linker.instance("math") do |math|
-              math.func_new("multiply") { |a, b| t.u32.wrap(a * b) }
+              math.func_new("multiply") { |a, b| a * b }
             end
           end
         end
@@ -153,7 +141,7 @@ module Wasmtime
 
             linker.root do |root|
               root.func_new("greet") do |name|
-                t.string.wrap("Hello, #{name}!")
+                "Hello, #{name}!"
               end
             end
 
@@ -168,7 +156,7 @@ module Wasmtime
 
             linker.root do |root|
               root.func_new("add") do |a, b|
-                t.u32.wrap(a + b)
+                a + b
               end
             end
 
@@ -183,7 +171,7 @@ module Wasmtime
 
             linker.root do |root|
               root.func_new("get-constant") do
-                t.u32.wrap(1234)
+                1234
               end
             end
 
@@ -198,11 +186,9 @@ module Wasmtime
           it "provides a function returning a record" do
             stub_component_imports(linker, except: :"make-point")
 
-            point_type = t.record("x" => t.s32, "y" => t.s32)
-
             linker.root do |root|
               root.func_new("make-point") do |x, y|
-                point_type.wrap({"x" => x, "y" => y})
+                {"x" => x, "y" => y}
               end
             end
 
@@ -215,19 +201,17 @@ module Wasmtime
           it "validates field types in records" do
             stub_component_imports(linker, except: :"make-point")
 
-            point_type = t.record("x" => t.s32, "y" => t.s32)
-
             linker.root do |root|
               root.func_new("make-point") do |_x, y|
                 # Try to use wrong type for x field (string instead of s32)
-                point_type.wrap({"x" => "not a number", "y" => y})
+                {"x" => "not a number", "y" => y}
               end
             end
 
             instance = linker.instantiate(store, @host_imports_component)
             func = instance.get_func("test-point")
 
-            expect { func.call(10, 20) }.to raise_error(Wasmtime::Error, /expected s32, got/)
+            expect { func.call(10, 20) }.to raise_error(TypeError, /no implicit conversion of String into Integer/)
           end
 
           it "provides a function accepting a list" do
@@ -235,7 +219,7 @@ module Wasmtime
 
             linker.root do |root|
               root.func_new("sum-list") do |numbers|
-                t.s32.wrap(numbers.sum)
+                numbers.sum
               end
             end
 
@@ -250,7 +234,7 @@ module Wasmtime
 
             linker.root do |root|
               root.func_new("maybe-double") do |n|
-                t.option(t.u32).wrap(n.nil? ? nil : n * 2)
+                n.nil? ? nil : n * 2
               end
             end
 
@@ -270,7 +254,7 @@ module Wasmtime
                 else
                   Result.ok(a / b)
                 end
-                t.result(t.u32, t.string).wrap(result_val)
+                result_val
               end
             end
 
@@ -286,7 +270,7 @@ module Wasmtime
 
             linker.root do |root|
               root.func_new("get-numbers") do
-                t.list(t.s32).wrap([1, 2, 3, 4, 5])
+                [1, 2, 3, 4, 5]
               end
             end
 
@@ -299,11 +283,9 @@ module Wasmtime
           it "provides a function returning a tuple" do
             stub_component_imports(linker, except: :"make-tuple")
 
-            tuple_type = t.tuple([t.u32, t.string, t.bool])
-
             linker.root do |root|
               root.func_new("make-tuple") do |n, s, b|
-                tuple_type.wrap([n, s, b])
+                [n, s, b]
               end
             end
 
@@ -316,11 +298,9 @@ module Wasmtime
           it "provides a function returning a tuple containing a list" do
             stub_component_imports(linker, except: :"analyze-numbers")
 
-            tuple_type = t.tuple([t.s32, t.list(t.s32)])
-
             linker.root do |root|
               root.func_new("analyze-numbers") do |numbers|
-                tuple_type.wrap([numbers.sum, numbers.sort])
+                [numbers.sum, numbers.sort]
               end
             end
 
@@ -334,7 +314,7 @@ module Wasmtime
             stub_component_imports(linker, except: :"echo-s8")
 
             linker.root do |root|
-              root.func_new("echo-s8") { |n| t.s8.wrap(n) }
+              root.func_new("echo-s8") { |n| n }
             end
 
             instance = linker.instantiate(store, @host_imports_component)
@@ -346,7 +326,7 @@ module Wasmtime
             stub_component_imports(linker, except: :"echo-u8")
 
             linker.root do |root|
-              root.func_new("echo-u8") { |n| t.u8.wrap(n) }
+              root.func_new("echo-u8") { |n| n }
             end
 
             instance = linker.instantiate(store, @host_imports_component)
@@ -357,7 +337,7 @@ module Wasmtime
             stub_component_imports(linker, except: :"echo-s16")
 
             linker.root do |root|
-              root.func_new("echo-s16") { |n| t.s16.wrap(n) }
+              root.func_new("echo-s16") { |n| n }
             end
 
             instance = linker.instantiate(store, @host_imports_component)
@@ -369,7 +349,7 @@ module Wasmtime
             stub_component_imports(linker, except: :"echo-u16")
 
             linker.root do |root|
-              root.func_new("echo-u16") { |n| t.u16.wrap(n) }
+              root.func_new("echo-u16") { |n| n }
             end
 
             instance = linker.instantiate(store, @host_imports_component)
@@ -380,7 +360,7 @@ module Wasmtime
             stub_component_imports(linker, except: :"echo-s64")
 
             linker.root do |root|
-              root.func_new("echo-s64") { |n| t.s64.wrap(n) }
+              root.func_new("echo-s64") { |n| n }
             end
 
             instance = linker.instantiate(store, @host_imports_component)
@@ -392,7 +372,7 @@ module Wasmtime
             stub_component_imports(linker, except: :"echo-u64")
 
             linker.root do |root|
-              root.func_new("echo-u64") { |n| t.u64.wrap(n) }
+              root.func_new("echo-u64") { |n| n }
             end
 
             instance = linker.instantiate(store, @host_imports_component)
@@ -403,7 +383,7 @@ module Wasmtime
             stub_component_imports(linker, except: :"echo-f32")
 
             linker.root do |root|
-              root.func_new("echo-f32") { |n| t.float32.wrap(n) }
+              root.func_new("echo-f32") { |n| n }
             end
 
             instance = linker.instantiate(store, @host_imports_component)
@@ -415,7 +395,7 @@ module Wasmtime
             stub_component_imports(linker, except: :"echo-f64")
 
             linker.root do |root|
-              root.func_new("echo-f64") { |n| t.float64.wrap(n) }
+              root.func_new("echo-f64") { |n| n }
             end
 
             instance = linker.instantiate(store, @host_imports_component)
@@ -426,7 +406,7 @@ module Wasmtime
             stub_component_imports(linker, except: :"echo-char")
 
             linker.root do |root|
-              root.func_new("echo-char") { |c| t.char.wrap(c) }
+              root.func_new("echo-char") { |c| c }
             end
 
             instance = linker.instantiate(store, @host_imports_component)
@@ -439,7 +419,7 @@ module Wasmtime
 
             linker.root do |root|
               root.func_new("echo-enum") do |color|
-                t.enum(["red", "green", "blue"]).wrap(color)
+                color
               end
             end
 
@@ -452,15 +432,9 @@ module Wasmtime
           it "provides a function with variant" do
             stub_component_imports(linker, except: :"echo-variant")
 
-            variant_type = t.variant(
-              "circle" => t.float32,
-              "rectangle" => t.tuple([t.float32, t.float32]),
-              "point" => nil
-            )
-
             linker.root do |root|
               root.func_new("echo-variant") do |shape|
-                variant_type.wrap(shape)
+                shape
               end
             end
 
@@ -485,7 +459,7 @@ module Wasmtime
 
             linker.root do |root|
               root.func_new("echo-flags") do |perms|
-                t.flags(["read", "write", "execute"]).wrap(perms)
+                perms
               end
             end
 
@@ -505,7 +479,7 @@ module Wasmtime
 
             linker.instance("math") do |math|
               math.func_new("multiply") do |a, b|
-                t.u32.wrap(a * b)
+                a * b
               end
             end
 
@@ -525,7 +499,7 @@ module Wasmtime
             linker.root do |root|
               root.func_new("get-constant") do
                 counter += 1
-                t.u32.wrap(counter)
+                counter
               end
             end
 
@@ -545,7 +519,7 @@ module Wasmtime
             linker.root do |root|
               root.func_new("greet") do |name|
                 log << name
-                t.string.wrap("Hello, #{name}!")
+                "Hello, #{name}!"
               end
             end
 
@@ -580,49 +554,46 @@ module Wasmtime
 
             linker.root do |root|
               root.func_new("add") do |_a, _b|
-                t.u32.wrap("not a number")
+                "not a number"  # Returns string when u32 expected
               end
             end
 
             instance = linker.instantiate(store, @host_imports_component)
             func = instance.get_func("test-add")
 
-            expect { func.call(1, 2) }.to raise_error(Wasmtime::Error, /expected u32, got/)
+            expect { func.call(1, 2) }.to raise_error(TypeError, /conversion of String into Integer/)
           end
 
-          it "raises clear error when return value is not wrapped" do
-            stub_component_imports(linker, except: :add)
+          it "validates field types in returned records" do
+            stub_component_imports(linker, except: :"make-point")
 
             linker.root do |root|
-              root.func_new("add") do |a, b|
-                a + b  # Forgot to wrap with Type::U32.wrap()
+              root.func_new("make-point") do |_x, y|
+                # Return record with wrong field type
+                {"x" => "not a number", "y" => y}
               end
             end
 
             instance = linker.instantiate(store, @host_imports_component)
-            func = instance.get_func("test-add")
+            func = instance.get_func("test-point")
 
-            expect { func.call(1, 2) }.to raise_error(
-              TypeError,
-              /host function must return wrapped value/
-            )
+            expect { func.call(10, 20) }.to raise_error(TypeError, /conversion of String into Integer/)
           end
 
-          it "raises Wasmtime error when wrapper type mismatches component expectation" do
-            stub_component_imports(linker, except: :add)
+          it "validates list element types" do
+            stub_component_imports(linker, except: :"get-numbers")
 
             linker.root do |root|
-              root.func_new("add") do |a, b|
-                # Component expects u32, but we return s32
-                t.s32.wrap(a + b)
+              root.func_new("get-numbers") do
+                # Return list with wrong element type (strings instead of s32)
+                ["not", "numbers"]
               end
             end
 
             instance = linker.instantiate(store, @host_imports_component)
-            func = instance.get_func("test-add")
+            func = instance.get_func("test-get-numbers")
 
-            # The component crashes at runtime when the wrong type is returned
-            expect { func.call(1, 2) }.to raise_error(Wasmtime::Error, /error while executing at wasm/i)
+            expect { func.call }.to raise_error(TypeError, /conversion of String into Integer/)
           end
         end
       end

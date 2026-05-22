@@ -20,6 +20,44 @@ world host-imports {
     import make-tuple: func(n: u32, s: string, b: bool) -> tuple<u32, string, bool>;
     import analyze-numbers: func(numbers: list<s32>) -> tuple<s32, list<s32>>;
     
+    // Additional integer types
+    import echo-s8: func(n: s8) -> s8;
+    import echo-u8: func(n: u8) -> u8;
+    import echo-s16: func(n: s16) -> s16;
+    import echo-u16: func(n: u16) -> u16;
+    import echo-s64: func(n: s64) -> s64;
+    import echo-u64: func(n: u64) -> u64;
+    
+    // Float types
+    import echo-f32: func(n: f32) -> f32;
+    import echo-f64: func(n: f64) -> f64;
+    
+    // Char type
+    import echo-char: func(c: char) -> char;
+    
+    // Enum, variant, flags
+    enum color {
+        red,
+        green,
+        blue,
+    }
+    
+    variant shape {
+        circle(f32),
+        rectangle(tuple<f32, f32>),
+        point,
+    }
+    
+    flags permissions {
+        read,
+        write,
+        execute,
+    }
+    
+    import echo-enum: func(c: color) -> color;
+    import echo-variant: func(s: shape) -> shape;
+    import echo-flags: func(p: permissions) -> permissions;
+    
     // Nested instance
     import math: interface {
         multiply: func(a: u32, b: u32) -> u32;
@@ -37,4 +75,16 @@ world host-imports {
     export test-get-numbers: func() -> list<s32>;
     export test-make-tuple: func(n: u32, s: string, b: bool) -> tuple<u32, string, bool>;
     export test-analyze-numbers: func(numbers: list<s32>) -> tuple<s32, list<s32>>;
+    export test-s8: func(n: s8) -> s8;
+    export test-u8: func(n: u8) -> u8;
+    export test-s16: func(n: s16) -> s16;
+    export test-u16: func(n: u16) -> u16;
+    export test-s64: func(n: s64) -> s64;
+    export test-u64: func(n: u64) -> u64;
+    export test-f32: func(n: f32) -> f32;
+    export test-f64: func(n: f64) -> f64;
+    export test-char: func(c: char) -> char;
+    export test-enum: func(c: color) -> color;
+    export test-variant: func(s: shape) -> shape;
+    export test-flags: func(p: permissions) -> permissions;
 }

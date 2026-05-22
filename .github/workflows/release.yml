@@ -56,8 +56,41 @@ jobs:
           path: pkg/*-${{ matrix.ruby-platform }}.gem
           if-no-files-found: error
 
+  native-smoke:
+    name: Smoke ${{ matrix.ruby-platform }} native gem on Ruby ${{ matrix.ruby }}
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ruby-platform: x86_64-linux
+            os: ubuntu-latest
+            ruby: "4.0"
+          - ruby-platform: x64-mingw-ucrt
+            os: windows-latest
+            ruby: "3.2"
+          - ruby-platform: x64-mingw-ucrt
+            os: windows-latest
+            ruby: "3.3"
+          - ruby-platform: x64-mingw-ucrt
+            os: windows-latest
+            ruby: "3.4"
+          - ruby-platform: x64-mingw-ucrt
+            os: windows-latest
+            ruby: "4.0"
+    steps:
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: cross-gem-${{ matrix.ruby-platform }}
+          path: pkg/
+
       - name: Smoke gem install
-        if: matrix.ruby-platform == 'x86_64-linux' # GitHub actions architecture
+        shell: bash
         run: |
           gem install pkg/wasmtime-*.gem --verbose
           script="puts Wasmtime::Engine.new.precompile_module('(module)')"
@@ -66,7 +99,7 @@ jobs:
 
   release:
     name: Release
-    needs: build
+    needs: [build, native-smoke]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

@@ -157,6 +157,7 @@ module Wasmtime
         message = "Caller outlived its Func execution"
         expect { caller.export("f1_export") }.to raise_error(Wasmtime::Error, message)
         expect { mem.read(0, 3) }.to raise_error(Wasmtime::Error, message)
+        expect { mem.read_i32(0) }.to raise_error(Wasmtime::Error, message)
         expect { f1_export.call }.to raise_error(Wasmtime::Error, message)
       end
     end

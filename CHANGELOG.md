@@ -1,11 +1,33 @@
 # Changelog
 
+## [v45.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v45.0.0) (2026-05-25)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v44.0.0...v45.0.0)
+
+**Closed issues:**
+
+- `Engine.new` doesn't expose `wasm_exceptions` [\#598](https://github.com/bytecodealliance/wasmtime-rb/issues/598)
+- Component support for WASI p2 [\#432](https://github.com/bytecodealliance/wasmtime-rb/issues/432)
+
+**Merged pull requests:**
+
+- update to Wasmtime 45.0.0 [\#600](https://github.com/bytecodealliance/wasmtime-rb/pull/600) ([jacobsteves](https://github.com/jacobsteves))
+- Expose `wasm_exceptions` engine option to Ruby [\#599](https://github.com/bytecodealliance/wasmtime-rb/pull/599) ([takahashim](https://github.com/takahashim))
+- chore\(deps-dev\): bump yard from 0.9.38 to 0.9.43 [\#596](https://github.com/bytecodealliance/wasmtime-rb/pull/596) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump wat from 1.247.0 to 1.248.0 [\#595](https://github.com/bytecodealliance/wasmtime-rb/pull/595) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump rb-sys from 0.9.125 to 0.9.127 [\#594](https://github.com/bytecodealliance/wasmtime-rb/pull/594) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump tokio from 1.50.0 to 1.52.1 [\#593](https://github.com/bytecodealliance/wasmtime-rb/pull/593) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump rake from 13.3.1 to 13.4.2 [\#592](https://github.com/bytecodealliance/wasmtime-rb/pull/592) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump rb\_sys from 0.9.125 to 0.9.127 [\#591](https://github.com/bytecodealliance/wasmtime-rb/pull/591) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Component support for WASI p2 [\#590](https://github.com/bytecodealliance/wasmtime-rb/pull/590) ([william-stacken](https://github.com/william-stacken))
+
 ## [v44.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v44.0.0) (2026-04-27)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v43.0.1...v44.0.0)
 
 **Merged pull requests:**
 
+- v44.0.0 changelog [\#589](https://github.com/bytecodealliance/wasmtime-rb/pull/589) ([jacobsteves](https://github.com/jacobsteves))
 - update to Wasmtime 44.0.0 [\#588](https://github.com/bytecodealliance/wasmtime-rb/pull/588) ([jacobsteves](https://github.com/jacobsteves))
 
 ## [v43.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v43.0.1) (2026-04-10)

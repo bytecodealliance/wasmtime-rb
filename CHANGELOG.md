@@ -1,6 +1,6 @@
 # Changelog
 
-## [v45.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v45.0.0) (2026-05-25)
+## [v45.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v45.0.0) (2026-05-27)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v44.0.0...v45.0.0)
 
@@ -11,6 +11,7 @@
 
 **Merged pull requests:**
 
+- bump rb\_sys [\#602](https://github.com/bytecodealliance/wasmtime-rb/pull/602) ([jacobsteves](https://github.com/jacobsteves))
 - update to Wasmtime 45.0.0 [\#600](https://github.com/bytecodealliance/wasmtime-rb/pull/600) ([jacobsteves](https://github.com/jacobsteves))
 - Expose `wasm_exceptions` engine option to Ruby [\#599](https://github.com/bytecodealliance/wasmtime-rb/pull/599) ([takahashim](https://github.com/takahashim))
 - chore\(deps-dev\): bump yard from 0.9.38 to 0.9.43 [\#596](https://github.com/bytecodealliance/wasmtime-rb/pull/596) ([dependabot[bot]](https://github.com/apps/dependabot))

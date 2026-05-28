@@ -5,6 +5,7 @@ exclude = [
     "spec/fixtures/component-types",
     "spec/fixtures/wasi-debug",
     "spec/fixtures/wasi-deterministic",
+    "spec/fixtures/host-func-imports",
 ]
 
 [profile.release]

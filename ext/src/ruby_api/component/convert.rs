@@ -25,7 +25,7 @@ define_rb_intern!(
 pub(crate) fn component_val_to_rb(
     ruby: &Ruby,
     val: Val,
-    _store: &StoreContextValue,
+    _store: Option<&StoreContextValue>,
 ) -> Result<Value, Error> {
     match val {
         Val::Bool(bool) => Ok(bool.into_value_with(ruby)),
@@ -103,7 +103,7 @@ pub(crate) fn component_val_to_rb(
 
 pub(crate) fn rb_to_component_val(
     value: Value,
-    _store: &StoreContextValue,
+    _store: Option<&StoreContextValue>,
     ty: &Type,
 ) -> Result<Val, Error> {
     let ruby = Ruby::get_with(value);

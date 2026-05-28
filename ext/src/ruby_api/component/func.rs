@@ -115,12 +115,12 @@ impl Func {
             1 => component_val_to_rb(
                 ruby,
                 results.into_iter().next().unwrap(),
-                &store_context_value,
+                Some(&store_context_value),
             ),
             _ => {
                 let ary = ruby.ary_new_capa(results_ty.len());
                 for result in results {
-                    let val = component_val_to_rb(ruby, result, &store_context_value)?;
+                    let val = component_val_to_rb(ruby, result, Some(&store_context_value))?;
                     ary.push(val)?;
                 }
                 Ok(ary.into_value_with(ruby))
@@ -152,7 +152,7 @@ fn convert_params<'a>(
             .try_into()
             .map_err(|_| Error::new(ruby.exception_arg_error(), "too many params"))?;
 
-        let component_val = rb_to_component_val(*value, store, &ty.1)
+        let component_val = rb_to_component_val(*value, Some(store), &ty.1)
             .map_err(|error| error.append(format!(" (param at index {i})")))?;
 
         params.push(component_val);

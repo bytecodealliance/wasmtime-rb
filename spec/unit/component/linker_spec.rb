@@ -83,6 +83,7 @@ module Wasmtime
 
           # Stub root functions
           linker.root do |root|
+            root.func_new("noop") {} unless skip_funcs.include?("noop")
             root.func_new("greet") { |name| name } unless skip_funcs.include?("greet")
             root.func_new("add") { |a, b| a + b } unless skip_funcs.include?("add")
             root.func_new("get-constant") { 0 } unless skip_funcs.include?("get-constant")
@@ -136,6 +137,21 @@ module Wasmtime
         end
 
         context "with primitive types" do
+          it "provides a noop function" do
+            stub_component_imports(linker, except: :noop)
+
+            linker.root do |root|
+              root.func_new("noop") do |name|
+                # Do nothing
+              end
+            end
+
+            instance = linker.instantiate(store, @host_imports_component)
+            result = instance.get_func("test-noop").call
+
+            expect(result).to be_nil
+          end
+
           it "provides a string function" do
             stub_component_imports(linker, except: :greet)
 

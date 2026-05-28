@@ -2,6 +2,7 @@ package fixtures:host-func-imports;
 
 world host-imports {
     // Simple primitives
+    import noop: func();
     import greet: func(name: string) -> string;
     import add: func(a: u32, b: u32) -> u32;
     import get-constant: func() -> u32;
@@ -64,6 +65,7 @@ world host-imports {
     }
     
     // Guest functions that call the imports
+    export test-noop: func();
     export test-greet: func(name: string) -> string;
     export test-add: func(a: u32, b: u32) -> u32;
     export test-constant: func() -> u32;

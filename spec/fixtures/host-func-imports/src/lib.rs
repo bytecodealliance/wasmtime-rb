@@ -6,6 +6,10 @@ use bindings::{math, Color, Guest, Permissions, Point, Shape};
 struct Component;
 
 impl Guest for Component {
+    fn test_noop() {
+        bindings::noop()
+    }
+
     fn test_greet(name: String) -> String {
         bindings::greet(&name)
     }

@@ -293,18 +293,18 @@
       <pre class="lines">
 
 
-46
-47
-48
-49
-50
-51
-52
-53
-54</pre>
+55
+56
+57
+58
+59
+60
+61
+62
+63</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 46</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 55</span>
 
 pub fn new(engine: &amp;Engine) -&gt; Result&lt;Self, Error&gt; {
     let linker: LinkerImpl&lt;StoreData&gt; = LinkerImpl::new(engine.get());
@@ -413,34 +413,40 @@ outside of this scope the instance becomes unusable.</p></div>
       <pre class="lines">
 
 
-94
-95
-96
-97
-98
-99
-100
-101
-102
-103
-104
-105
-106
 107
 108
 109
-110</pre>
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 94</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 107</span>
 
 pub fn instance(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, name: RString) -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
     let mut inner = rb_self.inner.borrow_mut();
-    let instance = inner
-        .instance(unsafe { name.as_str() }?)
-        .map_err(|e| error!(&quot;{}&quot;, e))?;
+    let name_str = unsafe { name.as_str() }?;
+    let instance = inner.instance(name_str).map_err(|e| error!(&quot;{}&quot;, e))?;
 
-    let instance = ruby.obj_wrap(LinkerInstance::from_inner(instance));
+    let instance = ruby.obj_wrap(LinkerInstance::from_inner(
+        instance,
+        name_str.to_string(),
+        rb_self.as_value(),
+    ));
 
     let block_result: Result&lt;Value, _&gt; = ruby.yield_value(instance);
 
@@ -519,22 +525,6 @@ pub fn instance(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, name: RString) -&gt; 
       <pre class="lines">
 
 
-118
-119
-120
-121
-122
-123
-124
-125
-126
-127
-128
-129
-130
-131
-132
-133
 134
 135
 136
@@ -542,10 +532,26 @@ pub fn instance(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, name: RString) -&gt; 
 138
 139
 140
-141</pre>
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 118</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 134</span>
 
 fn instantiate(
     _ruby: &amp;Ruby,
@@ -648,29 +654,37 @@ outside of this scope the instance becomes unusable.</p></div>
       <pre class="lines">
 
 
-71
-72
-73
-74
-75
-76
-77
-78
-79
 80
 81
 82
 83
-84</pre>
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 71</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 80</span>
 
 pub fn root(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
     let Ok(mut inner) = rb_self.inner.try_borrow_mut() else {
         return err!(&quot;Linker is not reentrant&quot;);
     };
-    let instance = ruby.obj_wrap(LinkerInstance::from_inner(inner.root()));
+    let instance = ruby.obj_wrap(LinkerInstance::from_inner(
+        inner.root(),
+        String::new(), // root path is empty
+        rb_self.as_value(),
+    ));
     let block_result: Result&lt;Value, _&gt; = ruby.yield_value(instance);
 
     instance.take_inner();
@@ -690,7 +704,7 @@ pub fn root(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Obj&lt;Se
 </div>
 
       <div id="footer">
-  Generated on Wed May 27 20:08:21 2026 by
+  Generated on Thu May 28 14:04:00 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.44 (ruby-4.0.5).
 </div>

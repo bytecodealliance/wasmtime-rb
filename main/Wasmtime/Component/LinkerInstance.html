@@ -138,6 +138,28 @@ block will raise.</p>
         <li class="public ">
   <span class="summary_signature">
     
+      <a href="#func_new-instance_method" title="#func_new (instance method)">#<strong>func_new</strong>(name) {|*args| ... } &#x21d2; LinkerInstance </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Define a host function in this linker instance.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
       <a href="#instance-instance_method" title="#instance (instance method)">#<strong>instance</strong>(name) {|instance| ... } &#x21d2; LinkerInstance </a>
     
 
@@ -190,7 +212,211 @@ block will raise.</p>
 
     
       <div class="method_details first">
-  <h3 class="signature first" id="instance-instance_method">
+  <h3 class="signature first" id="func_new-instance_method">
+  
+    #<strong>func_new</strong>(name) {|*args| ... } &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::Component::LinkerInstance (class)">LinkerInstance</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Define a host function in this linker instance.</p>
+<p>Host functions return plain Ruby values which are automatically validated
+and converted based on the function's type signature from the component.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+  <div class="examples">
+    <h4 class="tag_title">Examples:</h4>
+    
+      
+        <h5 class="example_title"><div class='inline'><p>Simple scalar return</p></div></h5>
+      
+      <pre class="example code"><code><span class='id identifier rubyid_root'><span class='object_link'><a href="../../top-level-namespace.html" title="Top Level Namespace (root)">root</a></span></span><span class='period'>.</span><span class='id identifier rubyid_func_new'>func_new</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>add</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_a'>a</span><span class='comma'>,</span> <span class='id identifier rubyid_b'>b</span><span class='op'>|</span>
+  <span class='id identifier rubyid_a'>a</span> <span class='op'>+</span> <span class='id identifier rubyid_b'>b</span>  <span class='comment'># Returns u32
+</span><span class='kw'>end</span></code></pre>
+    
+      
+        <h5 class="example_title"><div class='inline'><p>Returning a list</p></div></h5>
+      
+      <pre class="example code"><code><span class='id identifier rubyid_root'><span class='object_link'><a href="../../top-level-namespace.html" title="Top Level Namespace (root)">root</a></span></span><span class='period'>.</span><span class='id identifier rubyid_func_new'>func_new</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>get-numbers</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>do</span>
+  <span class='lbracket'>[</span><span class='int'>1</span><span class='comma'>,</span> <span class='int'>2</span><span class='comma'>,</span> <span class='int'>3</span><span class='rbracket'>]</span>  <span class='comment'># Returns list&lt;s32&gt;
+</span><span class='kw'>end</span></code></pre>
+    
+      
+        <h5 class="example_title"><div class='inline'><p>Returning a tuple</p></div></h5>
+      
+      <pre class="example code"><code><span class='id identifier rubyid_root'><span class='object_link'><a href="../../top-level-namespace.html" title="Top Level Namespace (root)">root</a></span></span><span class='period'>.</span><span class='id identifier rubyid_func_new'>func_new</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>make-tuple</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_n'>n</span><span class='comma'>,</span> <span class='id identifier rubyid_s'>s</span><span class='comma'>,</span> <span class='id identifier rubyid_b'>b</span><span class='op'>|</span>
+  <span class='lbracket'>[</span><span class='id identifier rubyid_n'>n</span><span class='comma'>,</span> <span class='id identifier rubyid_s'>s</span><span class='comma'>,</span> <span class='id identifier rubyid_b'>b</span><span class='rbracket'>]</span>  <span class='comment'># Returns tuple&lt;u32, string, bool&gt;
+</span><span class='kw'>end</span></code></pre>
+    
+      
+        <h5 class="example_title"><div class='inline'><p>Complex types (records, results, etc.)</p></div></h5>
+      
+      <pre class="example code"><code><span class='id identifier rubyid_root'><span class='object_link'><a href="../../top-level-namespace.html" title="Top Level Namespace (root)">root</a></span></span><span class='period'>.</span><span class='id identifier rubyid_func_new'>func_new</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>make-point</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_x'>x</span><span class='comma'>,</span> <span class='id identifier rubyid_y'>y</span><span class='op'>|</span>
+  <span class='lbrace'>{</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_x'>x</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>y</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_y'>y</span><span class='rbrace'>}</span>  <span class='comment'># Returns record with x and y fields
+</span><span class='kw'>end</span></code></pre>
+    
+  </div>
+<p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>name</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The function name</p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Yields:</p>
+<ul class="yield">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>*args</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The block implementing the host function</p></div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Yield Parameters:</p>
+<ul class="yieldparam">
+  
+    <li>
+      
+        <span class='name'>args</span>
+      
+      
+        <span class='type'>(<tt>Array&lt;Object&gt;</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The function arguments, converted from component values</p></div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Yield Returns:</p>
+<ul class="yieldreturn">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Object</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>Result value matching the function's return type. Use arrays for lists and tuples, hashes for records.</p></div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Wasmtime::Component::LinkerInstance (class)">LinkerInstance</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p><code>self</code></p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 315</span>
+
+fn func_new(_ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, args: &amp;[Value]) -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
+    let args = scan_args::&lt;(RString,), (), (), (), (), Proc&gt;(args)?;
+    let (name,) = args.required;
+    let callable = args.block;
+
+    let name_str = unsafe { name.as_str() }?;
+
+    // Get parent Linker - we&#39;ll store the callable there to prevent GC
+    // (rb_self is ephemeral and won&#39;t keep references alive after the block ends)
+    let parent_linker: Obj&lt;Linker&gt; = Obj::try_convert(rb_self.parent_linker)?;
+    parent_linker.refs.borrow_mut().push(callable.as_value());
+
+    // Create the closure that will be called from Wasm
+    let func_closure = make_component_func_closure(callable.into());
+
+    let Ok(mut maybe_instance) = rb_self.inner.try_borrow_mut() else {
+        return err!(&quot;LinkerInstance is not reentrant&quot;);
+    };
+
+    let inner = maybe_instance.get_mut()?;
+    inner
+        .func_new(name_str, func_closure)
+        .map_err(|e| error!(&quot;failed to define host function: {}&quot;, e))?;
+
+    Ok(rb_self)
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="instance-instance_method">
   
     #<strong>instance</strong>(name) {|instance| ... } &#x21d2; <tt><span class='object_link'><a href="" title="Wasmtime::Component::LinkerInstance (class)">LinkerInstance</a></span></tt> 
   
@@ -276,40 +502,60 @@ outside of this scope the instance becomes unusable.</p></div>
       <pre class="lines">
 
 
-228
-229
-230
-231
-232
-233
-234
-235
-236
-237
-238
-239
-240
-241
-242
-243
-244
-245
-246</pre>
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 228</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 253</span>
 
 fn instance(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, name: RString) -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
     let Ok(mut maybe_instance) = rb_self.inner.try_borrow_mut() else {
         return err!(&quot;LinkerInstance is not reentrant&quot;);
     };
 
+    let name_str = unsafe { name.as_str() }?;
     let inner = maybe_instance.get_mut()?;
-    let nested_inner = inner
-        .instance(unsafe { name.as_str()? })
-        .map_err(|e| error!(&quot;{}&quot;, e))?;
+    let nested_inner = inner.instance(name_str).map_err(|e| error!(&quot;{}&quot;, e))?;
 
-    let nested_instance = ruby.obj_wrap(LinkerInstance::from_inner(nested_inner));
+    // Build nested path: if parent is &quot;&quot;, use name; otherwise &quot;parent/name&quot;
+    let nested_path = if rb_self.path.is_empty() {
+        name_str.to_string()
+    } else {
+        format!(&quot;{}/{}&quot;, rb_self.path, name_str)
+    };
+
+    let nested_instance = ruby.obj_wrap(LinkerInstance::from_inner(
+        nested_inner,
+        nested_path,
+        rb_self.parent_linker,
+    ));
     let block_result: Result&lt;Value, _&gt; = ruby.yield_value(nested_instance);
     nested_instance.take_inner();
 
@@ -373,21 +619,21 @@ fn instance(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, name: RString) -&gt; Resu
       <pre class="lines">
 
 
-207
-208
-209
-210
-211
-212
-213
-214
-215
-216
-217
-218</pre>
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 207</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/linker.rs', line 232</span>
 
 fn module(rb_self: Obj&lt;Self&gt;, name: RString, module: &amp;Module) -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
     let Ok(mut maybe_instance) = rb_self.inner.try_borrow_mut() else {
@@ -411,7 +657,7 @@ fn module(rb_self: Obj&lt;Self&gt;, name: RString, module: &amp;Module) -&gt; Re
 </div>
 
       <div id="footer">
-  Generated on Wed May 27 20:08:21 2026 by
+  Generated on Thu May 28 14:04:00 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.44 (ruby-4.0.5).
 </div>

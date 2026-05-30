@@ -1,12 +1,16 @@
 use std::{
-    ffi::c_void,
+    ffi::{c_int, c_void},
     mem::MaybeUninit,
     panic::{self, AssertUnwindSafe},
     ptr::null_mut,
     thread,
 };
 
-use rb_sys::{rb_thread_call_with_gvl, rb_thread_call_without_gvl, ruby_thread_has_gvl_p};
+use rb_sys::{rb_thread_call_with_gvl, rb_thread_call_without_gvl};
+
+extern "C" {
+    fn ruby_thread_has_gvl_p() -> c_int;
+}
 
 #[inline]
 fn has_gvl() -> bool {

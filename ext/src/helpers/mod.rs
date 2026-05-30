@@ -5,7 +5,7 @@ mod static_id;
 mod symbol_enum;
 mod tmplock;
 
-pub use nogvl::nogvl;
+pub use nogvl::{nogvl, with_gvl};
 pub use output_limited_buffer::OutputLimitedBuffer;
 pub use static_id::StaticId;
 pub use symbol_enum::SymbolEnum;

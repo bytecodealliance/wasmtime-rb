@@ -77,6 +77,126 @@ module Wasmtime
       end
     end
 
+    describe "#read_i32, #write_i32" do
+      it "round-trips a signed 32-bit integer" do
+        mem = Memory.new(store, min_size: 1)
+        expect(mem.write_i32(0, -42)).to be_nil
+        expect(mem.read_i32(0)).to eq(-42)
+      end
+
+      it "raises when reading past the end of the buffer" do
+        mem = Memory.new(store, min_size: 1)
+        expect { mem.read_i32(mem.data_size - 3) }
+          .to raise_error(Wasmtime::Error, "out of bounds memory access")
+      end
+
+      it "raises when writing past the end of the buffer" do
+        mem = Memory.new(store, min_size: 1)
+        expect { mem.write_i32(mem.data_size - 3, -42) }
+          .to raise_error(Wasmtime::Error, "out of bounds memory access")
+      end
+    end
+
+    describe "#read_u32, #write_u32" do
+      it "round-trips an unsigned 32-bit integer" do
+        mem = Memory.new(store, min_size: 1)
+        expect(mem.write_u32(0, (2**32) - 1)).to be_nil
+        expect(mem.read_u32(0)).to eq((2**32) - 1)
+      end
+
+      it "raises when reading past the end of the buffer" do
+        mem = Memory.new(store, min_size: 1)
+        expect { mem.read_u32(mem.data_size - 3) }
+          .to raise_error(Wasmtime::Error, "out of bounds memory access")
+      end
+
+      it "raises when writing past the end of the buffer" do
+        mem = Memory.new(store, min_size: 1)
+        expect { mem.write_u32(mem.data_size - 3, (2**32) - 1) }
+          .to raise_error(Wasmtime::Error, "out of bounds memory access")
+      end
+    end
+
+    describe "#read_i64, #write_i64" do
+      it "round-trips a signed 64-bit integer" do
+        mem = Memory.new(store, min_size: 1)
+        expect(mem.write_i64(0, -1)).to be_nil
+        expect(mem.read_i64(0)).to eq(-1)
+      end
+
+      it "raises when reading past the end of the buffer" do
+        mem = Memory.new(store, min_size: 1)
+        expect { mem.read_i64(mem.data_size - 7) }
+          .to raise_error(Wasmtime::Error, "out of bounds memory access")
+      end
+
+      it "raises when writing past the end of the buffer" do
+        mem = Memory.new(store, min_size: 1)
+        expect { mem.write_i64(mem.data_size - 7, -1) }
+          .to raise_error(Wasmtime::Error, "out of bounds memory access")
+      end
+    end
+
+    describe "#read_u64, #write_u64" do
+      it "round-trips an unsigned 64-bit integer" do
+        mem = Memory.new(store, min_size: 1)
+        expect(mem.write_u64(0, (2**64) - 1)).to be_nil
+        expect(mem.read_u64(0)).to eq((2**64) - 1)
+      end
+
+      it "raises when reading past the end of the buffer" do
+        mem = Memory.new(store, min_size: 1)
+        expect { mem.read_u64(mem.data_size - 7) }
+          .to raise_error(Wasmtime::Error, "out of bounds memory access")
+      end
+
+      it "raises when writing past the end of the buffer" do
+        mem = Memory.new(store, min_size: 1)
+        expect { mem.write_u64(mem.data_size - 7, (2**64) - 1) }
+          .to raise_error(Wasmtime::Error, "out of bounds memory access")
+      end
+    end
+
+    describe "#read_f32, #write_f32" do
+      it "round-trips a 32-bit float" do
+        mem = Memory.new(store, min_size: 1)
+        expect(mem.write_f32(0, 5.5)).to be_nil
+        expect(mem.read_f32(0)).to eq(5.5)
+      end
+
+      it "raises when reading past the end of the buffer" do
+        mem = Memory.new(store, min_size: 1)
+        expect { mem.read_f32(mem.data_size - 3) }
+          .to raise_error(Wasmtime::Error, "out of bounds memory access")
+      end
+
+      it "raises when writing past the end of the buffer" do
+        mem = Memory.new(store, min_size: 1)
+        expect { mem.write_f32(mem.data_size - 3, 5.5) }
+          .to raise_error(Wasmtime::Error, "out of bounds memory access")
+      end
+    end
+
+    describe "#read_f64, #write_f64" do
+      it "round-trips a 64-bit float" do
+        mem = Memory.new(store, min_size: 1)
+        expect(mem.write_f64(0, -5.5)).to be_nil
+        expect(mem.read_f64(0)).to eq(-5.5)
+      end
+
+      it "raises when reading past the end of the buffer" do
+        mem = Memory.new(store, min_size: 1)
+        expect { mem.read_f64(mem.data_size - 7) }
+          .to raise_error(Wasmtime::Error, "out of bounds memory access")
+      end
+
+      it "raises when writing past the end of the buffer" do
+        mem = Memory.new(store, min_size: 1)
+        expect { mem.write_f64(mem.data_size - 7, -5.5) }
+          .to raise_error(Wasmtime::Error, "out of bounds memory access")
+      end
+    end
+
     describe "#read_utf8" do
       it "reads a UTF-8 string" do
         mem = Memory.new(store, min_size: 1)

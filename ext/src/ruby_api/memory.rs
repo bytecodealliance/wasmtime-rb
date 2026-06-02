@@ -227,6 +227,132 @@ impl<'a> Memory<'a> {
     }
 
     /// @yard
+    /// Read a little-endian +i32+ starting at +offset+.
+    ///
+    /// @def read_i32(offset)
+    /// @param offset [Integer]
+    /// @return [Integer]
+    pub fn read_i32(&self, offset: usize) -> Result<i32, Error> {
+        Ok(i32::from_le_bytes(self.read_fixed::<4>(offset)?))
+    }
+
+    /// @yard
+    /// Read a little-endian +u32+ starting at +offset+.
+    ///
+    /// @def read_u32(offset)
+    /// @param offset [Integer]
+    /// @return [Integer]
+    pub fn read_u32(&self, offset: usize) -> Result<u32, Error> {
+        Ok(u32::from_le_bytes(self.read_fixed::<4>(offset)?))
+    }
+
+    /// @yard
+    /// Read a little-endian +i64+ starting at +offset+.
+    ///
+    /// @def read_i64(offset)
+    /// @param offset [Integer]
+    /// @return [Integer]
+    pub fn read_i64(&self, offset: usize) -> Result<i64, Error> {
+        Ok(i64::from_le_bytes(self.read_fixed::<8>(offset)?))
+    }
+
+    /// @yard
+    /// Read a little-endian +u64+ starting at +offset+.
+    ///
+    /// @def read_u64(offset)
+    /// @param offset [Integer]
+    /// @return [Integer]
+    pub fn read_u64(&self, offset: usize) -> Result<u64, Error> {
+        Ok(u64::from_le_bytes(self.read_fixed::<8>(offset)?))
+    }
+
+    /// @yard
+    /// Read a little-endian +f32+ starting at +offset+.
+    ///
+    /// @def read_f32(offset)
+    /// @param offset [Integer]
+    /// @return [Float]
+    pub fn read_f32(&self, offset: usize) -> Result<f32, Error> {
+        Ok(f32::from_le_bytes(self.read_fixed::<4>(offset)?))
+    }
+
+    /// @yard
+    /// Read a little-endian +f64+ starting at +offset+.
+    ///
+    /// @def read_f64(offset)
+    /// @param offset [Integer]
+    /// @return [Float]
+    pub fn read_f64(&self, offset: usize) -> Result<f64, Error> {
+        Ok(f64::from_le_bytes(self.read_fixed::<8>(offset)?))
+    }
+
+    /// @yard
+    /// Write a little-endian +i32+ starting at +offset+.
+    ///
+    /// @def write_i32(offset, value)
+    /// @param offset [Integer]
+    /// @param value [Integer]
+    /// @return [void]
+    pub fn write_i32(&self, offset: usize, value: i32) -> Result<(), Error> {
+        self.write_fixed(offset, value.to_le_bytes())
+    }
+
+    /// @yard
+    /// Write a little-endian +u32+ starting at +offset+.
+    ///
+    /// @def write_u32(offset, value)
+    /// @param offset [Integer]
+    /// @param value [Integer]
+    /// @return [void]
+    pub fn write_u32(&self, offset: usize, value: u32) -> Result<(), Error> {
+        self.write_fixed(offset, value.to_le_bytes())
+    }
+
+    /// @yard
+    /// Write a little-endian +i64+ starting at +offset+.
+    ///
+    /// @def write_i64(offset, value)
+    /// @param offset [Integer]
+    /// @param value [Integer]
+    /// @return [void]
+    pub fn write_i64(&self, offset: usize, value: i64) -> Result<(), Error> {
+        self.write_fixed(offset, value.to_le_bytes())
+    }
+
+    /// @yard
+    /// Write a little-endian +u64+ starting at +offset+.
+    ///
+    /// @def write_u64(offset, value)
+    /// @param offset [Integer]
+    /// @param value [Integer]
+    /// @return [void]
+    pub fn write_u64(&self, offset: usize, value: u64) -> Result<(), Error> {
+        self.write_fixed(offset, value.to_le_bytes())
+    }
+
+    /// @yard
+    /// Write a little-endian +f32+ starting at +offset+.
+    ///
+    /// @def write_f32(offset, value)
+    /// @param offset [Integer]
+    /// @param value [Float]
+    /// @return [void]
+    pub fn write_f32(&self, offset: usize, value: f32) -> Result<(), Error> {
+        self.write_fixed(offset, value.to_le_bytes())
+    }
+
+    /// @yard
+    /// Write a little-endian +f64+ starting at +offset+.
+    ///
+    /// @def write_f64(offset, value)
+    /// @param offset [Integer]
+    /// @param value [Float]
+    /// @return [void]
+    pub fn write_f64(&self, offset: usize, value: f64) -> Result<(), Error> {
+        self.write_fixed(offset, value.to_le_bytes())
+    }
+
+    /// @yard
     /// Grows a memory by +delta+ pages.
     /// Raises if the memory grows beyond its limit.
     ///
@@ -264,6 +390,23 @@ impl<'a> Memory<'a> {
     fn data(&self) -> Result<&[u8], Error> {
         Ok(self.get_wasmtime_memory().data(self.store.context()?))
     }
+
+    fn read_fixed<const N: usize>(&self, offset: usize) -> Result<[u8; N], Error> {
+        let context = self.store.context()?;
+
+        self.get_wasmtime_memory()
+            .data(context)
+            .get(offset..)
+            .and_then(|s| s.get(..N))
+            .and_then(|s| s.try_into().ok())
+            .ok_or_else(|| error!("out of bounds memory access"))
+    }
+
+    fn write_fixed<const N: usize>(&self, offset: usize, bytes: [u8; N]) -> Result<(), Error> {
+        self.get_wasmtime_memory()
+            .write(self.store.context_mut()?, offset, &bytes)
+            .map_err(|e| error!("{}", e))
+    }
 }
 
 impl From<&Memory<'_>> for Extern {
@@ -284,6 +427,18 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
     class.define_method("read", method!(Memory::read, 2))?;
     class.define_method("read_utf8", method!(Memory::read_utf8, 2))?;
     class.define_method("write", method!(Memory::write, 2))?;
+    class.define_method("read_i32", method!(Memory::read_i32, 1))?;
+    class.define_method("read_u32", method!(Memory::read_u32, 1))?;
+    class.define_method("read_i64", method!(Memory::read_i64, 1))?;
+    class.define_method("read_u64", method!(Memory::read_u64, 1))?;
+    class.define_method("read_f32", method!(Memory::read_f32, 1))?;
+    class.define_method("read_f64", method!(Memory::read_f64, 1))?;
+    class.define_method("write_i32", method!(Memory::write_i32, 2))?;
+    class.define_method("write_u32", method!(Memory::write_u32, 2))?;
+    class.define_method("write_i64", method!(Memory::write_i64, 2))?;
+    class.define_method("write_u64", method!(Memory::write_u64, 2))?;
+    class.define_method("write_f32", method!(Memory::write_f32, 2))?;
+    class.define_method("write_f64", method!(Memory::write_f64, 2))?;
     class.define_method("grow", method!(Memory::grow, 1))?;
     class.define_method("size", method!(Memory::size, 0))?;
     class.define_method("data_size", method!(Memory::data_size, 0))?;

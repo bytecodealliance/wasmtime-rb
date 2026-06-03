@@ -8,7 +8,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     ast (2.4.3)
-    benchmark-ips (2.14.0)
+    benchmark-ips (2.15.1)
     bigdecimal (3.1.9)
     cgi (0.5.1)
     date (3.5.1)

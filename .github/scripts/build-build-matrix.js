@@ -26,12 +26,16 @@ const builds = [
     "rust-target": "x86_64-unknown-linux-musl",
     os: linuxX64,
     "apt-packages": "musl-tools",
+    cc: "musl-gcc",
+    rustflags: "-Ctarget-feature=-crt-static",
   },
   {
     "ruby-platform": "aarch64-linux-musl",
     "rust-target": "aarch64-unknown-linux-musl",
     os: linuxArm64,
     "apt-packages": "musl-tools",
+    cc: "musl-gcc",
+    rustflags: "-Ctarget-feature=-crt-static",
   },
   {
     "ruby-platform": "x86_64-darwin",
@@ -53,6 +57,10 @@ const builds = [
     "ruby-platform": "aarch64-mingw-ucrt",
     "rust-target": "aarch64-pc-windows-gnullvm",
     os: windows,
+    "llvm-mingw": true,
+    cc: "aarch64-w64-mingw32-clang",
+    cxx: "aarch64-w64-mingw32-clang++",
+    ar: "llvm-ar",
   },
 ];
 

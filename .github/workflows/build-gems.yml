@@ -52,11 +52,39 @@ jobs:
       - name: Install Rust target
         run: rustup target add ${{ matrix.rust-target }}
 
+      - name: Install llvm-mingw
+        if: matrix.llvm-mingw
+        shell: pwsh
+        run: |
+          $version = "20240619"
+          $archive = "llvm-mingw-$version-ucrt-x86_64.zip"
+          curl.exe -L -o $archive "https://github.com/mstorsjo/llvm-mingw/releases/download/$version/$archive"
+          Expand-Archive $archive -DestinationPath $env:RUNNER_TEMP
+          $root = Join-Path $env:RUNNER_TEMP "llvm-mingw-$version-ucrt-x86_64"
+          "$root\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+          "LLVM_MINGW_ROOT=$root" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Configure C compiler
+        if: matrix.cc
+        shell: bash
+        run: |
+          target_env=$(echo "${{ matrix.rust-target }}" | tr '[:lower:]-' '[:upper:]_')
+          target_var=$(echo "${{ matrix.rust-target }}" | tr '[:upper:]-' '[:lower:]_')
+          echo "CARGO_TARGET_${target_env}_LINKER=${{ matrix.cc }}" >> "$GITHUB_ENV"
+          echo "CC_${target_var}=${{ matrix.cc }}" >> "$GITHUB_ENV"
+          if [ -n "${{ matrix.cxx }}" ]; then
+            echo "CXX_${target_var}=${{ matrix.cxx }}" >> "$GITHUB_ENV"
+          fi
+          if [ -n "${{ matrix.ar }}" ]; then
+            echo "AR_${target_var}=${{ matrix.ar }}" >> "$GITHUB_ENV"
+          fi
+
       - name: Build native gem
-        run: bundle exec rake native:wasmtime:${{ matrix.ruby-platform }}
+        run: bundle exec rake native:wasmtime:${{ matrix.ruby-platform }} gem
         env:
           CARGO_BUILD_TARGET: ${{ matrix.rust-target }}
           RB_SYS_CARGO_PROFILE: release
+          RUSTFLAGS: ${{ matrix.rustflags }}
           RUBY_PLATFORM_TARGET: ${{ matrix.ruby-platform }}
           STABLE_RUBY_VERSIONS: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ',') }}
 

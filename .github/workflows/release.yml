@@ -95,7 +95,7 @@ jobs:
         shell: bash
         run: |
           gem install pkg/wasmtime-*.gem --verbose
-          ruby -rwasmtime -e "Wasmtime::Engine.new.precompile_module('(module)')"
+          ruby -rwasmtime -e "Wasmtime::Engine.new.precompile_module(%q[(module)])"
           echo "✅ Successfully gem installed"
 
   release:

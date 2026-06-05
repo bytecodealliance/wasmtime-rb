@@ -69,6 +69,13 @@ jobs:
             echo "AR_${target_var}=${{ matrix.ar }}" >> "$GITHUB_ENV"
           fi
 
+      - name: Configure bindgen
+        if: matrix.bindgen-target
+        shell: bash
+        run: |
+          msys_root="${RI_DEVKIT//\\//}${MSYSTEM_PREFIX}"
+          echo "BINDGEN_EXTRA_CLANG_ARGS=--target=${{ matrix.bindgen-target }} --sysroot=$msys_root ${{ matrix.bindgen-defines }}" >> "$GITHUB_ENV"
+
       - name: Build native gem
         run: bundle exec rake native:wasmtime:${{ matrix.ruby-platform }} gem
         env:

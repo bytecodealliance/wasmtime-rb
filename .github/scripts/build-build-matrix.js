@@ -62,6 +62,8 @@ const builds = [
     "ruby-platform": "aarch64-mingw-ucrt",
     "rust-target": "aarch64-pc-windows-gnullvm",
     "rustup-toolchain": "stable-aarch64-pc-windows-gnullvm",
+    "bindgen-target": "aarch64-w64-windows-gnu",
+    "bindgen-defines": "-D__AMXAVX512INTRIN_H -D__AVX10_2CONVERTINTRIN_H -D__AVX512VLFP16INTRIN_H -D__AVX512FP16INTRIN_H",
     os: windowsArm64,
     "smoke-test": true,
   },

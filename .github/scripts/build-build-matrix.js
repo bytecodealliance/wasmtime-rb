@@ -6,6 +6,7 @@
 const linuxX64 = "ubuntu-22.04";
 const linuxArm64 = "ubuntu-24.04-arm";
 const windows = "windows-2025";
+const windowsArm64 = "windows-11-arm";
 const macos = "macos-15";
 
 const builds = [
@@ -56,11 +57,8 @@ const builds = [
   {
     "ruby-platform": "aarch64-mingw-ucrt",
     "rust-target": "aarch64-pc-windows-gnullvm",
-    os: windows,
-    "llvm-mingw": true,
-    cc: "aarch64-w64-mingw32-clang",
-    cxx: "aarch64-w64-mingw32-clang++",
-    ar: "llvm-ar",
+    os: windowsArm64,
+    "smoke-test": true,
   },
 ];
 

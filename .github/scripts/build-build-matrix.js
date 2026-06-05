@@ -31,7 +31,7 @@ const builds = [
     os: linuxX64,
     "apt-packages": "musl-tools",
     cc: "musl-gcc",
-    rustflags: "-Ctarget-feature=-crt-static",
+    env: { RUSTFLAGS: "-Ctarget-feature=-crt-static" },
   },
   {
     "ruby-platform": "aarch64-linux-musl",
@@ -39,7 +39,7 @@ const builds = [
     os: linuxArm64,
     "apt-packages": "musl-tools",
     cc: "musl-gcc",
-    rustflags: "-Ctarget-feature=-crt-static",
+    env: { RUSTFLAGS: "-Ctarget-feature=-crt-static" },
   },
   {
     "ruby-platform": "x86_64-darwin",

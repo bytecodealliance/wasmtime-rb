@@ -32,6 +32,7 @@ jobs:
     name: Build native gem (${{ matrix.ruby-platform }})
     needs: ci-data
     runs-on: ${{ matrix.os }}
+    env: ${{ matrix.env || fromJSON('{}') }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.ci-data.outputs.build-matrix) }}
@@ -73,7 +74,6 @@ jobs:
         env:
           CARGO_BUILD_TARGET: ${{ matrix.rust-target }}
           RB_SYS_CARGO_PROFILE: release
-          RUSTFLAGS: ${{ matrix.rustflags }}
           RUBY_PLATFORM_TARGET: ${{ matrix.ruby-platform }}
           STABLE_RUBY_VERSIONS: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ',') }}
 

@@ -10,6 +10,9 @@ const windowsArm64 = "windows-11-arm";
 const macos = "macos-15";
 
 const builds = [
+  // Temporarily disabled while debugging the Windows ARM build to avoid
+  // spending runners on known-good platforms.
+  /*
   {
     "ruby-platform": "x86_64-linux",
     "rust-target": "x86_64-unknown-linux-gnu",
@@ -54,6 +57,7 @@ const builds = [
     os: windows,
     "smoke-test": true,
   },
+  */
   {
     "ruby-platform": "aarch64-mingw-ucrt",
     "rust-target": "aarch64-pc-windows-gnullvm",

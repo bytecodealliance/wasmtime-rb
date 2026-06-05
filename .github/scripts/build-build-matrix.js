@@ -61,6 +61,7 @@ const builds = [
   {
     "ruby-platform": "aarch64-mingw-ucrt",
     "rust-target": "aarch64-pc-windows-gnullvm",
+    "rustup-toolchain": "stable-aarch64-pc-windows-gnullvm",
     os: windowsArm64,
     "smoke-test": true,
   },

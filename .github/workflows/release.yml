@@ -45,6 +45,7 @@ jobs:
       - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
         with:
           ruby-version: "4.0"
+          rustup-toolchain: ${{ matrix.rustup-toolchain || 'stable' }}
           bundler-cache: true
           cargo-cache: false
           cache-version: native-${{ matrix.ruby-platform }}-v1

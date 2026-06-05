@@ -61,8 +61,8 @@ jobs:
           curl.exe -L -o $archive "https://github.com/mstorsjo/llvm-mingw/releases/download/$version/$archive"
           Expand-Archive $archive -DestinationPath $env:RUNNER_TEMP
           $root = Join-Path $env:RUNNER_TEMP "llvm-mingw-$version-ucrt-x86_64"
-          "$root\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
           "LLVM_MINGW_ROOT=$root" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "LLVM_MINGW_BIN=$root\bin" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Configure C compiler
         if: matrix.cc
@@ -70,13 +70,21 @@ jobs:
         run: |
           target_env=$(echo "${{ matrix.rust-target }}" | tr '[:lower:]-' '[:upper:]_')
           target_var=$(echo "${{ matrix.rust-target }}" | tr '[:upper:]-' '[:lower:]_')
-          echo "CARGO_TARGET_${target_env}_LINKER=${{ matrix.cc }}" >> "$GITHUB_ENV"
-          echo "CC_${target_var}=${{ matrix.cc }}" >> "$GITHUB_ENV"
-          if [ -n "${{ matrix.cxx }}" ]; then
-            echo "CXX_${target_var}=${{ matrix.cxx }}" >> "$GITHUB_ENV"
+          cc="${{ matrix.cc }}"
+          cxx="${{ matrix.cxx }}"
+          ar="${{ matrix.ar }}"
+          if [ "${{ matrix.llvm-mingw }}" = "true" ]; then
+            cc="${LLVM_MINGW_BIN}\\${cc}.exe"
+            cxx="${LLVM_MINGW_BIN}\\${cxx}.exe"
+            ar="${LLVM_MINGW_BIN}\\${ar}.exe"
           fi
-          if [ -n "${{ matrix.ar }}" ]; then
-            echo "AR_${target_var}=${{ matrix.ar }}" >> "$GITHUB_ENV"
+          echo "CARGO_TARGET_${target_env}_LINKER=${cc}" >> "$GITHUB_ENV"
+          echo "CC_${target_var}=${cc}" >> "$GITHUB_ENV"
+          if [ -n "${cxx}" ]; then
+            echo "CXX_${target_var}=${cxx}" >> "$GITHUB_ENV"
+          fi
+          if [ -n "${ar}" ]; then
+            echo "AR_${target_var}=${ar}" >> "$GITHUB_ENV"
           fi
 
       - name: Build native gem

@@ -353,6 +353,49 @@ impl<'a> Memory<'a> {
     }
 
     /// @yard
+    /// Read a NUL-terminated C string starting at +offset+ as a UTF-8 +String+.
+    ///
+    /// @def read_cstring(offset)
+    /// @param offset [Integer]
+    /// @return [String]
+    pub fn read_cstring(ruby: &Ruby, rb_self: Obj<Self>, offset: usize) -> Result<RString, Error> {
+        let context = rb_self.store.context()?;
+        let data = rb_self.get_wasmtime_memory().data(context);
+        let utf8 = ruby.utf8_encoding();
+
+        let slice = match data.get(offset..) {
+            Some(slice) => slice,
+            None => return Ok(ruby.enc_str_new("", utf8)),
+        };
+        let end = slice.iter().position(|&b| b == 0).unwrap_or(slice.len());
+
+        Ok(ruby.enc_str_new(&slice[..end], utf8))
+    }
+
+    /// @yard
+    /// Write +value+'s bytes followed by a NUL terminator at +offset+.
+    ///
+    /// @def write_cstring(offset, value)
+    /// @param offset [Integer]
+    /// @param value [String]
+    /// @return [void]
+    pub fn write_cstring(&self, offset: usize, value: RString) -> Result<(), Error> {
+        let slice = unsafe { value.as_slice() };
+        let len = slice.len();
+        let mut context = self.store.context_mut()?;
+        let dst = self
+            .get_wasmtime_memory()
+            .data_mut(&mut context)
+            .get_mut(offset..)
+            .and_then(|s| s.get_mut(..len + 1))
+            .ok_or_else(|| error!("out of bounds memory access"))?;
+
+        dst[..len].copy_from_slice(slice);
+        dst[len] = 0;
+        Ok(())
+    }
+
+    /// @yard
     /// Grows a memory by +delta+ pages.
     /// Raises if the memory grows beyond its limit.
     ///
@@ -443,6 +486,8 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
     class.define_method("size", method!(Memory::size, 0))?;
     class.define_method("data_size", method!(Memory::data_size, 0))?;
     class.define_method("read_unsafe_slice", method!(Memory::read_unsafe_slice, 2))?;
+    class.define_method("read_cstring", method!(Memory::read_cstring, 1))?;
+    class.define_method("write_cstring", method!(Memory::write_cstring, 2))?;
 
     unsafe_slice::init(ruby)?;
 

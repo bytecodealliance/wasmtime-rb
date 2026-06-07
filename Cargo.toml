@@ -10,5 +10,5 @@ exclude = [
 
 [profile.release]
 codegen-units = 1 # more llvm optimizations
-debug = 2         # make perfomance engineers happy
+strip = true      # strip debug symbols
 lto = "thin"      # cross-crate inlining

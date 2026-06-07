@@ -118,12 +118,12 @@ module Wasmtime
     end
 
     describe "#read_cstring" do
-      it "reads a NUL-terminated string as UTF-8" do
+      it "reads NUL-terminated bytes as a binary string" do
         mem = Memory.new(store, min_size: 1)
         mem.write(0, "héllo\x00trailing garbage")
         str = mem.read_cstring(0)
-        expect(str).to eq("héllo")
-        expect(str.encoding).to eq(Encoding::UTF_8)
+        expect(str).to eq("héllo".b)
+        expect(str.encoding).to eq(Encoding::BINARY)
       end
 
       it "returns an empty string at a leading NUL byte" do
@@ -143,7 +143,7 @@ module Wasmtime
       it "writes the bytes plus a NUL terminator and round-trips via read_cstring" do
         mem = Memory.new(store, min_size: 1)
         expect(mem.write_cstring(3, "héllo")).to be_nil
-        expect(mem.read_cstring(3)).to eq("héllo")
+        expect(mem.read_cstring(3)).to eq("héllo".b)
         expect(mem.read(3, "héllo".bytesize + 1)).to eq("héllo\x00".b)
       end
 

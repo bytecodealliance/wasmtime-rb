@@ -353,7 +353,8 @@ impl<'a> Memory<'a> {
     }
 
     /// @yard
-    /// Read a NUL-terminated C string starting at +offset+ as a UTF-8 +String+.
+    /// Read a NUL-terminated C string starting at +offset+ as an ASCII-8BIT
+    /// (binary) +String+.
     ///
     /// @def read_cstring(offset)
     /// @param offset [Integer]
@@ -361,15 +362,16 @@ impl<'a> Memory<'a> {
     pub fn read_cstring(ruby: &Ruby, rb_self: Obj<Self>, offset: usize) -> Result<RString, Error> {
         let context = rb_self.store.context()?;
         let data = rb_self.get_wasmtime_memory().data(context);
-        let utf8 = ruby.utf8_encoding();
 
-        let slice = match data.get(offset..) {
-            Some(slice) => slice,
-            None => return Ok(ruby.enc_str_new("", utf8)),
+        let bytes: &[u8] = match data.get(offset..) {
+            Some(slice) => {
+                let end = slice.iter().position(|&b| b == 0).unwrap_or(slice.len());
+                &slice[..end]
+            }
+            None => &[],
         };
-        let end = slice.iter().position(|&b| b == 0).unwrap_or(slice.len());
 
-        Ok(ruby.enc_str_new(&slice[..end], utf8))
+        Ok(ruby.str_from_slice(bytes))
     }
 
     /// @yard

@@ -117,6 +117,49 @@ module Wasmtime
       end
     end
 
+    describe "#read_cstring" do
+      it "reads NUL-terminated bytes as a binary string" do
+        mem = Memory.new(store, min_size: 1)
+        mem.write(0, "héllo\x00trailing garbage")
+        str = mem.read_cstring(0)
+        expect(str).to eq("héllo".b)
+        expect(str.encoding).to eq(Encoding::BINARY)
+      end
+
+      it "returns an empty string at a leading NUL byte" do
+        mem = Memory.new(store, min_size: 1)
+        mem.write(0, "\x00")
+        expect(mem.read_cstring(0)).to eq("")
+      end
+
+      it "returns an empty string when offset is at/past the end of memory" do
+        mem = Memory.new(store, min_size: 1)
+        expect(mem.read_cstring(mem.data_size)).to eq("")
+        expect(mem.read_cstring(mem.data_size + 100)).to eq("")
+      end
+    end
+
+    describe "#write_cstring" do
+      it "writes the bytes plus a NUL terminator and round-trips via read_cstring" do
+        mem = Memory.new(store, min_size: 1)
+        expect(mem.write_cstring(3, "héllo")).to be_nil
+        expect(mem.read_cstring(3)).to eq("héllo".b)
+        expect(mem.read(3, "héllo".bytesize + 1)).to eq("héllo\x00".b)
+      end
+
+      it "raises when writing past the end of the buffer" do
+        mem = Memory.new(store, min_size: 1)
+        expect { mem.write_cstring(mem.data_size, "x") }
+          .to raise_error(Wasmtime::Error, "out of bounds memory access")
+      end
+
+      it "raises when the value contains a NUL byte" do
+        mem = Memory.new(store, min_size: 1)
+        expect { mem.write_cstring(0, "foo\x00bar") }
+          .to raise_error(ArgumentError, "string contains null byte")
+      end
+    end
+
     describe "#read_i64, #write_i64" do
       it "round-trips a signed 64-bit integer" do
         mem = Memory.new(store, min_size: 1)

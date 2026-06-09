@@ -432,11 +432,6 @@ valid WebAssembly type represented as a symbol. The valid symbols are:
       <pre class="lines">
 
 
-127
-128
-129
-130
-131
 132
 133
 134
@@ -453,10 +448,12 @@ valid WebAssembly type represented as a symbol. The valid symbols are:
 145
 146
 147
-148</pre>
+148
+149
+150</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 127</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 132</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let args = scan_args::&lt;(Obj&lt;Store&gt;, RArray, RArray), (), (), (), (), Proc&gt;(args)?;
@@ -475,10 +472,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let func_closure = make_func_closure(&amp;ty, callable.into());
     let inner = wasmtime::Func::new(context, ty, func_closure);
 
-    Ok(Self {
-        store: store.into(),
-        inner,
-    })
+    Ok(Self::from_inner(store.into(), inner))
 }</pre>
     </td>
   </tr>
@@ -571,17 +565,17 @@ not conform to the Wasm function's parameters.</p></div>
       <pre class="lines">
 
 
-177
-178
-179
-180</pre>
+191
+192
+193
+194</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 177</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 191</span>
 
 pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
     let ruby = Ruby::get().unwrap();
-    Self::invoke(&amp;ruby, &amp;self.store, &amp;self.inner, args)
+    Self::invoke(&amp;ruby, &amp;self.store, &amp;self.inner, self.gvl, args)
 }</pre>
     </td>
   </tr>
@@ -628,18 +622,18 @@ pub fn call(&amp;self, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
       <pre class="lines">
 
 
-188
-189
-190
-191
-192
-193
-194
-195
-196</pre>
+202
+203
+204
+205
+206
+207
+208
+209
+210</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 188</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 202</span>
 
 pub fn params(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RArray, Error&gt; {
     let ty = rb_self.inner.ty(rb_self.store.context()?);
@@ -695,18 +689,18 @@ pub fn params(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RArray,
       <pre class="lines">
 
 
-200
-201
-202
-203
-204
-205
-206
-207
-208</pre>
+214
+215
+216
+217
+218
+219
+220
+221
+222</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 200</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 214</span>
 
 pub fn results(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RArray, Error&gt; {
     let ty = rb_self.inner.ty(rb_self.store.context()?);
@@ -727,7 +721,7 @@ pub fn results(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RArray
 </div>
 
       <div id="footer">
-  Generated on Tue Jun  9 12:52:16 2026 by
+  Generated on Tue Jun  9 18:49:37 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.44 (ruby-4.0.5).
 </div>

@@ -686,7 +686,7 @@ pub fn invoke(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, args: &amp;[Value]) -&g
     })?)?;
 
     let func = rb_self.get_func(rb_self.store.context_mut(), unsafe { name.as_str()? })?;
-    Func::invoke(ruby, &amp;rb_self.store.into(), &amp;func, &amp;args[1..])
+    Func::invoke(ruby, &amp;rb_self.store.into(), &amp;func, true, &amp;args[1..])
 }</pre>
     </td>
   </tr>
@@ -698,7 +698,7 @@ pub fn invoke(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, args: &amp;[Value]) -&g
 </div>
 
       <div id="footer">
-  Generated on Tue Jun  9 12:52:16 2026 by
+  Generated on Tue Jun  9 18:49:37 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.44 (ruby-4.0.5).
 </div>

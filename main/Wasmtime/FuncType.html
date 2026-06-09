@@ -227,17 +227,17 @@
       <pre class="lines">
 
 
-42
-43
-44
-45
 46
 47
 48
-49</pre>
+49
+50
+51
+52
+53</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 42</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 46</span>
 
 pub fn params(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RArray, Error&gt; {
     let len = rb_self.inner.params().len();
@@ -292,18 +292,18 @@ pub fn params(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RArray,
       <pre class="lines">
 
 
-53
-54
-55
-56
 57
 58
 59
 60
-61</pre>
+61
+62
+63
+64
+65</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 53</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/func.rs', line 57</span>
 
 pub fn results(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RArray, Error&gt; {
         let len = rb_self.inner.results().len();
@@ -324,7 +324,7 @@ pub fn results(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RArray
 </div>
 
       <div id="footer">
-  Generated on Tue Jun  9 12:52:16 2026 by
+  Generated on Tue Jun  9 18:49:37 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.44 (ruby-4.0.5).
 </div>

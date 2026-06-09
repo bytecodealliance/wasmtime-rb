@@ -152,6 +152,12 @@ module Wasmtime
         expect { mem.write_cstring(mem.data_size, "x") }
           .to raise_error(Wasmtime::Error, "out of bounds memory access")
       end
+
+      it "raises when the value contains a NUL byte" do
+        mem = Memory.new(store, min_size: 1)
+        expect { mem.write_cstring(0, "foo\x00bar") }
+          .to raise_error(ArgumentError, "string contains null byte")
+      end
     end
 
     describe "#read_i64, #write_i64" do

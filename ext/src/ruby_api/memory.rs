@@ -383,6 +383,12 @@ impl<'a> Memory<'a> {
     /// @return [void]
     pub fn write_cstring(&self, offset: usize, value: RString) -> Result<(), Error> {
         let slice = unsafe { value.as_slice() };
+        if slice.contains(&0) {
+            return Err(Error::new(
+                Ruby::get_with(value).exception_arg_error(),
+                "string contains null byte",
+            ));
+        }
         let len = slice.len();
         let mut context = self.store.context_mut()?;
         let dst = self

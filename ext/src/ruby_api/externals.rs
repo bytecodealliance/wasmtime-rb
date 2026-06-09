@@ -135,7 +135,7 @@ impl Extern<'_> {
     ///
     /// @def to_func(gvl: true)
     /// @param gvl [Boolean] When +false+, releases the GVL during the call so other Ruby threads run in parallel (each thread must use its own {Store}). Defaults to +true+.
-    
+    ///
     /// Failing to respect the {Store}-per-thread requirement, when using `gvl: false` is highly unsafe and will result in undefined behavior.
     /// @return [Func] The exported function.
     pub fn to_func(ruby: &Ruby, rb_self: Obj<Self>, args: &[Value]) -> Result<Value, Error> {

@@ -7,11 +7,15 @@ use super::{
     store::StoreContextValue,
     table::{Table, TableType},
 };
-use crate::{conversion_err, not_implemented};
+use crate::{conversion_err, define_rb_intern, not_implemented};
 use magnus::{
-    class, gc::Marker, method, prelude::*, rb_sys::AsRawValue, typed_data::Obj, DataTypeFunctions,
-    Error, Module, RClass, Ruby, TypedData, Value,
+    class, gc::Marker, method, prelude::*, rb_sys::AsRawValue, scan_args, typed_data::Obj,
+    DataTypeFunctions, Error, Module, RClass, Ruby, TypedData, Value,
 };
+
+define_rb_intern!(
+    GVL => "gvl",
+);
 
 #[derive(TypedData)]
 #[magnus(
@@ -128,10 +132,21 @@ impl Extern<'_> {
     /// @yard
     /// Returns the exported function or raises a `{ConversionError}` when the export is not a
     /// function.
+    ///
+    /// @def to_func(gvl: true)
+    /// @param gvl [Boolean] When +false+, releases the GVL during the call so other Ruby threads run in parallel (each thread must use its own {Store}). Defaults to +true+.
+    ///
+    /// Failing to respect the {Store}-per-thread requirement, when using `gvl: false` is highly unsafe and will result in undefined behavior.
     /// @return [Func] The exported function.
-    pub fn to_func(ruby: &Ruby, rb_self: Obj<Self>) -> Result<Value, Error> {
+    pub fn to_func(ruby: &Ruby, rb_self: Obj<Self>, args: &[Value]) -> Result<Value, Error> {
+        let args = scan_args::scan_args::<(), (), (), (), _, ()>(args)?;
+        let kw = scan_args::get_kwargs::<_, (), (Option<bool>,), ()>(args.keywords, &[], &[*GVL])?;
+
         match *rb_self {
-            Extern::Func(f) => Ok(f.as_value()),
+            Extern::Func(f) => match kw.optional.0 {
+                Some(false) => Ok(ruby.obj_wrap(f.without_gvl()).as_value()),
+                _ => Ok(f.as_value()),
+            },
             _ => conversion_err!(Self::inner_class(rb_self), Func::class(ruby)),
         }
     }
@@ -252,7 +267,7 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
 
     let class = root().define_class("Extern", ruby.class_object())?;
 
-    class.define_method("to_func", method!(Extern::to_func, 0))?;
+    class.define_method("to_func", method!(Extern::to_func, -1))?;
     class.define_method("to_global", method!(Extern::to_global, 0))?;
     class.define_method("to_memory", method!(Extern::to_memory, 0))?;
     class.define_method("to_table", method!(Extern::to_table, 0))?;

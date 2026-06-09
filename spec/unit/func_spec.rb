@@ -162,11 +162,154 @@ module Wasmtime
       end
     end
 
+    describe "#call with gvl: false" do
+      it "still returns correct results" do
+        store = Store.new(engine)
+        mod = Module.new(engine, <<~WAT)
+          (module (func (export "add") (param i32 i32) (result i32)
+            (i32.add (local.get 0) (local.get 1))))
+        WAT
+        func = Instance.new(store, mod).export("add").to_func(gvl: false)
+        expect(func.call(2, 3)).to eq(5)
+      end
+
+      it "releases the GVL so other Ruby threads run during the call" do
+        mod = Module.new(engine, <<~WAT)
+          (module
+            (import "env" "mark" (func $mark))
+            (func (export "spin") (param $n i64) (result i64)
+              (local $i i64)
+              (call $mark)
+              (block $done
+                (loop $loop
+                  (br_if $done (i64.ge_u (local.get $i) (local.get $n)))
+                  (local.set $i (i64.add (local.get $i) (i64.const 1)))
+                  (br $loop)))
+              (call $mark)
+              (local.get $i)))
+        WAT
+
+        counter = 0
+        running = true
+        sibling = Thread.new { counter += 1 while running }
+
+        marks = []
+        store = Store.new(engine)
+        mark = Func.new(store, [], []) { marks << counter }
+        linker = Linker.new(engine)
+        linker.define(store, "env", "mark", mark)
+        instance = linker.instantiate(store, mod)
+
+        instance.export("spin").to_func(gvl: false).call(500_000_000)
+
+        running = false
+        sibling.join
+
+        expect(marks.length).to eq(2)
+        expect(marks.last).to be > marks.first
+      end
+
+      it "re-acquires the GVL for Ruby host callbacks during a released call" do
+        expect(run_released_with_callback(host_callback_module, spin: 1_000)).to eq(42)
+      end
+
+      it "stays correct with host callbacks across threads under GC stress" do
+        mod = host_callback_module
+
+        results = with_gc_stress do
+          10.times.map do
+            Thread.new { run_released_with_callback(mod, spin: 50_000) }
+          end.map(&:value)
+        end
+
+        expect(results).to eq(Array.new(10, 42))
+      end
+
+      it "bubbles a host-callback exception raised during a released call" do
+        error_class = Class.new(StandardError)
+        store = Store.new(engine)
+        raising = Func.new(store, [:i32], [:i32]) { raise error_class, "boom" }
+        linker = Linker.new(engine)
+        linker.define(store, "env", "host_add", raising)
+        func = linker.instantiate(store, host_callback_module).export("run").to_func(gvl: false)
+
+        expect { func.call(1_000) }.to raise_error(error_class, "boom")
+      end
+
+      it "raises ResultError for a wrong-arity callback result during a released call" do
+        store = Store.new(engine)
+        bad = Func.new(store, [:i32], [:i32]) { |_caller, _x| [1, 2] }
+        linker = Linker.new(engine)
+        linker.define(store, "env", "host_add", bad)
+        func = linker.instantiate(store, host_callback_module).export("run").to_func(gvl: false)
+
+        expect { func.call(1_000) }.to raise_error(Wasmtime::ResultError, /wrong number of results/)
+      end
+
+      it "raises Trap for a Wasm trap during a released call" do
+        store = Store.new(engine)
+        mod = Module.new(engine, <<~WAT)
+          (module (func (export "boom") unreachable))
+        WAT
+        func = Instance.new(store, mod).export("boom").to_func(gvl: false)
+
+        expect { func.call }.to raise_error(Trap)
+      end
+
+      it "bubbles host-callback exceptions across threads under GC stress" do
+        error_class = Class.new(StandardError)
+
+        results = with_gc_stress do
+          10.times.map do
+            Thread.new do
+              store = Store.new(engine)
+              raising = Func.new(store, [:i32], [:i32]) { raise error_class, "boom" }
+              linker = Linker.new(engine)
+              linker.define(store, "env", "host_add", raising)
+              func = linker.instantiate(store, host_callback_module).export("run").to_func(gvl: false)
+              begin
+                func.call(10_000)
+                :no_error
+              rescue error_class
+                :raised
+              end
+            end.value
+          end
+        end
+
+        expect(results).to eq(Array.new(10, :raised))
+      end
+    end
+
     private
 
     def build_func(params, results, &block)
       store = Store.new(engine, Object.new)
       Func.new(store, params, results, &block)
+    end
+
+    def host_callback_module
+      Module.new(engine, <<~WAT)
+        (module
+          (import "env" "host_add" (func $host_add (param i32) (result i32)))
+          (func (export "run") (param $n i64) (result i32)
+            (local $i i64)
+            (block $done
+              (loop $loop
+                (br_if $done (i64.ge_u (local.get $i) (local.get $n)))
+                (local.set $i (i64.add (local.get $i) (i64.const 1)))
+                (br $loop)))
+            (call $host_add (i32.const 41))))
+      WAT
+    end
+
+    def run_released_with_callback(mod, spin:)
+      store = Store.new(engine)
+      host_add = Func.new(store, [:i32], [:i32]) { |_caller, x| x.to_s.to_i + 1 }
+      linker = Linker.new(engine)
+      linker.define(store, "env", "host_add", host_add)
+      instance = linker.instantiate(store, mod)
+      instance.export("run").to_func(gvl: false).call(spin)
     end
   end
 end

@@ -6,7 +6,11 @@ use super::{
     root,
     store::{Store, StoreContextValue, StoreData},
 };
-use crate::{error, Caller};
+use crate::{
+    error,
+    helpers::{nogvl, with_gvl},
+    Caller,
+};
 use magnus::{
     block::Proc, class, function, gc::Marker, method, prelude::*, scan_args::scan_args,
     typed_data::Obj, value::Opaque, DataTypeFunctions, Error, IntoValue, Object, RArray, Ruby,
@@ -81,6 +85,7 @@ impl From<&FuncType> for wasmtime::ExternType {
 pub struct Func<'a> {
     store: StoreContextValue<'a>,
     inner: FuncImpl,
+    gvl: bool,
 }
 
 impl DataTypeFunctions for Func<'_> {
@@ -141,14 +146,23 @@ impl<'a> Func<'a> {
         let func_closure = make_func_closure(&ty, callable.into());
         let inner = wasmtime::Func::new(context, ty, func_closure);
 
-        Ok(Self {
-            store: store.into(),
-            inner,
-        })
+        Ok(Self::from_inner(store.into(), inner))
     }
 
     pub fn from_inner(store: StoreContextValue<'a>, inner: FuncImpl) -> Self {
-        Self { store, inner }
+        Self {
+            store,
+            inner,
+            gvl: true,
+        }
+    }
+
+    pub fn without_gvl(&self) -> Self {
+        Self {
+            store: self.store,
+            inner: self.inner,
+            gvl: false,
+        }
     }
 
     pub fn get(&self) -> FuncImpl {
@@ -176,7 +190,7 @@ impl<'a> Func<'a> {
     ///   func.call(1, 2) # => [2, 3]
     pub fn call(&self, args: &[Value]) -> Result<Value, Error> {
         let ruby = Ruby::get().unwrap();
-        Self::invoke(&ruby, &self.store, &self.inner, args)
+        Self::invoke(&ruby, &self.store, &self.inner, self.gvl, args)
     }
 
     pub fn inner(&self) -> &FuncImpl {
@@ -211,6 +225,7 @@ impl<'a> Func<'a> {
         ruby: &Ruby,
         store: &StoreContextValue,
         func: &wasmtime::Func,
+        gvl: bool,
         args: &[Value],
     ) -> Result<Value, Error> {
         let mut context = store.context_mut()?;
@@ -218,8 +233,12 @@ impl<'a> Func<'a> {
         let params = Params::new(ruby, &func_ty, args)?.to_vec(ruby, store)?;
         let mut results = vec![Val::null_func_ref(); func_ty.results().len()];
 
-        func.call(context, &params, &mut results)
-            .map_err(|e| store.handle_wasm_error(ruby, e))?;
+        let call_result = if gvl {
+            func.call(&mut context, &params, &mut results)
+        } else {
+            nogvl(|| func.call(&mut context, &params, &mut results))
+        };
+        call_result.map_err(|e| store.handle_wasm_error(ruby, e))?;
 
         // Check for any errors stored during execution (e.g., from socket checks)
         if let Some(error) = store.take_last_error()? {
@@ -275,79 +294,83 @@ pub fn make_func_closure(
     // We then return a generic error here. The caller will check for a stored error
     // and raise it if it exists.
     move |caller_impl: CallerImpl<'_, StoreData>, params: &[Val], results: &mut [Val]| {
-        let ruby = Ruby::get().unwrap();
-        let wrapped_caller = ruby.obj_wrap(Caller::new(caller_impl));
-        let store_context = StoreContextValue::from(wrapped_caller);
+        // Borrow `ty` so the `move` closure captures a reference, not the owned value.
+        let ty = &ty;
+        with_gvl(move || {
+            let ruby = Ruby::get().unwrap();
+            let wrapped_caller = ruby.obj_wrap(Caller::new(caller_impl));
+            let store_context = StoreContextValue::from(wrapped_caller);
 
-        let rparams = ruby.ary_new_capa(params.len() + 1);
-        rparams
-            .push(wrapped_caller.as_value())
-            .map_err(|e| wasmtime::Error::msg(format!("failed to push caller: {e}")))?;
+            let rparams = ruby.ary_new_capa(params.len() + 1);
+            rparams
+                .push(wrapped_caller.as_value())
+                .map_err(|e| wasmtime::Error::msg(format!("failed to push caller: {e}")))?;
 
-        for (i, param) in params.iter().enumerate() {
-            let val = param
-                .to_ruby_value(&ruby, &store_context)
-                .map_err(|e| wasmtime::Error::msg(format!("invalid argument at index {i}: {e}")))?;
-            rparams.push(val).map_err(|e| {
-                wasmtime::Error::msg(format!("failed to push argument at index {i}: {e}"))
-            })?;
-        }
-
-        let callable = ruby.get_inner(callable);
-
-        match (callable.call(rparams), results.len()) {
-            (Ok(_proc_result), 0) => {
-                wrapped_caller.expire();
-                Ok(())
+            for (i, param) in params.iter().enumerate() {
+                let val = param.to_ruby_value(&ruby, &store_context).map_err(|e| {
+                    wasmtime::Error::msg(format!("invalid argument at index {i}: {e}"))
+                })?;
+                rparams.push(val).map_err(|e| {
+                    wasmtime::Error::msg(format!("failed to push argument at index {i}: {e}"))
+                })?;
             }
-            (Ok(proc_result), n) => {
-                // For len=1, accept both `val` and `[val]`
-                let Ok(proc_result) = RArray::to_ary(proc_result) else {
-                    return result_error!(
-                        store_context,
-                        wrapped_caller,
-                        format!("could not convert {} to results array", callable)
-                    );
-                };
 
-                if proc_result.len() != results.len() {
-                    return result_error!(
-                        store_context,
-                        wrapped_caller,
-                        format!(
-                            "wrong number of results (given {}, expected {}) in {}",
-                            proc_result.len(),
-                            n,
-                            callable
-                        )
-                    );
+            let callable = ruby.get_inner(callable);
+
+            match (callable.call(rparams), results.len()) {
+                (Ok(_proc_result), 0) => {
+                    wrapped_caller.expire();
+                    Ok(())
                 }
+                (Ok(proc_result), n) => {
+                    // For len=1, accept both `val` and `[val]`
+                    let Ok(proc_result) = RArray::to_ary(proc_result) else {
+                        return result_error!(
+                            store_context,
+                            wrapped_caller,
+                            format!("could not convert {} to results array", callable)
+                        );
+                    };
 
-                for (i, ((rb_val, wasm_val), ty)) in unsafe { proc_result.as_slice() }
-                    .iter()
-                    .zip(results.iter_mut())
-                    .zip(ty.results())
-                    .enumerate()
-                {
-                    match rb_val.to_wasm_val(&store_context, ty) {
-                        Ok(val) => *wasm_val = val,
-                        Err(e) => {
-                            return result_error!(
-                                store_context,
-                                wrapped_caller,
-                                format!("invalid result at index {i}: {e} in {callable}")
-                            );
+                    if proc_result.len() != results.len() {
+                        return result_error!(
+                            store_context,
+                            wrapped_caller,
+                            format!(
+                                "wrong number of results (given {}, expected {}) in {}",
+                                proc_result.len(),
+                                n,
+                                callable
+                            )
+                        );
+                    }
+
+                    for (i, ((rb_val, wasm_val), ty)) in unsafe { proc_result.as_slice() }
+                        .iter()
+                        .zip(results.iter_mut())
+                        .zip(ty.results())
+                        .enumerate()
+                    {
+                        match rb_val.to_wasm_val(&store_context, ty) {
+                            Ok(val) => *wasm_val = val,
+                            Err(e) => {
+                                return result_error!(
+                                    store_context,
+                                    wrapped_caller,
+                                    format!("invalid result at index {i}: {e} in {callable}")
+                                );
+                            }
                         }
                     }
-                }
 
-                wrapped_caller.expire();
-                Ok(())
+                    wrapped_caller.expire();
+                    Ok(())
+                }
+                (Err(e), _) => {
+                    caller_error!(store_context, wrapped_caller, e)
+                }
             }
-            (Err(e), _) => {
-                caller_error!(store_context, wrapped_caller, e)
-            }
-        }
+        })
     }
 }
 

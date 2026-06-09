@@ -139,7 +139,7 @@ impl Instance {
         })?)?;
 
         let func = rb_self.get_func(rb_self.store.context_mut(), unsafe { name.as_str()? })?;
-        Func::invoke(ruby, &rb_self.store.into(), &func, &args[1..])
+        Func::invoke(ruby, &rb_self.store.into(), &func, true, &args[1..])
     }
 
     fn get_func(

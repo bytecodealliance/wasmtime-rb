@@ -288,6 +288,28 @@
         <li class="public ">
   <span class="summary_signature">
     
+      <a href="#read_cstring-instance_method" title="#read_cstring (instance method)">#<strong>read_cstring</strong>(offset)  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Read a NUL-terminated C string starting at <code>offset</code> as an ASCII-8BIT (binary) <code>String</code>.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
       <a href="#read_f32-instance_method" title="#read_f32 (instance method)">#<strong>read_f32</strong>(offset)  &#x21d2; Float </a>
     
 
@@ -501,6 +523,28 @@
 
   
     <span class="summary_desc"><div class='inline'><p>Write <code>value</code> starting at <code>offset</code>.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#write_cstring-instance_method" title="#write_cstring (instance method)">#<strong>write_cstring</strong>(offset, value)  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Write +value+'s bytes followed by a NUL terminator at <code>offset</code>.</p></div></span>
   
 </li>
 
@@ -813,12 +857,12 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-382
-383
-384</pre>
+433
+434
+435</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 382</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 433</span>
 
 pub fn data_size(&amp;self) -&gt; Result&lt;usize, Error&gt; {
     Ok(self.get_wasmtime_memory().data_size(self.store.context()?))
@@ -887,20 +931,20 @@ Raises if the memory grows beyond its limit.</p>
       <pre class="lines">
 
 
-362
-363
-364
-365
-366
-367
-368
-369
-370
-371
-372</pre>
+413
+414
+415
+416
+417
+418
+419
+420
+421
+422
+423</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 362</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 413</span>
 
 pub fn grow(&amp;self, delta: usize) -&gt; Result&lt;u64, Error&gt; {
     let ret = self
@@ -1137,6 +1181,96 @@ pub fn read(
         .and_then(|s| s.get(..size))
         .map(|s| ruby.str_from_slice(s))
         .ok_or_else(|| error!(&quot;out of bounds memory access&quot;))
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="read_cstring-instance_method">
+  
+    #<strong>read_cstring</strong>(offset)  &#x21d2; <tt>String</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Read a NUL-terminated C string starting at <code>offset</code> as an ASCII-8BIT
+(binary) <code>String</code>.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>offset</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+362
+363
+364
+365
+366
+367
+368
+369
+370
+371
+372
+373
+374
+375</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 362</span>
+
+pub fn read_cstring(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, offset: usize) -&gt; Result&lt;RString, Error&gt; {
+    let context = rb_self.store.context()?;
+    let data = rb_self.get_wasmtime_memory().data(context);
+
+    let bytes: &amp;[u8] = match data.get(offset..) {
+        Some(slice) =&gt; {
+            let end = slice.iter().position(|&amp;b| b == 0).unwrap_or(slice.len());
+            &amp;slice[..end]
+        }
+        None =&gt; &amp;[],
+    };
+
+    Ok(ruby.str_from_slice(bytes))
 }</pre>
     </td>
   </tr>
@@ -1795,12 +1929,12 @@ pub fn read_utf8(
       <pre class="lines">
 
 
-376
-377
-378</pre>
+427
+428
+429</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 376</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 427</span>
 
 pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
     Ok(self.get_wasmtime_memory().size(self.store.context()?))
@@ -1877,6 +2011,107 @@ pub fn write(&amp;self, offset: usize, value: RString) -&gt; Result&lt;(), Error
     self.get_wasmtime_memory()
         .write(self.store.context_mut()?, offset, slice)
         .map_err(|e| error!(&quot;{}&quot;, e))
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="write_cstring-instance_method">
+  
+    #<strong>write_cstring</strong>(offset, value)  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>Write +value+'s bytes followed by a NUL terminator at <code>offset</code>.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>offset</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>value</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+384
+385
+386
+387
+388
+389
+390
+391
+392
+393
+394
+395
+396
+397
+398
+399
+400
+401
+402
+403
+404</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 384</span>
+
+pub fn write_cstring(&amp;self, offset: usize, value: RString) -&gt; Result&lt;(), Error&gt; {
+    let slice = unsafe { value.as_slice() };
+    if slice.contains(&amp;0) {
+        return Err(Error::new(
+            Ruby::get_with(value).exception_arg_error(),
+            &quot;string contains null byte&quot;,
+        ));
+    }
+    let len = slice.len();
+    let mut context = self.store.context_mut()?;
+    let dst = self
+        .get_wasmtime_memory()
+        .data_mut(&amp;mut context)
+        .get_mut(offset..)
+        .and_then(|s| s.get_mut(..len + 1))
+        .ok_or_else(|| error!(&quot;out of bounds memory access&quot;))?;
+
+    dst[..len].copy_from_slice(slice);
+    dst[len] = 0;
+    Ok(())
 }</pre>
     </td>
   </tr>
@@ -2278,7 +2513,7 @@ pub fn write_u64(&amp;self, offset: usize, value: u64) -&gt; Result&lt;(), Error
 </div>
 
       <div id="footer">
-  Generated on Wed Jun  3 21:14:11 2026 by
+  Generated on Tue Jun  9 12:52:16 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.44 (ruby-4.0.5).
 </div>

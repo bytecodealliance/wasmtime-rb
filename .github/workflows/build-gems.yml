@@ -15,83 +15,70 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       result: ${{ steps.fetch.outputs.result }}
-      build-matrix: ${{ steps.build-matrix.outputs.build-matrix }}
     steps:
-      - uses: actions/checkout@v6
-
       - id: fetch
         uses: oxidize-rb/actions/fetch-ci-data@1.4.3
         with:
+          supported-ruby-platforms: |
+            # Excluding:
+            # `arm-linux`: Cranelift doesn't support 32-bit architectures
+            # `x64-mingw32`: `x64-mingw-ucrt` should be used for Ruby 3.1+ (https://github.com/rake-compiler/rake-compiler-dock?tab=readme-ov-file#windows)
+            # 3.0 is deprecated as stable ruby version according to:
+            #  https://github.com/oxidize-rb/actions/blob/main/fetch-ci-data/evaluate.rb#L54
+            exclude: [arm-linux, x64-mingw32]
           stable-ruby-versions: |
             exclude: [head]
 
-      - id: build-matrix
-        run: echo "build-matrix={\"include\":$(node .github/scripts/build-build-matrix.js)}" >> $GITHUB_OUTPUT
-
   native:
-    name: Build native gem (${{ matrix.ruby-platform }})
+    name: Build native gems
     needs: ci-data
-    runs-on: ${{ matrix.os }}
-    env: ${{ matrix.env || fromJSON('{}') }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.ci-data.outputs.build-matrix) }}
+      matrix:
+        ruby-platform: ${{ fromJSON(needs.ci-data.outputs.result).supported-ruby-platforms }}
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install system dependencies
-        if: matrix.apt-packages
-        run: sudo apt-get update && sudo apt-get --assume-yes install ${{ matrix.apt-packages }}
-
-      - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
+      - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "4.0"
-          rustup-toolchain: ${{ matrix.rustup-toolchain || 'stable' }}
-          bundler-cache: true
-          cargo-cache: false
-          cache-version: native-${{ matrix.ruby-platform }}-v1
 
-      - name: Install Rust target
-        run: rustup target add ${{ matrix.rust-target }}
-
-      - name: Configure C compiler
-        if: matrix.cc
-        shell: bash
-        run: |
-          target_env=$(echo "${{ matrix.rust-target }}" | tr '[:lower:]-' '[:upper:]_')
-          target_var=$(echo "${{ matrix.rust-target }}" | tr '[:upper:]-' '[:lower:]_')
-          echo "CARGO_TARGET_${target_env}_LINKER=${{ matrix.cc }}" >> "$GITHUB_ENV"
-          echo "CC_${target_var}=${{ matrix.cc }}" >> "$GITHUB_ENV"
-          if [ -n "${{ matrix.cxx }}" ]; then
-            echo "CXX_${target_var}=${{ matrix.cxx }}" >> "$GITHUB_ENV"
-          fi
-          if [ -n "${{ matrix.ar }}" ]; then
-            echo "AR_${target_var}=${{ matrix.ar }}" >> "$GITHUB_ENV"
-          fi
-
-      - name: Configure bindgen
-        if: matrix.bindgen-target
-        shell: bash
-        run: |
-          msys_root="${RI_DEVKIT//\\//}${MSYSTEM_PREFIX}"
-          echo "BINDGEN_EXTRA_CLANG_ARGS=--target=${{ matrix.bindgen-target }} --sysroot=$msys_root ${{ matrix.bindgen-defines }}" >> "$GITHUB_ENV"
-
-      - name: Build native gem
-        run: bundle exec rake native:wasmtime:${{ matrix.ruby-platform }} gem
-        env:
-          CARGO_BUILD_TARGET: ${{ matrix.rust-target }}
-          RB_SYS_CARGO_PROFILE: release
-          RUBY_PLATFORM_TARGET: ${{ matrix.ruby-platform }}
-          STABLE_RUBY_VERSIONS: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ',') }}
+      - uses: oxidize-rb/actions/cross-gem@v1
+        id: cross-gem
+        with:
+          platform: ${{ matrix.ruby-platform }}
+          ruby-versions: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ',') }}
 
       - uses: actions/upload-artifact@v7
         with:
-          name: native-gem-${{ matrix.ruby-platform }}
-          path: pkg/*-${{ matrix.ruby-platform }}.gem
+          name: cross-gem-${{ matrix.ruby-platform }}
+          path: ${{ steps.cross-gem.outputs.gem-path }}
           if-no-files-found: error
 
+  smoke-test:
+    name: Smoke test native gem (${{ matrix.ruby-platform }})
+    needs: native
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ruby-platform: x86_64-linux
+            os: ubuntu-latest
+          - ruby-platform: x64-mingw-ucrt
+            os: windows-2025
+    steps:
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "4.0"
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: cross-gem-${{ matrix.ruby-platform }}
+          path: pkg/
+
       - name: Smoke gem install
-        if: matrix.smoke-test
         shell: bash
         run: |
           gem install pkg/wasmtime-*.gem --verbose

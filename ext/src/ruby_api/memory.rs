@@ -11,10 +11,7 @@ use magnus::{
     DataTypeFunctions, Error, Module as _, Object, Ruby, TypedData, Value,
 };
 
-use rb_sys::tracking_allocator::ManuallyTracked;
 use wasmtime::{Extern, Memory as MemoryImpl};
-
-const WASM_PAGE_SIZE: u32 = wasmtime_environ::Memory::DEFAULT_PAGE_SIZE;
 
 define_rb_intern!(
     MIN_SIZE => "min_size",
@@ -68,7 +65,7 @@ impl From<&MemoryType> for wasmtime::ExternType {
 #[magnus(class = "Wasmtime::Memory", free_immediately, mark, unsafe_generics)]
 pub struct Memory<'a> {
     store: StoreContextValue<'a>,
-    inner: ManuallyTracked<MemoryImpl>,
+    inner: MemoryImpl,
 }
 
 impl DataTypeFunctions for Memory<'_> {
@@ -98,21 +95,15 @@ impl<'a> Memory<'a> {
         let memtype = wasmtime::MemoryType::new(min, max);
 
         let inner = MemoryImpl::new(store.context_mut(), memtype).map_err(|e| error!("{}", e))?;
-        let memsize = inner.data_size(store.context_mut());
 
         Ok(Self {
             store: store.into(),
-            inner: ManuallyTracked::wrap(inner, memsize),
+            inner,
         })
     }
 
-    pub fn from_inner(store: StoreContextValue<'a>, inner: MemoryImpl) -> Result<Self, Error> {
-        let memsize = inner.data_size(store.context()?);
-
-        Ok(Self {
-            store,
-            inner: ManuallyTracked::wrap(inner, memsize),
-        })
+    pub fn from_inner(store: StoreContextValue<'a>, inner: MemoryImpl) -> Self {
+        Self { store, inner }
     }
 
     /// @yard
@@ -411,15 +402,9 @@ impl<'a> Memory<'a> {
     /// @param delta [Integer] The number of pages to grow by.
     /// @return [Integer] The number of pages the memory had before being resized.
     pub fn grow(&self, delta: usize) -> Result<u64, Error> {
-        let ret = self
-            .get_wasmtime_memory()
+        self.get_wasmtime_memory()
             .grow(self.store.context_mut()?, delta as _)
-            .map_err(|e| error!("{}", e));
-
-        self.inner
-            .increase_memory_usage(delta * (WASM_PAGE_SIZE as usize));
-
-        ret
+            .map_err(|e| error!("{}", e))
     }
 
     /// @yard
@@ -435,7 +420,7 @@ impl<'a> Memory<'a> {
     }
 
     pub fn get_wasmtime_memory(&self) -> &MemoryImpl {
-        self.inner.get()
+        &self.inner
     }
 
     fn data(&self) -> Result<&[u8], Error> {

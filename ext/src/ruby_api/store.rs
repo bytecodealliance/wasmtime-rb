@@ -509,16 +509,9 @@ impl ResourceLimiter for TrackingResourceLimiter {
         // Update max_linear_memory_consumed
         self.max_linear_memory_consumed = self.max_linear_memory_consumed.max(desired);
 
-        if res.is_ok() {
-            self.tracker.increase_memory_usage(desired - current);
-        } else {
-            self.linear_memory_limit_hit = true;
-        }
-
-        if let Ok(allowed) = res {
-            if !allowed {
-                self.linear_memory_limit_hit = true;
-            }
+        match res {
+            Ok(true) => self.tracker.increase_memory_usage(desired - current),
+            Ok(false) | Err(_) => self.linear_memory_limit_hit = true,
         }
 
         res

@@ -221,7 +221,7 @@ impl<'a> WrapWasmtimeType<'a, Extern<'a>> for wasmtime::Extern {
                 ruby.obj_wrap(Global::from_inner(store, *global)),
             )),
             wasmtime::Extern::Memory(mem) => Ok(Extern::Memory(
-                ruby.obj_wrap(Memory::from_inner(store, *mem)?),
+                ruby.obj_wrap(Memory::from_inner(store, *mem)),
             )),
             wasmtime::Extern::Table(table) => Ok(Extern::Table(
                 ruby.obj_wrap(Table::from_inner(store, *table)),

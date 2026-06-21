@@ -144,6 +144,24 @@ module Wasmtime
           expect(store.max_linear_memory_consumed).to be >= 65536 * 2
         end
       end
+
+      describe "GC memory accounting" do
+        let(:pages) { 200 }
+        let(:bytes) { pages * 65_536 }
+
+        it "reports linear memory to the GC exactly once (no double counting)" do
+          store = Store.new(engine, limits: {memory_size: bytes * 4})
+
+          GC.disable
+          before = GC.stat(:malloc_increase_bytes)
+          Memory.new(store, min_size: pages)
+          delta = GC.stat(:malloc_increase_bytes) - before
+
+          expect(delta).to be_within(bytes / 2).of(bytes)
+        ensure
+          GC.enable
+        end
+      end
     end
   end
 end

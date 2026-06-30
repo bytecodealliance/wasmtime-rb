@@ -760,6 +760,9 @@
       <pre class="lines">
 
 
+84
+85
+86
 87
 88
 89
@@ -776,14 +779,10 @@
 100
 101
 102
-103
-104
-105
-106
-107</pre>
+103</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 87</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 84</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let args = scan_args::scan_args::&lt;(Obj&lt;Store&gt;,), (), (), (), _, ()&gt;(args)?;
@@ -799,11 +798,10 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let memtype = wasmtime::MemoryType::new(min, max);
 
     let inner = MemoryImpl::new(store.context_mut(), memtype).map_err(|e| error!(&quot;{}&quot;, e))?;
-    let memsize = inner.data_size(store.context_mut());
 
     Ok(Self {
         store: store.into(),
-        inner: ManuallyTracked::wrap(inner, memsize),
+        inner,
     })
 }</pre>
     </td>
@@ -857,12 +855,12 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-433
-434
-435</pre>
+418
+419
+420</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 433</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 418</span>
 
 pub fn data_size(&amp;self) -&gt; Result&lt;usize, Error&gt; {
     Ok(self.get_wasmtime_memory().data_size(self.store.context()?))
@@ -931,31 +929,19 @@ Raises if the memory grows beyond its limit.</p>
       <pre class="lines">
 
 
-413
-414
-415
-416
-417
-418
-419
-420
-421
-422
-423</pre>
+404
+405
+406
+407
+408</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 413</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 404</span>
 
 pub fn grow(&amp;self, delta: usize) -&gt; Result&lt;u64, Error&gt; {
-    let ret = self
-        .get_wasmtime_memory()
+    self.get_wasmtime_memory()
         .grow(self.store.context_mut()?, delta as _)
-        .map_err(|e| error!(&quot;{}&quot;, e));
-
-    self.inner
-        .increase_memory_usage(delta * (WASM_PAGE_SIZE as usize));
-
-    ret
+        .map_err(|e| error!(&quot;{}&quot;, e))
 }</pre>
     </td>
   </tr>
@@ -1002,15 +988,15 @@ pub fn grow(&amp;self, delta: usize) -&gt; Result&lt;u64, Error&gt; {
       <pre class="lines">
 
 
-129
-130
-131
-132
-133
-134</pre>
+120
+121
+122
+123
+124
+125</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 129</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 120</span>
 
 pub fn max_size(&amp;self) -&gt; Result&lt;Option&lt;u64&gt;, Error&gt; {
     Ok(self
@@ -1063,15 +1049,15 @@ pub fn max_size(&amp;self) -&gt; Result&lt;Option&lt;u64&gt;, Error&gt; {
       <pre class="lines">
 
 
-120
-121
-122
-123
-124
-125</pre>
+111
+112
+113
+114
+115
+116</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 120</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 111</span>
 
 pub fn min_size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
     Ok(self
@@ -1150,23 +1136,23 @@ pub fn min_size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
       <pre class="lines">
 
 
+134
+135
+136
+137
+138
+139
+140
+141
+142
 143
 144
 145
 146
-147
-148
-149
-150
-151
-152
-153
-154
-155
-156</pre>
+147</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 143</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 134</span>
 
 pub fn read(
     ruby: &amp;Ruby,
@@ -1240,23 +1226,23 @@ pub fn read(
       <pre class="lines">
 
 
+353
+354
+355
+356
+357
+358
+359
+360
+361
 362
 363
 364
 365
-366
-367
-368
-369
-370
-371
-372
-373
-374
-375</pre>
+366</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 362</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 353</span>
 
 pub fn read_cstring(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, offset: usize) -&gt; Result&lt;RString, Error&gt; {
     let context = rb_self.store.context()?;
@@ -1329,12 +1315,12 @@ pub fn read_cstring(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, offset: usize) -&
       <pre class="lines">
 
 
-275
-276
-277</pre>
+266
+267
+268</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 275</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 266</span>
 
 pub fn read_f32(&amp;self, offset: usize) -&gt; Result&lt;f32, Error&gt; {
     Ok(f32::from_le_bytes(self.read_fixed::&lt;4&gt;(offset)?))
@@ -1396,12 +1382,12 @@ pub fn read_f32(&amp;self, offset: usize) -&gt; Result&lt;f32, Error&gt; {
       <pre class="lines">
 
 
-285
-286
-287</pre>
+276
+277
+278</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 285</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 276</span>
 
 pub fn read_f64(&amp;self, offset: usize) -&gt; Result&lt;f64, Error&gt; {
     Ok(f64::from_le_bytes(self.read_fixed::&lt;8&gt;(offset)?))
@@ -1463,12 +1449,12 @@ pub fn read_f64(&amp;self, offset: usize) -&gt; Result&lt;f64, Error&gt; {
       <pre class="lines">
 
 
-235
-236
-237</pre>
+226
+227
+228</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 235</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 226</span>
 
 pub fn read_i32(&amp;self, offset: usize) -&gt; Result&lt;i32, Error&gt; {
     Ok(i32::from_le_bytes(self.read_fixed::&lt;4&gt;(offset)?))
@@ -1530,12 +1516,12 @@ pub fn read_i32(&amp;self, offset: usize) -&gt; Result&lt;i32, Error&gt; {
       <pre class="lines">
 
 
-255
-256
-257</pre>
+246
+247
+248</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 255</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 246</span>
 
 pub fn read_i64(&amp;self, offset: usize) -&gt; Result&lt;i64, Error&gt; {
     Ok(i64::from_le_bytes(self.read_fixed::&lt;8&gt;(offset)?))
@@ -1597,12 +1583,12 @@ pub fn read_i64(&amp;self, offset: usize) -&gt; Result&lt;i64, Error&gt; {
       <pre class="lines">
 
 
-245
-246
-247</pre>
+236
+237
+238</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 245</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 236</span>
 
 pub fn read_u32(&amp;self, offset: usize) -&gt; Result&lt;u32, Error&gt; {
     Ok(u32::from_le_bytes(self.read_fixed::&lt;4&gt;(offset)?))
@@ -1664,12 +1650,12 @@ pub fn read_u32(&amp;self, offset: usize) -&gt; Result&lt;u32, Error&gt; {
       <pre class="lines">
 
 
-265
-266
-267</pre>
+256
+257
+258</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 265</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 256</span>
 
 pub fn read_u64(&amp;self, offset: usize) -&gt; Result&lt;u64, Error&gt; {
     Ok(u64::from_le_bytes(self.read_fixed::&lt;8&gt;(offset)?))
@@ -1759,17 +1745,17 @@ over this method unless you know what you're doing.</p>
       <pre class="lines">
 
 
-205
-206
-207
-208
-209
-210
-211
-212</pre>
+196
+197
+198
+199
+200
+201
+202
+203</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 205</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 196</span>
 
 pub fn read_unsafe_slice(
     ruby: &amp;Ruby,
@@ -1850,24 +1836,24 @@ pub fn read_unsafe_slice(
       <pre class="lines">
 
 
+156
+157
+158
+159
+160
+161
+162
+163
+164
 165
 166
 167
 168
 169
-170
-171
-172
-173
-174
-175
-176
-177
-178
-179</pre>
+170</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 165</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 156</span>
 
 pub fn read_utf8(
     ruby: &amp;Ruby,
@@ -1929,12 +1915,12 @@ pub fn read_utf8(
       <pre class="lines">
 
 
-427
-428
-429</pre>
+412
+413
+414</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 427</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 412</span>
 
 pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
     Ok(self.get_wasmtime_memory().size(self.store.context()?))
@@ -1994,16 +1980,16 @@ pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
       <pre class="lines">
 
 
-221
-222
-223
-224
-225
-226
-227</pre>
+212
+213
+214
+215
+216
+217
+218</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 221</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 212</span>
 
 pub fn write(&amp;self, offset: usize, value: RString) -&gt; Result&lt;(), Error&gt; {
     let slice = unsafe { value.as_slice() };
@@ -2067,6 +2053,15 @@ pub fn write(&amp;self, offset: usize, value: RString) -&gt; Result&lt;(), Error
       <pre class="lines">
 
 
+375
+376
+377
+378
+379
+380
+381
+382
+383
 384
 385
 386
@@ -2078,19 +2073,10 @@ pub fn write(&amp;self, offset: usize, value: RString) -&gt; Result&lt;(), Error
 392
 393
 394
-395
-396
-397
-398
-399
-400
-401
-402
-403
-404</pre>
+395</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 384</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 375</span>
 
 pub fn write_cstring(&amp;self, offset: usize, value: RString) -&gt; Result&lt;(), Error&gt; {
     let slice = unsafe { value.as_slice() };
@@ -2168,12 +2154,12 @@ pub fn write_cstring(&amp;self, offset: usize, value: RString) -&gt; Result&lt;(
       <pre class="lines">
 
 
-340
-341
-342</pre>
+331
+332
+333</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 340</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 331</span>
 
 pub fn write_f32(&amp;self, offset: usize, value: f32) -&gt; Result&lt;(), Error&gt; {
     self.write_fixed(offset, value.to_le_bytes())
@@ -2233,12 +2219,12 @@ pub fn write_f32(&amp;self, offset: usize, value: f32) -&gt; Result&lt;(), Error
       <pre class="lines">
 
 
-351
-352
-353</pre>
+342
+343
+344</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 351</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 342</span>
 
 pub fn write_f64(&amp;self, offset: usize, value: f64) -&gt; Result&lt;(), Error&gt; {
     self.write_fixed(offset, value.to_le_bytes())
@@ -2298,12 +2284,12 @@ pub fn write_f64(&amp;self, offset: usize, value: f64) -&gt; Result&lt;(), Error
       <pre class="lines">
 
 
-296
-297
-298</pre>
+287
+288
+289</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 296</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 287</span>
 
 pub fn write_i32(&amp;self, offset: usize, value: i32) -&gt; Result&lt;(), Error&gt; {
     self.write_fixed(offset, value.to_le_bytes())
@@ -2363,12 +2349,12 @@ pub fn write_i32(&amp;self, offset: usize, value: i32) -&gt; Result&lt;(), Error
       <pre class="lines">
 
 
-318
-319
-320</pre>
+309
+310
+311</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 318</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 309</span>
 
 pub fn write_i64(&amp;self, offset: usize, value: i64) -&gt; Result&lt;(), Error&gt; {
     self.write_fixed(offset, value.to_le_bytes())
@@ -2428,12 +2414,12 @@ pub fn write_i64(&amp;self, offset: usize, value: i64) -&gt; Result&lt;(), Error
       <pre class="lines">
 
 
-307
-308
-309</pre>
+298
+299
+300</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 307</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 298</span>
 
 pub fn write_u32(&amp;self, offset: usize, value: u32) -&gt; Result&lt;(), Error&gt; {
     self.write_fixed(offset, value.to_le_bytes())
@@ -2493,12 +2479,12 @@ pub fn write_u32(&amp;self, offset: usize, value: u32) -&gt; Result&lt;(), Error
       <pre class="lines">
 
 
-329
-330
-331</pre>
+320
+321
+322</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 329</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/memory.rs', line 320</span>
 
 pub fn write_u64(&amp;self, offset: usize, value: u64) -&gt; Result&lt;(), Error&gt; {
     self.write_fixed(offset, value.to_le_bytes())
@@ -2513,7 +2499,7 @@ pub fn write_u64(&amp;self, offset: usize, value: u64) -&gt; Result&lt;(), Error
 </div>
 
       <div id="footer">
-  Generated on Mon Jun 29 15:49:03 2026 by
+  Generated on Tue Jun 30 18:41:58 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.44 (ruby-4.0.5).
 </div>

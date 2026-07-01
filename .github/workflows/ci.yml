@@ -40,7 +40,7 @@ jobs:
           # - os: windows-latest
           #   ruby: mswin
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Remove Gemfile.lock
         run: rm Gemfile.lock

@@ -53,7 +53,10 @@ use wasmtime::component::{Func as FuncImpl, Type, Val};
 ///     - invalid {Variant#name},
 ///     - unparametrized variant and not nil {Variant#value}.
 /// resource (own<T> or borrow<T>)::
-///     Not yet supported.
+///     {Wasmtime::Component::Resource} instance. MUST be explicitly destroyed
+///     with {Wasmtime::Component::Resource#resource_drop} once no longer
+///     needed — see {Wasmtime::Component::Resource}'s class documentation for
+///     details.
 #[derive(TypedData)]
 #[magnus(class = "Wasmtime::Component::Func", size, mark, free_immediately)]
 pub struct Func {

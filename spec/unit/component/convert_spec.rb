@@ -58,7 +58,58 @@ module Wasmtime
         end
       end
 
-      # TODO resource
+      describe "resources" do
+        let(:ctor) { instance.get_func(["resource", "[constructor]wrapped-string"]) }
+        let(:to_string) { instance.get_func(["resource", "[method]wrapped-string.to-string"]) }
+        let(:resource_owned) { instance.get_func(["resource", "resource-owned"]) }
+
+        it "constructs a resource, calls a borrow method (repeatedly), and drops it" do
+          resource = ctor.call("hello")
+
+          expect(resource).to be_instance_of(Resource)
+          expect(resource.owned?).to be true
+          expect(resource.type).to eq(instance.get_resource(["resource", "wrapped-string"]))
+
+          expect(to_string.call(resource)).to eq("hello")
+          expect(to_string.call(resource)).to eq("hello") # borrow: reusable
+
+          expect(resource.resource_drop).to be_nil
+        end
+
+        it "raises on double drop" do
+          resource = ctor.call("hello")
+          resource.resource_drop
+
+          expect { resource.resource_drop }.to raise_error(/already been dropped/)
+        end
+
+        it "raises when using a dropped resource" do
+          resource = ctor.call("hello")
+          resource.resource_drop
+
+          expect { to_string.call(resource) }.to raise_error(/already been dropped/)
+        end
+
+        it "transfers ownership into a function taking own<T>" do
+          resource = ctor.call("owned")
+
+          expect { resource_owned.call(resource) }.not_to raise_error
+        end
+
+        it "raises TypeError when passing a non-Resource where a resource is expected" do
+          expect { resource_owned.call("not a resource") }
+            .to raise_error(TypeError, /Resource/)
+        end
+
+        it "raises when passing a Resource obtained from a different Store" do
+          other_instance = linker.instantiate(Store.new(GLOBAL_ENGINE), @types_component)
+          other_ctor = other_instance.get_func(["resource", "[constructor]wrapped-string"])
+          resource = other_ctor.call("hello")
+
+          expect { to_string.call(resource) }
+            .to raise_error(/different Store/)
+        end
+      end
 
       describe "failures" do
         [

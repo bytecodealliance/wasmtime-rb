@@ -45,7 +45,22 @@ impl Instance {
     /// Retrieves a Wasm function from the component instance.
     ///
     /// @def get_func(handle)
-    /// @param handle [String, Array<String>] The path of the function to retrieve
+    /// @param handle [String, Array<String>] The name of the export to
+    ///   retrieve, or an +Array+ of names forming a path through nested
+    ///   exports (each name resolved within the export found by the previous
+    ///   one).
+    ///
+    ///   Each name must match the export's name in the component's WIT world
+    ///   exactly:
+    ///   - a plain (kebab-case) export name, e.g. +"add"+ for
+    ///     +export add: func(...)+;
+    ///   - a fully-qualified interface name, including namespace, package and
+    ///     any version, e.g. +"my-namespace:my-package/my-interface@0.1.0"+
+    ///     for +export my-interface+ — the interface's own members are then
+    ///     addressed by the next name in the path;
+    ///   - for functions attached to a WIT +resource+, the name is mangled in
+    ///     the canonical ABI format: +"[constructor]my-resource"+,
+    ///     +"[method]my-resource.my-func"+ or +"[static]my-resource.my-func"+.
     /// @return [Func, nil] The function if it exists, nil otherwise
     ///
     /// @example Retrieve a top-level +add+ export:
@@ -53,6 +68,9 @@ impl Instance {
     ///
     /// @example Retrieve an +add+ export nested under an +adder+ instance top-level export:
     ///   instance.get_func(["adder", "add"])
+    ///
+    /// @example Retrieve the constructor of a +counter+ resource exported by a versioned interface:
+    ///   instance.get_func(["my-namespace:my-package/types@0.1.0", "[constructor]counter"])
     pub fn get_func(rb_self: Obj<Self>, handle: Value) -> Result<Option<Func>, Error> {
         let func = rb_self
             .export_index(handle)?

@@ -1,4 +1,7 @@
-use crate::ruby_api::{component::Func, Store};
+use crate::ruby_api::{
+    component::{Func, ResourceType},
+    Store,
+};
 use std::{borrow::BorrowMut, cell::RefCell};
 
 use crate::error;
@@ -80,6 +83,32 @@ impl Instance {
         Ok(func)
     }
 
+    /// @yard
+    /// Retrieves an exported WIT +resource+ type from the component instance.
+    ///
+    /// @def get_resource(handle)
+    /// @param handle [String, Array<String>] The name of the resource type
+    ///   export to retrieve, or an +Array+ of names forming a path through
+    ///   nested exports. Names follow the same rules as {#get_func}: plain
+    ///   kebab-case export names, or fully-qualified interface names such as
+    ///   +"my-namespace:my-package/my-interface@0.1.0"+.
+    /// @return [ResourceType, nil] The resource type if it exists, nil otherwise
+    ///
+    /// @example Retrieve the +wrapped-string+ resource type nested under a +resource+ export:
+    ///   instance.get_resource(["resource", "wrapped-string"])
+    pub fn get_resource(rb_self: Obj<Self>, handle: Value) -> Result<Option<ResourceType>, Error> {
+        let resource_type = rb_self
+            .export_index(handle)?
+            .and_then(|index| {
+                rb_self
+                    .inner
+                    .get_resource(rb_self.store.context_mut(), index)
+            })
+            .map(ResourceType::from_inner);
+
+        Ok(resource_type)
+    }
+
     fn export_index(&self, handle: Value) -> Result<Option<ComponentExportIndex>, Error> {
         let ruby = Ruby::get_with(handle);
         let invalid_arg = || {
@@ -92,34 +121,36 @@ impl Instance {
             )
         };
 
-        let index = if let Some(name) = RString::from_value(handle) {
-            self.inner
-                .get_export(self.store.context_mut(), None, unsafe { name.as_str()? })
-                .map(|(_, index)| index)
-        } else if let Some(names) = RArray::from_value(handle) {
-            unsafe { names.as_slice() }
+        if let Some(name) = RString::from_value(handle) {
+            return Ok(self
+                .inner
+                .get_export_index(self.store.context_mut(), None, unsafe { name.as_str()? }));
+        }
+
+        if let Some(elements) = RArray::from_value(handle) {
+            let index = unsafe { elements.as_slice() }
                 .iter()
-                .try_fold::<_, _, Result<_, Error>>(None, |index, name| {
-                    let name = RString::from_value(*name).ok_or_else(invalid_arg)?;
+                .try_fold::<_, _, Result<_, Error>>(None, |index, element| {
+                    let name = RString::from_value(*element).ok_or_else(invalid_arg)?;
 
-                    Ok(self
-                        .inner
-                        .get_export(self.store.context_mut(), index.as_ref(), unsafe {
-                            name.as_str()?
-                        })
-                        .map(|(_, index)| index))
-                })?
-        } else {
-            return Err(invalid_arg());
-        };
+                    Ok(self.inner.get_export_index(
+                        self.store.context_mut(),
+                        index.as_ref(),
+                        unsafe { name.as_str()? },
+                    ))
+                })?;
 
-        Ok(index)
+            return Ok(index);
+        }
+
+        Err(invalid_arg())
     }
 }
 
 pub fn init(ruby: &Ruby, namespace: &RModule) -> Result<(), Error> {
     let instance = namespace.define_class("Instance", ruby.class_object())?;
     instance.define_method("get_func", method!(Instance::get_func, 1))?;
+    instance.define_method("get_resource", method!(Instance::get_resource, 1))?;
 
     Ok(())
 }

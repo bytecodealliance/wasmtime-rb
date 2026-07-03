@@ -2,6 +2,7 @@ mod convert;
 mod func;
 mod instance;
 mod linker;
+mod resource;
 mod wasi_command;
 
 use super::root;
@@ -20,6 +21,7 @@ use wasmtime::component::Component as ComponentImpl;
 pub use func::Func;
 pub use instance::Instance;
 pub use linker::Linker;
+pub use resource::{Resource, ResourceType};
 pub use wasi_command::WasiCommand;
 
 pub fn component_namespace(ruby: &Ruby) -> RModule {
@@ -169,6 +171,7 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
     linker::init(ruby, &namespace)?;
     instance::init(ruby, &namespace)?;
     func::init(ruby, &namespace)?;
+    resource::init(ruby, &namespace)?;
     convert::init(ruby)?;
     wasi_command::init(ruby, &namespace)?;
 

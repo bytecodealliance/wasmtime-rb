@@ -1,11 +1,12 @@
-use crate::ruby_api::component::component_namespace;
+use crate::ruby_api::component::{component_namespace, Resource};
 use crate::ruby_api::errors::ExceptionMessage;
 use crate::ruby_api::store::StoreContextValue;
 use crate::{define_rb_intern, err, error, not_implemented};
 use magnus::rb_sys::AsRawValue;
 use magnus::value::{IntoId, Lazy, ReprValue};
 use magnus::{
-    prelude::*, try_convert, value, Error, IntoValue, RArray, RClass, RHash, RString, Ruby, Value,
+    prelude::*, try_convert, value, Error, IntoValue, RArray, RClass, RHash, RString, Ruby,
+    TryConvert, Value,
 };
 use wasmtime::component::{Type, Val};
 
@@ -25,7 +26,7 @@ define_rb_intern!(
 pub(crate) fn component_val_to_rb(
     ruby: &Ruby,
     val: Val,
-    _store: Option<&StoreContextValue>,
+    store: Option<&StoreContextValue>,
 ) -> Result<Value, Error> {
     match val {
         Val::Bool(bool) => Ok(bool.into_value_with(ruby)),
@@ -44,14 +45,14 @@ pub(crate) fn component_val_to_rb(
         Val::List(vec) => {
             let array = ruby.ary_new_capa(vec.len());
             for val in vec {
-                array.push(component_val_to_rb(ruby, val, _store)?)?;
+                array.push(component_val_to_rb(ruby, val, store)?)?;
             }
             Ok(array.into_value_with(ruby))
         }
         Val::Record(fields) => {
             let hash = ruby.hash_new();
             for (name, val) in fields {
-                let rb_value = component_val_to_rb(ruby, val, _store)
+                let rb_value = component_val_to_rb(ruby, val, store)
                     .map_err(|e| e.append(format!(" (struct field \"{name}\")")))?;
                 hash.aset(name.as_str(), rb_value)?
             }
@@ -61,13 +62,13 @@ pub(crate) fn component_val_to_rb(
         Val::Tuple(vec) => {
             let array = ruby.ary_new_capa(vec.len());
             for val in vec {
-                array.push(component_val_to_rb(ruby, val, _store)?)?;
+                array.push(component_val_to_rb(ruby, val, store)?)?;
             }
             Ok(array.into_value_with(ruby))
         }
         Val::Variant(kind, val) => {
             let payload = match val {
-                Some(val) => component_val_to_rb(ruby, *val, _store)?,
+                Some(val) => component_val_to_rb(ruby, *val, store)?,
                 None => ruby.qnil().into_value_with(ruby),
             };
 
@@ -78,7 +79,7 @@ pub(crate) fn component_val_to_rb(
         }
         Val::Enum(kind) => Ok(kind.as_str().into_value_with(ruby)),
         Val::Option(val) => match val {
-            Some(val) => Ok(component_val_to_rb(ruby, *val, _store)?),
+            Some(val) => Ok(component_val_to_rb(ruby, *val, store)?),
             None => Ok(ruby.qnil().as_value()),
         },
         Val::Result(val) => {
@@ -87,13 +88,21 @@ pub(crate) fn component_val_to_rb(
                 Err(val) => (ERROR.into_id_with(ruby), val),
             };
             let ruby_argument = match val {
-                Some(val) => component_val_to_rb(ruby, *val, _store)?,
+                Some(val) => component_val_to_rb(ruby, *val, store)?,
                 None => ruby.qnil().as_value(),
             };
             result_class(ruby).funcall(ruby_method, (ruby_argument,))
         }
         Val::Flags(vec) => Ok(vec.into_value_with(ruby)),
-        Val::Resource(_resource_any) => not_implemented!(ruby, "Resource not implemented"),
+        Val::Resource(resource_any) => match store.and_then(StoreContextValue::as_store) {
+            Some(store) => Ok(ruby
+                .obj_wrap(Resource::from_inner(store, resource_any))
+                .as_value()),
+            None => not_implemented!(
+                ruby,
+                "Resource not implemented for host-defined component functions"
+            ),
+        },
         Val::Future(_) => not_implemented!(ruby, "Future not implemented"),
         Val::ErrorContext(_) => not_implemented!(ruby, "ErrorContext not implemented"),
         Val::Stream(_) => not_implemented!(ruby, "Stream not implemented"),
@@ -103,7 +112,7 @@ pub(crate) fn component_val_to_rb(
 
 pub(crate) fn rb_to_component_val(
     value: Value,
-    _store: Option<&StoreContextValue>,
+    store: Option<&StoreContextValue>,
     ty: &Type,
 ) -> Result<Val, Error> {
     let ruby = Ruby::get_with(value);
@@ -142,7 +151,7 @@ pub(crate) fn rb_to_component_val(
             // SAFETY: we don't mutate the RArray and we don't call into
             // user code so user code can't mutate it either.
             for (i, value) in unsafe { rarray.as_slice() }.iter().enumerate() {
-                let component_val = rb_to_component_val(*value, _store, &ty)
+                let component_val = rb_to_component_val(*value, store, &ty)
                     .map_err(|e| e.append(format!(" (list item at index {i})")))?;
 
                 vals.push(component_val);
@@ -158,7 +167,7 @@ pub(crate) fn rb_to_component_val(
                     .get(field.name)
                     .ok_or_else(|| error!("struct field missing: {}", field.name))
                     .and_then(|v| {
-                        rb_to_component_val(v, _store, &field.ty)
+                        rb_to_component_val(v, store, &field.ty)
                             .map_err(|e| e.append(format!(" (struct field \"{}\")", field.name)))
                     })?;
 
@@ -184,7 +193,7 @@ pub(crate) fn rb_to_component_val(
             let mut vals: Vec<Val> = Vec::with_capacity(rarray.len());
 
             for (i, (ty, value)) in types.zip(unsafe { rarray.as_slice() }.iter()).enumerate() {
-                let component_val = rb_to_component_val(*value, _store, &ty)
+                let component_val = rb_to_component_val(*value, store, &ty)
                     .map_err(|error| error.append(format!(" (tuple value at index {i})")))?;
 
                 vals.push(component_val);
@@ -213,7 +222,7 @@ pub(crate) fn rb_to_component_val(
 
             let payload_rb: Value = value.funcall(VALUE.into_id_with(&ruby), ())?;
             let payload_val = match (&case.ty, payload_rb.is_nil()) {
-                (Some(ty), _) => rb_to_component_val(payload_rb, _store, ty)
+                (Some(ty), _) => rb_to_component_val(payload_rb, store, ty)
                     .map(|val| Some(Box::new(val)))
                     .map_err(|e| e.append(format!(" (variant value for \"{}\")", &name))),
 
@@ -240,7 +249,7 @@ pub(crate) fn rb_to_component_val(
             } else {
                 Ok(Val::Option(Some(Box::new(rb_to_component_val(
                     value,
-                    _store,
+                    store,
                     &option_type.ty(),
                 )?))))
             }
@@ -252,7 +261,7 @@ pub(crate) fn rb_to_component_val(
             if is_ok {
                 let ok_value = value.funcall::<_, (), Value>(OK.into_id_with(&ruby), ())?;
                 match result_type.ok() {
-                    Some(ty) => rb_to_component_val(ok_value, _store, &ty)
+                    Some(ty) => rb_to_component_val(ok_value, store, &ty)
                         .map(|val| Val::Result(Result::Ok(Some(Box::new(val))))),
                     None => {
                         if ok_value.is_nil() {
@@ -268,7 +277,7 @@ pub(crate) fn rb_to_component_val(
             } else {
                 let err_value = value.funcall::<_, (), Value>(ERROR.into_id_with(&ruby), ())?;
                 match result_type.err() {
-                    Some(ty) => rb_to_component_val(err_value, _store, &ty)
+                    Some(ty) => rb_to_component_val(err_value, store, &ty)
                         .map(|val| Val::Result(Result::Err(Some(Box::new(val))))),
                     None => {
                         if err_value.is_nil() {
@@ -284,8 +293,25 @@ pub(crate) fn rb_to_component_val(
             }
         }
         Type::Flags(_) => Vec::<String>::try_convert(value).map(Val::Flags),
-        Type::Own(_resource_type) => not_implemented!(ruby, "Resource not implemented"),
-        Type::Borrow(_resource_type) => not_implemented!(ruby, "Resource not implemented"),
+        Type::Own(_) | Type::Borrow(_) => {
+            let resource = <&Resource>::try_convert(value)?;
+
+            match store.and_then(StoreContextValue::as_store) {
+                Some(current_store)
+                    if resource.store().as_value().as_raw()
+                        == current_store.as_value().as_raw() =>
+                {
+                    Ok(Val::Resource(resource.get()?))
+                }
+                Some(_) => {
+                    err!("Resource belongs to a different Store than the one being called into")
+                }
+                None => not_implemented!(
+                    ruby,
+                    "Resource not implemented for host-defined component functions"
+                ),
+            }
+        }
         Type::Future(_) => not_implemented!(ruby, "Future not implemented"),
         Type::Stream(_) => not_implemented!(ruby, "Stream not implemented"),
         Type::ErrorContext => not_implemented!(ruby, "ErrorContext not implemented"),

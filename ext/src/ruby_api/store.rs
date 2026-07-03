@@ -369,6 +369,16 @@ impl StoreContextValue<'_> {
         }
     }
 
+    /// Returns the `Obj<Store>` backing this context, if any. `None` for the
+    /// `Caller` variant, since a `Caller` is only valid on the stack for the
+    /// duration of a host call and must not be persisted.
+    pub fn as_store(&self) -> Option<Obj<Store>> {
+        match self {
+            Self::Store(store) => Some(Ruby::get().unwrap().get_inner(*store)),
+            Self::Caller(_) => None,
+        }
+    }
+
     pub fn set_last_error(&self, error: Error) {
         let ruby = Ruby::get().unwrap();
         match self {

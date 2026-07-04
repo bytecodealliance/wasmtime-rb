@@ -128,16 +128,20 @@ impl StoreData {
 #[derive(Debug, TypedData)]
 #[magnus(class = "Wasmtime::Store", size, mark, compact, free_immediately)]
 pub struct Store {
-    inner: UnsafeCell<StoreImpl<StoreData>>,
+    inner: UnsafeCell<Option<StoreImpl<StoreData>>>,
 }
 
 impl DataTypeFunctions for Store {
     fn mark(&self, marker: &Marker) {
-        self.context().data().mark(marker);
+        if let Some(inner) = unsafe { (*self.inner.get()).as_ref() } {
+            inner.data().mark(marker);
+        }
     }
 
     fn compact(&self, compactor: &Compactor) {
-        self.context_mut().data_mut().compact(compactor);
+        if let Some(inner) = unsafe { (*self.inner.get()).as_mut() } {
+            inner.data_mut().compact(compactor);
+        }
     }
 }
 
@@ -231,18 +235,18 @@ impl Store {
             resource_table: Default::default(),
         };
         let store = Self {
-            inner: UnsafeCell::new(StoreImpl::new(eng, store_data)),
+            inner: UnsafeCell::new(Some(StoreImpl::new(eng, store_data))),
         };
 
-        unsafe { &mut *store.inner.get() }.limiter(|data| &mut data.store_limits);
+        unsafe { (*store.inner.get()).as_mut().unwrap() }.limiter(|data| &mut data.store_limits);
 
         Ok(store)
     }
 
     /// @yard
     /// @return [Object] The passed in value in {.new}
-    pub fn data(&self) -> Value {
-        self.context().data().user_data()
+    pub fn data(&self) -> Result<Value, Error> {
+        Ok(self.context()?.data().user_data())
     }
 
     /// @yard
@@ -251,7 +255,7 @@ impl Store {
     /// @return [Integer]
     /// @raise [Error] if fuel consumption is not enabled via {Wasmtime::Engine#new}
     pub fn get_fuel(&self) -> Result<u64, Error> {
-        self.inner_ref().get_fuel().map_err(|e| error!("{}", e))
+        self.inner_ref()?.get_fuel().map_err(|e| error!("{}", e))
     }
 
     /// @yard
@@ -260,7 +264,7 @@ impl Store {
     /// @def set_fuel(fuel)
     /// @raise [Error] if fuel consumption is not enabled via {Wasmtime::Engine#new}
     pub fn set_fuel(&self, fuel: u64) -> Result<(), Error> {
-        unsafe { &mut *self.inner.get() }
+        self.inner_mut()?
             .set_fuel(fuel)
             .map_err(|e| error!("{}", e))?;
 
@@ -277,8 +281,9 @@ impl Store {
     /// @def set_epoch_deadline(ticks_beyond_current)
     /// @param ticks_beyond_current [Integer] The number of ticks before this store reaches the deadline.
     /// @return [nil]
-    pub fn set_epoch_deadline(&self, ticks_beyond_current: u64) {
-        unsafe { &mut *self.inner.get() }.set_epoch_deadline(ticks_beyond_current);
+    pub fn set_epoch_deadline(&self, ticks_beyond_current: u64) -> Result<(), Error> {
+        self.inner_mut()?.set_epoch_deadline(ticks_beyond_current);
+        Ok(())
     }
 
     /// @yard
@@ -286,40 +291,79 @@ impl Store {
     /// Returns whether the linear memory limit has been hit.
     ///
     /// @return [Boolean]
-    pub fn linear_memory_limit_hit(&self) -> bool {
-        self.context().data().store_limits.linear_memory_limit_hit()
+    pub fn linear_memory_limit_hit(&self) -> Result<bool, Error> {
+        Ok(self
+            .context()?
+            .data()
+            .store_limits
+            .linear_memory_limit_hit())
     }
 
     /// @yard
     /// Returns the maximum linear memory consumed.
     ///
     /// @return [Integer]
-    pub fn max_linear_memory_consumed(&self) -> usize {
-        self.context()
+    pub fn max_linear_memory_consumed(&self) -> Result<usize, Error> {
+        Ok(self
+            .context()?
             .data()
             .store_limits
-            .max_linear_memory_consumed()
+            .max_linear_memory_consumed())
     }
 
-    pub fn context(&self) -> StoreContext<'_, StoreData> {
-        unsafe { (*self.inner.get()).as_context() }
+    /// @yard
+    /// Closes the store, immediately freeing its WebAssembly memory.
+    ///
+    /// In Wasmtime the linear memory of every instance lives in the {Store}, so
+    /// this is the way to reclaim that memory deterministically once a job is
+    /// done. Any subsequent use of this store raises an error. The same applies
+    /// to instances, memories, funcs, globals and tables created from it.
+    /// Calling +close+ on an already-closed store is a no-op.
+    ///
+    /// @def close
+    /// @return [Boolean] +true+ if this call closed the store, +false+ if it
+    ///   had already been closed.
+    pub fn close(&self) -> bool {
+        unsafe { (*self.inner.get()).take() }.is_some()
     }
 
-    pub fn context_mut(&self) -> StoreContextMut<'_, StoreData> {
-        unsafe { (*self.inner.get()).as_context_mut() }
+    /// @yard
+    /// @def closed?
+    /// @return [Boolean] Whether this store has been closed via {#close}.
+    pub fn closed(&self) -> bool {
+        unsafe { (*self.inner.get()).is_none() }
+    }
+
+    pub fn context(&self) -> Result<StoreContext<'_, StoreData>, Error> {
+        Ok(self.inner_ref()?.as_context())
+    }
+
+    pub fn context_mut(&self) -> Result<StoreContextMut<'_, StoreData>, Error> {
+        Ok(self.inner_mut()?.as_context_mut())
     }
 
     pub fn retain(&self, value: Value) {
-        self.context_mut().data_mut().retain(value);
+        if let Ok(mut context) = self.context_mut() {
+            context.data_mut().retain(value);
+        }
     }
 
     pub fn take_last_error(&self) -> Option<Error> {
-        self.context_mut().data_mut().take_error()
+        self.context_mut().ok()?.data_mut().take_error()
     }
 
-    fn inner_ref(&self) -> &StoreImpl<StoreData> {
-        unsafe { &*self.inner.get() }
+    fn inner_ref(&self) -> Result<&StoreImpl<StoreData>, Error> {
+        unsafe { (*self.inner.get()).as_ref() }.ok_or_else(closed_error)
     }
+
+    #[allow(clippy::mut_from_ref)]
+    fn inner_mut(&self) -> Result<&mut StoreImpl<StoreData>, Error> {
+        unsafe { (*self.inner.get()).as_mut() }.ok_or_else(closed_error)
+    }
+}
+
+fn closed_error() -> Error {
+    error!("Wasmtime::Store is closed")
 }
 
 /// A wrapper around a Ruby Value that has a store context.
@@ -356,7 +400,7 @@ impl StoreContextValue<'_> {
     pub fn context(&self) -> Result<StoreContext<'_, StoreData>, Error> {
         let ruby = Ruby::get().unwrap();
         match self {
-            Self::Store(store) => Ok(ruby.get_inner_ref(store).context()),
+            Self::Store(store) => ruby.get_inner_ref(store).context(),
             Self::Caller(caller) => ruby.get_inner_ref(caller).context(),
         }
     }
@@ -364,7 +408,7 @@ impl StoreContextValue<'_> {
     pub fn context_mut(&self) -> Result<StoreContextMut<'_, StoreData>, Error> {
         let ruby = Ruby::get().unwrap();
         match self {
-            Self::Store(store) => Ok(ruby.get_inner_ref(store).context_mut()),
+            Self::Store(store) => ruby.get_inner_ref(store).context_mut(),
             Self::Caller(caller) => ruby.get_inner_ref(caller).context_mut(),
         }
     }
@@ -372,11 +416,11 @@ impl StoreContextValue<'_> {
     pub fn set_last_error(&self, error: Error) {
         let ruby = Ruby::get().unwrap();
         match self {
-            Self::Store(store) => ruby
-                .get_inner(*store)
-                .context_mut()
-                .data_mut()
-                .set_error(error),
+            Self::Store(store) => {
+                if let Ok(mut context) = ruby.get_inner(*store).context_mut() {
+                    context.data_mut().set_error(error);
+                }
+            }
             Self::Caller(caller) => {
                 if let Ok(mut context) = ruby.get_inner(*caller).context_mut() {
                     context.data_mut().set_error(error);
@@ -457,6 +501,8 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
     class.define_method("get_fuel", method!(Store::get_fuel, 0))?;
     class.define_method("set_fuel", method!(Store::set_fuel, 1))?;
     class.define_method("set_epoch_deadline", method!(Store::set_epoch_deadline, 1))?;
+    class.define_method("close", method!(Store::close, 0))?;
+    class.define_method("closed?", method!(Store::closed, 0))?;
     class.define_method(
         "linear_memory_limit_hit?",
         method!(Store::linear_memory_limit_hit, 0),

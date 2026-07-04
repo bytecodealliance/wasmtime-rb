@@ -104,7 +104,7 @@ impl<'a> Table<'a> {
             .clone();
 
         let inner = TableImpl::new(
-            store.context_mut(),
+            store.context_mut()?,
             wasmtime::TableType::new(table_type, min, max),
             ref_,
         )

@@ -136,7 +136,7 @@ impl<'a> Func<'a> {
 
         store.retain(callable.as_value());
 
-        let context = store.context_mut();
+        let context = store.context_mut()?;
         let engine = context.engine();
         let ty = wasmtime::FuncType::new(
             engine,

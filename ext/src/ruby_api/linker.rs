@@ -100,7 +100,7 @@ impl Linker {
             .inner
             .borrow_mut()
             .define(
-                store.context(),
+                store.context()?,
                 unsafe { module.as_str()? },
                 unsafe { name.as_str()? },
                 item,
@@ -167,7 +167,7 @@ impl Linker {
         let ext = self
             .inner
             .borrow()
-            .get(store.context_mut(), unsafe { module.as_str() }?, unsafe {
+            .get(store.context_mut()?, unsafe { module.as_str() }?, unsafe {
                 name.as_str()?
             })
             .map_err(|e| error!("{}", e))?;
@@ -193,7 +193,7 @@ impl Linker {
         self.inner
             .borrow_mut()
             .instance(
-                store.context_mut(),
+                store.context_mut()?,
                 unsafe { module.as_str() }?,
                 instance.get(),
             )
@@ -212,7 +212,11 @@ impl Linker {
     pub fn module(&self, store: &Store, name: RString, module: &Module) -> Result<(), Error> {
         self.inner
             .borrow_mut()
-            .module(store.context_mut(), unsafe { name.as_str()? }, module.get())
+            .module(
+                store.context_mut()?,
+                unsafe { name.as_str()? },
+                module.get(),
+            )
             .map(|_| ())
             .map_err(|e| error!("{}", e))
     }
@@ -272,14 +276,14 @@ impl Linker {
         store: Obj<Store>,
         module: &Module,
     ) -> Result<Instance, Error> {
-        if *rb_self.has_wasi.borrow() && !store.context().data().has_wasi_p1_ctx() {
+        if *rb_self.has_wasi.borrow() && !store.context()?.data().has_wasi_p1_ctx() {
             return err!("{}", errors::missing_wasi_p1_ctx_error());
         }
 
         rb_self
             .inner
             .borrow_mut()
-            .instantiate(store.context_mut(), module.get())
+            .instantiate(store.context_mut()?, module.get())
             .map_err(|e| StoreContextValue::from(store).handle_wasm_error(ruby, e))
             .map(|instance| {
                 rb_self
@@ -300,7 +304,7 @@ impl Linker {
     pub fn get_default(&self, store: Obj<Store>, module: RString) -> Result<Func<'_>, Error> {
         self.inner
             .borrow()
-            .get_default(store.context_mut(), unsafe { module.as_str() }?)
+            .get_default(store.context_mut()?, unsafe { module.as_str() }?)
             .map(|func| Func::from_inner(store.into(), func))
             .map_err(|e| error!("{}", e))
     }

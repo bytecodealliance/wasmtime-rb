@@ -42,7 +42,7 @@ impl Instance {
         let args =
             scan_args::scan_args::<(Obj<Store>, &Module), (Option<Value>,), (), (), (), ()>(args)?;
         let (wrapped_store, module) = args.required;
-        let mut context = wrapped_store.context_mut();
+        let mut context = wrapped_store.context_mut()?;
         let imports = args
             .optional
             .0
@@ -87,7 +87,7 @@ impl Instance {
     /// @def exports
     /// @return [Hash{String => Extern}]
     pub fn exports(ruby: &Ruby, rb_self: Obj<Self>) -> Result<RHash, Error> {
-        let mut ctx = rb_self.store.context_mut();
+        let mut ctx = rb_self.store.context_mut()?;
         let hash = ruby.hash_new();
 
         for export in rb_self.inner.exports(&mut ctx) {
@@ -111,7 +111,7 @@ impl Instance {
     pub fn export(&self, str: RString) -> Result<Option<super::externals::Extern<'_>>, Error> {
         let export = self
             .inner
-            .get_export(self.store.context_mut(), unsafe { str.as_str()? });
+            .get_export(self.store.context_mut()?, unsafe { str.as_str()? });
         let ruby = Ruby::get_with(str);
         match export {
             Some(export) => export
@@ -138,7 +138,7 @@ impl Instance {
             )
         })?)?;
 
-        let func = rb_self.get_func(rb_self.store.context_mut(), unsafe { name.as_str()? })?;
+        let func = rb_self.get_func(rb_self.store.context_mut()?, unsafe { name.as_str()? })?;
         Func::invoke(ruby, &rb_self.store.into(), &func, true, &args[1..])
     }
 

@@ -27,11 +27,11 @@ impl WasiCommand {
     /// @param linker [Linker]
     /// @return [WasiCommand]
     pub fn new(store: &Store, component: &Component, linker: &Linker) -> Result<Self, Error> {
-        if linker.has_wasi() && !store.context().data().has_wasi_ctx() {
+        if linker.has_wasi() && !store.context()?.data().has_wasi_ctx() {
             return err!("{}", errors::missing_wasi_ctx_error("WasiCommand.new"));
         }
         let command =
-            Command::instantiate(store.context_mut(), component.get(), &linker.inner_mut())
+            Command::instantiate(store.context_mut()?, component.get(), &linker.inner_mut())
                 .map_err(|e| error!("{e}"))?;
         Ok(Self { command })
     }
@@ -45,7 +45,7 @@ impl WasiCommand {
         rb_self
             .command
             .wasi_cli_run()
-            .call_run(store.context_mut())
+            .call_run(store.context_mut()?)
             .map_err(|err| error!("{err}"))?
             .map_err(|_| error!("Error running `run`"))?;
 

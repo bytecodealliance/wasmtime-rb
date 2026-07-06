@@ -54,9 +54,12 @@ impl Instance {
     /// @example Retrieve an +add+ export nested under an +adder+ instance top-level export:
     ///   instance.get_func(["adder", "add"])
     pub fn get_func(rb_self: Obj<Self>, handle: Value) -> Result<Option<Func>, Error> {
+        let Some(index) = rb_self.export_index(handle)? else {
+            return Ok(None);
+        };
         let func = rb_self
-            .export_index(handle)?
-            .and_then(|index| rb_self.inner.get_func(rb_self.store.context_mut(), index))
+            .inner
+            .get_func(rb_self.store.context_mut()?, index)
             .map(|inner| Func::from_inner(inner, rb_self, rb_self.store));
 
         Ok(func)
@@ -76,7 +79,7 @@ impl Instance {
 
         let index = if let Some(name) = RString::from_value(handle) {
             self.inner
-                .get_export(self.store.context_mut(), None, unsafe { name.as_str()? })
+                .get_export(self.store.context_mut()?, None, unsafe { name.as_str()? })
                 .map(|(_, index)| index)
         } else if let Some(names) = RArray::from_value(handle) {
             unsafe { names.as_slice() }
@@ -86,7 +89,7 @@ impl Instance {
 
                     Ok(self
                         .inner
-                        .get_export(self.store.context_mut(), index.as_ref(), unsafe {
+                        .get_export(self.store.context_mut()?, index.as_ref(), unsafe {
                             name.as_str()?
                         })
                         .map(|(_, index)| index))

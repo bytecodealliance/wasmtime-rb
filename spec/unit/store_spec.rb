@@ -162,6 +162,52 @@ module Wasmtime
           GC.enable
         end
       end
+
+      describe "#close" do
+        it "reports closed? before and after" do
+          store = Store.new(engine)
+          expect(store.closed?).to be false
+          store.close
+          expect(store.closed?).to be true
+        end
+
+        it "returns true on first close and false afterwards" do
+          store = Store.new(engine)
+          expect(store.close).to be true
+          expect(store.close).to be false
+        end
+
+        it "closes a store that owns allocated memory" do
+          store = Store.new(engine, limits: {memory_size: 10_000_000})
+          Memory.new(store, min_size: 100)
+          expect(store.close).to be true
+        end
+
+        it "raises when the store is used after close" do
+          store = Store.new(engine)
+          store.close
+          expect { store.data }.to raise_error(Wasmtime::Error, /closed/)
+          expect { store.max_linear_memory_consumed }.to raise_error(Wasmtime::Error, /closed/)
+        end
+
+        it "raises when an instance from a closed store is used" do
+          store = Store.new(engine)
+          mod = Module.new(engine, <<~WAT)
+            (module
+              (func (export "f")))
+          WAT
+          instance = Instance.new(store, mod)
+          store.close
+          expect { instance.invoke("f") }.to raise_error(Wasmtime::Error, /closed/)
+        end
+
+        it "raises when a memory from a closed store is used" do
+          store = Store.new(engine)
+          memory = Memory.new(store, min_size: 1)
+          store.close
+          expect { memory.read(0, 1) }.to raise_error(Wasmtime::Error, /closed/)
+        end
+      end
     end
   end
 end

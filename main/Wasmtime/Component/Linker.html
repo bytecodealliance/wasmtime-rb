@@ -559,13 +559,13 @@ fn instantiate(
     store: Obj&lt;Store&gt;,
     component: &amp;Component,
 ) -&gt; Result&lt;Instance, Error&gt; {
-    if *rb_self.has_wasi.borrow() &amp;&amp; !store.context().data().has_wasi_ctx() {
+    if *rb_self.has_wasi.borrow() &amp;&amp; !store.context()?.data().has_wasi_ctx() {
         return err!(&quot;{}&quot;, errors::missing_wasi_ctx_error(&quot;linker.instantiate&quot;));
     }
 
     let inner = rb_self.inner.borrow();
     inner
-        .instantiate(store.context_mut(), component.get())
+        .instantiate(store.context_mut()?, component.get())
         .map(|instance| {
             rb_self
                 .refs
@@ -704,7 +704,7 @@ pub fn root(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;Obj&lt;Se
 </div>
 
       <div id="footer">
-  Generated on Fri Jul  3 11:44:40 2026 by
+  Generated on Mon Jul  6 18:09:22 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.44 (ruby-4.0.5).
 </div>

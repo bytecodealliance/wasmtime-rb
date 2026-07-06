@@ -367,7 +367,7 @@ pub fn new(ruby: &amp;Ruby, args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; 
     let args =
         scan_args::scan_args::&lt;(Obj&lt;Store&gt;, &amp;Module), (Option&lt;Value&gt;,), (), (), (), ()&gt;(args)?;
     let (wrapped_store, module) = args.required;
-    let mut context = wrapped_store.context_mut();
+    let mut context = wrapped_store.context_mut()?;
     let imports = args
         .optional
         .0
@@ -481,7 +481,7 @@ pub fn new(ruby: &amp;Ruby, args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; 
 pub fn export(&amp;self, str: RString) -&gt; Result&lt;Option&lt;super::externals::Extern&lt;&#39;_&gt;&gt;, Error&gt; {
     let export = self
         .inner
-        .get_export(self.store.context_mut(), unsafe { str.as_str()? });
+        .get_export(self.store.context_mut()?, unsafe { str.as_str()? });
     let ruby = Ruby::get_with(str);
     match export {
         Some(export) =&gt; export
@@ -553,7 +553,7 @@ and values are <span class='object_link'><a href="Extern.html" title="Wasmtime::
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 89</span>
 
 pub fn exports(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RHash, Error&gt; {
-    let mut ctx = rb_self.store.context_mut();
+    let mut ctx = rb_self.store.context_mut()?;
     let hash = ruby.hash_new();
 
     for export in rb_self.inner.exports(&amp;mut ctx) {
@@ -685,7 +685,7 @@ pub fn invoke(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, args: &amp;[Value]) -&g
         )
     })?)?;
 
-    let func = rb_self.get_func(rb_self.store.context_mut(), unsafe { name.as_str()? })?;
+    let func = rb_self.get_func(rb_self.store.context_mut()?, unsafe { name.as_str()? })?;
     Func::invoke(ruby, &amp;rb_self.store.into(), &amp;func, true, &amp;args[1..])
 }</pre>
     </td>
@@ -698,7 +698,7 @@ pub fn invoke(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, args: &amp;[Value]) -&g
 </div>
 
       <div id="footer">
-  Generated on Fri Jul  3 11:44:40 2026 by
+  Generated on Mon Jul  6 18:09:22 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.44 (ruby-4.0.5).
 </div>

@@ -797,7 +797,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
 
     let memtype = wasmtime::MemoryType::new(min, max);
 
-    let inner = MemoryImpl::new(store.context_mut(), memtype).map_err(|e| error!(&quot;{}&quot;, e))?;
+    let inner = MemoryImpl::new(store.context_mut()?, memtype).map_err(|e| error!(&quot;{}&quot;, e))?;
 
     Ok(Self {
         store: store.into(),
@@ -2499,7 +2499,7 @@ pub fn write_u64(&amp;self, offset: usize, value: u64) -&gt; Result&lt;(), Error
 </div>
 
       <div id="footer">
-  Generated on Fri Jul  3 11:44:40 2026 by
+  Generated on Mon Jul  6 18:09:22 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.44 (ruby-4.0.5).
 </div>

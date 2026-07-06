@@ -245,15 +245,21 @@
 60
 61
 62
-63</pre>
+63
+64
+65
+66</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/component/instance.rs', line 56</span>
 
 pub fn get_func(rb_self: Obj&lt;Self&gt;, handle: Value) -&gt; Result&lt;Option&lt;Func&gt;, Error&gt; {
+    let Some(index) = rb_self.export_index(handle)? else {
+        return Ok(None);
+    };
     let func = rb_self
-        .export_index(handle)?
-        .and_then(|index| rb_self.inner.get_func(rb_self.store.context_mut(), index))
+        .inner
+        .get_func(rb_self.store.context_mut()?, index)
         .map(|inner| Func::from_inner(inner, rb_self, rb_self.store));
 
     Ok(func)
@@ -268,7 +274,7 @@ pub fn get_func(rb_self: Obj&lt;Self&gt;, handle: Value) -&gt; Result&lt;Option&
 </div>
 
       <div id="footer">
-  Generated on Fri Jul  3 11:44:40 2026 by
+  Generated on Mon Jul  6 18:09:22 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.44 (ruby-4.0.5).
 </div>

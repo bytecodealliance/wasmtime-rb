@@ -215,7 +215,7 @@ pub(crate) fn rb_to_component_val(
             let payload_val = match (&case.ty, payload_rb.is_nil()) {
                 (Some(ty), _) => rb_to_component_val(payload_rb, _store, ty)
                     .map(|val| Some(Box::new(val)))
-                    .map_err(|e| e.append(format!(" (variant value for \"{}\")", &name))),
+                    .map_err(|e| e.append(format!(" (variant value for \"{}\")", name))),
 
                 // case doesn't have payload and Variant#value *is nil*
                 (None, true) => Ok(None),

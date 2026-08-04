@@ -91,7 +91,7 @@ impl Engine {
     pub fn new(args: &[Value]) -> Result<Self, Error> {
         let args = scan_args::scan_args::<(), (Option<Value>,), (), (), (), ()>(args)?;
         let (config,) = args.optional;
-        let config = config.and_then(|v| if v.is_nil() { None } else { Some(v) });
+        let config = config.filter(|&v| !v.is_nil());
         let inner = match config {
             Some(config) => {
                 let config = RHash::try_convert(config).and_then(hash_to_config)?;

@@ -46,7 +46,7 @@ impl Instance {
         let imports = args
             .optional
             .0
-            .and_then(|v| if v.is_nil() { None } else { Some(v) });
+            .filter(|&v| !v.is_nil());
 
         let imports: Vec<Extern> = match imports {
             Some(arr) => {

@@ -1,7 +1,8 @@
 # Contributing
 
 `wasmtime-rb` is a [Bytecode Alliance] project. It follows the Bytecode
-Alliance's [Code of Conduct] and [Organizational Code of Conduct].
+Alliance's [Code of Conduct] and [Organizational Code of Conduct]. Code
+contributions must follow the [AI Tool Use Policy].
 
 ## Getting started
 
@@ -46,3 +47,4 @@ bundle exec rake
 [Bytecode Alliance]: https://bytecodealliance.org/
 [Code of Conduct]: https://github.com/bytecodealliance/wasmtime/blob/main/CODE_OF_CONDUCT.md
 [Organizational Code of Conduct]: https://github.com/bytecodealliance/wasmtime/blob/main/ORG_CODE_OF_CONDUCT.md
+[AI Tool Use Policy]: https://github.com/bytecodealliance/governance/blob/main/AI_TOOL_POLICY.md

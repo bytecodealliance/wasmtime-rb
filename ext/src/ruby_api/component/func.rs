@@ -97,12 +97,12 @@ impl Func {
         args: &[Value],
     ) -> Result<Value, Error> {
         let store_context_value = StoreContextValue::from(store);
-        let func_ty = func.ty(store.context_mut());
+        let func_ty = func.ty(store.context_mut()?);
         let results_ty = func_ty.results();
         let mut results = vec![wasmtime::component::Val::Bool(false); results_ty.len()];
         let params = convert_params(ruby, &store_context_value, func_ty.params(), args)?;
 
-        func.call(store.context_mut(), &params, &mut results)
+        func.call(store.context_mut()?, &params, &mut results)
             .map_err(|e| store_context_value.handle_wasm_error(ruby, e))?;
 
         // Check for any errors stored during execution (e.g., from socket checks)

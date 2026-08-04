@@ -38,7 +38,7 @@ jobs:
       matrix:
         ruby-platform: ${{ fromJSON(needs.ci-data.outputs.result).supported-ruby-platforms }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: ruby/setup-ruby@v1
         with:
@@ -99,7 +99,7 @@ jobs:
     needs: [build, smoke-test]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
         with:

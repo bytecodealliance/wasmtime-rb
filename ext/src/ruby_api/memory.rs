@@ -94,7 +94,7 @@ impl<'a> Memory<'a> {
 
         let memtype = wasmtime::MemoryType::new(min, max);
 
-        let inner = MemoryImpl::new(store.context_mut(), memtype).map_err(|e| error!("{}", e))?;
+        let inner = MemoryImpl::new(store.context_mut()?, memtype).map_err(|e| error!("{}", e))?;
 
         Ok(Self {
             store: store.into(),

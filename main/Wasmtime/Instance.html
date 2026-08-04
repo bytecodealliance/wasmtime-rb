@@ -6,7 +6,7 @@
 <title>
   Class: Wasmtime::Instance
   
-    &mdash; Documentation by YARD 0.9.44
+    &mdash; Documentation by YARD 0.9.45
   
 </title>
 
@@ -355,10 +355,7 @@
 67
 68
 69
-70
-71
-72
-73</pre>
+70</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 41</span>
@@ -368,10 +365,7 @@ pub fn new(ruby: &amp;Ruby, args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; 
         scan_args::scan_args::&lt;(Obj&lt;Store&gt;, &amp;Module), (Option&lt;Value&gt;,), (), (), (), ()&gt;(args)?;
     let (wrapped_store, module) = args.required;
     let mut context = wrapped_store.context_mut()?;
-    let imports = args
-        .optional
-        .0
-        .and_then(|v| if v.is_nil() { None } else { Some(v) });
+    let imports = args.optional.0.filter(|&amp;v| !v.is_nil());
 
     let imports: Vec&lt;Extern&gt; = match imports {
         Some(arr) =&gt; {
@@ -462,6 +456,9 @@ pub fn new(ruby: &amp;Ruby, args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; 
       <pre class="lines">
 
 
+108
+109
+110
 111
 112
 113
@@ -470,13 +467,10 @@ pub fn new(ruby: &amp;Ruby, args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; 
 116
 117
 118
-119
-120
-121
-122</pre>
+119</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 111</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 108</span>
 
 pub fn export(&amp;self, str: RString) -&gt; Result&lt;Option&lt;super::externals::Extern&lt;&#39;_&gt;&gt;, Error&gt; {
     let export = self
@@ -533,6 +527,9 @@ and values are <span class='object_link'><a href="Extern.html" title="Wasmtime::
       <pre class="lines">
 
 
+86
+87
+88
 89
 90
 91
@@ -544,13 +541,10 @@ and values are <span class='object_link'><a href="Extern.html" title="Wasmtime::
 97
 98
 99
-100
-101
-102
-103</pre>
+100</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 89</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 86</span>
 
 pub fn exports(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RHash, Error&gt; {
     let mut ctx = rb_self.store.context_mut()?;
@@ -662,6 +656,9 @@ not conform to the Wasm function's parameters.</p></div>
       <pre class="lines">
 
 
+130
+131
+132
 133
 134
 135
@@ -669,13 +666,10 @@ not conform to the Wasm function's parameters.</p></div>
 137
 138
 139
-140
-141
-142
-143</pre>
+140</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 133</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 130</span>
 
 pub fn invoke(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
     let name = RString::try_convert(*args.first().ok_or_else(|| {
@@ -698,9 +692,9 @@ pub fn invoke(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, args: &amp;[Value]) -&g
 </div>
 
       <div id="footer">
-  Generated on Mon Jul  6 18:09:22 2026 by
+  Generated on Tue Aug  4 16:05:36 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.44 (ruby-4.0.5).
+  0.9.45 (ruby-4.0.6).
 </div>
 
     </div>

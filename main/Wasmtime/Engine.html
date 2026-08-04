@@ -6,7 +6,7 @@
 <title>
   Class: Wasmtime::Engine
   
-    &mdash; Documentation by YARD 0.9.44
+    &mdash; Documentation by YARD 0.9.45
   
 </title>
 
@@ -599,7 +599,7 @@ the different options and the defaults.</p></div>
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let args = scan_args::scan_args::&lt;(), (Option&lt;Value&gt;,), (), (), (), ()&gt;(args)?;
     let (config,) = args.optional;
-    let config = config.and_then(|v| if v.is_nil() { None } else { Some(v) });
+    let config = config.filter(|&amp;v| !v.is_nil());
     let inner = match config {
         Some(config) =&gt; {
             let config = RHash::try_convert(config).and_then(hash_to_config)?;
@@ -1125,9 +1125,9 @@ pub fn stop_epoch_interval(&amp;self) {
 </div>
 
       <div id="footer">
-  Generated on Mon Jul  6 18:09:22 2026 by
+  Generated on Tue Aug  4 16:05:36 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.44 (ruby-4.0.5).
+  0.9.45 (ruby-4.0.6).
 </div>
 
     </div>

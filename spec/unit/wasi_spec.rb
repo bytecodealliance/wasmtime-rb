@@ -754,6 +754,8 @@ module Wasmtime
     # This server cannot run in a thread because the GVL is locked while the WASI IO
     # is taking place
     def spawn_tcp_server(port_file)
+      File.delete(port_file) if File.exist?(port_file)
+
       Process.spawn(
         RbConfig.ruby,
         "-e",
@@ -761,7 +763,9 @@ module Wasmtime
           require "socket"
           server = TCPServer.new("127.0.0.1", 0)
           port = server.addr[1]
-          File.write("#{port_file}", port.to_s)
+          temp_port_file = "#{port_file}.tmp"
+          File.write(temp_port_file, port.to_s)
+          File.rename(temp_port_file, "#{port_file}")
           loop do
             client = server.accept
             data = client.read(5)
@@ -778,6 +782,8 @@ module Wasmtime
     # This server cannot run in a thread because the GVL is locked while the WASI IO
     # is taking place
     def spawn_udp_server(port_file)
+      File.delete(port_file) if File.exist?(port_file)
+
       Process.spawn(
         RbConfig.ruby,
         "-e",
@@ -786,7 +792,9 @@ module Wasmtime
           server = UDPSocket.new
           server.bind("127.0.0.1", 0)
           port = server.addr[1]
-          File.write("#{port_file}", port.to_s)
+          temp_port_file = "#{port_file}.tmp"
+          File.write(temp_port_file, port.to_s)
+          File.rename(temp_port_file, "#{port_file}")
           loop do
             data, addr = server.recvfrom(100)
             server.send("WORLD", 0, addr[3], addr[1]) if data == "HELLO"
@@ -797,16 +805,19 @@ module Wasmtime
       )
     end
 
-    # Wait for the port file to be written and return the port number
+    # Wait for the server to atomically publish its port and return it.
     def wait_for_port(port_file, timeout: 5)
-      start_time = Time.now
-      until File.exist?(port_file)
-        sleep 0.01
-        if Time.now - start_time > timeout
+      deadline = Time.now + timeout
+
+      loop do
+        return File.read(port_file).to_i if File.exist?(port_file)
+
+        if Time.now > deadline
           raise "Timeout waiting for server to write port file: #{port_file}"
         end
+
+        sleep 0.01
       end
-      File.read(port_file).to_i
     end
 
     # Clean up a spawned server process

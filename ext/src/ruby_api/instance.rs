@@ -43,10 +43,7 @@ impl Instance {
             scan_args::scan_args::<(Obj<Store>, &Module), (Option<Value>,), (), (), (), ()>(args)?;
         let (wrapped_store, module) = args.required;
         let mut context = wrapped_store.context_mut();
-        let imports = args
-            .optional
-            .0
-            .filter(|&v| !v.is_nil());
+        let imports = args.optional.0.filter(|&v| !v.is_nil());
 
         let imports: Vec<Extern> = match imports {
             Some(arr) => {

@@ -1,5 +1,28 @@
 # Changelog
 
+## [v47.0.3](https://github.com/bytecodealliance/wasmtime-rb/tree/v47.0.3) (2026-08-07)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v46.0.0...v47.0.3)
+
+**Merged pull requests:**
+
+- update to wasmtime 47.0.3 [\#633](https://github.com/bytecodealliance/wasmtime-rb/pull/633) ([jacobsteves](https://github.com/jacobsteves))
+- Fix flakey network tests [\#632](https://github.com/bytecodealliance/wasmtime-rb/pull/632) ([jeffcharles](https://github.com/jeffcharles))
+- Fixes for new `cargo clippy` errors [\#631](https://github.com/bytecodealliance/wasmtime-rb/pull/631) ([jeffcharles](https://github.com/jeffcharles))
+- chore\(deps\): bump async-trait from 0.1.89 to 0.1.91 [\#630](https://github.com/bytecodealliance/wasmtime-rb/pull/630) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump tokio from 1.52.3 to 1.53.1 [\#629](https://github.com/bytecodealliance/wasmtime-rb/pull/629) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump wat from 1.252.0 to 1.255.0 [\#628](https://github.com/bytecodealliance/wasmtime-rb/pull/628) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump yard from 0.9.44 to 0.9.45 [\#627](https://github.com/bytecodealliance/wasmtime-rb/pull/627) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump bytes from 1.12.0 to 1.12.1 [\#626](https://github.com/bytecodealliance/wasmtime-rb/pull/626) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump standard from 1.55.0 to 1.56.0 [\#625](https://github.com/bytecodealliance/wasmtime-rb/pull/625) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Add Store\#close [\#624](https://github.com/bytecodealliance/wasmtime-rb/pull/624) ([omohokcoj](https://github.com/omohokcoj))
+- Add Bytecode Alliance AI Tool Use Policy to contributing doc [\#621](https://github.com/bytecodealliance/wasmtime-rb/pull/621) ([jeffcharles](https://github.com/jeffcharles))
+- chore\(deps\): bump wat from 1.251.0 to 1.252.0 [\#618](https://github.com/bytecodealliance/wasmtime-rb/pull/618) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump bytes from 1.11.1 to 1.12.0 [\#617](https://github.com/bytecodealliance/wasmtime-rb/pull/617) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps-dev\): bump standard from 1.54.0 to 1.55.0 [\#616](https://github.com/bytecodealliance/wasmtime-rb/pull/616) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump actions/checkout from 6 to 7 [\#615](https://github.com/bytecodealliance/wasmtime-rb/pull/615) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Fix rb\_gc\_adjust\_memory\_usage double-counting [\#613](https://github.com/bytecodealliance/wasmtime-rb/pull/613) ([omohokcoj](https://github.com/omohokcoj))
+
 ## [v46.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v46.0.0) (2026-06-29)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v45.0.0...v46.0.0)

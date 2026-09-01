@@ -41,7 +41,7 @@ pub(crate) fn component_val_to_rb(
         Val::Float64(n) => Ok(n.into_value_with(ruby)),
         Val::Char(c) => Ok(c.into_value_with(ruby)),
         Val::String(s) => Ok(s.as_str().into_value_with(ruby)),
-        Val::List(vec) => {
+        Val::List(vec) | Val::FixedLengthList(vec) => {
             let array = ruby.ary_new_capa(vec.len());
             for val in vec {
                 array.push(component_val_to_rb(ruby, val, _store)?)?;
@@ -101,6 +101,46 @@ pub(crate) fn component_val_to_rb(
     }
 }
 
+fn rb_to_component_list(
+    value: Value,
+    store: Option<&StoreContextValue>,
+    element_ty: &Type,
+    expected_len: Option<usize>,
+) -> Result<Vec<Val>, Error> {
+    let ruby = Ruby::get_with(value);
+    let array = RArray::try_convert(value)?;
+
+    if let Some(expected_len) = expected_len {
+        if array.len() != expected_len {
+            return Err(Error::new(
+                ruby.exception_type_error(),
+                format!(
+                    "invalid array length for fixed-length list (given {}, expected {})",
+                    array.len(),
+                    expected_len
+                ),
+            ));
+        }
+    }
+
+    let mut values = Vec::with_capacity(array.len());
+    let list_kind = if expected_len.is_some() {
+        "fixed-length list"
+    } else {
+        "list"
+    };
+
+    // SAFETY: we don't mutate the RArray and we don't call into
+    // user code so user code can't mutate it either.
+    for (index, value) in unsafe { array.as_slice() }.iter().enumerate() {
+        let value = rb_to_component_val(*value, store, element_ty)
+            .map_err(|e| e.append(format!(" ({list_kind} item at index {index})")))?;
+        values.push(value);
+    }
+
+    Ok(values)
+}
+
 pub(crate) fn rb_to_component_val(
     value: Value,
     _store: Option<&StoreContextValue>,
@@ -135,19 +175,10 @@ pub(crate) fn rb_to_component_val(
         Type::Float64 => Ok(Val::Float64(f64::try_convert(value)?)),
         Type::Char => Ok(Val::Char(value.to_r_string()?.to_char()?)),
         Type::String => Ok(Val::String(RString::try_convert(value)?.to_string()?)),
-        Type::List(list) => {
-            let ty = list.ty();
-            let rarray = RArray::try_convert(value)?;
-            let mut vals: Vec<Val> = Vec::with_capacity(rarray.len());
-            // SAFETY: we don't mutate the RArray and we don't call into
-            // user code so user code can't mutate it either.
-            for (i, value) in unsafe { rarray.as_slice() }.iter().enumerate() {
-                let component_val = rb_to_component_val(*value, _store, &ty)
-                    .map_err(|e| e.append(format!(" (list item at index {i})")))?;
-
-                vals.push(component_val);
-            }
-            Ok(Val::List(vals))
+        Type::List(list) => rb_to_component_list(value, _store, &list.ty(), None).map(Val::List),
+        Type::FixedLengthList(list) => {
+            rb_to_component_list(value, _store, &list.ty(), Some(list.len() as usize))
+                .map(Val::FixedLengthList)
         }
         Type::Record(record) => {
             let hash = RHash::try_convert(value)?;

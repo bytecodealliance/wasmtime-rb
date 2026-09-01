@@ -244,7 +244,7 @@ module Wasmtime
 
         wasi_config = WasiConfig.new
           .set_argv(["wasi-fs", "/tmp/counter"])
-          .set_mapped_directory(tempfile_path("tmp"), "/tmp", :all, :all)
+          .set_mapped_directory(tempfile_path("tmp"), "/tmp", :read_write)
 
         expect { run_fs.call(wasi_config) }.not_to raise_error
 
@@ -259,7 +259,7 @@ module Wasmtime
         wasi_config = WasiConfig.new
           .set_argv(["wasi-fs", "/tmp/counter"])
           .set_stderr_buffer(stderr_str, 40000)
-          .set_mapped_directory(tempfile_path("tmp"), "/tmp", :read, :read)
+          .set_mapped_directory(tempfile_path("tmp"), "/tmp", :read_only)
 
         expect { run_fs.call(wasi_config) }.to raise_error do |error|
           expect(error).to be_a(Wasmtime::Error)
@@ -270,21 +270,16 @@ module Wasmtime
         expect(File.read(tempfile_path(File.join("tmp", "counter")))).to eq("0")
       end
 
-      it "fails to read from mapped directory if not permitted" do
+      it "does not accept legacy permissions" do
         Dir.mkdir(tempfile_path("tmp"))
         File.write(tempfile_path(File.join("tmp", "counter")), "0")
 
-        stderr_str = ""
         wasi_config = WasiConfig.new
           .set_argv(["wasi-fs", "/tmp/counter"])
-          .set_stderr_buffer(stderr_str, 40000)
-          .set_mapped_directory(tempfile_path("tmp"), "/tmp", :mutate, :write)
+          .set_mapped_directory(tempfile_path("tmp"), "/tmp", :all)
 
-        expect { run_fs.call(wasi_config) }.to raise_error do |error|
-          expect(error).to be_a(Wasmtime::Error)
-        end
-
-        expect(stderr_str).to match(/failed to open counter file/)
+        expect { run_fs.call(wasi_config) }
+          .to raise_error(ArgumentError, /invalid :fs_perms, expected one of \[:read_only, :read_write\], got :all/)
 
         expect(File.read(tempfile_path(File.join("tmp", "counter")))).to eq("0")
       end
@@ -309,7 +304,7 @@ module Wasmtime
 
       it "does not accept an invalid host path" do
         wasi_config = WasiConfig.new
-          .set_mapped_directory(tempfile_path("tmp"), "/tmp", :all, :all)
+          .set_mapped_directory(tempfile_path("tmp"), "/tmp", :read_write)
 
         expect { run_fs.call(wasi_config) }.to raise_error do |error|
           expect(error).to be_a(Wasmtime::Error)
@@ -319,11 +314,11 @@ module Wasmtime
 
       it "does not accept invalid permissions" do
         wasi_config = WasiConfig.new
-          .set_mapped_directory(tempfile_path("tmp"), "/tmp", :mutate, :invalid_permission)
+          .set_mapped_directory(tempfile_path("tmp"), "/tmp", :invalid_permission)
 
         expect { run_fs.call(wasi_config) }.to raise_error do |error|
           expect(error).to be_a(ArgumentError)
-          expect(error.message).to match(/invalid :file_perms, expected one of \[:read, :write, :all\], got :invalid_permission/)
+          expect(error.message).to match(/invalid :fs_perms, expected one of \[:read_only, :read_write\], got :invalid_permission/)
         end
       end
     end
@@ -449,7 +444,7 @@ module Wasmtime
         cleanup_server(server_pid)
       end
 
-      it "allows tcp when inheriting network access" do
+      it "allows tcp when network addresses and TCP are enabled" do
         port_file = tempfile_path("tcp_port")
         server_pid = spawn_tcp_server(port_file)
         port = wait_for_port(port_file)
@@ -459,6 +454,7 @@ module Wasmtime
           .set_argv(["wasi-network", "tcp", "127.0.0.1", port.to_s])
           .set_stdout_buffer(stdout_str, 40000)
           .inherit_network
+          .allow_tcp(true)
 
         run_wasi_component_network(wasi_config)
 
@@ -470,7 +466,7 @@ module Wasmtime
         cleanup_server(server_pid)
       end
 
-      it "disallows tcp when tcp is disabled" do
+      it "does not enable tcp when only inheriting network addresses" do
         port_file = tempfile_path("tcp_port_deny")
         server_pid = spawn_tcp_server(port_file)
         port = wait_for_port(port_file)
@@ -480,7 +476,6 @@ module Wasmtime
           .set_argv(["wasi-network", "tcp", "127.0.0.1", port.to_s])
           .set_stdout_buffer(stdout_str, 40000)
           .inherit_network
-          .allow_tcp(false)
 
         run_wasi_component_network(wasi_config)
 
@@ -491,7 +486,7 @@ module Wasmtime
         cleanup_server(server_pid)
       end
 
-      it "allows udp when inheriting network access" do
+      it "allows udp when network addresses and UDP are enabled" do
         port_file = tempfile_path("udp_port")
         server_pid = spawn_udp_server(port_file)
         port = wait_for_port(port_file)
@@ -501,6 +496,7 @@ module Wasmtime
           .set_argv(["wasi-network", "udp", "127.0.0.1", port.to_s])
           .set_stdout_buffer(stdout_str, 40000)
           .inherit_network
+          .allow_udp(true)
 
         run_wasi_component_network(wasi_config)
 
@@ -570,9 +566,10 @@ module Wasmtime
         wasi_config = WasiConfig.new
           .set_argv(["wasi-network", "tcp", "127.0.0.1", port.to_s])
           .set_stdout_buffer(stdout_str, 40000)
+          .allow_tcp(true)
           .socket_addr_check do |addr, use|
             # Only allow connections to localhost on the specific port
-            addr.start_with?("127.0.0.1:") && use == :tcp_connect
+            use == :tcp_bind || (addr.start_with?("127.0.0.1:") && use == :tcp_connect)
           end
 
         run_wasi_component_network(wasi_config)
@@ -594,6 +591,7 @@ module Wasmtime
         wasi_config = WasiConfig.new
           .set_argv(["wasi-network", "tcp", "127.0.0.1", port.to_s])
           .set_stdout_buffer(stdout_str, 40000)
+          .allow_tcp(true)
           .socket_addr_check do |_addr, _use|
             false # Block all access
           end
@@ -616,6 +614,7 @@ module Wasmtime
         wasi_config = WasiConfig.new
           .set_argv(["wasi-network", "tcp", "127.0.0.1", port.to_s])
           .set_stdout_buffer(stdout_str, 40000)
+          .allow_tcp(true)
           .socket_addr_check do |_addr, _use|
             raise ArgumentError, "Intentional error for testing"
           end

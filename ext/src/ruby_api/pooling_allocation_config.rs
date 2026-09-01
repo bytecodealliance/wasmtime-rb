@@ -11,6 +11,7 @@ use wasmtime::{Enabled, PoolingAllocationConfig as PoolingAllocationConfigImpl};
 use crate::{define_rb_intern, err, helpers::SymbolEnum, root};
 
 /// @yard
+/// @rename Wasmtime::PoolingAllocationConfig
 /// Configuration options used with an engines `allocation_strategy` to change
 /// the behavior of the pooling instance allocator.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.PoolingAllocationConfig.html Wasmtime's Rust doc

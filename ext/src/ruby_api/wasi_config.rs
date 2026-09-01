@@ -242,6 +242,7 @@ impl TryFrom<PermsSymbolEnum> for FilePerms {
 }
 
 /// @yard
+/// @rename Wasmtime::WasiConfig
 /// WASI config to be sent as {Store#new}’s +wasi_config+ keyword argument.
 ///
 /// Instance methods mutate the current object and return +self+.

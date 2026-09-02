@@ -326,7 +326,6 @@
       <pre class="lines">
 
 
-41
 42
 43
 44
@@ -355,10 +354,11 @@
 67
 68
 69
-70</pre>
+70
+71</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 41</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 42</span>
 
 pub fn new(ruby: &amp;Ruby, args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let args =
@@ -456,7 +456,6 @@ pub fn new(ruby: &amp;Ruby, args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; 
       <pre class="lines">
 
 
-108
 109
 110
 111
@@ -467,10 +466,11 @@ pub fn new(ruby: &amp;Ruby, args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; 
 116
 117
 118
-119</pre>
+119
+120</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 108</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 109</span>
 
 pub fn export(&amp;self, str: RString) -&gt; Result&lt;Option&lt;super::externals::Extern&lt;&#39;_&gt;&gt;, Error&gt; {
     let export = self
@@ -527,7 +527,6 @@ and values are <span class='object_link'><a href="Extern.html" title="Wasmtime::
       <pre class="lines">
 
 
-86
 87
 88
 89
@@ -541,10 +540,11 @@ and values are <span class='object_link'><a href="Extern.html" title="Wasmtime::
 97
 98
 99
-100</pre>
+100
+101</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 86</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 87</span>
 
 pub fn exports(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RHash, Error&gt; {
     let mut ctx = rb_self.store.context_mut()?;
@@ -656,7 +656,6 @@ not conform to the Wasm function's parameters.</p></div>
       <pre class="lines">
 
 
-130
 131
 132
 133
@@ -666,10 +665,11 @@ not conform to the Wasm function's parameters.</p></div>
 137
 138
 139
-140</pre>
+140
+141</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 130</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/instance.rs', line 131</span>
 
 pub fn invoke(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, args: &amp;[Value]) -&gt; Result&lt;Value, Error&gt; {
     let name = RString::try_convert(*args.first().ok_or_else(|| {
@@ -692,7 +692,7 @@ pub fn invoke(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, args: &amp;[Value]) -&g
 </div>
 
       <div id="footer">
-  Generated on Tue Sep  1 16:57:05 2026 by
+  Generated on Wed Sep  2 12:33:11 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.45 (ruby-4.0.6).
 </div>

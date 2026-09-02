@@ -491,17 +491,17 @@
       <pre class="lines">
 
 
-44
 45
 46
 47
 48
 49
 50
-51</pre>
+51
+52</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 44</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 45</span>
 
 pub fn new(engine: &amp;Engine) -&gt; Result&lt;Self, Error&gt; {
     let inner: LinkerImpl&lt;StoreData&gt; = LinkerImpl::new(engine.get());
@@ -578,7 +578,6 @@ pub fn new(engine: &amp;Engine) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
-233
 234
 235
 236
@@ -595,10 +594,11 @@ pub fn new(engine: &amp;Engine) -&gt; Result&lt;Self, Error&gt; {
 247
 248
 249
-250</pre>
+250
+251</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 233</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 234</span>
 
 pub fn alias(
     &amp;self,
@@ -662,12 +662,12 @@ pub fn alias(
       <pre class="lines">
 
 
-57
 58
-59</pre>
+59
+60</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 57</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 58</span>
 
 pub fn set_allow_shadowing(&amp;self, val: bool) {
     self.inner.borrow_mut().allow_shadowing(val);
@@ -716,12 +716,12 @@ pub fn set_allow_shadowing(&amp;self, val: bool) {
       <pre class="lines">
 
 
-65
 66
-67</pre>
+67
+68</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 65</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 66</span>
 
 pub fn set_allow_unknown_exports(&amp;self, val: bool) {
     self.inner.borrow_mut().allow_unknown_exports(val);
@@ -812,7 +812,6 @@ pub fn set_allow_unknown_exports(&amp;self, val: bool) {
       <pre class="lines">
 
 
-89
 90
 91
 92
@@ -833,10 +832,11 @@ pub fn set_allow_unknown_exports(&amp;self, val: bool) {
 107
 108
 109
-110</pre>
+110
+111</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 89</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 90</span>
 
 pub fn define(
     ruby: &amp;Ruby,
@@ -904,15 +904,15 @@ pub fn define(
       <pre class="lines">
 
 
-74
 75
 76
 77
 78
-79</pre>
+79
+80</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 74</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 75</span>
 
 pub fn define_unknown_imports_as_traps(&amp;self, module: &amp;Module) -&gt; Result&lt;(), Error&gt; {
     self.inner
@@ -1032,7 +1032,6 @@ pub fn define_unknown_imports_as_traps(&amp;self, module: &amp;Module) -&gt; Res
       <pre class="lines">
 
 
-125
 126
 127
 128
@@ -1056,10 +1055,11 @@ pub fn define_unknown_imports_as_traps(&amp;self, module: &amp;Module) -&gt; Res
 146
 147
 148
-149</pre>
+149
+150</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 125</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 126</span>
 
 pub fn func_new(&amp;self, args: &amp;[Value]) -&gt; Result&lt;(), Error&gt; {
     let args = scan_args::&lt;(RString, RString, RArray, RArray), (), (), (), RHash, Proc&gt;(args)?;
@@ -1191,7 +1191,6 @@ if looking it up fails for another reason (e.g. out of memory).</p></div>
       <pre class="lines">
 
 
-161
 162
 163
 164
@@ -1207,10 +1206,11 @@ if looking it up fails for another reason (e.g. out of memory).</p></div>
 174
 175
 176
-177</pre>
+177
+178</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 161</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 162</span>
 
 pub fn get(
     &amp;self,
@@ -1300,16 +1300,16 @@ pub fn get(
       <pre class="lines">
 
 
-304
 305
 306
 307
 308
 309
-310</pre>
+310
+311</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 304</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 305</span>
 
 pub fn get_default(&amp;self, store: Obj&lt;Store&gt;, module: RString) -&gt; Result&lt;Func&lt;&#39;_&gt;, Error&gt; {
     self.inner
@@ -1387,7 +1387,6 @@ pub fn get_default(&amp;self, store: Obj&lt;Store&gt;, module: RString) -&gt; Re
       <pre class="lines">
 
 
-187
 188
 189
 190
@@ -1402,10 +1401,11 @@ pub fn get_default(&amp;self, store: Obj&lt;Store&gt;, module: RString) -&gt; Re
 199
 200
 201
-202</pre>
+202
+203</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 187</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 188</span>
 
 pub fn instance(
     &amp;self,
@@ -1491,7 +1491,6 @@ pub fn instance(
       <pre class="lines">
 
 
-273
 274
 275
 276
@@ -1514,10 +1513,11 @@ pub fn instance(
 293
 294
 295
-296</pre>
+296
+297</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 273</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 274</span>
 
 pub fn instantiate(
     ruby: &amp;Ruby,
@@ -1612,7 +1612,6 @@ pub fn instantiate(
       <pre class="lines">
 
 
-212
 213
 214
 215
@@ -1622,10 +1621,11 @@ pub fn instantiate(
 219
 220
 221
-222</pre>
+222
+223</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 212</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 213</span>
 
 pub fn module(&amp;self, store: &amp;Store, name: RString, module: &amp;Module) -&gt; Result&lt;(), Error&gt; {
     self.inner
@@ -1668,13 +1668,13 @@ with deterministic ones.</p>
       <pre class="lines">
 
 
-316
 317
 318
-319</pre>
+319
+320</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 316</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/linker.rs', line 317</span>
 
 pub fn use_deterministic_scheduling_functions(&amp;self) -&gt; Result&lt;(), Error&gt; {
     let mut inner = self.inner.borrow_mut();
@@ -1690,7 +1690,7 @@ pub fn use_deterministic_scheduling_functions(&amp;self) -&gt; Result&lt;(), Err
 </div>
 
       <div id="footer">
-  Generated on Tue Sep  1 16:57:05 2026 by
+  Generated on Wed Sep  2 12:33:11 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.45 (ruby-4.0.6).
 </div>

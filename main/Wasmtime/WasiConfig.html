@@ -603,12 +603,12 @@ no env, no argv, no file access.</p>
       <pre class="lines">
 
 
-269
 270
-271</pre>
+271
+272</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 269</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 270</span>
 
 pub fn new() -&gt; Self {
     Self::default()
@@ -664,14 +664,14 @@ pub fn new() -&gt; Self {
       <pre class="lines">
 
 
-276
 277
 278
 279
-280</pre>
+280
+281</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 276</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 277</span>
 
 pub fn add_determinism(rb_self: RbSelf) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -741,14 +741,14 @@ pub fn add_determinism(rb_self: RbSelf) -&gt; RbSelf {
       <pre class="lines">
 
 
-472
 473
 474
 475
-476</pre>
+476
+477</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 472</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 473</span>
 
 pub fn allow_ip_name_lookup(rb_self: RbSelf, enabled: bool) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -818,14 +818,14 @@ pub fn allow_ip_name_lookup(rb_self: RbSelf, enabled: bool) -&gt; RbSelf {
       <pre class="lines">
 
 
-450
 451
 452
 453
-454</pre>
+454
+455</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 450</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 451</span>
 
 pub fn allow_tcp(rb_self: RbSelf, enabled: bool) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -895,14 +895,14 @@ pub fn allow_tcp(rb_self: RbSelf, enabled: bool) -&gt; RbSelf {
       <pre class="lines">
 
 
-461
 462
 463
 464
-465</pre>
+465
+466</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 461</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 462</span>
 
 pub fn allow_udp(rb_self: RbSelf, enabled: bool) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -957,14 +957,14 @@ threads will be blocked in the meantime.</p>
       <pre class="lines">
 
 
-439
 440
 441
 442
-443</pre>
+443
+444</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 439</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 440</span>
 
 pub fn inherit_network(rb_self: RbSelf) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1016,14 +1016,14 @@ pub fn inherit_network(rb_self: RbSelf) -&gt; RbSelf {
       <pre class="lines">
 
 
-351
 352
 353
 354
-355</pre>
+355
+356</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 351</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 352</span>
 
 pub fn inherit_stderr(rb_self: RbSelf) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1075,14 +1075,14 @@ pub fn inherit_stderr(rb_self: RbSelf) -&gt; RbSelf {
       <pre class="lines">
 
 
-285
 286
 287
 288
-289</pre>
+289
+290</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 285</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 286</span>
 
 pub fn inherit_stdin(rb_self: RbSelf) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1134,14 +1134,14 @@ pub fn inherit_stdin(rb_self: RbSelf) -&gt; RbSelf {
       <pre class="lines">
 
 
-316
 317
 318
 319
-320</pre>
+320
+321</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 316</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 317</span>
 
 pub fn inherit_stdout(rb_self: RbSelf) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1208,14 +1208,14 @@ pub fn inherit_stdout(rb_self: RbSelf) -&gt; RbSelf {
       <pre class="lines">
 
 
-398
 399
 400
 401
-402</pre>
+402
+403</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 398</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 399</span>
 
 pub fn set_argv(rb_self: RbSelf, argv: RArray) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1282,14 +1282,14 @@ pub fn set_argv(rb_self: RbSelf, argv: RArray) -&gt; RbSelf {
       <pre class="lines">
 
 
-387
 388
 389
 390
-391</pre>
+391
+392</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 387</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 388</span>
 
 pub fn set_env(rb_self: RbSelf, env: RHash) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1395,7 +1395,6 @@ pub fn set_env(rb_self: RbSelf, env: RHash) -&gt; RbSelf {
       <pre class="lines">
 
 
-412
 413
 414
 415
@@ -1413,10 +1412,11 @@ pub fn set_env(rb_self: RbSelf, env: RHash) -&gt; RbSelf {
 427
 428
 429
-430</pre>
+430
+431</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 412</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 413</span>
 
 pub fn set_mapped_directory(
     rb_self: RbSelf,
@@ -1516,15 +1516,15 @@ No encoding checks are done on the resulting string, it is the caller's responsi
       <pre class="lines">
 
 
-377
 378
 379
 380
 381
-382</pre>
+382
+383</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 377</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 378</span>
 
 pub fn set_stderr_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1596,14 +1596,14 @@ otherwise try to create it.</p>
       <pre class="lines">
 
 
-363
 364
 365
 366
-367</pre>
+367
+368</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 363</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 364</span>
 
 pub fn set_stderr_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1673,14 +1673,14 @@ pub fn set_stderr_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
       <pre class="lines">
 
 
-296
 297
 298
 299
-300</pre>
+300
+301</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 296</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 297</span>
 
 pub fn set_stdin_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1747,14 +1747,14 @@ pub fn set_stdin_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
       <pre class="lines">
 
 
-307
 308
 309
 310
-311</pre>
+311
+312</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 307</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 308</span>
 
 pub fn set_stdin_string(rb_self: RbSelf, content: RString) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1840,14 +1840,14 @@ No encoding checks are done on the resulting string, it is the caller's responsi
       <pre class="lines">
 
 
-342
 343
 344
 345
-346</pre>
+346
+347</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 342</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 343</span>
 
 pub fn set_stdout_buffer(rb_self: RbSelf, buffer: RString, capacity: usize) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -1918,14 +1918,14 @@ otherwise try to create it.</p>
       <pre class="lines">
 
 
-328
 329
 330
 331
-332</pre>
+332
+333</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 328</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 329</span>
 
 pub fn set_stdout_file(rb_self: RbSelf, path: RString) -&gt; RbSelf {
     let mut inner = rb_self.inner.borrow_mut();
@@ -2032,17 +2032,17 @@ threads will be blocked in the meantime.</p>
       <pre class="lines">
 
 
-494
 495
 496
 497
 498
 499
 500
-501</pre>
+501
+502</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 494</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/wasi_config.rs', line 495</span>
 
 pub fn socket_addr_check(ruby: &amp;Ruby, rb_self: RbSelf) -&gt; RbSelf {
     if ruby.block_given() {
@@ -2062,7 +2062,7 @@ pub fn socket_addr_check(ruby: &amp;Ruby, rb_self: RbSelf) -&gt; RbSelf {
 </div>
 
       <div id="footer">
-  Generated on Tue Sep  1 16:57:06 2026 by
+  Generated on Wed Sep  2 12:33:11 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.45 (ruby-4.0.6).
 </div>

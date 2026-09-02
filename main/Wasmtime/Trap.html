@@ -321,7 +321,6 @@ origin from Wasm code. All possible trap codes are defined as constants on <span
       <pre class="lines">
 
 
-62
 63
 64
 65
@@ -338,10 +337,11 @@ origin from Wasm code. All possible trap codes are defined as constants on <span
 76
 77
 78
-79</pre>
+79
+80</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/trap.rs', line 62</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/trap.rs', line 63</span>
 
 pub fn code(&amp;self) -&gt; Result&lt;Option&lt;Symbol&gt;, Error&gt; {
     match self.trap {
@@ -404,12 +404,12 @@ wasm trap: wasm <code>unreachable</code> instruction executed</p>
       <pre class="lines">
 
 
-44
 45
-46</pre>
+46
+47</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/trap.rs', line 44</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/trap.rs', line 45</span>
 
 pub fn message(&amp;self) -&gt; String {
     self.trap.to_string()
@@ -459,12 +459,12 @@ For example:</p>
       <pre class="lines">
 
 
-54
 55
-56</pre>
+56
+57</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/trap.rs', line 54</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/trap.rs', line 55</span>
 
 pub fn wasm_backtrace_message(&amp;self) -&gt; Option&lt;String&gt; {
     self.wasm_backtrace.as_ref().map(|bt| format!(&quot;{bt}&quot;))
@@ -479,7 +479,7 @@ pub fn wasm_backtrace_message(&amp;self) -&gt; Option&lt;String&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Sep  1 16:57:05 2026 by
+  Generated on Wed Sep  2 12:33:11 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.45 (ruby-4.0.6).
 </div>

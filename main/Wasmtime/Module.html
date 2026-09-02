@@ -356,15 +356,15 @@
       <pre class="lines">
 
 
-79
 80
 81
 82
 83
-84</pre>
+84
+85</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 79</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 80</span>
 
 pub fn deserialize(engine: &amp;Engine, compiled: RString) -&gt; Result&lt;Self, Error&gt; {
     // SAFETY: this string is immediately copied and never moved off the stack
@@ -447,14 +447,14 @@ pub fn deserialize(engine: &amp;Engine, compiled: RString) -&gt; Result&lt;Self,
       <pre class="lines">
 
 
-94
 95
 96
 97
-98</pre>
+98
+99</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 94</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 95</span>
 
 pub fn deserialize_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error&gt; {
     unsafe { ModuleImpl::deserialize_file(engine.get(), path.as_str()?) }
@@ -529,7 +529,6 @@ pub fn deserialize_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self
       <pre class="lines">
 
 
-58
 59
 60
 61
@@ -537,10 +536,11 @@ pub fn deserialize_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self
 63
 64
 65
-66</pre>
+66
+67</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 58</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 59</span>
 
 pub fn from_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error&gt; {
     let eng = engine.get();
@@ -622,17 +622,17 @@ pub fn from_file(engine: &amp;Engine, path: RString) -&gt; Result&lt;Self, Error
       <pre class="lines">
 
 
-44
 45
 46
 47
 48
 49
 50
-51</pre>
+51
+52</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 44</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 45</span>
 
 pub fn new(engine: &amp;Engine, wat_or_wasm: RString) -&gt; Result&lt;Self, Error&gt; {
     let eng = engine.get();
@@ -693,7 +693,6 @@ pub fn new(engine: &amp;Engine, wat_or_wasm: RString) -&gt; Result&lt;Self, Erro
       <pre class="lines">
 
 
-120
 121
 122
 123
@@ -707,10 +706,11 @@ pub fn new(engine: &amp;Engine, wat_or_wasm: RString) -&gt; Result&lt;Self, Erro
 131
 132
 133
-134</pre>
+134
+135</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 120</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 121</span>
 
 pub fn imports(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RArray, Error&gt; {
         let module = rb_self.get();
@@ -776,17 +776,17 @@ pub fn imports(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RArray
       <pre class="lines">
 
 
-104
 105
 106
 107
 108
 109
 110
-111</pre>
+111
+112</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 104</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/module.rs', line 105</span>
 
 pub fn serialize(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RString, Error&gt; {
     let module = rb_self.get();
@@ -806,7 +806,7 @@ pub fn serialize(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RStr
 </div>
 
       <div id="footer">
-  Generated on Tue Sep  1 16:57:05 2026 by
+  Generated on Wed Sep  2 12:33:11 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.45 (ruby-4.0.6).
 </div>

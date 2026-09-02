@@ -573,7 +573,6 @@ the different options and the defaults.</p></div>
       <pre class="lines">
 
 
-91
 92
 93
 94
@@ -591,10 +590,11 @@ the different options and the defaults.</p></div>
 106
 107
 108
-109</pre>
+109
+110</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 91</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 92</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let args = scan_args::scan_args::&lt;(), (Option&lt;Value&gt;,), (), (), (), ()&gt;(args)?;
@@ -666,12 +666,12 @@ Using <span class='object_link'><a href="#start_epoch_interval-instance_method" 
       <pre class="lines">
 
 
-156
 157
-158</pre>
+158
+159</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 156</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 157</span>
 
 pub fn increment_epoch(&amp;self) {
     self.inner.increment_epoch();
@@ -723,7 +723,6 @@ other.</p>
       <pre class="lines">
 
 
-211
 212
 213
 214
@@ -741,10 +740,11 @@ other.</p>
 226
 227
 228
-229</pre>
+229
+230</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 211</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 212</span>
 
 pub fn precompile_compatibility_key(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -&gt; Result&lt;RString, Error&gt; {
     static ID: LazyId = LazyId::new(&quot;precompile_compatibility_key&quot;);
@@ -836,7 +836,6 @@ pub fn precompile_compatibility_key(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -
       <pre class="lines">
 
 
-194
 195
 196
 197
@@ -846,10 +845,11 @@ pub fn precompile_compatibility_key(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;) -
 201
 202
 203
-204</pre>
+204
+205</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 194</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 195</span>
 
 pub fn precompile_component(
     ruby: &amp;Ruby,
@@ -933,7 +933,6 @@ pub fn precompile_component(
       <pre class="lines">
 
 
-173
 174
 175
 176
@@ -943,10 +942,11 @@ pub fn precompile_component(
 180
 181
 182
-183</pre>
+183
+184</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 173</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 174</span>
 
 pub fn precompile_module(
     ruby: &amp;Ruby,
@@ -1018,7 +1018,6 @@ Waits <code>milliseconds</code> before incrementing for the first time.</p>
       <pre class="lines">
 
 
-120
 121
 122
 123
@@ -1033,10 +1032,11 @@ Waits <code>milliseconds</code> before incrementing for the first time.</p>
 132
 133
 134
-135</pre>
+135
+136</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 120</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 121</span>
 
 pub fn start_epoch_interval(&amp;self, milliseconds: u64) {
     self.stop_epoch_interval();
@@ -1097,16 +1097,16 @@ Does nothing if there is no running timer.</p>
       <pre class="lines">
 
 
-142
 143
 144
 145
 146
 147
-148</pre>
+148
+149</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 142</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/engine.rs', line 143</span>
 
 pub fn stop_epoch_interval(&amp;self) {
     let maybe_handle = self.timer_task.lock().unwrap().take();
@@ -1125,7 +1125,7 @@ pub fn stop_epoch_interval(&amp;self) {
 </div>
 
       <div id="footer">
-  Generated on Tue Sep  1 16:57:05 2026 by
+  Generated on Wed Sep  2 12:33:11 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.45 (ruby-4.0.6).
 </div>

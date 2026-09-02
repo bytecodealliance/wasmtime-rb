@@ -554,7 +554,6 @@ for detailed description of the different options and the defaults.</p></div>
       <pre class="lines">
 
 
-183
 184
 185
 186
@@ -615,10 +614,11 @@ for detailed description of the different options and the defaults.</p></div>
 241
 242
 243
-244</pre>
+244
+245</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 183</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 184</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let ruby = Ruby::get().unwrap();
@@ -739,12 +739,12 @@ had already been closed.</p></div>
       <pre class="lines">
 
 
-326
 327
-328</pre>
+328
+329</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 326</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 327</span>
 
 pub fn close(&amp;self) -&gt; bool {
     unsafe { (*self.inner.get()).take() }.is_some()
@@ -794,12 +794,12 @@ pub fn close(&amp;self) -&gt; bool {
       <pre class="lines">
 
 
-333
 334
-335</pre>
+335
+336</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 333</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 334</span>
 
 pub fn closed(&amp;self) -&gt; bool {
     unsafe { (*self.inner.get()).is_none() }
@@ -849,12 +849,12 @@ pub fn closed(&amp;self) -&gt; bool {
       <pre class="lines">
 
 
-248
 249
-250</pre>
+250
+251</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 248</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 249</span>
 
 pub fn data(&amp;self) -&gt; Result&lt;Value, Error&gt; {
     Ok(self.context()?.data().user_data())
@@ -917,12 +917,12 @@ pub fn data(&amp;self) -&gt; Result&lt;Value, Error&gt; {
       <pre class="lines">
 
 
-257
 258
-259</pre>
+259
+260</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 257</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 258</span>
 
 pub fn get_fuel(&amp;self) -&gt; Result&lt;u64, Error&gt; {
     self.inner_ref()?.get_fuel().map_err(|e| error!(&quot;{}&quot;, e))
@@ -969,16 +969,16 @@ pub fn get_fuel(&amp;self) -&gt; Result&lt;u64, Error&gt; {
       <pre class="lines">
 
 
-294
 295
 296
 297
 298
 299
-300</pre>
+300
+301</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 294</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 295</span>
 
 pub fn linear_memory_limit_hit(&amp;self) -&gt; Result&lt;bool, Error&gt; {
     Ok(self
@@ -1029,16 +1029,16 @@ pub fn linear_memory_limit_hit(&amp;self) -&gt; Result&lt;bool, Error&gt; {
       <pre class="lines">
 
 
-306
 307
 308
 309
 310
 311
-312</pre>
+312
+313</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 306</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 307</span>
 
 pub fn max_linear_memory_consumed(&amp;self) -&gt; Result&lt;usize, Error&gt; {
     Ok(self
@@ -1116,13 +1116,13 @@ when the <span class='object_link'><a href="Engine.html" title="Wasmtime::Engine
       <pre class="lines">
 
 
-284
 285
 286
-287</pre>
+287
+288</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 284</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 285</span>
 
 pub fn set_epoch_deadline(&amp;self, ticks_beyond_current: u64) -&gt; Result&lt;(), Error&gt; {
     self.inner_mut()?.set_epoch_deadline(ticks_beyond_current);
@@ -1191,16 +1191,16 @@ pub fn set_epoch_deadline(&amp;self, ticks_beyond_current: u64) -&gt; Result&lt;
       <pre class="lines">
 
 
-266
 267
 268
 269
 270
 271
-272</pre>
+272
+273</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 266</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 267</span>
 
 pub fn set_fuel(&amp;self, fuel: u64) -&gt; Result&lt;(), Error&gt; {
     self.inner_mut()?
@@ -1219,7 +1219,7 @@ pub fn set_fuel(&amp;self, fuel: u64) -&gt; Result&lt;(), Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Tue Sep  1 16:57:06 2026 by
+  Generated on Wed Sep  2 12:33:11 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.45 (ruby-4.0.6).
 </div>

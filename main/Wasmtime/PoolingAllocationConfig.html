@@ -345,12 +345,12 @@ the behavior of the pooling instance allocator.</p>
       <pre class="lines">
 
 
-83
 84
-85</pre>
+85
+86</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 83</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 84</span>
 
 pub fn are_memory_protection_keys_available() -&gt; Result&lt;bool, Error&gt; {
     Ok(wasmtime::PoolingAllocationConfig::are_memory_protection_keys_available())
@@ -397,7 +397,6 @@ pub fn are_memory_protection_keys_available() -&gt; Result&lt;bool, Error&gt; {
       <pre class="lines">
 
 
-27
 28
 29
 30
@@ -405,10 +404,11 @@ pub fn are_memory_protection_keys_available() -&gt; Result&lt;bool, Error&gt; {
 32
 33
 34
-35</pre>
+35
+36</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 27</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 28</span>
 
 pub fn new(ruby: &amp;Ruby) -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
     let obj = ruby.obj_wrap(Self::from(PoolingAllocationConfigImpl::default()));
@@ -482,16 +482,16 @@ pub fn new(ruby: &amp;Ruby) -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
       <pre class="lines">
 
 
-91
 92
 93
 94
 95
 96
-97</pre>
+97
+98</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 91</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 92</span>
 
 pub fn set_async_stack_keep_resident(
     rb_self: Obj&lt;Self&gt;,
@@ -557,16 +557,16 @@ pub fn set_async_stack_keep_resident(
       <pre class="lines">
 
 
-60
 61
 62
 63
 64
 65
-66</pre>
+66
+67</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 60</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 61</span>
 
 pub fn set_max_memories_per_module(
     rb_self: Obj&lt;Self&gt;,
@@ -632,16 +632,16 @@ pub fn set_max_memories_per_module(
       <pre class="lines">
 
 
-72
 73
 74
 75
 76
 77
-78</pre>
+78
+79</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 72</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 73</span>
 
 pub fn set_max_tables_per_component(
     rb_self: Obj&lt;Self&gt;,
@@ -707,14 +707,14 @@ pub fn set_max_tables_per_component(
       <pre class="lines">
 
 
-41
 42
 43
 44
-45</pre>
+45
+46</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 41</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 42</span>
 
 pub fn set_total_memories(rb_self: Obj&lt;Self&gt;, total_memories: u32) -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
     rb_self.borrow_mut()?.total_memories(total_memories);
@@ -778,13 +778,13 @@ pub fn set_total_memories(rb_self: Obj&lt;Self&gt;, total_memories: u32) -&gt; R
       <pre class="lines">
 
 
-51
 52
 53
-54</pre>
+54
+55</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 51</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/pooling_allocation_config.rs', line 52</span>
 
 pub fn set_total_tables(rb_self: Obj&lt;Self&gt;, total_tables: u32) -&gt; Result&lt;Obj&lt;Self&gt;, Error&gt; {
     rb_self.borrow_mut()?.total_tables(total_tables);
@@ -800,7 +800,7 @@ pub fn set_total_tables(rb_self: Obj&lt;Self&gt;, total_tables: u32) -&gt; Resul
 </div>
 
       <div id="footer">
-  Generated on Tue Sep  1 16:57:05 2026 by
+  Generated on Wed Sep  2 12:33:11 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.45 (ruby-4.0.6).
 </div>

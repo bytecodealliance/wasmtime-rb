@@ -23,6 +23,7 @@ macro_rules! trap_const {
 #[derive(TypedData, Debug)]
 #[magnus(class = "Wasmtime::Trap", size, free_immediately)]
 /// @yard
+/// @rename Wasmtime::Trap
 pub struct Trap {
     trap: wasmtime::Trap,
     wasm_backtrace: Option<wasmtime::WasmBacktrace>,

@@ -13,6 +13,7 @@ use magnus::{
 use wasmtime::{Extern, Instance as InstanceImpl, StoreContextMut};
 
 /// @yard
+/// @rename Wasmtime::Instance
 /// Represents a WebAssembly instance.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Instance.html Wasmtime's Rust doc
 #[derive(Clone, Debug, TypedData)]

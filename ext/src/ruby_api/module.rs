@@ -23,6 +23,7 @@ use rb_sys::{
 use wasmtime::{ImportType, Module as ModuleImpl};
 
 /// @yard
+/// @rename Wasmtime::Module
 /// Represents a WebAssembly module.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Module.html Wasmtime's Rust doc
 #[derive(Clone)]

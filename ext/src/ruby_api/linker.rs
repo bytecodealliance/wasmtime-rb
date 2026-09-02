@@ -19,6 +19,7 @@ use std::cell::RefCell;
 use wasmtime::Linker as LinkerImpl;
 
 /// @yard
+/// @rename Wasmtime::Linker
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Linker.html Wasmtime's Rust doc
 #[derive(TypedData)]
 #[magnus(class = "Wasmtime::Linker", size, mark, free_immediately)]

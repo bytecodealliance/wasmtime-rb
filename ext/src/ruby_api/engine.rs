@@ -25,6 +25,7 @@ lazy_static::lazy_static! {
 }
 
 /// @yard
+/// @rename Wasmtime::Engine
 /// Represents a Wasmtime execution engine.
 ///
 /// @example Disabling parallel compilation

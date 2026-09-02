@@ -123,6 +123,7 @@ impl StoreData {
 }
 
 /// @yard
+/// @rename Wasmtime::Store
 /// Represents a WebAssembly store.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/struct.Store.html Wasmtime's Rust doc
 #[derive(Debug, TypedData)]

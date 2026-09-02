@@ -19,6 +19,7 @@ use magnus::{IntoValue, RModule};
 use wasmtime::component::{ComponentExportIndex, Instance as InstanceImpl, Type, Val};
 
 /// @yard
+/// @rename Wasmtime::Component::Instance
 /// Represents a WebAssembly component instance.
 /// @see https://docs.rs/wasmtime/latest/wasmtime/component/struct.Instance.html Wasmtime's Rust doc
 #[derive(Clone, TypedData)]

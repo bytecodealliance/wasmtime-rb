@@ -26,7 +26,7 @@ use wasmtime_wasi::cli::{InputFile, OutputFile};
 use wasmtime_wasi::p1::WasiP1Ctx;
 use wasmtime_wasi::p2::pipe::MemoryInputPipe;
 use wasmtime_wasi::sockets::SocketAddrUse;
-use wasmtime_wasi::{DirPerms, FilePerms, WasiCtx, WasiCtxBuilder};
+use wasmtime_wasi::{FsPerms, WasiCtx, WasiCtxBuilder};
 
 /// Storage for errors that occur in socket_addr_check callbacks.
 /// We store (class_name, message) tuples since magnus::Error is not Send+Sync.
@@ -59,31 +59,18 @@ impl WasiRetainedData {
 }
 
 define_rb_intern!(
-    READ => "read",
-    WRITE => "write",
-    MUTATE => "mutate",
-    ALL => "all",
+    READ_ONLY => "read_only",
+    READ_WRITE => "read_write",
 );
 
 lazy_static! {
-    static ref FILE_PERMS_MAPPING: SymbolEnum<'static, FilePerms> = {
-        let mapping = vec![
-            (*READ, FilePerms::READ),
-            (*WRITE, FilePerms::WRITE),
-            (*ALL, FilePerms::all()),
-        ];
-
-        SymbolEnum::new(":file_perms", mapping)
-    };
-    static ref DIR_PERMS_MAPPING: SymbolEnum<'static, DirPerms> = {
-        let mapping = vec![
-            (*READ, DirPerms::READ),
-            (*MUTATE, DirPerms::MUTATE),
-            (*ALL, DirPerms::all()),
-        ];
-
-        SymbolEnum::new(":dir_perms", mapping)
-    };
+    static ref FS_PERMS_MAPPING: SymbolEnum<'static, FsPerms> = SymbolEnum::new(
+        ":fs_perms",
+        vec![
+            (*READ_ONLY, FsPerms::ReadOnly),
+            (*READ_WRITE, FsPerms::ReadWrite),
+        ],
+    );
 }
 
 enum ReadStream {
@@ -117,21 +104,19 @@ impl WriteStream {
     }
 }
 
-struct PermsSymbolEnum(Symbol);
+struct FsPermsSymbol(Symbol);
 
 #[derive(Clone)]
 struct MappedDirectory {
     host_path: Opaque<RString>,
     guest_path: Opaque<RString>,
-    dir_perms: Opaque<Symbol>,
-    file_perms: Opaque<Symbol>,
+    fs_perms: Opaque<Symbol>,
 }
 impl MappedDirectory {
     pub fn mark(&self, marker: &Marker) {
         marker.mark(self.host_path);
         marker.mark(self.guest_path);
-        marker.mark(self.dir_perms);
-        marker.mark(self.file_perms);
+        marker.mark(self.fs_perms);
     }
 }
 
@@ -176,10 +161,12 @@ unsafe impl Sync for SocketAddrProc {}
 fn socket_addr_use_to_symbol(ruby: &Ruby, use_: SocketAddrUse) -> Symbol {
     match use_ {
         SocketAddrUse::TcpBind => ruby.to_symbol("tcp_bind"),
+        SocketAddrUse::TcpListen => ruby.to_symbol("tcp_listen"),
+        SocketAddrUse::TcpAccept => ruby.to_symbol("tcp_accept"),
         SocketAddrUse::TcpConnect => ruby.to_symbol("tcp_connect"),
         SocketAddrUse::UdpBind => ruby.to_symbol("udp_bind"),
-        SocketAddrUse::UdpConnect => ruby.to_symbol("udp_connect"),
-        SocketAddrUse::UdpOutgoingDatagram => ruby.to_symbol("udp_outgoing_datagram"),
+        SocketAddrUse::UdpSend => ruby.to_symbol("udp_send"),
+        SocketAddrUse::UdpReceive => ruby.to_symbol("udp_receive"),
     }
 }
 
@@ -225,19 +212,12 @@ impl WasiConfigInner {
     }
 }
 
-impl TryFrom<PermsSymbolEnum> for DirPerms {
+impl TryFrom<FsPermsSymbol> for FsPerms {
     type Error = magnus::Error;
-    fn try_from(value: PermsSymbolEnum) -> Result<Self, Error> {
-        let ruby = Ruby::get_with(value.0);
-        DIR_PERMS_MAPPING.get(value.0.into_value_with(&ruby))
-    }
-}
 
-impl TryFrom<PermsSymbolEnum> for FilePerms {
-    type Error = magnus::Error;
-    fn try_from(value: PermsSymbolEnum) -> Result<Self, Error> {
+    fn try_from(value: FsPermsSymbol) -> Result<Self, Self::Error> {
         let ruby = Ruby::get_with(value.0);
-        FILE_PERMS_MAPPING.get(value.0.into_value_with(&ruby))
+        FS_PERMS_MAPPING.get(value.0.into_value_with(&ruby))
     }
 }
 
@@ -406,22 +386,19 @@ impl WasiConfig {
     /// Set mapped directory for host path and guest path.
     /// @param host_path [String]
     /// @param guest_path [String]
-    /// @param dir_perms [Symbol] Directory permissions, one of :read, :mutate, or :all
-    /// @param file_perms [Symbol] File permissions, one of :read, :write, or :all
-    /// @def set_mapped_directory(host_path, guest_path, dir_perms, file_perms)
+    /// @param fs_perms [Symbol] Filesystem permissions, either :read_only or :read_write
+    /// @def set_mapped_directory(host_path, guest_path, fs_perms)
     /// @return [WasiConfig] +self+
     pub fn set_mapped_directory(
         rb_self: RbSelf,
         host_path: RString,
         guest_path: RString,
-        dir_perms: Symbol,
-        file_perms: Symbol,
+        fs_perms: Symbol,
     ) -> RbSelf {
         let mapped_dir = MappedDirectory {
             host_path: host_path.into(),
             guest_path: guest_path.into(),
-            dir_perms: dir_perms.into(),
-            file_perms: file_perms.into(),
+            fs_perms: fs_perms.into(),
         };
 
         let mut inner = rb_self.inner.borrow_mut();
@@ -431,8 +408,9 @@ impl WasiConfig {
     }
 
     /// @yard
-    /// Enable all network access by inheriting the host's network.
-    /// This allows the WASI module to use TCP, UDP, and DNS resolution.
+    /// Allow all network addresses accessible to the host.
+    /// TCP, UDP, and IP name lookup must be enabled separately with +allow_tcp+,
+    /// +allow_udp+, and +allow_ip_name_lookup+.
     ///
     /// Note: any network access happens while the Global VM Lock (GVL) is held, so other
     /// threads will be blocked in the meantime.
@@ -444,7 +422,7 @@ impl WasiConfig {
     }
 
     /// @yard
-    /// Allow or deny TCP socket access. Allowed by default, can be used to blanket disable TCP.
+    /// Allow or deny TCP socket access. Disabled by default.
     /// @param enabled [Boolean] Whether to allow TCP socket access
     /// @def allow_tcp(enabled)
     /// @return [WasiConfig] +self+
@@ -455,7 +433,7 @@ impl WasiConfig {
     }
 
     /// @yard
-    /// Allow or deny UDP socket access. Allowed by default, can be used to blanket disable UDP.
+    /// Allow or deny UDP socket access. Disabled by default.
     /// @param enabled [Boolean] Whether to allow UDP socket access
     /// @def allow_udp(enabled)
     /// @return [WasiConfig] +self+
@@ -479,8 +457,8 @@ impl WasiConfig {
     /// @yard
     /// Set a custom check function for socket address access control.
     /// The block will be called for each socket operation with the socket address (as a String)
-    /// and the operation type (as a Symbol: :tcp_bind, :tcp_connect, :udp_bind, :udp_connect,
-    /// :udp_outgoing_datagram).
+    /// and the operation type (as a Symbol: :tcp_bind, :tcp_listen, :tcp_accept,
+    /// :tcp_connect, :udp_bind, :udp_send, or :udp_receive).
     /// The block should return true to allow the operation or false to deny it.
     /// If the block raises an exception, the operation will be denied.
     ///
@@ -614,16 +592,10 @@ impl WasiConfig {
         for mapped_dir in &inner.mapped_directories {
             let host_path = ruby.get_inner(mapped_dir.host_path).to_string()?;
             let guest_path = ruby.get_inner(mapped_dir.guest_path).to_string()?;
-            let dir_perms = ruby.get_inner(mapped_dir.dir_perms);
-            let file_perms = ruby.get_inner(mapped_dir.file_perms);
+            let fs_perms = FsPermsSymbol(ruby.get_inner(mapped_dir.fs_perms)).try_into()?;
 
             builder
-                .preopened_dir(
-                    Path::new(&host_path),
-                    &guest_path,
-                    PermsSymbolEnum(dir_perms).try_into()?,
-                    PermsSymbolEnum(file_perms).try_into()?,
-                )
+                .preopened_dir(Path::new(&host_path), &guest_path, fs_perms)
                 .map_err(|e| error!("{}", e))?;
         }
 
@@ -698,7 +670,7 @@ pub fn init(ruby: &Ruby) -> Result<(), Error> {
 
     class.define_method(
         "set_mapped_directory",
-        method!(WasiConfig::set_mapped_directory, 4),
+        method!(WasiConfig::set_mapped_directory, 3),
     )?;
 
     class.define_method("inherit_network", method!(WasiConfig::inherit_network, 0))?;

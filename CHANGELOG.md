@@ -1,5 +1,20 @@
 # Changelog
 
+## [v48.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v48.0.1) (2026-09-03)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v47.0.3...v48.0.1)
+
+**Merged pull requests:**
+
+- bump wasmtime to 48.0.1 [\#643](https://github.com/bytecodealliance/wasmtime-rb/pull/643) ([jacobsteves](https://github.com/jacobsteves))
+- bump rust nightly [\#642](https://github.com/bytecodealliance/wasmtime-rb/pull/642) ([jacobsteves](https://github.com/jacobsteves))
+- exclude arm-linux-musl from build-gems [\#641](https://github.com/bytecodealliance/wasmtime-rb/pull/641) ([jacobsteves](https://github.com/jacobsteves))
+- align rb\_sys gem requirement with Cargo version [\#640](https://github.com/bytecodealliance/wasmtime-rb/pull/640) ([jacobsteves](https://github.com/jacobsteves))
+- chore\(deps\): bump async-trait from 0.1.91 to 0.1.92 [\#639](https://github.com/bytecodealliance/wasmtime-rb/pull/639) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump cap-std from 4.0.2 to 4.0.3 [\#638](https://github.com/bytecodealliance/wasmtime-rb/pull/638) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump rb-sys from 0.9.128 to 0.9.130 [\#636](https://github.com/bytecodealliance/wasmtime-rb/pull/636) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump rb\_sys from 0.9.128 to 0.9.130 [\#634](https://github.com/bytecodealliance/wasmtime-rb/pull/634) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v47.0.3](https://github.com/bytecodealliance/wasmtime-rb/tree/v47.0.3) (2026-08-07)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v46.0.0...v47.0.3)

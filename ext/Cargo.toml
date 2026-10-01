@@ -25,7 +25,7 @@ rb-sys = { version = "*", default-features = false, features = [
   "stable-api-compiled-fallback",
 ] }
 wasmtime = { version = "=48.0.1", features = ["memory-protection-keys"] }
-wasmtime-wasi = "=48.0.1"
+wasmtime-wasi = "=49.0.1"
 cap-std = "4.0.2"
 wat = "1.251.0"
 tokio = { version = "1.52.3", features = [

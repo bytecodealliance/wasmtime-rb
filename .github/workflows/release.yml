@@ -1,13 +1,34 @@
 ---
 name: Release
 
+# Releases are normally started by release-tag.yml, which calls this workflow
+# from `main` with the tag to release, so releases from release branches also
+# use the latest version of this workflow. Running it manually from a branch
+# builds and smoke-tests the gems without releasing them.
 on:
   workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch, tag or commit to build instead (e.g. release-48). Nothing is released."
+        required: false
+        type: string
   push:
     tags: ["v*"]
+  workflow_call:
+    inputs:
+      tag:
+        description: The tag to release
+        required: true
+        type: string
+
+env:
+  # Empty when not releasing a tag.
+  RELEASE_TAG: ${{ inputs.tag || (github.ref_type == 'tag' && github.ref_name || '') }}
+  # Empty to check out the ref the workflow runs on.
+  CHECKOUT_REF: ${{ inputs.tag || inputs.ref || '' }}
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: release-${{ inputs.tag || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -24,6 +45,8 @@ jobs:
         ruby-platform: ${{ fromJSON(needs.ci-data.outputs.result).supported-ruby-platforms }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
 
       - uses: ruby/setup-ruby@v1
         with:
@@ -85,6 +108,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
 
       - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
         with:
@@ -103,15 +128,19 @@ jobs:
         run: bundle exec rake pkg:ruby
 
       - name: Ensure version matches the tag
+        if: env.RELEASE_TAG
         run: |
           GEM_VERSION=$(grep VERSION lib/wasmtime/version.rb | head -n 1 | cut -d'"' -f2)
-          if [ "v$GEM_VERSION" != "${{ github.ref_name }}" ]; then
+          if [ "v$GEM_VERSION" != "$RELEASE_TAG" ]; then
             echo "Gem version does not match tag"
-            echo "  v$GEM_VERSION != ${{ github.ref_name }}"
+            echo "  v$GEM_VERSION != $RELEASE_TAG"
             exit 1
           fi
 
+      # Set the `RELEASE_DRY_RUN` repository variable to `true` on forks to test
+      # the release flow without publishing to RubyGems.
       - name: Push Gem
+        if: env.RELEASE_TAG && vars.RELEASE_DRY_RUN != 'true'
         working-directory: pkg/
         env:
           GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_KEY }}
@@ -136,11 +165,35 @@ jobs:
             fi
           done
 
+      # Releases can be cut from release branches, so neither the most recent
+      # tag nor the most recent release is necessarily the previous version.
+      - name: Find previous tag and whether this is the latest release
+        id: tags
+        if: env.RELEASE_TAG
+        run: |
+          tags=$(git ls-remote --tags --refs origin 'v*' | sed 's|.*refs/tags/||' | sort -V)
+          previous=$(echo "$tags" | grep -B1 -x "$RELEASE_TAG" | head -n 1)
+          if [ "$previous" = "$RELEASE_TAG" ]; then
+            previous=""
+          fi
+          if [ "$(echo "$tags" | tail -n 1)" = "$RELEASE_TAG" ]; then
+            latest=true
+          else
+            latest=false
+          fi
+          echo "previous=$previous" >> "$GITHUB_OUTPUT"
+          echo "latest=$latest" >> "$GITHUB_OUTPUT"
+          echo "Previous tag: ${previous:-none}, latest: $latest"
+
       - name: Create GitHub release
+        if: env.RELEASE_TAG
         uses: ncipollo/release-action@v1
         with:
+          tag: ${{ env.RELEASE_TAG }}
           allowUpdates: true
           generateReleaseNotes: true
+          generateReleaseNotesPreviousTag: ${{ steps.tags.outputs.previous }}
+          makeLatest: ${{ steps.tags.outputs.latest }}
           draft: true
           omitBodyDuringUpdate: true
           omitNameDuringUpdate: true

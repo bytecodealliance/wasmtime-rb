@@ -1,0 +1,101 @@
+---
+name: Release tag
+
+# Tags the version in `lib/wasmtime/version.rb` and releases it with
+# release.yml.
+#
+# - On `main`, it runs when a change to the version is pushed, usually by
+#   merging a pull request from release-bump.yml.
+# - For `release-*` branches, run it manually from `main` after merging the
+#   release pull request. Workflows triggered by pushes run from the pushed
+#   branch, and the release workflows only live on `main`.
+
+on:
+  push:
+    branches: [main]
+    paths: [lib/wasmtime/version.rb]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to release, e.g. release-48"
+        required: true
+        default: main
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: release-tag-${{ inputs.branch || github.ref_name }}
+
+jobs:
+  tag:
+    name: Tag release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      BRANCH: ${{ inputs.branch || github.ref_name }}
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - name: Check the branch
+        run: |
+          if [ "$GITHUB_REF_NAME" != main ]; then
+            echo "::error::Run this workflow from main"
+            exit 1
+          fi
+          if [ "$BRANCH" != main ] && ! [[ $BRANCH =~ ^release-[0-9]+$ ]]; then
+            echo "::error::Branch must be main or release-<major>, not $BRANCH"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'push' && github.sha || env.BRANCH }}
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+
+      # Release branches don't have the release script; use `main`'s.
+      - name: Get the release script
+        run: |
+          git fetch --depth 1 origin "$GITHUB_SHA"
+          git show FETCH_HEAD:scripts/release.rb > "$RUNNER_TEMP/release.rb"
+
+      - name: Determine the tag
+        id: tag
+        run: |
+          tag="v$(ruby "$RUNNER_TEMP/release.rb" current-version)"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+            echo "::notice::$tag already exists, nothing to release"
+            exit 0
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Check the changelog
+        if: steps.tag.outputs.tag
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: ruby "$RUNNER_TEMP/release.rb" check-changelog "$TAG"
+
+      - name: Push the tag
+        if: steps.tag.outputs.tag
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          git tag "$TAG" HEAD
+          git push origin "$TAG"
+
+  # Tags pushed with GITHUB_TOKEN don't trigger workflows, so the release
+  # workflow is called directly.
+  release:
+    name: Release
+    needs: tag
+    if: needs.tag.outputs.tag
+    permissions:
+      contents: write
+    uses: ./.github/workflows/release.yml
+    with:
+      tag: ${{ needs.tag.outputs.tag }}
+    secrets: inherit

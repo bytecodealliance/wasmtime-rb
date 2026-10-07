@@ -1,0 +1,205 @@
+---
+name: Release bump
+
+# Opens a pull request that bumps the gem version; merging it releases the new
+# version (see release-tag.yml).
+#
+# - On `main`, it runs when a push updates the `wasmtime` crate to a version
+#   that isn't released yet. Run it manually to release anything else.
+# - For a patch release of an older version, run it manually with a
+#   `release-<major>` branch. The branch is created from the latest
+#   `v<major>.*` tag if it doesn't exist.
+
+on:
+  push:
+    branches: [main]
+    paths: [Cargo.lock]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to release: main, or release-<major> for a patch release of an older version"
+        required: true
+        default: main
+        type: string
+      version:
+        description: "Version to release. Leave empty to derive it from the wasmtime crate version."
+        required: false
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: release-bump-${{ inputs.branch || 'main' }}
+
+jobs:
+  bump:
+    name: Open release pull request
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      # Pull requests opened with GITHUB_TOKEN don't trigger CI, so CI is
+      # dispatched explicitly.
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TARGET_BRANCH: ${{ inputs.branch || 'main' }}
+    steps:
+      - name: Check the branch
+        run: |
+          if [ "$GITHUB_REF_NAME" != main ]; then
+            echo "::error::Run this workflow from main"
+            exit 1
+          fi
+          if [ "$TARGET_BRANCH" != main ] && ! [[ $TARGET_BRANCH =~ ^release-[0-9]+$ ]]; then
+            echo "::error::Branch must be main or release-<major>, not $TARGET_BRANCH"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+
+      # Keep `main`'s release script while working on a release branch.
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          cp scripts/release.rb "$RUNNER_TEMP/"
+
+      - name: Switch to the release branch
+        if: env.TARGET_BRANCH != 'main'
+        run: |
+          if git ls-remote --exit-code --heads origin "$TARGET_BRANCH" >/dev/null; then
+            git switch "$TARGET_BRANCH"
+          else
+            major=${TARGET_BRANCH#release-}
+            base=$(git tag -l "v$major.*" | sort -V | tail -n 1)
+            if [ -z "$base" ]; then
+              echo "::error::No v$major.* tag to create $TARGET_BRANCH from"
+              exit 1
+            fi
+            sha=$(git rev-parse "$base^{commit}")
+            git push origin "$sha:refs/heads/$TARGET_BRANCH"
+            git switch -c "$TARGET_BRANCH" "$sha"
+            echo "::notice::Created $TARGET_BRANCH from $base"
+          fi
+
+      # Nothing is pushed until the pull request is opened, so the checks below
+      # can skip or fail after the files are edited.
+      - name: Bump the version
+        id: version
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          output=$(ruby "$RUNNER_TEMP/release.rb" bump "$REQUESTED_VERSION")
+          git diff --stat
+          version=$(sed -n 's/^version=//p' <<<"$output")
+          previous=$(sed -n 's/^previous=//p' <<<"$output")
+          wasmtime_version=$(sed -n 's/^wasmtime=//p' <<<"$output")
+          branch="bump/v$version"
+          if [ "$GITHUB_EVENT_NAME" = push ]; then
+            if [ "$version" != "$wasmtime_version" ]; then
+              echo "::notice::wasmtime $wasmtime_version is already released, nothing to do"
+              exit 0
+            fi
+            if git ls-remote --exit-code --heads origin "$branch" >/dev/null; then
+              echo "::notice::$branch already exists, nothing to do"
+              exit 0
+            fi
+          fi
+          {
+            echo "version=$version"
+            echo "previous=$previous"
+            echo "branch=$branch"
+          } >> "$GITHUB_OUTPUT"
+          echo "Releasing $version from $TARGET_BRANCH (wasmtime $wasmtime_version, previous release $previous)"
+
+      # The changelog generator on `main` orders releases by date, so releases
+      # tagged on release branches must be excluded to keep its sections right.
+      - name: Check that release branch tags are excluded from the changelog
+        if: steps.version.outputs.version && env.TARGET_BRANCH == 'main'
+        run: |
+          missing=$(ruby "$RUNNER_TEMP/release.rb" missing-excluded-tags)
+          if [ -n "$missing" ]; then
+            echo "::error::Add these tags to exclude-tags in .github_changelog_generator first: $(echo "$missing" | paste -sd ' ')"
+            exit 1
+          fi
+
+      - name: Check that the bump branch doesn't exist
+        if: steps.version.outputs.version
+        env:
+          BRANCH: ${{ steps.version.outputs.branch }}
+        run: |
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null; then
+            echo "::error::Branch $BRANCH already exists. Close its pull request and delete the branch to start over."
+            exit 1
+          fi
+
+      - name: Generate the changelog
+        if: steps.version.outputs.version && env.TARGET_BRANCH == 'main'
+        env:
+          CHANGELOG_GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          gem install github_changelog_generator
+          ./scripts/generate-changelog.sh
+
+      # The changelog generator only supports `main`, so release branches get
+      # an entry to fill in on the pull request. release-tag.yml refuses to
+      # release while the placeholder is there.
+      - name: Add a changelog entry to fill in
+        if: steps.version.outputs.version && env.TARGET_BRANCH != 'main'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          PREVIOUS: ${{ steps.version.outputs.previous }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          ruby "$RUNNER_TEMP/release.rb" changelog-entry "$VERSION" "$PREVIOUS" "$REPO_URL"
+          git diff
+
+      - name: Open the release pull request
+        if: steps.version.outputs.version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          BRANCH: ${{ steps.version.outputs.branch }}
+        run: |
+          git switch -c "$BRANCH"
+          git commit -am "Release $VERSION"
+          git push origin "$BRANCH"
+          if [ "$TARGET_BRANCH" = main ]; then
+            notes="Review the generated \`CHANGELOG.md\`. Merging tags \`v$VERSION\` and publishes the release."
+          else
+            notes="Fill in the release notes in \`CHANGELOG.md\`, and merge the pull request adding \`v$VERSION\` to \`exclude-tags\` on \`main\`. After merging, run the [Release tag]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/workflows/release-tag.yml) workflow with branch \`$TARGET_BRANCH\` to tag and publish the release."
+          fi
+          gh pr create --base "$TARGET_BRANCH" --head "$BRANCH" --title "Release $VERSION" --body "$(cat <<EOF
+          Bumps the version to $VERSION.
+
+          $notes
+
+          Opened by the [Release bump]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) workflow. Pull requests opened by workflows don't trigger CI, so CI was dispatched on \`$BRANCH\`; later pushes trigger it as usual.
+          EOF
+          )"
+          gh workflow run ci.yml --ref "$BRANCH"
+
+      - name: Exclude the tag from the changelog on main
+        if: steps.version.outputs.version && env.TARGET_BRANCH != 'main'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          branch="bump/exclude-v$VERSION"
+          git switch -c "$branch" origin/main
+          ruby "$RUNNER_TEMP/release.rb" exclude-tag "v$VERSION"
+          git add .github_changelog_generator
+          git commit -m "Exclude v$VERSION from the changelog on main"
+          git push origin "$branch"
+          gh pr create --base main --head "$branch" --title "Exclude v$VERSION from the changelog on main" --body "$(cat <<EOF
+          \`v$VERSION\` is released from \`$TARGET_BRANCH\`. The changelog generator on \`main\` orders releases by date, so it must skip this tag. Merge this before the next release from \`main\`.
+
+          Opened by the [Release bump]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) workflow.
+          EOF
+          )"
+          gh workflow run ci.yml --ref "$branch"

@@ -1,8 +1,9 @@
 ---
 name: Release bump
 
-# Opens a pull request that bumps the gem version; merging it releases the new
-# version (see release-tag.yml).
+# Pushes a branch that bumps the gem version, with a link in the run summary to
+# open its pull request; merging it releases the new version (see
+# release-tag.yml).
 #
 # - On `main`, it runs when a push updates the `wasmtime` crate to a version
 #   that isn't released yet. Run it manually to release anything else.
@@ -33,16 +34,11 @@ concurrency:
 
 jobs:
   bump:
-    name: Open release pull request
+    name: Prepare release pull request
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
-      # Pull requests opened with GITHUB_TOKEN don't trigger CI, so CI is
-      # dispatched explicitly.
-      actions: write
     env:
-      GH_TOKEN: ${{ github.token }}
       TARGET_BRANCH: ${{ inputs.branch || 'main' }}
     steps:
       - name: Check the branch
@@ -161,7 +157,10 @@ jobs:
           ruby "$RUNNER_TEMP/release.rb" changelog-entry "$VERSION" "$PREVIOUS" "$REPO_URL"
           git diff
 
-      - name: Open the release pull request
+      # Pull requests opened with GITHUB_TOKEN don't run the required checks, so
+      # the branches are only pushed, and a maintainer opens the pull requests
+      # from the links in the run summary.
+      - name: Push the release branch
         if: steps.version.outputs.version
         env:
           VERSION: ${{ steps.version.outputs.version }}
@@ -175,17 +174,20 @@ jobs:
           else
             notes="Fill in the release notes in \`CHANGELOG.md\`, and merge the pull request adding \`v$VERSION\` to \`exclude-tags\` on \`main\`. After merging, run the [Release tag]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/workflows/release-tag.yml) workflow with branch \`$TARGET_BRANCH\` to tag and publish the release."
           fi
-          gh pr create --base "$TARGET_BRANCH" --head "$BRANCH" --title "Release $VERSION" --body "$(cat <<EOF
+          body=$(cat <<EOF
           Bumps the version to $VERSION.
 
           $notes
 
-          Opened by the [Release bump]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) workflow. Pull requests opened by workflows don't trigger CI, so CI was dispatched on \`$BRANCH\`; later pushes trigger it as usual.
+          Prepared by the [Release bump]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) workflow.
           EOF
-          )"
-          gh workflow run ci.yml --ref "$BRANCH"
+          )
+          url=$(jq -rn --arg base "$TARGET_BRANCH" --arg head "$BRANCH" --arg title "Release $VERSION" --arg body "$body" \
+            '"\(env.GITHUB_SERVER_URL)/\(env.GITHUB_REPOSITORY)/compare/\($base)...\($head)?expand=1&title=\($title | @uri)&body=\($body | @uri)"')
+          echo "- [Open the release pull request]($url) into \`$TARGET_BRANCH\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice::Open the release pull request from the link in the run summary"
 
-      - name: Exclude the tag from the changelog on main
+      - name: Push the branch excluding the tag from the changelog on main
         if: steps.version.outputs.version && env.TARGET_BRANCH != 'main'
         env:
           VERSION: ${{ steps.version.outputs.version }}
@@ -196,10 +198,12 @@ jobs:
           git add .github_changelog_generator
           git commit -m "Exclude v$VERSION from the changelog on main"
           git push origin "$branch"
-          gh pr create --base main --head "$branch" --title "Exclude v$VERSION from the changelog on main" --body "$(cat <<EOF
+          body=$(cat <<EOF
           \`v$VERSION\` is released from \`$TARGET_BRANCH\`. The changelog generator on \`main\` orders releases by date, so it must skip this tag. Merge this before the next release from \`main\`.
 
-          Opened by the [Release bump]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) workflow.
+          Prepared by the [Release bump]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) workflow.
           EOF
-          )"
-          gh workflow run ci.yml --ref "$branch"
+          )
+          url=$(jq -rn --arg base main --arg head "$branch" --arg title "Exclude v$VERSION from the changelog on main" --arg body "$body" \
+            '"\(env.GITHUB_SERVER_URL)/\(env.GITHUB_REPOSITORY)/compare/\($base)...\($head)?expand=1&title=\($title | @uri)&body=\($body | @uri)"')
+          echo "- [Open the pull request excluding \`v$VERSION\` from the changelog]($url) into \`main\`" >> "$GITHUB_STEP_SUMMARY"

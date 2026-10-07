@@ -2331,7 +2331,7 @@ dependencies = [
 
 [[package]]
 name = "wasmtime-rb"
-version = "48.0.1"
+version = "0.0.0"
 dependencies = [
  "async-timer",
  "async-trait",

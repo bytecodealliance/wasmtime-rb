@@ -1,11 +1,24 @@
 # Changelog
 
+## [v49.0.2](https://github.com/bytecodealliance/wasmtime-rb/tree/v49.0.2) (2026-10-07)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v48.0.1...v49.0.2)
+
+**Merged pull requests:**
+
+- Remove version number from Cargo.toml [\#652](https://github.com/bytecodealliance/wasmtime-rb/pull/652) ([saulecabrera](https://github.com/saulecabrera))
+- Update to wasmtime 49 [\#651](https://github.com/bytecodealliance/wasmtime-rb/pull/651) ([saulecabrera](https://github.com/saulecabrera))
+- ci: automate releases [\#650](https://github.com/bytecodealliance/wasmtime-rb/pull/650) ([saulecabrera](https://github.com/saulecabrera))
+- chore\(deps\): bump wat from 1.255.0 to 1.259.0 [\#646](https://github.com/bytecodealliance/wasmtime-rb/pull/646) ([dependabot[bot]](https://github.com/apps/dependabot))
+- chore\(deps\): bump magnus from 0.8.2 to 0.9.0 [\#645](https://github.com/bytecodealliance/wasmtime-rb/pull/645) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v48.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v48.0.1) (2026-09-03)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v47.0.3...v48.0.1)
 
 **Merged pull requests:**
 
+- Exclude arm-linux-musl from release workflow [\#644](https://github.com/bytecodealliance/wasmtime-rb/pull/644) ([jacobsteves](https://github.com/jacobsteves))
 - bump wasmtime to 48.0.1 [\#643](https://github.com/bytecodealliance/wasmtime-rb/pull/643) ([jacobsteves](https://github.com/jacobsteves))
 - bump rust nightly [\#642](https://github.com/bytecodealliance/wasmtime-rb/pull/642) ([jacobsteves](https://github.com/jacobsteves))
 - exclude arm-linux-musl from build-gems [\#641](https://github.com/bytecodealliance/wasmtime-rb/pull/641) ([jacobsteves](https://github.com/jacobsteves))

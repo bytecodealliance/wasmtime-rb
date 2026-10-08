@@ -25,14 +25,22 @@ bundle exec rake
 1. Open a pull request. Don't bump the gem version; merging the pull request
    starts the release (see below).
 
+## Versioning
+
+The gem version matches the version of the `wasmtime` crate it bundles, e.g.
+`49.0.2` bundles Wasmtime 49.0.2. The major and minor versions always match.
+
+The patch version may drift. When the gem needs a release without a new
+Wasmtime release (e.g. a fix in the gem itself), or when an upstream patch
+version is already taken, the gem uses the next unused patch version, e.g. gem
+`X.Y.3` bundling Wasmtime `X.Y.2`. The changelog entry of such a release says
+which Wasmtime version it bundles.
+
 ## Releasing
 
 Releases are prepared by the [Release bump] workflow and published by the
-[Release tag] workflow. Nothing is pushed to `main` directly.
-
-The gem version matches the `wasmtime` crate version. When that version is
-already released (e.g. a fix without a new Wasmtime release), the next patch
-version is used instead.
+[Release tag] workflow. Nothing is pushed to `main` directly. The workflows
+pick the version following [Versioning](#versioning).
 
 ### From `main`
 
@@ -49,6 +57,8 @@ version is used instead.
    workflow: it pushes the gem to RubyGems and creates a draft release on
    GitHub.
 1. Edit the release notes if needed and publish the draft release.
+1. If the release changes the supported versions, update the table in
+   [SECURITY.md](SECURITY.md).
 
 ### From a release branch
 

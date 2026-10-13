@@ -64,9 +64,11 @@ pick the version following [Versioning](#versioning).
 
 To release a patch for an older version, e.g. `48.0.2` when `main` is on 49:
 
-1. Run the [Release bump] workflow manually with branch `release-<major>`
-   (e.g. `release-48`). It creates the branch from the latest `v<major>.*` tag
-   if it doesn't exist.
+1. If `release-<major>` (e.g. `release-48`) doesn't exist, run the
+   [Release branch] workflow manually with the major version. It creates the
+   branch from the latest `v<major>.*` tag.
+1. Merge the patches to release into `release-<major>` through pull requests.
+1. Run the [Release bump] workflow manually with branch `release-<major>`.
 1. Open both pull requests from the links in the workflow run's summary:
    - the release pull request into `release-<major>`: fill in the release notes
      in `CHANGELOG.md`, which the changelog generator can't do for release
@@ -82,5 +84,6 @@ To release a patch for an older version, e.g. `48.0.2` when `main` is on 49:
 [Code of Conduct]: https://github.com/bytecodealliance/wasmtime/blob/main/CODE_OF_CONDUCT.md
 [Organizational Code of Conduct]: https://github.com/bytecodealliance/wasmtime/blob/main/ORG_CODE_OF_CONDUCT.md
 [AI Tool Use Policy]: https://github.com/bytecodealliance/governance/blob/main/AI_TOOL_POLICY.md
+[Release branch]: https://github.com/bytecodealliance/wasmtime-rb/actions/workflows/release-branch.yml
 [Release bump]: https://github.com/bytecodealliance/wasmtime-rb/actions/workflows/release-bump.yml
 [Release tag]: https://github.com/bytecodealliance/wasmtime-rb/actions/workflows/release-tag.yml

@@ -1,0 +1,59 @@
+---
+name: Release branch
+
+# Creates `release-<major>` from the latest `v<major>.*` tag, so that patches
+# for an older version can be merged into it before releasing them with
+# release-bump.yml. Run manually.
+
+on:
+  workflow_dispatch:
+    inputs:
+      major:
+        description: "Major version to create the release branch for, e.g. 48"
+        required: true
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: release-branch-${{ inputs.major }}
+
+jobs:
+  branch:
+    name: Create release branch
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      MAJOR: ${{ inputs.major }}
+    steps:
+      - name: Check the inputs
+        run: |
+          if [ "$GITHUB_REF_NAME" != main ]; then
+            echo "::error::Run this workflow from main"
+            exit 1
+          fi
+          if ! [[ $MAJOR =~ ^[0-9]+$ ]]; then
+            echo "::error::Major version must be a number, not $MAJOR"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Create the release branch
+        run: |
+          branch="release-$MAJOR"
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null; then
+            echo "::error::$branch already exists"
+            exit 1
+          fi
+          base=$(git tag -l "v$MAJOR.*" | sort -V | tail -n 1)
+          if [ -z "$base" ]; then
+            echo "::error::No v$MAJOR.* tag to create $branch from"
+            exit 1
+          fi
+          git push origin "$(git rev-parse "$base^{commit}"):refs/heads/$branch"
+          echo "::notice::Created $branch from $base"
+          echo "Created \`$branch\` from \`$base\`." >> "$GITHUB_STEP_SUMMARY"

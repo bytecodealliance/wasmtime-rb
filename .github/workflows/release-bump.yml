@@ -8,8 +8,7 @@ name: Release bump
 # - On `main`, it runs when a push updates the `wasmtime` crate to a version
 #   that isn't released yet. Run it manually to release anything else.
 # - For a patch release of an older version, run it manually with a
-#   `release-<major>` branch. The branch is created from the latest
-#   `v<major>.*` tag if it doesn't exist.
+#   `release-<major>` branch, created beforehand with release-branch.yml.
 
 on:
   push:
@@ -70,20 +69,11 @@ jobs:
       - name: Switch to the release branch
         if: env.TARGET_BRANCH != 'main'
         run: |
-          if git ls-remote --exit-code --heads origin "$TARGET_BRANCH" >/dev/null; then
-            git switch "$TARGET_BRANCH"
-          else
-            major=${TARGET_BRANCH#release-}
-            base=$(git tag -l "v$major.*" | sort -V | tail -n 1)
-            if [ -z "$base" ]; then
-              echo "::error::No v$major.* tag to create $TARGET_BRANCH from"
-              exit 1
-            fi
-            sha=$(git rev-parse "$base^{commit}")
-            git push origin "$sha:refs/heads/$TARGET_BRANCH"
-            git switch -c "$TARGET_BRANCH" "$sha"
-            echo "::notice::Created $TARGET_BRANCH from $base"
+          if ! git ls-remote --exit-code --heads origin "$TARGET_BRANCH" >/dev/null; then
+            echo "::error::$TARGET_BRANCH doesn't exist. Create it with the Release branch workflow and merge the patches to release into it first."
+            exit 1
           fi
+          git switch "$TARGET_BRANCH"
 
       # Nothing is pushed until the pull request is opened, so the checks below
       # can skip or fail after the files are edited.

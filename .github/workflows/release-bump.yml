@@ -32,8 +32,14 @@ concurrency:
   group: release-bump-${{ inputs.branch || 'main' }}
 
 jobs:
+  ci-data:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/native-gem-matrix.yml
+
   bump:
     name: Prepare release pull request
+    needs: ci-data
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -146,6 +152,19 @@ jobs:
         run: |
           ruby "$RUNNER_TEMP/release.rb" changelog-entry "$VERSION" "$PREVIOUS" "$REPO_URL"
           git diff
+
+      # Releases from `main` record the platforms and Ruby versions they're
+      # built for, so that release branches created from their tags keep
+      # building the same ones (see native-gem-matrix.yml). Release branches
+      # keep theirs.
+      - name: Snapshot the platforms and Ruby versions
+        if: steps.version.outputs.version && env.TARGET_BRANCH == 'main'
+        env:
+          MATRIX: ${{ needs.ci-data.outputs.result }}
+        run: |
+          jq '{"supported-ruby-platforms": .["supported-ruby-platforms"], "stable-ruby-versions": .["stable-ruby-versions"]}' <<<"$MATRIX" > .github/release-matrix.json
+          git add .github/release-matrix.json
+          git diff --cached -- .github/release-matrix.json
 
       # Pull requests opened with GITHUB_TOKEN don't run the required checks, so
       # the branches are only pushed, and a maintainer opens the pull requests

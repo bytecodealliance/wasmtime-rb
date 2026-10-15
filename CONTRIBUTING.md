@@ -52,10 +52,12 @@ pick the version following [Versioning](#versioning).
 1. Open the pull request from the link in the workflow run's summary. Pull
    requests opened by workflows don't run the required checks, so they have to
    be opened by a maintainer.
-1. Review the changelog and merge the pull request. This starts the
-   [Release tag] workflow, which tags the version and runs the release
-   workflow: it pushes the gem to RubyGems and creates a draft release on
-   GitHub.
+1. Review the changelog and `.github/release-matrix.json`, and merge the pull
+   request. The JSON file lists the platforms and Ruby versions the gem is
+   built for; it pins them for later patch releases from a release branch.
+   Merging starts the [Release tag] workflow, which tags the version and runs
+   the release workflow: it pushes the gem to RubyGems and creates a draft
+   release on GitHub.
 1. Edit the release notes if needed and publish the draft release.
 1. If the release changes the supported versions, update the table in
    [SECURITY.md](SECURITY.md).

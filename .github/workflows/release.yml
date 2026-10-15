@@ -34,6 +34,21 @@ concurrency:
 jobs:
   ci-data:
     uses: ./.github/workflows/native-gem-matrix.yml
+    with:
+      # This workflow always runs from `main`, but may build an older release
+      # branch or tag. The live lists of platforms and Ruby versions move on
+      # over time, and an older branch may not build for the new ones, so
+      # everything except `main` builds the ones pinned in its
+      # `.github/release-matrix.json`, if it has one. A patch release then
+      # ships the same gems as the release before it.
+      #
+      # The ref being built is the tag to release, else the `ref` of a dry run,
+      # else the ref the workflow runs on. A dry run of a release branch (e.g.
+      # `ref: release-48`) therefore builds exactly what its release will
+      # build, and a dry run of `main` uses the live lists, like `main`'s next
+      # release (see release-bump.yml).
+      snapshot: ${{ (inputs.tag || inputs.ref || github.ref_name) != 'main' }}
+      ref: ${{ inputs.tag || inputs.ref }}
 
   build:
     name: Build native gems
@@ -50,7 +65,7 @@ jobs:
 
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "4.0"
+          ruby-version: ${{ fromJSON(needs.ci-data.outputs.result).latest-ruby-version }}
 
       - uses: oxidize-rb/actions/cross-gem@v1
         id: cross-gem
@@ -66,8 +81,10 @@ jobs:
 
   smoke-test:
     name: Smoke test native gem (${{ matrix.ruby-platform }})
-    needs: build
+    needs: [ci-data, build]
     runs-on: ${{ matrix.os }}
+    env:
+      BUILT: ${{ contains(fromJSON(needs.ci-data.outputs.result).supported-ruby-platforms, matrix.ruby-platform) }}
     strategy:
       fail-fast: false
       matrix:
@@ -85,16 +102,23 @@ jobs:
           - ruby-platform: arm64-darwin
             os: macos-15
     steps:
+      - name: Skip platforms that aren't built
+        if: env.BUILT != 'true'
+        run: echo "::notice::${{ matrix.ruby-platform }} isn't built for this ref, skipping"
+
       - uses: ruby/setup-ruby@v1
+        if: env.BUILT == 'true'
         with:
-          ruby-version: "4.0"
+          ruby-version: ${{ fromJSON(needs.ci-data.outputs.result).latest-ruby-version }}
 
       - uses: actions/download-artifact@v8
+        if: env.BUILT == 'true'
         with:
           name: cross-gem-${{ matrix.ruby-platform }}
           path: pkg/
 
       - name: Smoke gem install
+        if: env.BUILT == 'true'
         shell: bash
         run: |
           gem install pkg/wasmtime-*.gem --verbose
@@ -104,7 +128,7 @@ jobs:
 
   release:
     name: Release
-    needs: [build, smoke-test]
+    needs: [ci-data, build, smoke-test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -113,7 +137,7 @@ jobs:
 
       - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
         with:
-          ruby-version: "4.0"
+          ruby-version: ${{ fromJSON(needs.ci-data.outputs.result).latest-ruby-version }}
           bundler-cache: true
           cargo-cache: true
           cache-version: v1

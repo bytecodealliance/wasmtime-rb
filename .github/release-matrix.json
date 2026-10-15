@@ -1,0 +1,12 @@
+{
+  "supported-ruby-platforms": [
+    "aarch64-linux",
+    "aarch64-linux-musl",
+    "arm64-darwin",
+    "x64-mingw-ucrt",
+    "x86_64-darwin",
+    "x86_64-linux",
+    "x86_64-linux-musl"
+  ],
+  "stable-ruby-versions": ["3.2", "3.3", "3.4"]
+}

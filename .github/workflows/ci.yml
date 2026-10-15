@@ -13,18 +13,12 @@ env:
   RSPEC_FORMATTER: doc
 
 jobs:
+  # Test the Ruby versions pinned in `.github/release-matrix.json`, resolved the
+  # same way as for releases.
   ci-data:
-    runs-on: ubuntu-latest
-    outputs:
-      result: ${{ steps.fetch.outputs.result }}
-    steps:
-      - id: fetch
-        uses: oxidize-rb/actions/fetch-ci-data@v1
-        with:
-          stable-ruby-versions: |
-              # See https://github.com/bytecodealliance/wasmtime-rb/issues/286
-              # for details.
-              exclude: [head]
+    uses: bytecodealliance/wasmtime-rb/.github/workflows/native-gem-matrix.yml@main
+    with:
+      snapshot: true
 
   ci:
     runs-on: ${{ matrix.os }}

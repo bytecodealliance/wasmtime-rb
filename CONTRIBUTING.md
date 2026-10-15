@@ -66,7 +66,24 @@ To release a patch for an older version, e.g. `48.0.2` when `main` is on 49:
 
 1. If `release-<major>` (e.g. `release-48`) doesn't exist, run the
    [Release branch] workflow manually with the major version. It creates the
-   branch from the latest `v<major>.*` tag.
+   branch from the latest `v<major>.*` tag. Run it from the Actions tab, or
+   with the GitHub CLI:
+   ```
+   gh workflow run release-branch.yml --ref main -f major=<MAJOR_VERSION>
+   ```
+1. Check that the branch still builds, since the toolchains and workflows may
+   have changed since its last release. Run the CI workflow on the branch, and
+   the [Release] workflow from `main` with the branch as `ref`. From the Actions
+   tab, pick the release branch in "Use workflow from" for CI, and `main` with
+   the release branch in the `ref` field for Release. With the GitHub CLI:
+   ```
+   gh workflow run ci.yml --ref release-<MAJOR_VERSION>
+   gh workflow run release.yml --ref main -f ref=release-<MAJOR_VERSION>
+   ```
+   The Release run is a dry run: it builds and smoke-tests the gems without
+   publishing them. Always run it from `main`; run from a tag, the workflow
+   releases that tag. Fix any failures through pull requests into the
+   release branch.
 1. Merge the patches to release into `release-<major>` through pull requests.
 1. Run the [Release bump] workflow manually with branch `release-<major>`.
 1. Open both pull requests from the links in the workflow run's summary:
@@ -87,3 +104,4 @@ To release a patch for an older version, e.g. `48.0.2` when `main` is on 49:
 [Release branch]: https://github.com/bytecodealliance/wasmtime-rb/actions/workflows/release-branch.yml
 [Release bump]: https://github.com/bytecodealliance/wasmtime-rb/actions/workflows/release-bump.yml
 [Release tag]: https://github.com/bytecodealliance/wasmtime-rb/actions/workflows/release-tag.yml
+[Release]: https://github.com/bytecodealliance/wasmtime-rb/actions/workflows/release.yml

@@ -1,18 +1,46 @@
 ---
 name: Native gem matrix
 
+# Resolves the Ruby platforms to build native gems for and the Ruby versions to
+# build and test against.
+#
+# By default, these are the live lists from oxidize-rb, which change as Ruby
+# versions and platforms are added or dropped. Release branches and tags pin
+# them instead in `.github/release-matrix.json`, so that a patch release builds
+# the same gems as the release before it. release-bump.yml writes the file for
+# every release from `main`, so tags and the release branches created from
+# them have it; `main` itself keeps using the live lists:
+#
+#   {
+#     "supported-ruby-platforms": ["x86_64-linux", ...],
+#     "stable-ruby-versions": ["3.3", "3.4", ...]
+#   }
 on:
   workflow_call:
+    inputs:
+      snapshot:
+        description: Use `.github/release-matrix.json` if `ref` has one
+        required: false
+        type: boolean
+        default: false
+      ref:
+        description: Ref to read the snapshot from (defaults to the ref the workflow runs on)
+        required: false
+        type: string
+        default: ""
     outputs:
       result:
-        description: Supported Ruby platforms and stable Ruby versions
+        description: >-
+          Supported Ruby platforms (`supported-ruby-platforms`), stable Ruby
+          versions (`stable-ruby-versions`) and the latest of them
+          (`latest-ruby-version`)
         value: ${{ jobs.resolve.outputs.result }}
 
 jobs:
   resolve:
     runs-on: ubuntu-latest
     outputs:
-      result: ${{ steps.fetch.outputs.result }}
+      result: ${{ steps.resolve.outputs.result }}
     steps:
       - id: fetch
         uses: oxidize-rb/actions/fetch-ci-data@1.4.3
@@ -24,5 +52,33 @@ jobs:
             # 3.0 is deprecated as stable ruby version according to:
             #  https://github.com/oxidize-rb/actions/blob/main/fetch-ci-data/evaluate.rb#L54
             exclude: [arm-linux, arm-linux-musl, x64-mingw32]
+          # See https://github.com/bytecodealliance/wasmtime-rb/issues/286 for
+          # why `head` is excluded.
           stable-ruby-versions: |
             exclude: [head]
+
+      - uses: actions/checkout@v7
+        if: inputs.snapshot
+        with:
+          ref: ${{ inputs.ref }}
+          sparse-checkout: .github/release-matrix.json
+          sparse-checkout-cone-mode: false
+
+      - id: resolve
+        env:
+          LIVE: ${{ steps.fetch.outputs.result }}
+          SNAPSHOT: ${{ inputs.snapshot }}
+        run: |
+          result=$LIVE
+          file=.github/release-matrix.json
+          if [ "$SNAPSHOT" = true ] && [ -f "$file" ]; then
+            if ! jq -e '(.["supported-ruby-platforms"] | type == "array") and (.["stable-ruby-versions"] | type == "array")' "$file" >/dev/null; then
+              echo "::error::$file must have supported-ruby-platforms and stable-ruby-versions arrays"
+              exit 1
+            fi
+            echo "::notice::Using the platforms and Ruby versions in $file"
+            result=$(jq -c --slurpfile snapshot "$file" '. + $snapshot[0]' <<<"$result")
+          fi
+          result=$(jq -c '.["latest-ruby-version"] = (.["stable-ruby-versions"] | max_by(split(".") | map(tonumber)))' <<<"$result")
+          echo "$result" | jq .
+          echo "result=$result" >> "$GITHUB_OUTPUT"

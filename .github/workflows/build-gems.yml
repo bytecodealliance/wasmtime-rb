@@ -13,6 +13,10 @@ concurrency:
 jobs:
   ci-data:
     uses: ./.github/workflows/native-gem-matrix.yml
+    with:
+      # Release branches build the platforms and Ruby versions pinned in their
+      # snapshot, if they have one.
+      snapshot: ${{ startsWith(github.ref_name, 'release-') }}
 
   native:
     name: Build native gems
@@ -27,7 +31,7 @@ jobs:
 
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "4.0"
+          ruby-version: ${{ fromJSON(needs.ci-data.outputs.result).latest-ruby-version }}
 
       - uses: oxidize-rb/actions/cross-gem@v1
         id: cross-gem
@@ -43,8 +47,10 @@ jobs:
 
   smoke-test:
     name: Smoke test native gem (${{ matrix.ruby-platform }})
-    needs: native
+    needs: [ci-data, native]
     runs-on: ${{ matrix.os }}
+    env:
+      BUILT: ${{ contains(fromJSON(needs.ci-data.outputs.result).supported-ruby-platforms, matrix.ruby-platform) }}
     strategy:
       fail-fast: false
       matrix:
@@ -62,16 +68,23 @@ jobs:
           - ruby-platform: arm64-darwin
             os: macos-15
     steps:
+      - name: Skip platforms that aren't built
+        if: env.BUILT != 'true'
+        run: echo "::notice::${{ matrix.ruby-platform }} isn't built for this ref, skipping"
+
       - uses: ruby/setup-ruby@v1
+        if: env.BUILT == 'true'
         with:
-          ruby-version: "4.0"
+          ruby-version: ${{ fromJSON(needs.ci-data.outputs.result).latest-ruby-version }}
 
       - uses: actions/download-artifact@v8
+        if: env.BUILT == 'true'
         with:
           name: cross-gem-${{ matrix.ruby-platform }}
           path: pkg/
 
       - name: Smoke gem install
+        if: env.BUILT == 'true'
         shell: bash
         run: |
           gem install pkg/wasmtime-*.gem --verbose

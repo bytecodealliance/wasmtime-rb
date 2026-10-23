@@ -1,5 +1,13 @@
 # Changelog
 
+## [v49.0.3](https://github.com/bytecodealliance/wasmtime-rb/tree/v49.0.3) (2026-10-22)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v49.0.2..v49.0.3)
+
+**Merged pull requests:**
+
+- bump Wasmtime to 49.0.4
+
 ## [v49.0.2](https://github.com/bytecodealliance/wasmtime-rb/tree/v49.0.2) (2026-10-07)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v48.0.1...v49.0.2)

@@ -14,17 +14,11 @@ env:
 
 jobs:
   ci-data:
-    runs-on: ubuntu-latest
-    outputs:
-      result: ${{ steps.fetch.outputs.result }}
-    steps:
-      - id: fetch
-        uses: oxidize-rb/actions/fetch-ci-data@1.4.3
-        with:
-          stable-ruby-versions: |
-              # See https://github.com/bytecodealliance/wasmtime-rb/issues/286
-              # for details.
-              exclude: [head]
+    uses: ./.github/workflows/native-gem-matrix.yml
+    with:
+      # Release branches test the Ruby versions pinned in their snapshot, if
+      # they have one.
+      snapshot: ${{ startsWith(github.base_ref || github.ref_name, 'release-') }}
 
   ci:
     runs-on: ${{ matrix.os }}

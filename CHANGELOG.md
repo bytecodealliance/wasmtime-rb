@@ -4,15 +4,17 @@
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v36.0.0...v36.0.1)
 
-<!-- RELEASE NOTES PLACEHOLDER: describe the changes in this release and remove this line. -->
+Security release. Bundles Wasmtime 36.0.19.
 
-## [v36.0.1](https://github.com/bytecodealliance/wasmtime-rb/tree/v36.0.1) (2026-10-22)
+**Security fixes:**
 
-[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v36.0.0...v36.0.1)
+- Externref results may be stale references [GHSA-c9f2-f4vx-xq68](https://github.com/bytecodealliance/wasmtime-rb/security/advisories/GHSA-c9f2-f4vx-xq68) [\#665](https://github.com/bytecodealliance/wasmtime-rb/pull/665) ([saulecabrera](https://github.com/saulecabrera))
 
 **Merged pull requests:**
 
-- Update to Wasmtime 36.0.19
+- spec: skip flaky externref liveness check for failed table and global writes [\#669](https://github.com/bytecodealliance/wasmtime-rb/pull/669) ([saulecabrera](https://github.com/saulecabrera))
+- Update to Wasmtime 36.0.19 [\#659](https://github.com/bytecodealliance/wasmtime-rb/pull/659) ([jeffcharles](https://github.com/jeffcharles))
+- ci: pin the platforms and Ruby versions of 36.x [\#658](https://github.com/bytecodealliance/wasmtime-rb/pull/658) ([saulecabrera](https://github.com/saulecabrera))
 
 ## [v36.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v36.0.0) (2025-09-09)
 

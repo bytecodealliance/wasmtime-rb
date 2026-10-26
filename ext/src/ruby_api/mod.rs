@@ -16,6 +16,7 @@ mod convert;
 mod engine;
 mod errors;
 mod externals;
+mod externref;
 mod func;
 mod global;
 mod instance;

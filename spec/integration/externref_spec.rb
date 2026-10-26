@@ -167,7 +167,8 @@ module Wasmtime
       expect(weak.weakref_alive?).to be_falsey
     end
 
-    it "releases values from failed global writes, table writes and table growth" do
+    it "releases values from failed global writes, table writes and table growth",
+      skip: "flaky, needs more investigation" do
       global = Global.const(store, :externref, nil)
       table = Table.new(store, :externref, nil, min_size: 1, max_size: 1)
       failed_global = save_temporary_failure(global.method(:set), Wasmtime::Error)

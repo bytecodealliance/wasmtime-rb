@@ -1,12 +1,20 @@
 # Changelog
 
-## [v49.0.3](https://github.com/bytecodealliance/wasmtime-rb/tree/v49.0.3) (2026-10-22)
+## [v49.0.3](https://github.com/bytecodealliance/wasmtime-rb/tree/v49.0.3) (2026-10-26)
 
-[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v49.0.2..v49.0.3)
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v49.0.2...v49.0.3)
+
+Security release. Bundles Wasmtime 49.0.4.
+
+**Security fixes:**
+
+- Externref results may be stale references [GHSA-c9f2-f4vx-xq68](https://github.com/bytecodealliance/wasmtime-rb/security/advisories/GHSA-c9f2-f4vx-xq68) [\#664](https://github.com/bytecodealliance/wasmtime-rb/pull/664) ([saulecabrera](https://github.com/saulecabrera))
+- Data race in WASI when calling functions with `gvl: false` [GHSA-76hq-g43j-f2rr](https://github.com/bytecodealliance/wasmtime-rb/security/advisories/GHSA-76hq-g43j-f2rr) [\#664](https://github.com/bytecodealliance/wasmtime-rb/pull/664) ([saulecabrera](https://github.com/saulecabrera))
 
 **Merged pull requests:**
 
-- bump Wasmtime to 49.0.4
+- bump Wasmtime to 49.0.4 [\#661](https://github.com/bytecodealliance/wasmtime-rb/pull/661) ([jeffcharles](https://github.com/jeffcharles))
+- ci: backport per-branch release matrix to release-49 [\#663](https://github.com/bytecodealliance/wasmtime-rb/pull/663) ([saulecabrera](https://github.com/saulecabrera))
 
 ## [v49.0.2](https://github.com/bytecodealliance/wasmtime-rb/tree/v49.0.2) (2026-10-07)
 

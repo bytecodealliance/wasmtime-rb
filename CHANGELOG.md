@@ -1,5 +1,11 @@
 # Changelog
 
+## [v49.0.3](https://github.com/bytecodealliance/wasmtime-rb/tree/v49.0.3) (2026-10-26)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v49.0.2...v49.0.3)
+
+<!-- RELEASE NOTES PLACEHOLDER: describe the changes in this release and remove this line. -->
+
 ## [v49.0.3](https://github.com/bytecodealliance/wasmtime-rb/tree/v49.0.3) (2026-10-22)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v49.0.2..v49.0.3)

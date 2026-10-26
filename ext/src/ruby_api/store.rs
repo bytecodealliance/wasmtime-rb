@@ -1,4 +1,5 @@
 use super::errors::wasi_exit_error;
+use super::externref::ExternRefRegistry;
 use super::{caller::Caller, engine::Engine, root, trap::Trap};
 use crate::{define_rb_intern, error, WasiConfig};
 use magnus::value::StaticSymbol;
@@ -34,6 +35,7 @@ pub struct StoreData {
     wasi_p1: Option<WasiP1Ctx>,
     wasi: Option<WasiCtx>,
     refs: Vec<Value>,
+    pub externrefs: ExternRefRegistry,
     last_error: Option<Error>,
     store_limits: TrackingResourceLimiter,
     resource_table: ResourceTable,
@@ -71,6 +73,7 @@ impl StoreData {
     }
 
     pub fn mark(&self, marker: &Marker) {
+        self.externrefs.mark(marker);
         marker.mark_movable(self.user_data);
 
         if let Some(ref error) = self.last_error {
@@ -79,17 +82,15 @@ impl StoreData {
             }
         }
 
-        for value in self.refs.iter() {
-            marker.mark_movable(*value);
-        }
+        // Host closures can capture copies of these values (notably Procs).
+        // Updating refs alone cannot relocate those copies, so pin them.
+        // Externrefs use the registry above and remain movable.
+        marker.mark_slice(&self.refs);
     }
 
     pub fn compact(&mut self, compactor: &Compactor) {
+        self.externrefs.compact(compactor);
         self.user_data = compactor.location(self.user_data);
-
-        for value in self.refs.iter_mut() {
-            *value = compactor.location(*value);
-        }
     }
 }
 
@@ -187,6 +188,7 @@ impl Store {
             wasi_p1,
             wasi,
             refs: Default::default(),
+            externrefs: Default::default(),
             last_error: Default::default(),
             store_limits: limiter,
             resource_table: Default::default(),
@@ -268,6 +270,16 @@ impl Store {
 
     pub fn context_mut(&self) -> StoreContextMut<'_, StoreData> {
         unsafe { (*self.inner.get()).as_context_mut() }
+    }
+
+    /// @yard
+    /// Collects unreachable WebAssembly GC objects, releasing their host values.
+    /// This is separate from Ruby's +GC.start+; Ruby can collect released values
+    /// on its next collection. Live globals, tables and Wasm references are kept.
+    /// @def gc
+    /// @return [nil]
+    pub fn gc(&self) {
+        self.context_mut().gc(None);
     }
 
     pub fn retain(&self, value: Value) {
@@ -411,6 +423,7 @@ pub fn init() -> Result<(), Error> {
 
     class.define_singleton_method("new", function!(Store::new, -1))?;
     class.define_method("data", method!(Store::data, 0))?;
+    class.define_method("gc", method!(Store::gc, 0))?;
     class.define_method("get_fuel", method!(Store::get_fuel, 0))?;
     class.define_method("set_fuel", method!(Store::set_fuel, 1))?;
     class.define_method("set_epoch_deadline", method!(Store::set_epoch_deadline, 1))?;

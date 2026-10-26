@@ -12,7 +12,7 @@ use magnus::{
     typed_data::Obj, value::Opaque, DataTypeFunctions, Error, IntoValue, Object, RArray, Ruby,
     TypedData, Value,
 };
-use wasmtime::{Caller as CallerImpl, Func as FuncImpl, Val};
+use wasmtime::{Caller as CallerImpl, Func as FuncImpl, RootScope, Val};
 
 /// @yard
 /// @rename Wasmtime::FuncType
@@ -211,22 +211,27 @@ impl<'a> Func<'a> {
         func: &wasmtime::Func,
         args: &[Value],
     ) -> Result<Value, Error> {
-        let mut context = store.context_mut()?;
+        // Keep parameters and results rooted through Ruby result conversion,
+        // including nested callbacks, traps and partially converted arguments.
+        let mut context = RootScope::new(store.context_mut()?);
         let func_ty = func.ty(&mut context);
-        let params = Params::new(&func_ty, args)?.to_vec(store)?;
+        let params = Params::new(&func_ty, args)?.to_vec(&mut context)?;
         let mut results = vec![Val::null_func_ref(); func_ty.results().len()];
 
-        func.call(context, &params, &mut results)
+        func.call(&mut context, &params, &mut results)
             .map_err(|e| store.handle_wasm_error(e))?;
 
         match results.as_slice() {
             [] => Ok(().into_value()),
-            [result] => result.to_ruby_value(store),
-            _ => results
-                .into_iter()
-                .map(|result| result.to_ruby_value(store))
-                .collect::<Result<RArray, _>>()
-                .map(|ary| ary.as_value()),
+            [result] => result.to_ruby_value(store, &context),
+            _ => {
+                let ary = RArray::with_capacity(results.len());
+                for result in results {
+                    let val = result.to_ruby_value(store, &context)?;
+                    ary.push(val)?;
+                }
+                Ok(ary.as_value())
+            }
         }
     }
 }
@@ -268,15 +273,19 @@ pub fn make_func_closure(
         let wrapped_caller = Obj::wrap(Caller::new(caller_impl));
         let store_context = StoreContextValue::from(wrapped_caller);
 
-        let params_iter = params.iter().enumerate().map(|(i, param)| {
-            param
-                .to_ruby_value(&store_context)
-                .map_err(|e| wasmtime::Error::msg(format!("invalid argument at index {i}: {e}")))
-        });
-
-        let rparams = std::iter::once(Ok(wrapped_caller.as_value()))
-            .chain(params_iter)
-            .collect::<Result<RArray, _>>()?;
+        let rparams = RArray::with_capacity(params.len() + 1);
+        rparams
+            .push(wrapped_caller.as_value())
+            .map_err(|e| wasmtime::Error::msg(format!("failed to push caller: {e}")))?;
+        for (i, param) in params.iter().enumerate() {
+            let val = store_context
+                .context()
+                .and_then(|context| param.to_ruby_value(&store_context, &context))
+                .map_err(|e| wasmtime::Error::msg(format!("invalid argument at index {i}: {e}")))?;
+            rparams.push(val).map_err(|e| {
+                wasmtime::Error::msg(format!("failed to push argument at index {i}: {e}"))
+            })?;
+        }
 
         let ruby = Ruby::get().unwrap();
         let callable = ruby.get_inner(callable);
@@ -315,7 +324,13 @@ pub fn make_func_closure(
                     .zip(ty.results())
                     .enumerate()
                 {
-                    match rb_val.to_wasm_val(&store_context, ty) {
+                    // Wasmtime's host-call scope remains live until it has
+                    // copied these results back to the guest. A local scope
+                    // here would unroot them too early.
+                    match store_context
+                        .context_mut()
+                        .and_then(|mut context| rb_val.to_wasm_val(&mut context, ty))
+                    {
                         Ok(val) => *wasm_val = val,
                         Err(e) => {
                             return result_error!(

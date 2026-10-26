@@ -1,7 +1,7 @@
-use super::{convert::ToWasmVal, errors::ExceptionMessage, store::StoreContextValue};
+use super::{convert::ToWasmVal, errors::ExceptionMessage, store::StoreData};
 use magnus::{error::ErrorType, exception::arg_error, Error, Value};
 use static_assertions::assert_eq_size;
-use wasmtime::{FuncType, ValType};
+use wasmtime::{AsContextMut, FuncType, ValType};
 
 #[derive(Debug, Clone)]
 #[repr(C)]
@@ -16,9 +16,12 @@ impl Param {
         Self { index, ty, val }
     }
 
-    fn to_wasmtime_val(&self, store: &StoreContextValue) -> Result<wasmtime::Val, Error> {
+    fn to_wasmtime_val(
+        &self,
+        context: &mut impl AsContextMut<Data = StoreData>,
+    ) -> Result<wasmtime::Val, Error> {
         self.val
-            .to_wasm_val(store, self.ty.clone())
+            .to_wasm_val(context, self.ty.clone())
             .map_err(|error| error.append(format!(" (param at index {})", self.index)))
     }
 }
@@ -40,14 +43,17 @@ impl<'a> Params<'a> {
         Ok(Self(ty, params_slice))
     }
 
-    pub fn to_vec(&self, store: &StoreContextValue) -> Result<Vec<wasmtime::Val>, Error> {
+    pub fn to_vec(
+        &self,
+        context: &mut impl AsContextMut<Data = StoreData>,
+    ) -> Result<Vec<wasmtime::Val>, Error> {
         let mut vals = Vec::with_capacity(self.0.params().len());
         for (i, (param, value)) in self.0.params().zip(self.1.iter()).enumerate() {
             let i: u32 = i
                 .try_into()
                 .map_err(|_| Error::new(arg_error(), "too many params"))?;
             let param = Param::new(i, param, *value);
-            vals.push(param.to_wasmtime_val(store)?);
+            vals.push(param.to_wasmtime_val(context)?);
         }
 
         Ok(vals)

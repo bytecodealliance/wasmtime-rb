@@ -9,7 +9,7 @@ use magnus::{
     class, function, gc::Marker, method, prelude::*, scan_args, typed_data::Obj, DataTypeFunctions,
     Error, IntoValue, Object, Symbol, TypedData, Value,
 };
-use wasmtime::{Extern, Table as TableImpl, Val};
+use wasmtime::{Extern, RootScope, Table as TableImpl, Val};
 
 define_rb_intern!(
     MIN_SIZE => "min_size",
@@ -93,7 +93,8 @@ impl<'a> Table<'a> {
         let (min,) = kw.required;
         let (max,) = kw.optional;
         let wasm_type = value_type.to_val_type()?;
-        let wasm_default = default.to_wasm_val(&store.into(), wasm_type.clone())?;
+        let mut context = RootScope::new(store.context_mut());
+        let wasm_default = default.to_wasm_val(&mut context, wasm_type.clone())?;
         let ref_ = wasm_default
             .ref_()
             .ok_or_else(|| error!("Expected Ref for table value"))?;
@@ -104,20 +105,16 @@ impl<'a> Table<'a> {
             .clone();
 
         let inner = TableImpl::new(
-            store.context_mut(),
+            &mut context,
             wasmtime::TableType::new(table_type, min, max),
             ref_,
         )
         .map_err(|e| error!("{}", e))?;
 
-        let table = Self {
+        Ok(Self {
             store: store.into(),
             inner,
-        };
-
-        table.retain_non_nil_extern_ref(default)?;
-
-        Ok(table)
+        })
     }
 
     pub fn from_inner(store: StoreContextValue<'a>, inner: TableImpl) -> Self {
@@ -150,8 +147,9 @@ impl<'a> Table<'a> {
     /// @param index [Integer]
     /// @return [Object, nil]
     pub fn get(&self, index: u64) -> Result<Value, Error> {
-        match self.inner.get(self.store.context_mut()?, index) {
-            Some(wasm_val) => Val::from(wasm_val).to_ruby_value(&self.store),
+        let mut context = RootScope::new(self.store.context_mut()?);
+        match self.inner.get(&mut context, index) {
+            Some(wasm_val) => Val::from(wasm_val).to_ruby_value(&self.store, &context),
             None => Ok(().into_value()),
         }
     }
@@ -164,20 +162,20 @@ impl<'a> Table<'a> {
     /// @param value [Object]
     /// @return [void]
     pub fn set(&self, index: u64, value: Value) -> Result<(), Error> {
+        let ty = wasmtime::ValType::from(self.value_type()?);
+        let mut context = RootScope::new(self.store.context_mut()?);
+        let value = value
+            .to_wasm_val(&mut context, ty)?
+            .ref_()
+            .ok_or_else(|| error!("Expected Ref"))?;
+        if index >= self.inner.size(&context) {
+            return Err(error!("table element index out of bounds"));
+        }
+        // Wasmtime 36's Table::set does not drop an overwritten GC reference.
+        // fill uses the GC write barrier and releases the previous payload.
         self.inner
-            .set(
-                self.store.context_mut()?,
-                index,
-                value
-                    .to_wasm_val(&self.store, wasmtime::ValType::from(self.value_type()?))?
-                    .ref_()
-                    .ok_or_else(|| error!("Expected Ref"))?,
-            )
+            .fill(&mut context, index, value, 1)
             .map_err(|e| error!("{}", e))
-            .and_then(|result| {
-                self.retain_non_nil_extern_ref(value)?;
-                Ok(result)
-            })
     }
 
     /// @yard
@@ -189,20 +187,30 @@ impl<'a> Table<'a> {
     /// @param initial [Object] The initial value for newly added table slots.
     /// @return [void]
     pub fn grow(&self, delta: u64, initial: Value) -> Result<u64, Error> {
-        self.inner
-            .grow(
-                self.store.context_mut()?,
-                delta,
-                initial
-                    .to_wasm_val(&self.store, wasmtime::ValType::from(self.value_type()?))?
-                    .ref_()
-                    .ok_or_else(|| error!("Expected Ref"))?,
-            )
-            .map_err(|e| error!("{}", e))
-            .and_then(|result| {
-                self.retain_non_nil_extern_ref(initial)?;
-                Ok(result)
-            })
+        let ty = wasmtime::ValType::from(self.value_type()?);
+        let is_externref = ty.matches(&wasmtime::ValType::EXTERNREF);
+        let mut context = RootScope::new(self.store.context_mut()?);
+        let initial = initial
+            .to_wasm_val(&mut context, ty)?
+            .ref_()
+            .ok_or_else(|| error!("Expected Ref"))?;
+        if is_externref {
+            // Wasmtime 36's Table::grow leaks its cloned initial GC reference
+            // when growth fails. Grow with null, then fill the new slots using
+            // the still-rooted initial value only after growth succeeds.
+            let previous_size = self
+                .inner
+                .grow(&mut context, delta, wasmtime::Ref::Extern(None))
+                .map_err(|e| error!("{}", e))?;
+            self.inner
+                .fill(&mut context, previous_size, initial, delta)
+                .map_err(|e| error!("{}", e))?;
+            Ok(previous_size)
+        } else {
+            self.inner
+                .grow(&mut context, delta, initial)
+                .map_err(|e| error!("{}", e))
+        }
     }
 
     /// @yard
@@ -220,13 +228,6 @@ impl<'a> Table<'a> {
         let el = table_type.element();
 
         Ok(el.clone())
-    }
-
-    fn retain_non_nil_extern_ref(&self, value: Value) -> Result<(), Error> {
-        if !value.is_nil() && self.value_type()?.matches(&wasmtime::RefType::EXTERNREF) {
-            self.store.retain(value)?;
-        }
-        Ok(())
     }
 
     pub fn inner(&self) -> TableImpl {

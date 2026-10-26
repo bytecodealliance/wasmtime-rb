@@ -264,7 +264,7 @@ module Wasmtime
       without_gc_stress do
         GC.start(full_mark: true, immediate_sweep: true)
         if GC.respond_to?(:verify_compaction_references)
-          GC.verify_compaction_references(double_heap: true, toward: :empty)
+          GC.verify_compaction_references(expand_heap: true, toward: :empty)
         end
         GC.start(full_mark: true, immediate_sweep: true)
       end

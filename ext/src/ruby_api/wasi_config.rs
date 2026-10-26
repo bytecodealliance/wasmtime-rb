@@ -1,6 +1,6 @@
 use super::root;
 use crate::error;
-use crate::helpers::OutputLimitedBuffer;
+use crate::helpers::{with_gvl, OutputLimitedBuffer};
 use crate::ruby_api::convert::ToValType;
 use crate::{define_rb_intern, helpers::SymbolEnum};
 use lazy_static::lazy_static;
@@ -127,33 +127,36 @@ struct SocketAddrProc {
 
 impl SocketAddrProc {
     fn call(&self, addr: SocketAddr, use_: SocketAddrUse) -> bool {
-        let ruby = Ruby::get().unwrap();
+        // May run inside a nogvl region; re-acquire the GVL before calling into Ruby.
+        with_gvl(|| {
+            let ruby = Ruby::get().unwrap();
 
-        // Convert arguments to Ruby values
-        let addr_str = ruby.str_new(&addr.to_string());
-        let use_sym = socket_addr_use_to_symbol(&ruby, use_);
+            // Convert arguments to Ruby values
+            let addr_str = ruby.str_new(&addr.to_string());
+            let use_sym = socket_addr_use_to_symbol(&ruby, use_);
 
-        match self.proc.call::<_, Value>((addr_str, use_sym)) {
-            Ok(result) => bool::try_convert(result).unwrap_or(false),
-            Err(error) => {
-                // Store both class name and message for later retrieval
-                if let Ok(mut storage) = self.error_storage.lock() {
-                    // Get the exception class name from the error's value
-                    let class_name = if let Some(exception_value) = error.value() {
-                        unsafe { exception_value.class().name().into_owned() }
-                    } else {
-                        "RuntimeError".to_string()
-                    };
-                    *storage = Some((class_name, error.to_string()));
+            match self.proc.call::<_, Value>((addr_str, use_sym)) {
+                Ok(result) => bool::try_convert(result).unwrap_or(false),
+                Err(error) => {
+                    // Store both class name and message for later retrieval
+                    if let Ok(mut storage) = self.error_storage.lock() {
+                        // Get the exception class name from the error's value
+                        let class_name = if let Some(exception_value) = error.value() {
+                            unsafe { exception_value.class().name().into_owned() }
+                        } else {
+                            "RuntimeError".to_string()
+                        };
+                        *storage = Some((class_name, error.to_string()));
+                    }
+                    // Deny access when an exception occurs
+                    false
                 }
-                // Deny access when an exception occurs
-                false
             }
-        }
+        })
     }
 }
 
-// SAFETY: We only access the Ruby proc when we have the GVL (during WASI operations).
+// SAFETY: The Ruby proc is only accessed inside `with_gvl` in `SocketAddrProc::call`.
 // The Proc is kept alive by the Store's refs field, which is marked during GC.
 unsafe impl Send for SocketAddrProc {}
 unsafe impl Sync for SocketAddrProc {}

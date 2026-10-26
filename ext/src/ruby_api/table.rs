@@ -9,7 +9,7 @@ use magnus::{
     class, function, gc::Marker, method, prelude::*, scan_args, typed_data::Obj, DataTypeFunctions,
     Error, IntoValue, Object, Ruby, Symbol, TypedData, Value,
 };
-use wasmtime::{Extern, Table as TableImpl, Val};
+use wasmtime::{Extern, RootScope, Table as TableImpl, Val};
 
 define_rb_intern!(
     MIN_SIZE => "min_size",
@@ -93,7 +93,8 @@ impl<'a> Table<'a> {
         let (min,) = kw.required;
         let (max,) = kw.optional;
         let wasm_type = value_type.to_val_type()?;
-        let wasm_default = default.to_wasm_val(&store.into(), wasm_type.clone())?;
+        let mut context = RootScope::new(store.context_mut()?);
+        let wasm_default = default.to_wasm_val(&mut context, wasm_type.clone())?;
         let ref_ = wasm_default
             .ref_()
             .ok_or_else(|| error!("Expected Ref for table value"))?;
@@ -104,20 +105,16 @@ impl<'a> Table<'a> {
             .clone();
 
         let inner = TableImpl::new(
-            store.context_mut()?,
+            &mut context,
             wasmtime::TableType::new(table_type, min, max),
             ref_,
         )
         .map_err(|e| error!("{}", e))?;
 
-        let table = Self {
+        Ok(Self {
             store: store.into(),
             inner,
-        };
-
-        table.retain_non_nil_extern_ref(default)?;
-
-        Ok(table)
+        })
     }
 
     pub fn from_inner(store: StoreContextValue<'a>, inner: TableImpl) -> Self {
@@ -150,8 +147,9 @@ impl<'a> Table<'a> {
     /// @param index [Integer]
     /// @return [Object, nil]
     pub fn get(ruby: &Ruby, rb_self: Obj<Self>, index: u64) -> Result<Value, Error> {
-        match rb_self.inner.get(rb_self.store.context_mut()?, index) {
-            Some(wasm_val) => Val::from(wasm_val).to_ruby_value(ruby, &rb_self.store),
+        let mut context = RootScope::new(rb_self.store.context_mut()?);
+        match rb_self.inner.get(&mut context, index) {
+            Some(wasm_val) => Val::from(wasm_val).to_ruby_value(ruby, &rb_self.store, &context),
             None => Ok(().into_value_with(ruby)),
         }
     }
@@ -164,20 +162,15 @@ impl<'a> Table<'a> {
     /// @param value [Object]
     /// @return [void]
     pub fn set(&self, index: u64, value: Value) -> Result<(), Error> {
+        let ty = wasmtime::ValType::from(self.value_type()?);
+        let mut context = RootScope::new(self.store.context_mut()?);
+        let value = value
+            .to_wasm_val(&mut context, ty)?
+            .ref_()
+            .ok_or_else(|| error!("Expected Ref"))?;
         self.inner
-            .set(
-                self.store.context_mut()?,
-                index,
-                value
-                    .to_wasm_val(&self.store, wasmtime::ValType::from(self.value_type()?))?
-                    .ref_()
-                    .ok_or_else(|| error!("Expected Ref"))?,
-            )
+            .set(&mut context, index, value)
             .map_err(|e| error!("{}", e))
-            .and_then(|result| {
-                self.retain_non_nil_extern_ref(value)?;
-                Ok(result)
-            })
     }
 
     /// @yard
@@ -189,20 +182,15 @@ impl<'a> Table<'a> {
     /// @param initial [Object] The initial value for newly added table slots.
     /// @return [void]
     pub fn grow(&self, delta: u64, initial: Value) -> Result<u64, Error> {
+        let ty = wasmtime::ValType::from(self.value_type()?);
+        let mut context = RootScope::new(self.store.context_mut()?);
+        let initial = initial
+            .to_wasm_val(&mut context, ty)?
+            .ref_()
+            .ok_or_else(|| error!("Expected Ref"))?;
         self.inner
-            .grow(
-                self.store.context_mut()?,
-                delta,
-                initial
-                    .to_wasm_val(&self.store, wasmtime::ValType::from(self.value_type()?))?
-                    .ref_()
-                    .ok_or_else(|| error!("Expected Ref"))?,
-            )
+            .grow(&mut context, delta, initial)
             .map_err(|e| error!("{}", e))
-            .and_then(|result| {
-                self.retain_non_nil_extern_ref(initial)?;
-                Ok(result)
-            })
     }
 
     /// @yard
@@ -220,13 +208,6 @@ impl<'a> Table<'a> {
         let el = table_type.element();
 
         Ok(el.clone())
-    }
-
-    fn retain_non_nil_extern_ref(&self, value: Value) -> Result<(), Error> {
-        if !value.is_nil() && self.value_type()?.matches(&wasmtime::RefType::EXTERNREF) {
-            self.store.retain(value)?;
-        }
-        Ok(())
     }
 
     pub fn inner(&self) -> TableImpl {

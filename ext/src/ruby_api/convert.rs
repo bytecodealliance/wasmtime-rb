@@ -3,13 +3,14 @@ use lazy_static::lazy_static;
 use magnus::{
     prelude::*, try_convert, Error, IntoValue, RArray, Ruby, Symbol, TryConvert, TypedData, Value,
 };
-use wasmtime::{ExternRef, RefType, Val, ValType};
+use wasmtime::{AsContext, AsContextMut, ExternRef, RefType, Val, ValType};
 
 use super::{
+    externref::ExternRefHandle,
     func::{Func, FuncType},
     global::{Global, GlobalType},
     memory::{Memory, MemoryType},
-    store::StoreContextValue,
+    store::{StoreContextValue, StoreData},
     table::{Table, TableType},
 };
 
@@ -40,11 +41,21 @@ lazy_static! {
 }
 
 pub trait ToRubyValue {
-    fn to_ruby_value(&self, ruby: &Ruby, store: &StoreContextValue) -> Result<Value, Error>;
+    fn to_ruby_value(
+        &self,
+        ruby: &Ruby,
+        store: &StoreContextValue,
+        context: &impl AsContext<Data = StoreData>,
+    ) -> Result<Value, Error>;
 }
 
 impl ToRubyValue for Val {
-    fn to_ruby_value(&self, ruby: &Ruby, store: &StoreContextValue) -> Result<Value, Error> {
+    fn to_ruby_value(
+        &self,
+        ruby: &Ruby,
+        store: &StoreContextValue,
+        context: &impl AsContext<Data = StoreData>,
+    ) -> Result<Value, Error> {
         match self {
             Val::I32(i) => Ok(i.into_value_with(ruby)),
             Val::I64(i) => Ok(i.into_value_with(ruby)),
@@ -53,12 +64,15 @@ impl ToRubyValue for Val {
             Val::ExternRef(eref) => match eref {
                 None => Ok(().into_value_with(ruby)),
                 Some(eref) => {
-                    let inner = eref.data(store.context()?).map_err(|e| error!("{e}"))?;
+                    let context = context.as_context();
+                    let inner = eref.data(&context).map_err(|e| error!("{e}"))?;
                     match inner {
-                        Some(v) => v
-                            .downcast_ref::<ExternRefValue>()
-                            .map(|v| v.0)
-                            .ok_or_else(|| error!("failed to extract externref")),
+                        Some(v) => {
+                            let handle = v
+                                .downcast_ref::<ExternRefHandle>()
+                                .ok_or_else(|| error!("failed to extract externref"))?;
+                            context.data().externrefs.get(ruby, handle)
+                        }
                         None => Ok(().into_value_with(ruby)),
                     }
                 }
@@ -73,22 +87,27 @@ impl ToRubyValue for Val {
     }
 }
 pub trait ToWasmVal {
-    fn to_wasm_val(&self, store: &StoreContextValue, ty: ValType) -> Result<Val, Error>;
+    fn to_wasm_val(
+        &self,
+        context: &mut impl AsContextMut<Data = StoreData>,
+        ty: ValType,
+    ) -> Result<Val, Error>;
 }
 
 impl ToWasmVal for Value {
-    fn to_wasm_val(&self, store: &StoreContextValue, ty: ValType) -> Result<Val, Error> {
+    fn to_wasm_val(
+        &self,
+        context: &mut impl AsContextMut<Data = StoreData>,
+        ty: ValType,
+    ) -> Result<Val, Error> {
         if ty.matches(&ValType::EXTERNREF) {
             // Don't special case `nil` in order to ensure that it's always
             // a rooted value. Even though it's `nil` from Ruby's perspective,
             // it's a host managed object.
-            let extern_ref_value = Some(
-                ExternRef::new(
-                    store.context_mut().map_err(|e| error!("{e}"))?,
-                    ExternRefValue::from(*self),
-                )
-                .map_err(|e| error!("{e}"))?,
-            );
+            let handle = context.as_context().data().externrefs.allocate(*self)?;
+            // If allocation fails, dropping its error/payload releases the entry.
+            let extern_ref_value =
+                Some(ExternRef::new(context, handle).map_err(|e| error!("{e}"))?);
 
             return Ok(Val::ExternRef(extern_ref_value));
         }
@@ -113,15 +132,6 @@ impl ToWasmVal for Value {
         }
     }
 }
-
-struct ExternRefValue(Value);
-impl From<Value> for ExternRefValue {
-    fn from(v: Value) -> Self {
-        Self(v)
-    }
-}
-unsafe impl Send for ExternRefValue {}
-unsafe impl Sync for ExternRefValue {}
 
 pub trait ToExtern {
     fn to_extern(&self, ruby: &Ruby) -> Result<wasmtime::Extern, Error>;

@@ -8,7 +8,7 @@ use magnus::{
     class, function, gc::Marker, method, prelude::*, typed_data::Obj, DataTypeFunctions, Error,
     Object, Ruby, Symbol, TypedData, Value,
 };
-use wasmtime::{Extern, Global as GlobalImpl, Mutability};
+use wasmtime::{Extern, Global as GlobalImpl, Mutability, RootScope};
 
 #[derive(TypedData)]
 #[magnus(
@@ -103,22 +103,19 @@ impl<'a> Global<'a> {
         mutability: Mutability,
     ) -> Result<Self, Error> {
         let wasm_type = value_type.to_val_type()?;
-        let wasm_default = default.to_wasm_val(&store.into(), wasm_type.clone())?;
+        let mut context = RootScope::new(store.context_mut()?);
+        let wasm_default = default.to_wasm_val(&mut context, wasm_type.clone())?;
         let inner = GlobalImpl::new(
-            store.context_mut()?,
+            &mut context,
             wasmtime::GlobalType::new(wasm_type, mutability),
             wasm_default,
         )
         .map_err(|e| error!("{}", e))?;
 
-        let global = Self {
+        Ok(Self {
             store: store.into(),
             inner,
-        };
-
-        global.retain_non_nil_extern_ref(default)?;
-
-        Ok(global)
+        })
     }
 
     pub fn from_inner(store: StoreContextValue<'a>, inner: GlobalImpl) -> Self {
@@ -149,10 +146,11 @@ impl<'a> Global<'a> {
     /// @yard
     /// @return [Object] The current value of the global.
     pub fn get(ruby: &Ruby, rb_self: Obj<Self>) -> Result<Value, Error> {
+        let mut context = RootScope::new(rb_self.store.context_mut()?);
         rb_self
             .inner
-            .get(rb_self.store.context_mut()?)
-            .to_ruby_value(ruby, &rb_self.store)
+            .get(&mut context)
+            .to_ruby_value(ruby, &rb_self.store, &context)
     }
 
     /// @yard
@@ -161,16 +159,12 @@ impl<'a> Global<'a> {
     /// @param value [Object] An object that can be converted to the global's type.
     /// @return [nil]
     pub fn set(&self, value: Value) -> Result<(), Error> {
+        let ty = self.value_type()?;
+        let mut context = RootScope::new(self.store.context_mut()?);
+        let value = value.to_wasm_val(&mut context, ty)?;
         self.inner
-            .set(
-                self.store.context_mut()?,
-                value.to_wasm_val(&self.store, self.value_type()?)?,
-            )
+            .set(&mut context, value)
             .map_err(|e| error!("{}", e))
-            .and_then(|result| {
-                self.retain_non_nil_extern_ref(value)?;
-                Ok(result)
-            })
     }
 
     fn ty(&self) -> Result<wasmtime::GlobalType, Error> {
@@ -179,13 +173,6 @@ impl<'a> Global<'a> {
 
     fn value_type(&self) -> Result<wasmtime::ValType, Error> {
         self.ty().map(|ty| ty.content().clone())
-    }
-
-    fn retain_non_nil_extern_ref(&self, value: Value) -> Result<(), Error> {
-        if !value.is_nil() && self.value_type()?.matches(&wasmtime::ValType::EXTERNREF) {
-            self.store.retain(value)?;
-        }
-        Ok(())
     }
 
     pub fn inner(&self) -> GlobalImpl {

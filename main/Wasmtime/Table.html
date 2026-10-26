@@ -459,10 +459,7 @@
 115
 116
 117
-118
-119
-120
-121</pre>
+118</pre>
     </td>
     <td>
       <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 85</span>
@@ -478,7 +475,8 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let (min,) = kw.required;
     let (max,) = kw.optional;
     let wasm_type = value_type.to_val_type()?;
-    let wasm_default = default.to_wasm_val(&amp;store.into(), wasm_type.clone())?;
+    let mut context = RootScope::new(store.context_mut()?);
+    let wasm_default = default.to_wasm_val(&amp;mut context, wasm_type.clone())?;
     let ref_ = wasm_default
         .ref_()
         .ok_or_else(|| error!(&quot;Expected Ref for table value&quot;))?;
@@ -489,20 +487,16 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
         .clone();
 
     let inner = TableImpl::new(
-        store.context_mut()?,
+        &amp;mut context,
         wasmtime::TableType::new(table_type, min, max),
         ref_,
     )
     .map_err(|e| error!(&quot;{}&quot;, e))?;
 
-    let table = Self {
+    Ok(Self {
         store: store.into(),
         inner,
-    };
-
-    table.retain_non_nil_extern_ref(default)?;
-
-    Ok(table)
+    })
 }</pre>
     </td>
   </tr>
@@ -567,19 +561,21 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
       <pre class="lines">
 
 
+149
+150
+151
 152
 153
 154
-155
-156
-157</pre>
+155</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 152</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 149</span>
 
 pub fn get(ruby: &amp;Ruby, rb_self: Obj&lt;Self&gt;, index: u64) -&gt; Result&lt;Value, Error&gt; {
-    match rb_self.inner.get(rb_self.store.context_mut()?, index) {
-        Some(wasm_val) =&gt; Val::from(wasm_val).to_ruby_value(ruby, &amp;rb_self.store),
+    let mut context = RootScope::new(rb_self.store.context_mut()?);
+    match rb_self.inner.get(&amp;mut context, index) {
+        Some(wasm_val) =&gt; Val::from(wasm_val).to_ruby_value(ruby, &amp;rb_self.store, &amp;context),
         None =&gt; Ok(().into_value_with(ruby)),
     }
 }</pre>
@@ -645,41 +641,31 @@ Raises if the table grows beyond its limit.</p>
       <pre class="lines">
 
 
+184
+185
+186
+187
+188
+189
+190
 191
 192
 193
-194
-195
-196
-197
-198
-199
-200
-201
-202
-203
-204
-205
-206</pre>
+194</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 191</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 184</span>
 
 pub fn grow(&amp;self, delta: u64, initial: Value) -&gt; Result&lt;u64, Error&gt; {
+    let ty = wasmtime::ValType::from(self.value_type()?);
+    let mut context = RootScope::new(self.store.context_mut()?);
+    let initial = initial
+        .to_wasm_val(&amp;mut context, ty)?
+        .ref_()
+        .ok_or_else(|| error!(&quot;Expected Ref&quot;))?;
     self.inner
-        .grow(
-            self.store.context_mut()?,
-            delta,
-            initial
-                .to_wasm_val(&amp;self.store, wasmtime::ValType::from(self.value_type()?))?
-                .ref_()
-                .ok_or_else(|| error!(&quot;Expected Ref&quot;))?,
-        )
+        .grow(&amp;mut context, delta, initial)
         .map_err(|e| error!(&quot;{}&quot;, e))
-        .and_then(|result| {
-            self.retain_non_nil_extern_ref(initial)?;
-            Ok(result)
-        })
 }</pre>
     </td>
   </tr>
@@ -726,12 +712,12 @@ pub fn grow(&amp;self, delta: u64, initial: Value) -&gt; Result&lt;u64, Error&gt
       <pre class="lines">
 
 
-142
-143
-144</pre>
+139
+140
+141</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 142</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 139</span>
 
 pub fn max_size(&amp;self) -&gt; Result&lt;Option&lt;u64&gt;, Error&gt; {
     self.ty().map(|ty| ty.maximum())
@@ -781,12 +767,12 @@ pub fn max_size(&amp;self) -&gt; Result&lt;Option&lt;u64&gt;, Error&gt; {
       <pre class="lines">
 
 
-136
-137
-138</pre>
+133
+134
+135</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 136</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 133</span>
 
 pub fn min_size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
     self.ty().map(|ty| ty.minimum())
@@ -846,6 +832,8 @@ pub fn min_size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
       <pre class="lines">
 
 
+164
+165
 166
 167
 168
@@ -854,33 +842,21 @@ pub fn min_size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
 171
 172
 173
-174
-175
-176
-177
-178
-179
-180
-181</pre>
+174</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 166</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 164</span>
 
 pub fn set(&amp;self, index: u64, value: Value) -&gt; Result&lt;(), Error&gt; {
+    let ty = wasmtime::ValType::from(self.value_type()?);
+    let mut context = RootScope::new(self.store.context_mut()?);
+    let value = value
+        .to_wasm_val(&amp;mut context, ty)?
+        .ref_()
+        .ok_or_else(|| error!(&quot;Expected Ref&quot;))?;
     self.inner
-        .set(
-            self.store.context_mut()?,
-            index,
-            value
-                .to_wasm_val(&amp;self.store, wasmtime::ValType::from(self.value_type()?))?
-                .ref_()
-                .ok_or_else(|| error!(&quot;Expected Ref&quot;))?,
-        )
+        .set(&amp;mut context, index, value)
         .map_err(|e| error!(&quot;{}&quot;, e))
-        .and_then(|result| {
-            self.retain_non_nil_extern_ref(value)?;
-            Ok(result)
-        })
 }</pre>
     </td>
   </tr>
@@ -927,12 +903,12 @@ pub fn set(&amp;self, index: u64, value: Value) -&gt; Result&lt;(), Error&gt; {
       <pre class="lines">
 
 
-210
-211
-212</pre>
+198
+199
+200</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 210</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 198</span>
 
 pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
     Ok(self.inner.size(self.store.context()?))
@@ -982,12 +958,12 @@ pub fn size(&amp;self) -&gt; Result&lt;u64, Error&gt; {
       <pre class="lines">
 
 
-130
-131
-132</pre>
+127
+128
+129</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 130</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/table.rs', line 127</span>
 
 pub fn type_(&amp;self) -&gt; Result&lt;Symbol, Error&gt; {
     self.ty()?.element().to_sym()
@@ -1002,9 +978,9 @@ pub fn type_(&amp;self) -&gt; Result&lt;Symbol, Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Thu Oct 15 12:46:00 2026 by
+  Generated on Mon Oct 26 19:30:38 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.45 (ruby-4.0.7).
+  0.9.45 (ruby-4.0.9).
 </div>
 
     </div>

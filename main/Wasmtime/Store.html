@@ -234,6 +234,28 @@
         <li class="public ">
   <span class="summary_signature">
     
+      <a href="#gc-instance_method" title="#gc (instance method)">#<strong>gc</strong>  &#x21d2; nil </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Collects unreachable WebAssembly GC objects, releasing their host values.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
       <a href="#get_fuel-instance_method" title="#get_fuel (instance method)">#<strong>get_fuel</strong>  &#x21d2; Integer </a>
     
 
@@ -554,7 +576,6 @@ for detailed description of the different options and the defaults.</p></div>
       <pre class="lines">
 
 
-184
 185
 186
 187
@@ -615,10 +636,12 @@ for detailed description of the different options and the defaults.</p></div>
 242
 243
 244
-245</pre>
+245
+246
+247</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 184</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 185</span>
 
 pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
     let ruby = Ruby::get().unwrap();
@@ -669,6 +692,7 @@ pub fn new(args: &amp;[Value]) -&gt; Result&lt;Self, Error&gt; {
         wasi_p1,
         wasi,
         refs: Default::default(),
+        externrefs: Default::default(),
         wasi_retained_data,
         last_error: Default::default(),
         store_limits: limiter,
@@ -739,12 +763,12 @@ had already been closed.</p></div>
       <pre class="lines">
 
 
-327
-328
-329</pre>
+329
+330
+331</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 327</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 329</span>
 
 pub fn close(&amp;self) -&gt; bool {
     unsafe { (*self.inner.get()).take() }.is_some()
@@ -794,12 +818,12 @@ pub fn close(&amp;self) -&gt; bool {
       <pre class="lines">
 
 
-334
-335
-336</pre>
+336
+337
+338</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 334</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 336</span>
 
 pub fn closed(&amp;self) -&gt; bool {
     unsafe { (*self.inner.get()).is_none() }
@@ -849,15 +873,69 @@ pub fn closed(&amp;self) -&gt; bool {
       <pre class="lines">
 
 
-249
-250
-251</pre>
+251
+252
+253</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 249</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 251</span>
 
 pub fn data(&amp;self) -&gt; Result&lt;Value, Error&gt; {
     Ok(self.context()?.data().user_data())
+}</pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="gc-instance_method">
+  
+    #<strong>gc</strong>  &#x21d2; <tt>nil</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Collects unreachable WebAssembly GC objects, releasing their host values.
+This is separate from Ruby's <code>GC.start</code>; Ruby can collect released values
+on its next collection. Live globals, tables and Wasm references are kept.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>nil</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+346
+347
+348</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 346</span>
+
+pub fn gc(&amp;self) -&gt; Result&lt;(), Error&gt; {
+    self.inner_mut()?.gc(None).map_err(|e| error!(&quot;{e}&quot;))
 }</pre>
     </td>
   </tr>
@@ -917,12 +995,12 @@ pub fn data(&amp;self) -&gt; Result&lt;Value, Error&gt; {
       <pre class="lines">
 
 
-258
-259
-260</pre>
+260
+261
+262</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 258</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 260</span>
 
 pub fn get_fuel(&amp;self) -&gt; Result&lt;u64, Error&gt; {
     self.inner_ref()?.get_fuel().map_err(|e| error!(&quot;{}&quot;, e))
@@ -969,16 +1047,16 @@ pub fn get_fuel(&amp;self) -&gt; Result&lt;u64, Error&gt; {
       <pre class="lines">
 
 
-295
-296
 297
 298
 299
 300
-301</pre>
+301
+302
+303</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 295</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 297</span>
 
 pub fn linear_memory_limit_hit(&amp;self) -&gt; Result&lt;bool, Error&gt; {
     Ok(self
@@ -1029,16 +1107,16 @@ pub fn linear_memory_limit_hit(&amp;self) -&gt; Result&lt;bool, Error&gt; {
       <pre class="lines">
 
 
-307
-308
 309
 310
 311
 312
-313</pre>
+313
+314
+315</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 307</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 309</span>
 
 pub fn max_linear_memory_consumed(&amp;self) -&gt; Result&lt;usize, Error&gt; {
     Ok(self
@@ -1116,13 +1194,13 @@ when the <span class='object_link'><a href="Engine.html" title="Wasmtime::Engine
       <pre class="lines">
 
 
-285
-286
 287
-288</pre>
+288
+289
+290</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 285</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 287</span>
 
 pub fn set_epoch_deadline(&amp;self, ticks_beyond_current: u64) -&gt; Result&lt;(), Error&gt; {
     self.inner_mut()?.set_epoch_deadline(ticks_beyond_current);
@@ -1191,16 +1269,16 @@ pub fn set_epoch_deadline(&amp;self, ticks_beyond_current: u64) -&gt; Result&lt;
       <pre class="lines">
 
 
-267
-268
 269
 270
 271
 272
-273</pre>
+273
+274
+275</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 267</span>
+      <pre class="code"><span class="info file"># File 'ext/src/ruby_api/store.rs', line 269</span>
 
 pub fn set_fuel(&amp;self, fuel: u64) -&gt; Result&lt;(), Error&gt; {
     self.inner_mut()?
@@ -1219,9 +1297,9 @@ pub fn set_fuel(&amp;self, fuel: u64) -&gt; Result&lt;(), Error&gt; {
 </div>
 
       <div id="footer">
-  Generated on Thu Oct 15 12:46:00 2026 by
+  Generated on Mon Oct 26 19:30:38 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
-  0.9.45 (ruby-4.0.7).
+  0.9.45 (ruby-4.0.9).
 </div>
 
     </div>

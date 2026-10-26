@@ -9,6 +9,8 @@ use tokio::io::AsyncWrite;
 use wasmtime_wasi::cli::{IsTerminal, StdoutStream};
 use wasmtime_wasi::p2::{OutputStream, Pollable, StreamError, StreamResult};
 
+use super::with_gvl;
+
 /// A buffer that limits the number of bytes that can be written to it.
 /// If the buffer is full, it will truncate the data.
 /// Is used in the buffer implementations of stdout and stderr in `WasiP1Ctx` and `WasiCtxBuilder`.
@@ -119,35 +121,41 @@ impl OutputLimitedBufferInner {
     fn write(&mut self, buf: &[u8]) -> StreamResult<()> {
         // Append a buffer to the string and truncate when hitting the capacity.
         // We return the input buffer size regardless of whether we truncated or not to avoid a panic.
-        let ruby = Ruby::get().unwrap();
+        //
+        // This can be called from within the nogvl region of a `gvl: false`
+        // `Func` call, so the GVL must be re-acquired before touching the
+        // Ruby string. `with_gvl` is a no-op when the GVL is already held.
+        with_gvl(|| {
+            let ruby = Ruby::get().unwrap();
 
-        let mut inner_buffer = self.buffer.get_inner_with(&ruby);
+            let mut inner_buffer = self.buffer.get_inner_with(&ruby);
 
-        // Handling frozen case here is necessary because magnus does not check if a string is frozen before writing to it.
-        let is_frozen = inner_buffer.as_value().is_frozen();
-        if is_frozen {
-            return Err(StreamError::trap("Cannot write to a frozen buffer."));
-        }
+            // Handling frozen case here is necessary because magnus does not check if a string is frozen before writing to it.
+            let is_frozen = inner_buffer.as_value().is_frozen();
+            if is_frozen {
+                return Err(StreamError::trap("Cannot write to a frozen buffer."));
+            }
 
-        if buf.is_empty() {
-            return Ok(());
-        }
+            if buf.is_empty() {
+                return Ok(());
+            }
 
-        if inner_buffer
-            .len()
-            .checked_add(buf.len())
-            .is_some_and(|val| val < self.capacity)
-        {
-            inner_buffer
-                .write(buf)
-                .map_err(|e| StreamError::trap(&e.to_string()))?;
-        } else {
-            let portion = self.capacity - inner_buffer.len();
-            inner_buffer
-                .write(&buf[0..portion])
-                .map_err(|e| StreamError::trap(&e.to_string()))?;
-        };
+            if inner_buffer
+                .len()
+                .checked_add(buf.len())
+                .is_some_and(|val| val < self.capacity)
+            {
+                inner_buffer
+                    .write(buf)
+                    .map_err(|e| StreamError::trap(&e.to_string()))?;
+            } else {
+                let portion = self.capacity.saturating_sub(inner_buffer.len());
+                inner_buffer
+                    .write(&buf[0..portion])
+                    .map_err(|e| StreamError::trap(&e.to_string()))?;
+            };
 
-        Ok(())
+            Ok(())
+        })
     }
 }

@@ -46,6 +46,44 @@ module Wasmtime
       end
     end
 
+    describe "Func#call with gvl: false" do
+      it "writes to a stdout buffer safely while other threads read it" do
+        mod = Module.new(@engine, <<~WAT)
+          (module
+            (import "wasi_snapshot_preview1" "fd_write"
+              (func $fd_write (param i32 i32 i32 i32) (result i32)))
+            (memory (export "memory") 1)
+            (data (i32.const 16) "x")
+            (func (export "_start") (local $i i32)
+              (i32.store (i32.const 0) (i32.const 16))
+              (i32.store (i32.const 4) (i32.const 1))
+              (loop $l
+                (drop (call $fd_write (i32.const 1) (i32.const 0) (i32.const 1) (i32.const 8)))
+                (br_if $l (i32.lt_u
+                  (local.tee $i (i32.add (local.get $i) (i32.const 1)))
+                  (i32.const 100000))))))
+        WAT
+        stdout_str = +""
+        store = Store.new(@engine, wasi_p1_config: WasiConfig.new.set_stdout_buffer(stdout_str, 1_000_000))
+        linker = Linker.new(@engine)
+        WASI::P1.add_to_linker_sync(linker)
+        func = linker.instantiate(store, mod).export("_start").to_func(gvl: false)
+
+        done = false
+        reader = Thread.new do
+          until done
+            stdout_str.dup.count("x")
+            Thread.pass # Let the guest re-acquire the GVL for each write.
+          end
+        end
+        func.call
+        done = true
+        reader.join
+
+        expect(stdout_str).to eq("x" * 100_000)
+      end
+    end
+
     describe "Component::Linker::instantiate" do
       it "prevents panic when Store doesn't have a WASI config" do
         linker = Component::Linker.new(@engine)

@@ -53,6 +53,7 @@ jobs:
         run: bundle exec rake spec
 
       - name: Run ruby tests (hard-mode with GC.stress)
+        if: matrix.os == 'ubuntu-latest' && matrix.ruby == fromJSON(needs.ci-data.outputs.result).latest-ruby-version
         run: bundle exec rake spec
         env:
           GC_STRESS: "true"

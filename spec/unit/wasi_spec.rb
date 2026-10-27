@@ -69,16 +69,20 @@ module Wasmtime
         WASI::P1.add_to_linker_sync(linker)
         func = linker.instantiate(store, mod).export("_start").to_func(gvl: false)
 
-        done = false
-        reader = Thread.new do
-          until done
-            stdout_str.dup.count("x")
-            Thread.pass # Let the guest re-acquire the GVL for each write.
+        # This exercises GVL handoffs, not GC interaction. Under GC.stress every
+        # write and read would trigger a full collection, taking over an hour.
+        without_gc_stress do
+          done = false
+          reader = Thread.new do
+            until done
+              stdout_str.dup.count("x")
+              Thread.pass # Let the guest re-acquire the GVL for each write.
+            end
           end
+          func.call
+          done = true
+          reader.join
         end
-        func.call
-        done = true
-        reader.join
 
         expect(stdout_str).to eq("x" * 100_000)
       end

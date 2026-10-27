@@ -23,6 +23,9 @@ jobs:
   ci:
     runs-on: ${{ matrix.os }}
     needs: ci-data
+    env:
+      CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "16"
+      CARGO_PROFILE_RELEASE_LTO: "false"
     strategy:
       fail-fast: false
       matrix:
@@ -65,7 +68,9 @@ jobs:
         run: bundle exec rake bench:all
 
       - name: Lint ruby
+        if: matrix.os == 'ubuntu-latest' && matrix.ruby == fromJSON(needs.ci-data.outputs.result).latest-ruby-version
         run: bundle exec rake standard
 
       - name: Lint rust
+        if: matrix.os == 'ubuntu-latest' && matrix.ruby == fromJSON(needs.ci-data.outputs.result).latest-ruby-version
         run: cargo clippy -- -D warnings && cargo fmt --check

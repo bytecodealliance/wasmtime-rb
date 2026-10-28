@@ -1,11 +1,32 @@
 # Changelog
 
-## [v49.0.2](https://github.com/bytecodealliance/wasmtime-rb/tree/v49.0.2) (2026-10-07)
+## [v50.0.0](https://github.com/bytecodealliance/wasmtime-rb/tree/v50.0.0) (2026-10-28)
+
+[Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v49.0.2...v50.0.0)
+
+**Merged pull requests:**
+
+- Update to wasmtime 50.0.0 [\#682](https://github.com/bytecodealliance/wasmtime-rb/pull/682) ([saulecabrera](https://github.com/saulecabrera))
+- ci: speed up rust compilation and gate lints to single runner [\#680](https://github.com/bytecodealliance/wasmtime-rb/pull/680) ([saulecabrera](https://github.com/saulecabrera))
+- Fix externref tests [\#679](https://github.com/bytecodealliance/wasmtime-rb/pull/679) ([jeffcharles](https://github.com/jeffcharles))
+- ci: run GC.stress tests only on ubuntu-latest and latest ruby [\#678](https://github.com/bytecodealliance/wasmtime-rb/pull/678) ([saulecabrera](https://github.com/saulecabrera))
+- spec: run the WASI gvl: false test without GC.stress [\#677](https://github.com/bytecodealliance/wasmtime-rb/pull/677) ([saulecabrera](https://github.com/saulecabrera))
+- Update the security incident runbook [\#676](https://github.com/bytecodealliance/wasmtime-rb/pull/676) ([jeffcharles](https://github.com/jeffcharles))
+- Exclude v36.0.1 from the changelog on main [\#674](https://github.com/bytecodealliance/wasmtime-rb/pull/674) ([saulecabrera](https://github.com/saulecabrera))
+- Exclude v49.0.3 from the changelog on main [\#673](https://github.com/bytecodealliance/wasmtime-rb/pull/673) ([saulecabrera](https://github.com/saulecabrera))
+- Security release for main [\#667](https://github.com/bytecodealliance/wasmtime-rb/pull/667) ([saulecabrera](https://github.com/saulecabrera))
+- ci: Pin release platforms and Ruby versions per branch [\#657](https://github.com/bytecodealliance/wasmtime-rb/pull/657) ([saulecabrera](https://github.com/saulecabrera))
+- docs: Explain how to create and check release branches [\#656](https://github.com/bytecodealliance/wasmtime-rb/pull/656) ([saulecabrera](https://github.com/saulecabrera))
+- ci: add a workflow to create release branches [\#655](https://github.com/bytecodealliance/wasmtime-rb/pull/655) ([saulecabrera](https://github.com/saulecabrera))
+- Improve docs around the security release process [\#654](https://github.com/bytecodealliance/wasmtime-rb/pull/654) ([saulecabrera](https://github.com/saulecabrera))
+
+## [v49.0.2](https://github.com/bytecodealliance/wasmtime-rb/tree/v49.0.2) (2026-10-08)
 
 [Full Changelog](https://github.com/bytecodealliance/wasmtime-rb/compare/v48.0.1...v49.0.2)
 
 **Merged pull requests:**
 
+- Release 49.0.2 [\#653](https://github.com/bytecodealliance/wasmtime-rb/pull/653) ([saulecabrera](https://github.com/saulecabrera))
 - Remove version number from Cargo.toml [\#652](https://github.com/bytecodealliance/wasmtime-rb/pull/652) ([saulecabrera](https://github.com/saulecabrera))
 - Update to wasmtime 49 [\#651](https://github.com/bytecodealliance/wasmtime-rb/pull/651) ([saulecabrera](https://github.com/saulecabrera))
 - ci: automate releases [\#650](https://github.com/bytecodealliance/wasmtime-rb/pull/650) ([saulecabrera](https://github.com/saulecabrera))

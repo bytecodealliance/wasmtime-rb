@@ -41,10 +41,11 @@ module Wasmtime
       end
 
       it "releases a value removed from the guest #{kind}" do
-        weak = save_temporary(instance.export("save_#{kind}").to_func)
+        values = temporary_values(instance.export("save_#{kind}").to_func)
         instance.invoke("clear")
+        expect(instance.invoke("load_#{kind}")).to be_nil
         collect(store)
-        expect(weak.weakref_alive?).to be_falsey
+        expect_most_collected(values, "guest #{kind}")
       end
     end
 
@@ -66,36 +67,37 @@ module Wasmtime
     it "releases overwritten globals and table entries" do
       global = Global.var(store, :externref, nil)
       table = Table.new(store, :externref, nil, min_size: 1)
-      global_value = save_temporary(global.method(:set))
-      table_value = save_temporary(->(value) { table.set(0, value) })
+      global_values = temporary_values(global.method(:set))
+      table_values = temporary_values(->(value) { table.set(0, value) })
       global.set(nil)
       table.set(0, nil)
       collect(store)
-      expect(global_value.weakref_alive?).to be_falsey
-      expect(table_value.weakref_alive?).to be_falsey
+      expect_most_collected(global_values, "global writes")
+      expect_most_collected(table_values, "table writes")
     end
 
     it "does not retain values from repeated calls or reads" do
-      identity = instance.export("identity").to_func
-      values = without_gc_stress { Array.new(100) { save_temporary(identity) } }
+      values = temporary_values(instance.export("identity").to_func)
       collect(store)
-      expect(values.any?(&:weakref_alive?)).to be false
+      expect_most_collected(values, "identity calls")
     end
 
     it "does not keep extra roots after reading globals and tables" do
       global = Global.var(store, :externref, nil)
       table = Table.new(store, :externref, nil, min_size: 1)
-      global_value = save_temporary(global.method(:set))
-      table_value = save_temporary(->(value) { table.set(0, value) })
-      100.times do
-        global.get
-        table.get(0)
-      end
+      global_values = temporary_values(->(value) do
+        global.set(value)
+        3.times { global.get }
+      end)
+      table_values = temporary_values(->(value) do
+        table.set(0, value)
+        3.times { table.get(0) }
+      end)
       global.set(nil)
       table.set(0, nil)
       collect(store)
-      expect(global_value.weakref_alive?).to be_falsey
-      expect(table_value.weakref_alive?).to be_falsey
+      expect_most_collected(global_values, "global writes")
+      expect_most_collected(table_values, "table writes")
     end
 
     it "preserves Ruby object identity and nil's non-null externref semantics" do
@@ -148,35 +150,41 @@ module Wasmtime
     it "releases arguments after traps and partial parameter conversion failures" do
       trap = instance.export("trap").to_func
       two_args = instance.export("two_args").to_func
-      trapped = save_temporary_failure(trap, Trap)
-      invalid = save_temporary_failure(->(value) { two_args.call(value, nil) }, TypeError)
+      trapped = temporary_values(->(value) { expect_failure(trap, value, Trap) })
+      invalid = temporary_values(->(value) do
+        expect_failure(->(argument) { two_args.call(argument, nil) }, value, TypeError)
+      end)
       collect(store)
-      expect(trapped.weakref_alive?).to be_falsey
-      expect(invalid.weakref_alive?).to be_falsey
+      expect_most_collected(trapped, "trapped arguments")
+      expect_most_collected(invalid, "invalid arguments")
     end
 
     it "releases partially converted callback results on error" do
-      weak = nil
+      values = []
       callback = Func.new(store, [], [:externref, :i32]) do
         value = +"failed callback result"
-        weak = WeakRef.new(value)
+        values << WeakRef.new(value)
         [value, nil]
       end
-      expect { callback.call }.to raise_error(Wasmtime::ResultError)
+      without_gc_stress do
+        100.times { expect { callback.call }.to raise_error(Wasmtime::ResultError) }
+      end
       collect(store)
-      expect(weak.weakref_alive?).to be_falsey
+      expect_most_collected(values, "failed callback results")
     end
 
-    it "releases values from failed global writes, table writes and table growth",
-      skip: "flaky, needs more investigation" do
+    it "releases values from failed global writes, table writes and table growth" do
       global = Global.const(store, :externref, nil)
       table = Table.new(store, :externref, nil, min_size: 1, max_size: 1)
-      failed_global = save_temporary_failure(global.method(:set), Wasmtime::Error)
-      failed_set = save_temporary_failure(->(value) { table.set(2, value) }, Wasmtime::Error)
-      failed_grow = save_temporary_failure(->(value) { table.grow(1, value) }, Wasmtime::Error)
-      collect(store)
-      [failed_global, failed_set, failed_grow].each do |weak|
-        expect(weak.weakref_alive?).to be_falsey
+      writes = {
+        "failed global writes" => global.method(:set),
+        "failed table writes" => ->(value) { table.set(2, value) },
+        "failed table growth" => ->(value) { table.grow(1, value) }
+      }
+      writes.each do |label, write|
+        values = temporary_values(->(value) { expect_failure(write, value, Wasmtime::Error) })
+        collect(store)
+        expect_most_collected(values, label)
       end
     end
 
@@ -192,15 +200,15 @@ module Wasmtime
     end
 
     it "releases values when the store is collected" do
-      weak = temporary_store_value
+      values = without_gc_stress { Array.new(100) { temporary_store_value } }
       collect_ruby
-      expect(weak.weakref_alive?).to be_falsey
+      expect_most_collected(values, "collected store values")
     end
 
     it "can collect a store and values that refer back to it" do
-      weak = temporary_store_cycle
+      values = without_gc_stress { Array.new(100) { temporary_store_cycle } }
       collect_ruby
-      expect(weak.weakref_alive?).to be_falsey
+      expect_most_collected(values, "store cycles")
     end
 
     it "supports host callbacks while another Ruby thread collects and compacts" do
@@ -231,8 +239,8 @@ module Wasmtime
 
     private
 
-    # If we don't do this, the test will have a reference to `value` which will keep it alive when
-    # GC is run which prevents us from seeing if the value would've been collected as expected
+    # Keep the obvious strong reference out of the example's scope. Native-stack
+    # copies may still survive collection; see expect_most_collected.
     def save_temporary(callable)
       value = +"temporary value"
       weak = WeakRef.new(value)
@@ -240,16 +248,17 @@ module Wasmtime
       weak
     end
 
-    # RSpec's raise_error matcher retains its block (and therefore the value),
-    # so use a plain rescue when testing collection of failed arguments.
-    def save_temporary_failure(callable, error_class)
-      value = +"failed value"
-      weak = WeakRef.new(value)
-      begin
-        callable.call(value)
-      rescue error_class
-        return weak
-      end
+    def temporary_values(callable)
+      without_gc_stress { Array.new(100) { save_temporary(callable) } }
+    end
+
+    # RSpec's raise_error matcher retains its block. Avoid capturing each
+    # temporary value in a matcher when checking failed arguments.
+    def expect_failure(callable, value, error_class)
+      callable.call(value)
+    rescue error_class
+      nil
+    else
       raise "expected #{error_class}"
     end
 
@@ -257,6 +266,18 @@ module Wasmtime
       local_store = Store.new(engine)
       global = Global.var(local_store, :externref, nil)
       save_temporary(global.method(:set))
+    end
+
+    # Sometimes native-stack scanning may retain otherwise unreachable objects,
+    # so verify most objects were collected.
+    def expect_most_collected(values, label)
+      expect(values.size).to eq(100)
+      # Snapshot liveness without dereferencing the weak references, so reporting
+      # a failure does not introduce strong references to their referents.
+      alive_indices = values.each_index.select { |index| values[index].weakref_alive? }
+      expect(alive_indices.size).to be <= 10,
+        "#{label}: #{alive_indices.size}/#{values.size} weak references still alive " \
+        "(maximum 10); surviving batch indices (zero-based): #{alive_indices.inspect}"
     end
 
     def temporary_store_cycle

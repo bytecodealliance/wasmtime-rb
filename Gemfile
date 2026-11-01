@@ -8,7 +8,7 @@ gemspec
 group :development do
   gem "rake", "~> 13.4"
   gem "rake-compiler"
-  gem "standard", "~> 1.56"
+  gem "standard", "~> 1.57"
   gem "get_process_mem"
   gem "yard", require: false
   gem "yard-rustdoc", "~> 0.4.0", require: false
